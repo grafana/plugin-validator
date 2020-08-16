@@ -6,6 +6,10 @@ A tool for validating community plugins for publishing to Grafana.com.
 
 Currently only supports plugins hosted on GitHub.
 
+## Local validation of plugin.json
+
+Adding `https://raw.githubusercontent.com/grafana/plugin-validator/master/config/plugin.schema.json` as `$schema` of the `plugin.json` will help you to locally validate the file. This will also allows you to improve the `plugin.json` authoring experience with auto complete in IDEs.
+
 ## Install
 
 ```
