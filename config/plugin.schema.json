@@ -23,8 +23,8 @@
     },
     "category": {
       "type": "string",
-      "description": "Plugin category used on the Add data source page. Possible values are: `tsdb`, `logging`, `cloud`, `tracing`, and `sql`.",
-      "enum": ["tsdb", "logging", "cloud", "tracing", "sql"]
+      "description": "Plugin category used on the Add data source page. Possible values are: `tsdb`, `logging`, `cloud`, `tracing`, `sql` and `others`.",
+      "enum": ["tsdb", "logging", "cloud", "tracing", "sql", "others"]
     },
     "annotations": {
       "type": "boolean",
