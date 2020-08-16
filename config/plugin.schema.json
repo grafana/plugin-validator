@@ -146,7 +146,7 @@
     "info": {
       "type": "object",
       "description": "Metadata for the plugin. Some fields are used on the plugins page in Grafana and others on grafana.com if the plugin is published.",
-      "required": ["logos", "version", "updated"],
+      "required": ["logos", "version", "updated", "keywords"],
       "additionalProperties": false,
       "properties": {
         "author": {
@@ -177,6 +177,7 @@
         "keywords": {
           "type": "array",
           "description": "Array of plugin keywords. Used for search on grafana.com.",
+          "minItems": 1,
           "items": {
             "type": "string"
           }
