@@ -14,6 +14,7 @@ func main() {
 	var (
 		pluginURLFlag  = flag.String("url", "", "URL to the plugin")
 		schemaPathFlag = flag.String("schema", "./config/plugin.schema.json", "Path to the JSON Schema to validate against.")
+		strictFlag     = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
 	)
 
 	flag.Parse()
@@ -39,5 +40,17 @@ func main() {
 		}
 
 		os.Stdout.Write(b)
+	}
+
+	if len(result) > 0 {
+		if *strictFlag {
+			os.Exit(1)
+		}
+
+		for _, res := range result {
+			if res.Severity == "error" {
+				os.Exit(1)
+			}
+		}
 	}
 }
