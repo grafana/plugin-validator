@@ -25,11 +25,19 @@ func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) 
 
 	filepath.Walk(ctx.DistDir, func(path string, info os.FileInfo, err error) error {
 		if info.Size() > 1000000 {
-			errs = append(errs, ValidationComment{
-				Severity: "error",
-				Message:  fmt.Sprintf("File is too large: %s", strings.TrimPrefix(strings.TrimPrefix(path, ctx.DistDir), "/")),
-				Details:  "Due to restrictions in the GitHub API, we're currently not able to publish plugins that contain files that are larger than 1 MB.",
-			})
+			b, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			if !strings.HasPrefix(http.DetectContentType(b), "text/plain") {
+				errs = append(errs, ValidationComment{
+					Severity: "error",
+					Message:  fmt.Sprintf("File is too large: %s", strings.TrimPrefix(strings.TrimPrefix(path, ctx.DistDir), "/")),
+					Details:  "Due to restrictions in the GitHub API, we're currently not able to publish plugins that contain files that are larger than 1 MB.",
+				})
+			}
+
 		}
 		return nil
 	})
