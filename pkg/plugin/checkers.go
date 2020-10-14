@@ -509,7 +509,7 @@ func checkRelativePath(ctx *checkContext, path string) (ValidationComment, bool)
 		return ValidationComment{
 			Severity: checkSeverityError,
 			Message:  fmt.Sprintf("Invalid path: %s", path),
-			Details:  "Foo",
+			Details:  "Paths need to be relative to the plugin.json file, and can't begin with `.` or `/`. For example, `img/screenshot.png`.",
 		}, false
 	}
 
