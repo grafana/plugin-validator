@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -122,19 +123,12 @@ func (c screenshotChecker) check(ctx *checkContext) ([]ValidationComment, error)
 
 	var errs []ValidationComment
 	for _, ss := range data.Info.Screenshots {
-		_, err := fallbackDir(ss.Path, ctx.DistDir, ctx.SrcDir)
-		if err != nil {
-			if err == errFileNotFound {
-				errs = append(errs, ValidationComment{
-					Severity: checkSeverityError,
-					Message:  fmt.Sprintf("File not found: %s", ss.Path),
-					Details:  "We couldn't find the specified file. Make sure that the file exists.",
-				})
-				continue
-			}
-			return nil, err
+		comment, ok := checkRelativePath(ctx, ss.Path)
+		if !ok {
+			errs = append(errs, comment)
 		}
 	}
+
 	return errs, nil
 }
 
@@ -386,31 +380,17 @@ func (c *logosExistChecker) check(ctx *checkContext) ([]ValidationComment, error
 
 	// Check for small logo.
 	if plugin.Info.Logos.Small != "" {
-		smallPath := filepath.Join(ctx.SrcDir, plugin.Info.Logos.Small)
-
-		if _, err := os.Stat(smallPath); err != nil {
-			if os.IsNotExist(err) {
-				errs = append(errs, ValidationComment{
-					Severity: checkSeverityError,
-					Message:  fmt.Sprintf("File not found: %q", plugin.Info.Logos.Small),
-					Details:  "We couldn't find the specified file. Make sure that the file exists.",
-				})
-			}
+		comment, ok := checkRelativePath(ctx, plugin.Info.Logos.Small)
+		if !ok {
+			errs = append(errs, comment)
 		}
 	}
 
 	// Check for large logo.
 	if plugin.Info.Logos.Large != "" {
-		largePath := filepath.Join(ctx.SrcDir, plugin.Info.Logos.Large)
-
-		if _, err := os.Stat(largePath); err != nil {
-			if os.IsNotExist(err) {
-				errs = append(errs, ValidationComment{
-					Severity: checkSeverityError,
-					Message:  fmt.Sprintf("File not found: %q", plugin.Info.Logos.Large),
-					Details:  "We couldn't find the specified file. Make sure that the file exists.",
-				})
-			}
+		comment, ok := checkRelativePath(ctx, plugin.Info.Logos.Large)
+		if !ok {
+			errs = append(errs, comment)
 		}
 	}
 
@@ -521,4 +501,36 @@ func fileExists(path string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+func checkRelativePath(ctx *checkContext, path string) (ValidationComment, bool) {
+	u, err := url.Parse(path)
+	if err != nil {
+		return ValidationComment{
+			Severity: checkSeverityError,
+			Message:  fmt.Sprintf("Invalid path: %s", path),
+			Details:  "Foo",
+		}, false
+	}
+
+	if strings.HasPrefix(path, ".") || strings.HasPrefix(path, "/") || u.IsAbs() {
+		return ValidationComment{
+			Severity: checkSeverityError,
+			Message:  fmt.Sprintf("Invalid path: %s", path),
+			Details:  "Paths need to be relative to the plugin.json file, and can't begin with `.` or `/`. For example, `img/screenshot.png`.",
+		}, false
+	}
+
+	_, err = fallbackDir(path, ctx.DistDir, ctx.SrcDir)
+	if err != nil {
+		if err == errFileNotFound {
+			return ValidationComment{
+				Severity: checkSeverityError,
+				Message:  fmt.Sprintf("File not found: %s", path),
+				Details:  "We couldn't find the specified file. Make sure that the file exists.",
+			}, false
+		}
+	}
+
+	return ValidationComment{}, true
 }
