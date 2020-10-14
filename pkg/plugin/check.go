@@ -151,7 +151,6 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 	checkers := []checker{
 		&distExistsChecker{},
 		&orgExistsChecker{username: username, client: client},
-		&logosExistChecker{},
 		&pluginIDFormatChecker{},
 		&pluginNameChecker{},
 		&pluginIDHasTypeSuffixChecker{},
@@ -159,6 +158,8 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 		&linkChecker{},
 		&pluginPlatformChecker{},
 		&screenshotChecker{},
+		&logosExistChecker{},
+		&largeFileChecker{},
 		&developerJargonChecker{},
 		&templateReadmeChecker{},
 	}
