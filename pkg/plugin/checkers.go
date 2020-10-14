@@ -378,15 +378,7 @@ type logosExistChecker struct{}
 
 // check checks whether the specified logos exists.
 func (c *logosExistChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	path, err := fallbackDir("plugin.json", ctx.DistDir, ctx.SrcDir)
-	if err != nil {
-		if err == errFileNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	pluginFile, err := ioutil.ReadFile(path)
+	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.DistDir, "plugin.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -471,19 +463,15 @@ type pluginPlatformChecker struct{}
 
 // check checks whether a Grafana.com account exists for a given username.
 func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	var modulePath string
-	var err error
-	modulePath, err = fallbackDir("module.ts", ctx.DistDir, ctx.SrcDir)
+	tsModulePath := filepath.Join(ctx.SrcDir, "module.ts")
+	jsModulePath := filepath.Join(ctx.SrcDir, "module.js")
+
+	b, err := ioutil.ReadFile(tsModulePath)
 	if err != nil {
-		modulePath, err = fallbackDir("module.js", ctx.DistDir, ctx.SrcDir)
+		b, err = ioutil.ReadFile(jsModulePath)
 		if err != nil {
-			return nil, nil
+			return nil, err
 		}
-	}
-
-	b, err := ioutil.ReadFile(modulePath)
-	if err != nil {
-
 	}
 
 	reactExp := regexp.MustCompile(`(DataSourcePlugin|PanelPlugin)`)
@@ -503,22 +491,6 @@ func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, e
 }
 
 var errFileNotFound = errors.New("file not found")
-
-// fallbackDir looks for a filename in a number of directories, and returns the
-// path to the first path to exist.
-func fallbackDir(filename string, dirs ...string) (string, error) {
-	for _, dir := range dirs {
-		path := filepath.Join(dir, filename)
-		ok, err := fileExists(path)
-		if err != nil {
-			return "", err
-		}
-		if ok {
-			return path, nil
-		}
-	}
-	return "", errFileNotFound
-}
 
 func fileExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {
@@ -548,15 +520,13 @@ func checkRelativePath(ctx *checkContext, path string) (ValidationComment, bool)
 		}, false
 	}
 
-	_, err = fallbackDir(path, ctx.DistDir, ctx.SrcDir)
-	if err != nil {
-		if err == errFileNotFound {
-			return ValidationComment{
-				Severity: checkSeverityError,
-				Message:  fmt.Sprintf("File not found: %s", path),
-				Details:  "We couldn't find the specified file. Make sure that the file exists.",
-			}, false
-		}
+	exists, _ := fileExists(filepath.Join(ctx.DistDir, path))
+	if !exists {
+		return ValidationComment{
+			Severity: checkSeverityError,
+			Message:  fmt.Sprintf("File not found: %s", path),
+			Details:  "We couldn't find the specified file. Make sure that the file exists.",
+		}, false
 	}
 
 	return ValidationComment{}, true

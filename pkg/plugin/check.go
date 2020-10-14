@@ -95,30 +95,30 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 	// if those checkers ran successfully.
 	var fatalErrs []ValidationComment
 
-	readmePath, err := fallbackDir("README.md", distDir, rootDir)
+	readmePath := filepath.Join(distDir, "README.md")
+	exists, err := fileExists(readmePath)
 	if err != nil {
-		if err == errFileNotFound {
-			fatalErrs = append(fatalErrs, ValidationComment{
-				Severity: "error",
-				Message:  "Missing README",
-				Details:  "Plugins require a `README.md` file, but we couldn't find one. The README should provide instructions to the users on how to use the plugin.",
-			})
-		} else {
-			return nil, nil, err
-		}
+		return nil, nil, err
+	}
+	if !exists {
+		fatalErrs = append(fatalErrs, ValidationComment{
+			Severity: "error",
+			Message:  "Missing README",
+			Details:  "Plugins require a `README.md` file, but we couldn't find one. The README should provide instructions to the users on how to use the plugin.",
+		})
 	}
 
-	metadataPath, err := fallbackDir("plugin.json", distDir, srcDir)
+	metadataPath := filepath.Join(distDir, "plugin.json")
+	exists, err = fileExists(metadataPath)
 	if err != nil {
-		if err == errFileNotFound {
-			fatalErrs = append(fatalErrs, ValidationComment{
-				Severity: "error",
-				Message:  "Missing metadata",
-				Details:  "Plugins require a `plugin.json` file, but we couldn't find one. For more information, refer to [plugin.json](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/).",
-			})
-		} else {
-			return nil, nil, err
-		}
+		return nil, nil, err
+	}
+	if !exists {
+		fatalErrs = append(fatalErrs, ValidationComment{
+			Severity: "error",
+			Message:  "Missing metadata",
+			Details:  "Plugins require a `plugin.json` file, but we couldn't find one. For more information, refer to [plugin.json](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/).",
+		})
 	}
 
 	if len(fatalErrs) > 0 {
