@@ -4,7 +4,7 @@
 
 A tool for validating community plugins for publishing to Grafana.com.
 
-Currently only supports plugins hosted on GitHub.
+The tool expects path to either a remote or a local ZIP archive.
 
 ## Install
 
@@ -15,8 +15,16 @@ go install
 
 ## Run
 
+Validate a remote archive:
+
 ```
-plugincheck -url https://github.com/grafana/worldmap-panel
+plugincheck https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
+```
+
+Validate a local plugin archive:
+
+```
+plugincheck ./marcusolsson-json-datasource-0.6.0.zip
 ```
 
 ## License

@@ -15,16 +15,17 @@ import (
 
 func main() {
 	var (
-		pluginURLFlag  = flag.String("url", "", "URL to the plugin")
-		schemaPathFlag = flag.String("schema", "", "Deprecated. Path to the JSON Schema to validate against.")
-		strictFlag     = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		strictFlag = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
 	)
 
 	flag.Parse()
 
-	if *schemaPathFlag != "" {
-		fmt.Println("Warning: The schema flag has been deprecated. plugincheck now downloads the schema from the Grafana repository.")
+	if len(os.Args) < 2 {
+		fmt.Fprintln(os.Stderr, "missing plugin url")
+		os.Exit(1)
 	}
+
+	pluginURL := os.Args[1]
 
 	schemaFile, err := ioutil.TempFile("", "plugin_*.schema.json")
 	if err != nil {
@@ -46,14 +47,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *pluginURLFlag == "" {
-		fmt.Fprintln(os.Stderr, "missing plugin url")
-		os.Exit(1)
-	}
-
 	client := grafana.NewClient()
 
-	_, result, err := plugin.Check(*pluginURLFlag, schemaFile.Name(), client)
+	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), client)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
