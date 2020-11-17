@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,8 +19,6 @@ import (
 // checkContext contains useful paths and data available to checker.
 type checkContext struct {
 	RootDir string
-	DistDir string
-	SrcDir  string
 
 	MetadataPath string
 
@@ -55,47 +54,44 @@ type ValidationComment struct {
 // ErrPluginNotFound is returned whenever a plugin could be found for a given ref.
 var ErrPluginNotFound = errors.New("plugin not found")
 
-// Check executes a number of checks to validate a plugin.
-func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
-	ref, err := parseRef(url)
-	if err != nil {
-		return nil, nil, err
-	}
+func readArchive(archiveURL string) ([]byte, error) {
+	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "https://") {
+		resp, err := http.Get(archiveURL)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
 
-	archiveURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/zipball/%s", ref.Username, ref.Repo, ref.Ref)
-
-	resp, err := http.Get(archiveURL)
-	if err != nil {
-		return nil, nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, nil, ErrPluginNotFound
+		if resp.StatusCode != http.StatusOK {
+			if resp.StatusCode == http.StatusNotFound {
+				return nil, ErrPluginNotFound
+			}
+			return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 		}
 
-		return nil, nil, fmt.Errorf("unexpected status: %s", resp.Status)
+		return ioutil.ReadAll(resp.Body)
 	}
 
+	return ioutil.ReadFile(archiveURL)
+}
+
+// Check executes a number of checks to validate a plugin.
+func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
+	b, err := readArchive(archiveURL)
+
 	// Extract the ZIP archive in a temporary directory.
-	rootDir, cleanup, err := extractPlugin(resp.Body)
+	rootDir, cleanup, err := extractPlugin(bytes.NewReader(b))
 	if err != nil {
 		return nil, nil, err
 	}
 	defer cleanup()
-
-	var (
-		distDir = filepath.Join(rootDir, "dist")
-		srcDir  = filepath.Join(rootDir, "src")
-	)
 
 	// TODO: If there's no plugin.json or README, several checks will fail.
 	// Ideally, each checker would declare checkers it depends on, and only run
 	// if those checkers ran successfully.
 	var fatalErrs []ValidationComment
 
-	readmePath := filepath.Join(distDir, "README.md")
+	readmePath := filepath.Join(rootDir, "README.md")
 	exists, err := fileExists(readmePath)
 	if err != nil {
 		return nil, nil, err
@@ -108,17 +104,31 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 		})
 	}
 
-	metadataPath := filepath.Join(distDir, "plugin.json")
+	metadataPath := filepath.Join(rootDir, "plugin.json")
 	exists, err = fileExists(metadataPath)
 	if err != nil {
 		return nil, nil, err
 	}
 	if !exists {
-		fatalErrs = append(fatalErrs, ValidationComment{
-			Severity: "error",
-			Message:  "Missing metadata",
-			Details:  "Plugins require a `plugin.json` file, but we couldn't find one. For more information, refer to [plugin.json](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/).",
-		})
+		distPath := filepath.Join(rootDir, "dist", "plugin.json")
+		exists, err = fileExists(distPath)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if exists {
+			fatalErrs = append(fatalErrs, ValidationComment{
+				Severity: "error",
+				Message:  "Unsupported metadata location",
+				Details:  "We found a `plugin.json` file in a `dist` directory. Since Grafana 7.3, we require plugin archives to contain a single directory that holds the contents of `dist`. The name of the directory must be the plugin ID. For more information, refer to [Package a plugin](https://grafana.com/docs/grafana/latest/developers/plugins/package-a-plugin/).",
+			})
+		} else {
+			fatalErrs = append(fatalErrs, ValidationComment{
+				Severity: "error",
+				Message:  "Missing metadata",
+				Details:  "Plugins require a `plugin.json` file, but we couldn't find one. For more information, refer to [plugin.json](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/).",
+			})
+		}
 	}
 
 	if len(fatalErrs) > 0 {
@@ -137,8 +147,6 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 
 	ctx := &checkContext{
 		RootDir: rootDir,
-		DistDir: distDir,
-		SrcDir:  srcDir,
 
 		MetadataPath: metadataPath,
 
@@ -149,17 +157,17 @@ func Check(url string, schemaPath string, client *grafana.Client) (json.RawMessa
 	username := usernameFromMetadata(metadata)
 
 	checkers := []checker{
-		&distExistsChecker{},
 		&orgExistsChecker{username: username, client: client},
 		&pluginIDFormatChecker{},
 		&pluginNameChecker{},
 		&pluginIDHasTypeSuffixChecker{},
 		&jsonSchemaChecker{schema: schemaPath},
+		&manifestChecker{},
 		&linkChecker{},
 		&pluginPlatformChecker{},
 		&screenshotChecker{},
 		&logosExistChecker{},
-		&largeFileChecker{},
+		// &largeFileChecker{},
 		&developerJargonChecker{},
 		&templateReadmeChecker{},
 	}

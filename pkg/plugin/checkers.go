@@ -18,12 +18,53 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+type manifestChecker struct{}
+
+func (c manifestChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+	var data struct {
+		ID   string `json:"id"`
+		Info struct {
+			Version string `json:"version"`
+		} `json:"info"`
+	}
+	if err := json.Unmarshal(ctx.Metadata, &data); err != nil {
+		return nil, nil
+	}
+
+	state := getPluginSignatureState(data.ID, data.Info.Version, ctx.RootDir)
+
+	var errs []ValidationComment
+
+	switch state {
+	case PluginSignatureUnsigned:
+		errs = append(errs, ValidationComment{
+			Severity: checkSeverityError,
+			Message:  "Unsigned plugin",
+			Details:  "Since Grafana 7.3, we require all plugins to be signed. For more information on how to sign your plugin, refer to [Sign a plugin](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/).",
+		})
+	case PluginSignatureInvalid:
+		errs = append(errs, ValidationComment{
+			Severity: checkSeverityError,
+			Message:  "Invalid plugin signature",
+			Details:  "For more information on how to sign your plugin, refer to [Sign a plugin](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/).",
+		})
+	case PluginSignatureModified:
+		errs = append(errs, ValidationComment{
+			Severity: checkSeverityError,
+			Message:  "Plugin has been modified since it was signed",
+			Details:  "For more information on how to sign your plugin, refer to [Sign a plugin](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/).",
+		})
+	}
+
+	return errs, nil
+}
+
 type largeFileChecker struct{}
 
 func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	var errs []ValidationComment
 
-	filepath.Walk(ctx.DistDir, func(path string, info os.FileInfo, err error) error {
+	filepath.Walk(ctx.RootDir, func(path string, info os.FileInfo, err error) error {
 		if info.Size() > 1000000 {
 			b, err := ioutil.ReadFile(path)
 			if err != nil {
@@ -33,7 +74,7 @@ func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) 
 			if !strings.HasPrefix(http.DetectContentType(b), "text/plain") {
 				errs = append(errs, ValidationComment{
 					Severity: "error",
-					Message:  fmt.Sprintf("File is too large: %s", strings.TrimPrefix(strings.TrimPrefix(path, ctx.DistDir), "/")),
+					Message:  fmt.Sprintf("File is too large: %s", strings.TrimPrefix(strings.TrimPrefix(path, ctx.RootDir), "/")),
 					Details:  "Due to restrictions in the GitHub API, we're currently not able to publish plugins that contain files that are larger than 1 MB.",
 				})
 			}
@@ -67,6 +108,10 @@ func (c linkChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 		fields := strings.Fields(path)
 		if len(fields) > 0 {
 			path = fields[0]
+		}
+
+		if strings.HasPrefix(path, "mailto:") {
+			continue
 		}
 
 		if strings.HasPrefix(path, "https://") || strings.HasPrefix(path, "http://") {
@@ -186,27 +231,6 @@ func (c developerJargonChecker) check(ctx *checkContext) ([]ValidationComment, e
 	}
 
 	return nil, nil
-}
-
-type distExistsChecker struct{}
-
-func (c *distExistsChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	var errs []ValidationComment
-
-	_, err := os.Stat(ctx.DistDir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			errs = append(errs, ValidationComment{
-				Severity: checkSeverityError,
-				Message:  "Missing dist directory",
-				Details:  "Grafana requires a production build of your plugin. Run `yarn build` and `git add -f dist/` in your release branch to add the production build.",
-			})
-			return errs, nil
-		}
-		return nil, err
-	}
-
-	return errs, nil
 }
 
 type pluginIDHasTypeSuffixChecker struct{}
@@ -347,7 +371,7 @@ func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComme
 		return nil, err
 	}
 
-	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.DistDir, "plugin.json"))
+	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +402,7 @@ type logosExistChecker struct{}
 
 // check checks whether the specified logos exists.
 func (c *logosExistChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.DistDir, "plugin.json"))
+	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -463,19 +487,15 @@ type pluginPlatformChecker struct{}
 
 // check checks whether a Grafana.com account exists for a given username.
 func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	tsModulePath := filepath.Join(ctx.SrcDir, "module.ts")
-	jsModulePath := filepath.Join(ctx.SrcDir, "module.js")
+	jsModulePath := filepath.Join(ctx.RootDir, "module.js")
 
-	b, err := ioutil.ReadFile(tsModulePath)
+	b, err := ioutil.ReadFile(jsModulePath)
 	if err != nil {
-		b, err = ioutil.ReadFile(jsModulePath)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
-	reactExp := regexp.MustCompile(`(DataSourcePlugin|PanelPlugin)`)
-	angularExp := regexp.MustCompile(`\s(PanelCtrl|QueryCtrl|QueryOptionsCtrl|ConfigCtrl)`)
+	reactExp := regexp.MustCompile(`(@grafana/data)`)
+	angularExp := regexp.MustCompile(`\s(app/plugins/sdk)`)
 
 	if angularExp.Match(b) && !reactExp.Match(b) {
 		return []ValidationComment{
@@ -520,7 +540,7 @@ func checkRelativePath(ctx *checkContext, path string) (ValidationComment, bool)
 		}, false
 	}
 
-	exists, _ := fileExists(filepath.Join(ctx.DistDir, path))
+	exists, _ := fileExists(filepath.Join(ctx.RootDir, path))
 	if !exists {
 		return ValidationComment{
 			Severity: checkSeverityError,
