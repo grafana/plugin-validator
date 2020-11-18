@@ -80,7 +80,7 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 	b, err := readArchive(archiveURL)
 
 	// Extract the ZIP archive in a temporary directory.
-	rootDir, cleanup, err := extractPlugin(bytes.NewReader(b))
+	archiveDir, cleanup, err := extractPlugin(bytes.NewReader(b))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -90,6 +90,21 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 	// Ideally, each checker would declare checkers it depends on, and only run
 	// if those checkers ran successfully.
 	var fatalErrs []ValidationComment
+
+	fis, err := ioutil.ReadDir(archiveDir)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if len(fis) != 1 || !fis[0].IsDir() {
+		fatalErrs = append(fatalErrs, ValidationComment{
+			Severity: "error",
+			Message:  "Invalid archive structure",
+			Details:  "Packaged plugins must contains exactly one directory and must have a name equal to the plugin ID.",
+		})
+	}
+
+	rootDir := filepath.Join(archiveDir, fis[0].Name())
 
 	readmePath := filepath.Join(rootDir, "README.md")
 	exists, err := fileExists(readmePath)
@@ -162,6 +177,7 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 		&pluginNameChecker{},
 		&pluginIDHasTypeSuffixChecker{},
 		&jsonSchemaChecker{schema: schemaPath},
+		&archiveChecker{},
 		&manifestChecker{},
 		&linkChecker{},
 		&pluginPlatformChecker{},
@@ -230,20 +246,20 @@ func extractPlugin(body io.Reader) (string, func(), error) {
 		return "", nil, err
 	}
 
-	infos, err := ioutil.ReadDir(output)
-	if err != nil {
-		cleanup()
-		return "", nil, err
-	}
+	// infos, err := ioutil.ReadDir(output)
+	// if err != nil {
+	// 	cleanup()
+	// 	return "", nil, err
+	// }
 
-	if len(infos) != 1 {
-		cleanup()
-		return "", nil, fmt.Errorf("unzip: expected 1 directory but got %d", len(infos))
-	}
+	// if len(infos) != 1 {
+	// 	cleanup()
+	// 	return "", nil, fmt.Errorf("unzip: expected 1 directory but got %d", len(infos))
+	// }
 
-	pluginRoot := filepath.Join(output, infos[0].Name())
+	// pluginRoot := filepath.Join(output, infos[0].Name())
 
-	return pluginRoot, cleanup, nil
+	return output, cleanup, nil
 }
 
 func unzip(src string, dest string) ([]string, error) {
@@ -256,7 +272,6 @@ func unzip(src string, dest string) ([]string, error) {
 	defer r.Close()
 
 	for _, f := range r.File {
-
 		// Store filename/path for returning and using later on
 		fpath := filepath.Join(dest, f.Name)
 

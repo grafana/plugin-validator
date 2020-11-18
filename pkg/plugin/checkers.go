@@ -18,6 +18,28 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+type archiveChecker struct{}
+
+func (c archiveChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+	var data struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(ctx.Metadata, &data); err != nil {
+		return nil, nil
+	}
+
+	if filepath.Base(ctx.RootDir) != data.ID {
+		return []ValidationComment{
+			{
+				Severity: checkSeverityError,
+				Message:  "Invalid archive structure",
+				Details:  fmt.Sprintf("Packaged plugins must contains exactly one directory and must have a name equal to the plugin ID. Expected a root directory called %q but found one called %q.", data.ID, filepath.Base(ctx.RootDir)),
+			},
+		}, nil
+	}
+	return nil, nil
+}
+
 type manifestChecker struct{}
 
 func (c manifestChecker) check(ctx *checkContext) ([]ValidationComment, error) {
