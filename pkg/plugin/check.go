@@ -55,7 +55,7 @@ type ValidationComment struct {
 var ErrPluginNotFound = errors.New("plugin not found")
 
 func readArchive(archiveURL string) ([]byte, error) {
-	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "https://") {
+	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
 		resp, err := http.Get(archiveURL)
 		if err != nil {
 			return nil, err
