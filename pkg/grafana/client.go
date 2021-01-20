@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -23,13 +24,15 @@ var ErrPrivateOrganization = errors.New("organization is private")
 
 // Client provides operations to the grafana.com API.
 type Client struct {
-	baseURL string
+	baseURL    string
+	httpClient *http.Client
 }
 
 // NewClient returns a new Client.
 func NewClient() *Client {
 	return &Client{
-		baseURL: "https://grafana.com/api",
+		baseURL:    "https://grafana.com/api",
+		httpClient: &http.Client{},
 	}
 }
 
@@ -43,7 +46,12 @@ func (c *Client) FindOrgBySlug(slug string) (*Organization, error) {
 		return nil, ErrOrganizationNotFound
 	}
 
-	resp, err := http.Get(c.baseURL + "/orgs/" + slug)
+	req, err := http.NewRequest("GET", c.baseURL+"/orgs/"+slug, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +74,14 @@ func (c *Client) FindOrgBySlug(slug string) (*Organization, error) {
 
 // usernameExists checks whether a username is available on Grafana.com.
 func (c *Client) usernameExists(username string) (bool, error) {
-	resp, err := http.Get(c.baseURL + "/checkusername/" + username)
+	body := strings.NewReader(fmt.Sprintf(`{"slug": "%s"}`, username))
+
+	req, err := http.NewRequest("POST", c.baseURL+"/orgs/check-slug", body)
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -100,7 +115,12 @@ func (c *Client) FindPluginVersions(pluginID string) ([]PluginVersion, error) {
 		Items []PluginVersion `json:"items"`
 	}
 
-	resp, err := http.Get(fmt.Sprintf("%s/plugins/%s/versions", c.baseURL, pluginID))
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/plugins/%s/versions", c.baseURL, pluginID), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
