@@ -353,8 +353,8 @@ func (c *jsonSchemaChecker) check(ctx *checkContext) ([]ValidationComment, error
 		return nil, err
 	}
 
-	schemaLoader := gojsonschema.NewReferenceLoader("file://" + schemaPath)
-	documentLoader := gojsonschema.NewReferenceLoader("file://" + ctx.MetadataPath)
+	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
+	documentLoader := gojsonschema.NewReferenceLoader("file:///" + ctx.MetadataPath)
 
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {
