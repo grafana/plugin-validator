@@ -56,13 +56,15 @@ func main() {
 	}
 
 	for _, e := range result {
-		b, err := json.MarshalIndent(e, "", "  ")
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetEscapeHTML(false)
+		enc.SetIndent("", "  ")
+
+		err := enc.Encode(e)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-
-		os.Stdout.Write(b)
 	}
 
 	if len(result) > 0 {

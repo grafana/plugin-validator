@@ -18,6 +18,46 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+type grafanaDependencyChecker struct{}
+
+func (c *grafanaDependencyChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+	var data struct {
+		Dependencies struct {
+			GrafanaDependency string `json:"grafanaDependency"`
+		} `json:"dependencies"`
+	}
+	if err := json.Unmarshal(ctx.Metadata, &data); err != nil {
+		return nil, err
+	}
+
+	if data.Dependencies.GrafanaDependency == "" {
+		return nil, nil
+	}
+
+	if regexp.MustCompile("^[0-9]+.[0-9]+.x$").Match([]byte(data.Dependencies.GrafanaDependency)) {
+		version := strings.TrimSuffix(data.Dependencies.GrafanaDependency, ".x")
+		return []ValidationComment{
+			{
+				Severity: checkSeverityWarning,
+				Message:  "Restrictive grafanaDependency",
+				Details:  fmt.Sprintf(`Your plugin only targets patch releases of Grafana %s, such as %s.0, %s.1, and %s.2. Users with the next minor version won't be able to install your plugin. Consider updating your grafanaDependency to ">=%s.0".`, version, version, version, version, version),
+			},
+		}, nil
+	}
+
+	if regexp.MustCompile("^[0-9]+.[0-9]+.[0-9]+$").Match([]byte(data.Dependencies.GrafanaDependency)) {
+		return []ValidationComment{
+			{
+				Severity: checkSeverityWarning,
+				Message:  "Restrictive grafanaDependency",
+				Details:  fmt.Sprintf(`Your plugin only targets a _single_ version of Grafana (%s). This is most likely unintentional. Consider adding changing it to ">=%s" to support future versions.`, data.Dependencies.GrafanaDependency, data.Dependencies.GrafanaDependency),
+			},
+		}, nil
+	}
+
+	return nil, nil
+}
+
 type archiveChecker struct{}
 
 func (c archiveChecker) check(ctx *checkContext) ([]ValidationComment, error) {
