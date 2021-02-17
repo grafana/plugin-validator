@@ -201,7 +201,14 @@ func (c linkChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 		go func(url string) {
 			defer wg.Done()
 
-			resp, err := http.Get(url)
+			req, err := http.NewRequest("GET", url, nil)
+			if err != nil {
+				brokenCh <- urlstatus{url: url, status: err.Error()}
+				return
+			}
+			req.Header.Add("User-Agent", "Mozilla/5.0 (compatible; GrafanaPluginValidatorBot; +https://github.com/grafana/plugin-validator)")
+
+			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
 				brokenCh <- urlstatus{url: url, status: err.Error()}
 				return
