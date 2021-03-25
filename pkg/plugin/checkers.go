@@ -18,6 +18,38 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+type trackingChecker struct{}
+
+// checks whether the plugin source contains tracking scripts.
+// This isn't foolproof, but will detect cases where the author is unaware of
+// our guidelines.
+func (c *trackingChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+	source, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "module.js"))
+	if err != nil {
+		return nil, err
+	}
+
+	servers := []string{
+		"https://www.google-analytics.com",
+		"https://api-js.mixpanel.com",
+		"https://mixpanel.com",
+	}
+
+	for _, url := range servers {
+		if bytes.Contains(source, []byte(url)) {
+			return []ValidationComment{
+				{
+					Severity: checkSeverityWarning,
+					Message:  "Plugin contains tracking scripts",
+					Details:  fmt.Sprintf("We detected what looks like a tracking script in your plugin. Plugins are not allowed to track activities of Grafana users. Please remove any user tracking from the plugin and submit it again."),
+				},
+			}, nil
+		}
+	}
+
+	return []ValidationComment{}, nil
+}
+
 type grafanaDependencyChecker struct{}
 
 func (c *grafanaDependencyChecker) check(ctx *checkContext) ([]ValidationComment, error) {

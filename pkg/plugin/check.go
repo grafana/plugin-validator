@@ -186,6 +186,7 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 		// &largeFileChecker{},
 		&developerJargonChecker{},
 		&templateReadmeChecker{},
+		&trackingChecker{},
 		&grafanaDependencyChecker{},
 	}
 
