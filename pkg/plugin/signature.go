@@ -32,22 +32,6 @@ type PluginBase struct {
 	Version   string
 }
 
-func getPluginManifest(pluginDir string) (*pluginManifest, error) {
-	manifestPath := filepath.Join(pluginDir, "MANIFEST.txt")
-
-	byteValue, err := ioutil.ReadFile(manifestPath)
-	if err != nil || len(byteValue) < 10 {
-		return nil, err
-	}
-
-	manifest, err := readPluginManifest(byteValue)
-	if err != nil {
-		return nil, err
-	}
-
-	return manifest, nil
-}
-
 func getPluginSignatureState(pluginID, version, pluginDir string) PluginSignature {
 	manifestPath := filepath.Join(pluginDir, "MANIFEST.txt")
 

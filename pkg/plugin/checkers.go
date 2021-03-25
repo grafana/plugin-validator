@@ -83,7 +83,14 @@ func (c archiveChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 type privateSignatureChecker struct{}
 
 func (c privateSignatureChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	manifest, err := getPluginManifest(ctx.RootDir)
+	manifestPath := filepath.Join(ctx.RootDir, "MANIFEST.txt")
+
+	byteValue, err := ioutil.ReadFile(manifestPath)
+	if err != nil || len(byteValue) < 10 {
+		return nil, err
+	}
+
+	manifest, err := readPluginManifest(byteValue)
 	if err != nil {
 		return nil, err
 	}
