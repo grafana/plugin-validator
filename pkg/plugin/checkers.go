@@ -41,7 +41,7 @@ func (c *trackingChecker) check(ctx *checkContext) ([]ValidationComment, error) 
 				{
 					Severity: checkSeverityWarning,
 					Message:  "Plugin contains tracking scripts",
-					Details:  fmt.Sprintf("We detected what looks like a tracking script in your plugin. Plugins are not allowed to track activities of Grafana users. Please remove any user tracking from the plugin and submit it again."),
+					Details:  "We detected what looks like a tracking script in your plugin. Plugins are not allowed to track activities of Grafana users. Please remove any user tracking from the plugin and submit it again.",
 				},
 			}, nil
 		}
