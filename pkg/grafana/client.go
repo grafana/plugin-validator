@@ -9,6 +9,19 @@ import (
 	"time"
 )
 
+type Plugin struct {
+	ID      int64  `json:"id"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Slug    string `json:"slug"`
+	Links   []Link `json:"links"`
+}
+
+type Link struct {
+	Rel  string `json:"rel"`
+	Href string `json:"href"`
+}
+
 // Organization maps to a Grafana.com organization.
 type Organization struct {
 	ID   int64  `json:"id"`
@@ -34,6 +47,32 @@ func NewClient() *Client {
 		baseURL:    "https://grafana.com/api",
 		httpClient: &http.Client{},
 	}
+}
+
+func (c *Client) ListPlugins() ([]*Plugin, error) {
+	req, err := http.NewRequest("GET", c.baseURL+"/plugins", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var body struct {
+		Items []*Plugin `json:"items"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+
+	return body.Items, nil
 }
 
 // FindOrgBySlug returns the organization with a given slug.
