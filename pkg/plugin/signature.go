@@ -76,11 +76,12 @@ func getPluginSignatureState(pluginID, version, pluginDir string) PluginSignatur
 
 // pluginManifest holds details for the file manifest
 type pluginManifest struct {
-	Plugin  string            `json:"plugin"`
-	Version string            `json:"version"`
-	KeyID   string            `json:"keyId"`
-	Time    int64             `json:"time"`
-	Files   map[string]string `json:"files"`
+	Plugin        string            `json:"plugin"`
+	SignatureType string            `json:"signatureType"`
+	Version       string            `json:"version"`
+	KeyID         string            `json:"keyId"`
+	Time          int64             `json:"time"`
+	Files         map[string]string `json:"files"`
 }
 
 // readPluginManifest attempts to read and verify the plugin manifest

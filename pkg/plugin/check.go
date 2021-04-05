@@ -179,6 +179,7 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 		&jsonSchemaChecker{schema: schemaPath},
 		&archiveChecker{},
 		&manifestChecker{},
+		&privateSignatureChecker{},
 		&linkChecker{},
 		&pluginPlatformChecker{},
 		&screenshotChecker{},
