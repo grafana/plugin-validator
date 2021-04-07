@@ -21,12 +21,12 @@ func main() {
 
 	flag.Parse()
 
-	if len(os.Args) < 2 {
+	if len(flag.Args()) < 1 {
 		fmt.Fprintln(os.Stderr, "missing plugin url")
 		os.Exit(1)
 	}
 
-	pluginURL := os.Args[1]
+	pluginURL := flag.Arg(0)
 
 	schemaFile, err := ioutil.TempFile("", "plugin_*.schema.json")
 	if err != nil {
