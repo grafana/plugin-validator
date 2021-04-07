@@ -15,7 +15,8 @@ import (
 
 func main() {
 	var (
-		strictFlag = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		strictFlag  = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		privateFlag = flag.Bool("private", false, "If set, plugincheck reports private signature check error as warning")
 	)
 
 	flag.Parse()
@@ -49,7 +50,7 @@ func main() {
 
 	client := grafana.NewClient()
 
-	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), client)
+	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), *privateFlag, client)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

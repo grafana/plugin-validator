@@ -112,7 +112,9 @@ func (c archiveChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	return nil, nil
 }
 
-type privateSignatureChecker struct{}
+type privateSignatureChecker struct {
+	severityWarning bool
+}
 
 func (c privateSignatureChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	manifestPath := filepath.Join(ctx.RootDir, "MANIFEST.txt")
@@ -127,9 +129,14 @@ func (c privateSignatureChecker) check(ctx *checkContext) ([]ValidationComment, 
 		return nil, err
 	}
 
+	severity := checkSeverityError
+	if c.severityWarning {
+		severity = checkSeverityWarning
+	}
+
 	if manifest.SignatureType == "private" {
 		return []ValidationComment{{
-			Severity: checkSeverityError,
+			Severity: severity,
 			Message:  "Plugin has a private signature",
 			Details:  "Plugins that are published on Grafana.com must be signed under a **commercial** or **community** signature level. For more information, refer to [Plugin signature levels](https://grafana.com/docs/grafana/latest/plugins/plugin-signatures/#plugin-signature-levels).",
 		}}, nil
