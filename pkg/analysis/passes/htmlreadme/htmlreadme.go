@@ -7,10 +7,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 )
 
+var (
+	noHTMLReadme = &analysis.Rule{Name: "no-html-readme"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "htmlreadme",
 	Requires: []*analysis.Analyzer{readme.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{noHTMLReadme},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -19,11 +24,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	re := regexp.MustCompile("</[a-z]+>")
 
 	if re.Match(readme) {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Warning,
-			Message:  "html is not supported and will not render correctly",
-			Context:  "README.md",
-		})
+		pass.Reportf(noHTMLReadme, "README.md: html is not supported and will not render correctly")
 	}
 
 	return nil, nil

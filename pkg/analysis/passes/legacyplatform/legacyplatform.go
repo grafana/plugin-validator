@@ -7,10 +7,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 )
 
+var (
+	legacyPlatform = &analysis.Rule{Name: "legacy-platform"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "legacyplatform",
 	Requires: []*analysis.Analyzer{modulejs.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{legacyPlatform},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -22,11 +27,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	)
 
 	if angularExp.Match(module) && !reactExp.Match(module) {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Warning,
-			Message:  "uses legacy plugin platform",
-			Context:  "module.js",
-		})
+		pass.Reportf(legacyPlatform, "module.js: uses legacy plugin platform")
 	}
 
 	return nil, nil

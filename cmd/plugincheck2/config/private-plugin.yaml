@@ -1,0 +1,9 @@
+global:
+  enabled: true
+  severity: error
+
+analyzers:
+  signature:
+    rules:
+      private-signature:
+        enabled: false

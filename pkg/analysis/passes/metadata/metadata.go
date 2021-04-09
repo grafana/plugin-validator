@@ -9,10 +9,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 )
 
+var (
+	missingMetadata = &analysis.Rule{Name: "missing-metadata"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "metadata",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{missingMetadata},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -21,10 +26,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  "missing plugin.json",
-			})
+			pass.Reportf(missingMetadata, "missing plugin.json")
 			return nil, nil
 		}
 		return nil, err

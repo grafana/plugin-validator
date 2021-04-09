@@ -9,10 +9,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 )
 
+var (
+	missingModulejs = &analysis.Rule{Name: "missing-modulejs"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "modulejs",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{missingModulejs},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -21,10 +26,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "module.js"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  "missing module.js",
-			})
+			pass.Reportf(missingModulejs, "missing module.js")
 			return nil, nil
 		}
 		return nil, err

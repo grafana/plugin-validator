@@ -9,10 +9,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 )
 
+var (
+	unsignedPlugin = &analysis.Rule{Name: "unsigned-plugin"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "manifest",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{unsignedPlugin},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -21,10 +26,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "MANIFEST.txt"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  "unsigned plugin",
-			})
+			pass.Reportf(unsignedPlugin, "unsigned plugin")
 			return nil, nil
 		}
 		return nil, err

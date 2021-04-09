@@ -6,7 +6,30 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 )
 
-func Check(analyzers []*analysis.Analyzer, dir string) ([]analysis.Diagnostic, error) {
+type Config struct {
+	Global    GlobalConfig              `yaml:"global"`
+	Analyzers map[string]AnalyzerConfig `yaml:"analyzers"`
+}
+
+type GlobalConfig struct {
+	Enabled  bool              `yaml:"enabled"`
+	Severity analysis.Severity `yaml:"severity"`
+}
+
+type AnalyzerConfig struct {
+	Enabled  *bool                 `yaml:"enabled"`
+	Severity *analysis.Severity    `yaml:"severity"`
+	Rules    map[string]RuleConfig `yaml:"rules"`
+}
+
+type RuleConfig struct {
+	Enabled  *bool              `yaml:"enabled"`
+	Severity *analysis.Severity `yaml:"severity"`
+}
+
+func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) ([]analysis.Diagnostic, error) {
+	initAnalyzers(analyzers, cfg)
+
 	var diagnostics []analysis.Diagnostic
 
 	pass := &analysis.Pass{
@@ -62,4 +85,41 @@ func Check(analyzers []*analysis.Analyzer, dir string) ([]analysis.Diagnostic, e
 	}
 
 	return diagnostics, nil
+}
+
+func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
+	for _, a := range analyzers {
+		// Inherit global config
+		analyzerEnabled := cfg.Global.Enabled
+		analyzerSeverity := cfg.Global.Severity
+
+		acfg, ok := cfg.Analyzers[a.Name]
+		if ok {
+			if acfg.Enabled != nil {
+				analyzerEnabled = *acfg.Enabled
+			}
+			if acfg.Severity != nil {
+				analyzerSeverity = *acfg.Severity
+			}
+		}
+
+		for _, r := range a.Rules {
+			// Inherit analyzer config
+			ruleEnabled := analyzerEnabled
+			ruleSeverity := analyzerSeverity
+
+			rcfg, ok := acfg.Rules[r.Name]
+			if ok {
+				if rcfg.Enabled != nil {
+					ruleEnabled = *rcfg.Enabled
+				}
+				if rcfg.Severity != nil {
+					ruleSeverity = *rcfg.Severity
+				}
+			}
+
+			r.Disabled = !ruleEnabled
+			r.Severity = ruleSeverity
+		}
+	}
 }

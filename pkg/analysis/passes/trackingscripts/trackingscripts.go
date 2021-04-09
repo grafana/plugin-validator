@@ -7,10 +7,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 )
 
+var (
+	trackingScripts = &analysis.Rule{Name: "tracking-scripts"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "trackingscripts",
 	Requires: []*analysis.Analyzer{modulejs.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{trackingScripts},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -24,11 +29,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, url := range servers {
 		if bytes.Contains(module, []byte(url)) {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Warning,
-				Message:  "should not include tracking scripts",
-				Context:  "module.js",
-			})
+			pass.Reportf(trackingScripts, "module.js: should not include tracking scripts")
 			break
 		}
 	}

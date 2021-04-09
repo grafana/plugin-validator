@@ -7,10 +7,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
+var (
+	humanFriendlyName = &analysis.Rule{Name: "human-friendly-name"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "pluginname",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{humanFriendlyName},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -22,11 +27,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if data.ID != "" && data.Name != "" && data.ID == data.Name {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Warning,
-			Message:  "plugin name should be human-friendly",
-			Context:  "plugin.json",
-		})
+		pass.Reportf(humanFriendlyName, "plugin.json: plugin name should be human-friendly")
 	}
 
 	return nil, nil

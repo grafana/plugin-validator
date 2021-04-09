@@ -23,12 +23,12 @@ var tests = []struct {
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"unsigned plugin",
-		"should include screenshots for marketplace",
-		"(root): type is required",
-		"(root): name is required",
-		"(root): id is required",
-		"(root): info is required",
-		"(root): dependencies is required",
+		"plugin.json: should include screenshots for marketplace",
+		"plugin.json: (root): type is required",
+		"plugin.json: (root): name is required",
+		"plugin.json: (root): id is required",
+		"plugin.json: (root): info is required",
+		"plugin.json: (root): dependencies is required",
 	}},
 }
 
@@ -37,7 +37,7 @@ func TestRunner(t *testing.T) {
 		t.Run(tt.Dir, func(t *testing.T) {
 			archiveDir := filepath.Join("testdata", tt.Dir)
 
-			ds, err := Check(passes.Analyzers, archiveDir)
+			ds, err := Check(passes.Analyzers, archiveDir, Config{Global: GlobalConfig{Enabled: true}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -106,7 +106,7 @@ func TestLinearDependencies(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{fourth}, "")
+	_, _ = Check([]*analysis.Analyzer{fourth}, "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 4 {
 		t.Fatal("unexpected results")
@@ -140,7 +140,7 @@ func TestSharedParent(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{firstChild, secondChild}, "")
+	_, _ = Check([]*analysis.Analyzer{firstChild, secondChild}, "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results")
@@ -174,7 +174,7 @@ func TestCachedRun(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent}, "")
+	_, _ = Check([]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent}, "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results", res)

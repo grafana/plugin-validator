@@ -20,10 +20,18 @@ import (
 	"golang.org/x/crypto/openpgp/clearsign"
 )
 
+var (
+	unsignedPlugin    = &analysis.Rule{Name: "unsigned-plugin"}
+	modifiedSignature = &analysis.Rule{Name: "modified-signature"}
+	invalidSignature  = &analysis.Rule{Name: "invalid-signature"}
+	privateSignature  = &analysis.Rule{Name: "private-signature"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "signature",
 	Requires: []*analysis.Analyzer{manifest.Analyzer, metadata.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{unsignedPlugin, modifiedSignature, invalidSignature, privateSignature},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -45,22 +53,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	switch state {
 	case PluginSignatureUnsigned:
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "unsigned plugin",
-		})
+		pass.Reportf(unsignedPlugin, "unsigned plugin")
 	case PluginSignatureInvalid:
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "invalid plugin signature",
-			Context:  "MANIFEST.txt",
-		})
+		pass.Reportf(invalidSignature, "MANIFEST.txt: invalid plugin signature")
 	case PluginSignatureModified:
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "plugin has been modified since it was signed",
-			Context:  "MANIFEST.txt",
-		})
+		pass.Reportf(modifiedSignature, "MANIFEST.txt: plugin has been modified since it was signed")
 	default:
 	}
 
@@ -71,11 +68,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if m.SignatureType == "private" {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  "should be signed under community or commercial signature level",
-				Context:  "MANIFEST.txt",
-			})
+			pass.Reportf(privateSignature, "MANIFEST.txt: should be signed under community or commercial signature level")
 		}
 	}
 

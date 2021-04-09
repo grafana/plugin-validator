@@ -2,7 +2,6 @@ package archivename
 
 import (
 	"encoding/json"
-	"fmt"
 	"path/filepath"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -10,10 +9,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
+var (
+	noIdentRootDir = &analysis.Rule{Name: "no-ident-root-dir"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "archivename",
 	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{noIdentRootDir},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -34,10 +38,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if data.ID != "" && base != data.ID {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  fmt.Sprintf("archive should contain a directory named %s", data.ID),
-		})
+		pass.Reportf(noIdentRootDir, "archive should contain a directory named %s", data.ID)
 	}
 
 	return nil, nil
