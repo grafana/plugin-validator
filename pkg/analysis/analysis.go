@@ -18,17 +18,19 @@ type Pass struct {
 }
 
 func (p *Pass) Reportf(rule *Rule, message string, as ...string) {
+	if rule.Disabled {
+		return
+	}
+
 	var is []interface{}
 	for _, a := range as {
 		is = append(is, a)
 	}
 
-	if rule.Enabled {
-		p.Report(Diagnostic{
-			Severity: rule.Severity,
-			Message:  fmt.Sprintf(message, is...),
-		})
-	}
+	p.Report(Diagnostic{
+		Severity: rule.Severity,
+		Message:  fmt.Sprintf(message, is...),
+	})
 }
 
 type Diagnostic struct {
@@ -39,7 +41,7 @@ type Diagnostic struct {
 
 type Rule struct {
 	Name     string
-	Enabled  bool
+	Disabled bool
 	Severity Severity
 }
 

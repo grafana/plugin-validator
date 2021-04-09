@@ -118,7 +118,7 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 				}
 			}
 
-			r.Enabled = ruleEnabled
+			r.Disabled = !ruleEnabled
 			r.Severity = ruleSeverity
 		}
 	}
