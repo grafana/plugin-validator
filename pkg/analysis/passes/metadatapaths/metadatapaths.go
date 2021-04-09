@@ -11,10 +11,17 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
 )
 
+var (
+	invalidPath            = &analysis.Rule{Name: "invalid-path"}
+	pathRelativeToMetadata = &analysis.Rule{Name: "path-relative-to-metadata"}
+	invalidRelativePath    = &analysis.Rule{Name: "invalid-relative-path"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "metadatapaths",
 	Run:      checkMetadataPaths,
 	Requires: []*analysis.Analyzer{screenshots.Analyzer, logos.Analyzer},
+	Rules:    []*analysis.Rule{invalidPath, pathRelativeToMetadata, invalidRelativePath},
 }
 
 func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
@@ -37,29 +44,17 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 	for _, path := range paths {
 		u, err := url.Parse(path)
 		if err != nil {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  fmt.Sprintf("invalid path: %s", path),
-				Context:  "plugin.json",
-			})
+			pass.Reportf(invalidPath, fmt.Sprintf("plugin.json: invalid path: %s", path))
 			continue
 		}
 
 		if u.IsAbs() {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  fmt.Sprintf("path should be relative to plugin.json: %s", path),
-				Context:  "plugin.json",
-			})
+			pass.Reportf(pathRelativeToMetadata, fmt.Sprintf("plugin.json: path should be relative to plugin.json: %s", path))
 			continue
 		}
 
 		if strings.HasPrefix(path, ".") || strings.HasPrefix(path, "/") {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  fmt.Sprintf("relative path should not start with '.' or '/': %s", path),
-				Context:  "plugin.json",
-			})
+			pass.Reportf(invalidRelativePath, fmt.Sprintf("plugin.json: relative path should not start with '.' or '/': %s", path))
 			continue
 		}
 	}

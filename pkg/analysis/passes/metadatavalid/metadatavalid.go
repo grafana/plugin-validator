@@ -15,10 +15,15 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
+var (
+	invalidMetadata = &analysis.Rule{Name: "invalid-metadata"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "metadatavalid",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, metadataschema.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{invalidMetadata},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -59,11 +64,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for _, desc := range result.Errors() {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  fmt.Sprintf("%s: %s", desc.Field(), desc.Description()),
-			Context:  "plugin.json",
-		})
+		pass.Reportf(invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()))
 	}
 
 	return nil, nil

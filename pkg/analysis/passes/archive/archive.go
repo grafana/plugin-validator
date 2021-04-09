@@ -8,9 +8,17 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 )
 
+var (
+	emptyArchive   = &analysis.Rule{Name: "empty-archive"}
+	moreThanOneDir = &analysis.Rule{Name: "more-than-one-dir"}
+	noRootDir      = &analysis.Rule{Name: "no-root-dir"}
+	dist           = &analysis.Rule{Name: "dist"}
+)
+
 var Analyzer = &analysis.Analyzer{
-	Name: "archive",
-	Run:  run,
+	Name:  "archive",
+	Run:   run,
+	Rules: []*analysis.Rule{emptyArchive, moreThanOneDir, noRootDir, dist},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -20,26 +28,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) == 0 {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "archive is empty",
-		})
+		pass.Reportf(emptyArchive, "archive is empty")
 		return nil, nil
 	}
 
 	if len(fis) != 1 {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "archive contains more than one directory",
-		})
+		pass.Reportf(moreThanOneDir, "archive contains more than one directory")
 		return nil, nil
 	}
 
 	if !fis[0].IsDir() {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "archive does not contain a identifying directory",
-		})
+		pass.Reportf(noRootDir, "archive does not contain a root directory")
 		return nil, nil
 	}
 
@@ -54,10 +53,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	pass.Report(analysis.Diagnostic{
-		Severity: analysis.Error,
-		Message:  "dist should be renamed to plugin id and moved to root",
-	})
+	pass.Reportf(dist, "dist should be renamed to plugin id and moved to root")
 
 	return legacyRoot, nil
 }

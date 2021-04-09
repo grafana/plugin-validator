@@ -70,7 +70,7 @@ func TestEmpty(t *testing.T) {
 		Report: func(d analysis.Diagnostic) {
 			invoked = true
 
-			if d.Message != "Invalid archive structure" {
+			if d.Message != "archive does not contain a identifying directory" {
 				t.Errorf("unexpected diagnostic message: %q", d.Message)
 			}
 		},

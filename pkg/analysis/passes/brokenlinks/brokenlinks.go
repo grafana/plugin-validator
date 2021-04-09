@@ -2,7 +2,6 @@ package brokenlinks
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -13,12 +12,18 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 )
 
+var (
+	relativeLink = &analysis.Rule{Name: "relative-link"}
+	brokenLink   = &analysis.Rule{Name: "broken-link"}
+)
+
 var mdLinks = regexp.MustCompile(`\[.+?\]\((.+?)\)`)
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "brokenlinks",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, readme.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{relativeLink, brokenLink},
 }
 
 type contextURL struct {
@@ -77,10 +82,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				url:     path,
 			})
 		} else {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  fmt.Sprintf("convert relative link to absolute: %s", path),
-			})
+			pass.Reportf(relativeLink, "convert relative link to absolute: %s", path)
 		}
 	}
 
@@ -124,11 +126,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}()
 
 	for link := range brokenCh {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  fmt.Sprintf("broken link: %s (%s)", link.url, link.status),
-			Context:  link.context,
-		})
+		pass.Reportf(brokenLink, "%s: broken link: %s (%s)", link.context, link.url, link.status)
 	}
 
 	return nil, nil

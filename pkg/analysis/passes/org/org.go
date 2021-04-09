@@ -10,10 +10,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/grafana"
 )
 
+var (
+	missingGrafanaCloudAccount = &analysis.Rule{Name: "missing-grafanacloud-account"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "org",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{missingGrafanaCloudAccount},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -40,10 +45,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err := client.FindOrgBySlug(username)
 	if err != nil {
 		if err == grafana.ErrOrganizationNotFound {
-			pass.Report(analysis.Diagnostic{
-				Severity: analysis.Error,
-				Message:  fmt.Sprintf("unregistered Grafana Cloud account: %s", username),
-			})
+			pass.Reportf(missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username))
 		} else if err == grafana.ErrPrivateOrganization {
 			return nil, nil
 		}

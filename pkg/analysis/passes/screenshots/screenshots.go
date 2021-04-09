@@ -7,10 +7,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
+var (
+	screenshots = &analysis.Rule{Name: "screenshots"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "screenshots",
 	Run:      checkScreenshotsExist,
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
+	Rules:    []*analysis.Rule{screenshots},
 }
 
 func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
@@ -22,11 +27,7 @@ func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(data.Info.Screenshots) == 0 {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Warning,
-			Message:  "should include screenshots for marketplace",
-			Context:  "plugin.json",
-		})
+		pass.Reportf(screenshots, "plugin.json: should include screenshots for marketplace")
 		return nil, nil
 	}
 

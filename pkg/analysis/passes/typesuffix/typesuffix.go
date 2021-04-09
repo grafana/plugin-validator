@@ -8,10 +8,15 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
+var (
+	pluginTypeSuffix = &analysis.Rule{Name: "plugin-type-suffix"}
+)
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "typesuffix",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
+	Rules:    []*analysis.Rule{pluginTypeSuffix},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -29,11 +34,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	idParts := strings.Split(data.ID, "-")
 
 	if idParts[len(idParts)-1] != data.Type {
-		pass.Report(analysis.Diagnostic{
-			Severity: analysis.Error,
-			Message:  "plugin id should end with plugin type",
-			Context:  "plugin.json",
-		})
+		pass.Reportf(pluginTypeSuffix, "plugin.json: plugin id should end with plugin type")
 	}
 
 	return nil, nil
