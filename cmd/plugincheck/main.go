@@ -15,17 +15,18 @@ import (
 
 func main() {
 	var (
-		strictFlag = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		strictFlag  = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		privateFlag = flag.Bool("private", false, "If set, plugincheck reports private signature check error as warning")
 	)
 
 	flag.Parse()
 
-	if len(os.Args) < 2 {
+	if len(flag.Args()) < 1 {
 		fmt.Fprintln(os.Stderr, "missing plugin url")
 		os.Exit(1)
 	}
 
-	pluginURL := os.Args[1]
+	pluginURL := flag.Arg(0)
 
 	schemaFile, err := ioutil.TempFile("", "plugin_*.schema.json")
 	if err != nil {
@@ -49,7 +50,7 @@ func main() {
 
 	client := grafana.NewClient()
 
-	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), client)
+	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), *privateFlag, client)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)

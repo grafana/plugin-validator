@@ -76,7 +76,7 @@ func readArchive(archiveURL string) ([]byte, error) {
 }
 
 // Check executes a number of checks to validate a plugin.
-func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
+func Check(archiveURL string, schemaPath string, private bool, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
 	b, err := readArchive(archiveURL)
 
 	// Extract the ZIP archive in a temporary directory.
@@ -179,7 +179,7 @@ func Check(archiveURL string, schemaPath string, client *grafana.Client) (json.R
 		&jsonSchemaChecker{schema: schemaPath},
 		&archiveChecker{},
 		&manifestChecker{},
-		&privateSignatureChecker{},
+		&privateSignatureChecker{private},
 		&linkChecker{},
 		&pluginPlatformChecker{},
 		&screenshotChecker{},
