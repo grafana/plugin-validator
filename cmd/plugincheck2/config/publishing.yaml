@@ -1,0 +1,15 @@
+global:
+  enabled: true
+  severity: error
+
+analyzers:
+  htmlreadme:
+    severity: warning
+  legacyplatform:
+    severity: warning
+  jargon:
+    severity: warning
+  restrictivedep:
+    severity: warning
+  screenshots:
+    severity: warning

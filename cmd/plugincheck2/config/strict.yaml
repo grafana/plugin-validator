@@ -1,0 +1,3 @@
+global:
+  enabled: true
+  severity: error
