@@ -15,30 +15,85 @@ import (
 type Build mg.Namespace
 type Test mg.Namespace
 type Docker mg.Namespace
+type Run mg.Namespace
+
+const imageName = "grafana/plugin-validator-cli"
+const imageVersion = "v1"
 
 // Default target to run when none is specified
 // If not set, running mage will list available targets
-var Default = Build.Cmds
+var Default = Build.Local
 
+/* Docker */
+func buildDockerImage() error {
+	return sh.RunV("docker", "build", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
+}
+
+func pushDockerImage() error {
+	if err := sh.RunV("docker", "push", imageName+":"+imageVersion); err != nil {
+		return err
+	}
+	if err := sh.RunV("docker", "push", imageName+":latest"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Builds docker image
+func (Docker) Build(ctx context.Context) {
+	mg.Deps(
+		Clean,
+		Test.Verbose,
+		pluginCheckCmd,
+		pluginCheck2Cmd,
+		buildDockerImage)
+}
+
+// Build and push docker image
+func (Docker) Push(ctx context.Context) {
+	mg.Deps(
+		Clean,
+		Test.Verbose,
+		pluginCheckCmd,
+		pluginCheck2Cmd,
+		buildDockerImage,
+		pushDockerImage)
+}
+
+/* executables */
 func pluginCheckCmd() error {
 	os.Setenv("GO111MODULE", "on")
-	log.Printf("Building...")
+	os.Setenv("CGO_ENABLED", "0")
 	return sh.RunV("go", "build", "-o", "bin/plugincheck", "./pkg/cmd/plugincheck")
 }
 
 func pluginCheck2Cmd() error {
 	os.Setenv("GO111MODULE", "on")
-	log.Printf("Building...")
+	os.Setenv("CGO_ENABLED", "0")
 	return sh.RunV("go", "build", "-o", "bin/plugincheck2", "./pkg/cmd/plugincheck2")
 }
 
-func (Build) Cmds(ctx context.Context) {
-	mg.Deps(
-		Clean,
-		pluginCheckCmd,
-		pluginCheck2Cmd)
+func testVerbose() error {
+	os.Setenv("GO111MODULE", "on")
+	os.Setenv("CGO_ENABLED", "0")
+	return sh.RunV("go", "test", "-v", "./pkg/...")
 }
 
+func test() error {
+	os.Setenv("GO111MODULE", "on")
+	os.Setenv("CGO_ENABLED", "0")
+	return sh.RunV("go", "test", "./pkg/...")
+}
+
+// Formats the source files
+func (Build) Format() error {
+	if err := sh.RunV("gofmt", "-w", "./pkg"); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Minimal build
 func (Build) Local(ctx context.Context) {
 	mg.Deps(
 		Clean,
@@ -46,9 +101,11 @@ func (Build) Local(ctx context.Context) {
 		pluginCheck2Cmd)
 }
 
+// Lint/Format/Test/Build
 func (Build) CI(ctx context.Context) {
 	mg.Deps(
 		Build.Lint,
+		Build.Format,
 		Test.Verbose,
 		Clean,
 		pluginCheckCmd,
@@ -60,18 +117,6 @@ func (Build) Lint() error {
 	os.Setenv("GO111MODULE", "on")
 	log.Printf("Linting...")
 	return sh.RunV("golangci-lint", "run", "./pkg/...")
-}
-
-func testVerbose() error {
-	os.Setenv("GO111MODULE", "on")
-	log.Printf("Testing...")
-	return sh.RunV("go", "test", "-v", "./pkg/...")
-}
-
-func test() error {
-	os.Setenv("GO111MODULE", "on")
-	log.Printf("Testing...")
-	return sh.RunV("go", "test", "./pkg/...")
 }
 
 // Run tests in verbose mode
@@ -88,21 +133,29 @@ func (Test) Default() {
 	)
 }
 
-// Clean removes built files
+// Removes built files
 func Clean() error {
 	log.Printf("Cleaning all")
 	os.RemoveAll("./bin/plugincheck")
 	return os.RemoveAll("./bin/plugincheck2")
 }
 
-// Build and Run Application
-func RunV1() error {
-	mg.Deps(Build.Cmds)
-	return sh.RunV("./bin/plugincheck", "-c", "config/verbose.yaml")
+// Build and Run V1
+func (Run) V1() error {
+	mg.Deps(Build.Local)
+	return sh.RunV(
+		"./bin/plugincheck",
+		"https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip",
+	)
 }
 
-// Build and Run Application
-func RunV2() error {
-	mg.Deps(Build.Cmds)
-	return sh.RunV("./bin/plugincheck2", "-c", "config/verbose.yaml")
+// Build and Run V2
+func (Run) V2() error {
+	mg.Deps(Build.Local)
+	return sh.RunV(
+		"./bin/plugincheck2",
+		"-config",
+		"config/verbose.yaml",
+		"https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip",
+	)
 }
