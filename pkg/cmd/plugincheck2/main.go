@@ -27,13 +27,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	//if len(flag.Args()) == 0 {
+	//	fmt.Fprintln(os.Stderr, "missing config yaml")
+	//	os.Exit(1)
+	//}
+
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't read configuration: %w", err))
 		os.Exit(1)
 	}
 
-	if len(os.Args) < 2 {
+	if len(flag.Args()) == 0 {
 		fmt.Fprintln(os.Stderr, "missing plugin url")
 		os.Exit(1)
 	}
