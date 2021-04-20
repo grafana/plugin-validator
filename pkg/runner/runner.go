@@ -12,8 +12,10 @@ type Config struct {
 }
 
 type GlobalConfig struct {
-	Enabled  bool              `yaml:"enabled"`
-	Severity analysis.Severity `yaml:"severity"`
+	Enabled     bool              `yaml:"enabled"`
+	Severity    analysis.Severity `yaml:"severity"`
+	JSONOutput  bool              `yaml:"jsonOutput"`
+	JSONResults string            `yaml:"jsonResults"`
 }
 
 type AnalyzerConfig struct {

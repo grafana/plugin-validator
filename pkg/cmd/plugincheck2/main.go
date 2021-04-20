@@ -62,6 +62,12 @@ func main() {
 
 	var exitCode int
 
+	for _, x := range diags {
+		//fmt.Printf("diag: %+v\n", x)
+		fmt.Printf("diag: %s\n", x.Severity)
+		fmt.Printf("diag: %s\n", x.Message)
+		fmt.Printf("diag: %s\n", x.Context)
+	}
 	for _, d := range diags {
 		var buf bytes.Buffer
 		switch d.Severity {

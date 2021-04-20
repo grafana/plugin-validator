@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -33,6 +34,16 @@ var tests = []struct {
 }
 
 func TestRunner(t *testing.T) {
+	// create empty archive
+	emptyArchive := filepath.Join("testdata", "EmptyArchive")
+	if _, err := os.Stat(emptyArchive); os.IsNotExist(err) {
+		os.Mkdir(emptyArchive, 0755)
+	}
+	// create empty dir
+	emptyDir := filepath.Join("testdata", "EmptyDirectory/myorg-plugin-panel")
+	if _, err := os.Stat(emptyDir); os.IsNotExist(err) {
+		os.MkdirAll(emptyDir, 0755)
+	}
 	for _, tt := range tests {
 		t.Run(tt.Dir, func(t *testing.T) {
 			archiveDir := filepath.Join("testdata", tt.Dir)
