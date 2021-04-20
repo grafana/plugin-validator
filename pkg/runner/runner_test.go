@@ -37,12 +37,16 @@ func TestRunner(t *testing.T) {
 	// create empty archive
 	emptyArchive := filepath.Join("testdata", "EmptyArchive")
 	if _, err := os.Stat(emptyArchive); os.IsNotExist(err) {
-		os.Mkdir(emptyArchive, 0755)
+		if err = os.Mkdir(emptyArchive, 0755); err != nil {
+			t.Fatal(err)
+		}
 	}
 	// create empty dir
 	emptyDir := filepath.Join("testdata", "EmptyDirectory/myorg-plugin-panel")
 	if _, err := os.Stat(emptyDir); os.IsNotExist(err) {
-		os.MkdirAll(emptyDir, 0755)
+		if err = os.MkdirAll(emptyDir, 0755); err != nil {
+			t.Fatal(err)
+		}
 	}
 	for _, tt := range tests {
 		t.Run(tt.Dir, func(t *testing.T) {
