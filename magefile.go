@@ -155,7 +155,7 @@ func (Run) V2() error {
 	return sh.RunV(
 		"./bin/plugincheck2",
 		"-config",
-		"config/verbose.yaml",
+		"config/verbose-json.yaml",
 		"https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip",
 	)
 }
