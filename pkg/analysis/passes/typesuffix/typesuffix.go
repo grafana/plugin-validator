@@ -2,6 +2,7 @@ package typesuffix
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -35,6 +36,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if idParts[len(idParts)-1] != data.Type {
 		pass.Reportf(pass.AnalyzerName, pluginTypeSuffix, "plugin.json: plugin id should end with plugin type")
+	} else {
+		if pluginTypeSuffix.ReportAll {
+			pluginTypeSuffix.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, pluginTypeSuffix, fmt.Sprintf("plugin.json: plugin id ends with plugin type: %s", data.Type))
+		}
 	}
 
 	return nil, nil

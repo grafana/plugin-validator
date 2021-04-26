@@ -30,6 +30,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, nil
 		}
 		return nil, err
+	} else {
+		if missingReadme.ReportAll {
+			missingReadme.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, missingReadme, "README.md: exists")
+		}
 	}
 
 	return b, nil

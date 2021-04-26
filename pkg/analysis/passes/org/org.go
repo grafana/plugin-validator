@@ -50,6 +50,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, nil
 		}
 		return nil, err
+	} else {
+		if missingGrafanaCloudAccount.ReportAll {
+			missingGrafanaCloudAccount.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("found Grafana Cloud account: %s", username))
+		}
 	}
 
 	return nil, nil

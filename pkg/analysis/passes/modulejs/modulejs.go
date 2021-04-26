@@ -30,6 +30,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, nil
 		}
 		return nil, err
+	} else {
+		if missingModulejs.ReportAll {
+			missingModulejs.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, missingModulejs, "module.js: exists")
+		}
 	}
 
 	return b, nil
