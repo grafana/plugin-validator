@@ -53,11 +53,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	switch state {
 	case PluginSignatureUnsigned:
-		pass.Reportf(unsignedPlugin, "unsigned plugin")
+		pass.Reportf(pass.AnalyzerName, unsignedPlugin, "unsigned plugin")
 	case PluginSignatureInvalid:
-		pass.Reportf(invalidSignature, "MANIFEST.txt: invalid plugin signature")
+		pass.Reportf(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: invalid plugin signature")
 	case PluginSignatureModified:
-		pass.Reportf(modifiedSignature, "MANIFEST.txt: plugin has been modified since it was signed")
+		pass.Reportf(pass.AnalyzerName, modifiedSignature, "MANIFEST.txt: plugin has been modified since it was signed")
 	default:
 	}
 
@@ -68,7 +68,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if m.SignatureType == "private" {
-			pass.Reportf(privateSignature, "MANIFEST.txt: should be signed under community or commercial signature level")
+			pass.Reportf(pass.AnalyzerName, privateSignature, "MANIFEST.txt: should be signed under community or commercial signature level")
 		}
 	}
 

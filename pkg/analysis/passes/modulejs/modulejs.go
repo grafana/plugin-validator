@@ -26,7 +26,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "module.js"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Reportf(missingModulejs, "missing module.js")
+			pass.Reportf(pass.AnalyzerName, missingModulejs, "missing module.js")
 			return nil, nil
 		}
 		return nil, err

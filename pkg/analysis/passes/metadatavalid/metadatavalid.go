@@ -64,7 +64,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for _, desc := range result.Errors() {
-		pass.Reportf(invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()))
+		pass.Reportf(pass.AnalyzerName, invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()))
 	}
 
 	return nil, nil

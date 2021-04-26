@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -62,32 +63,55 @@ func main() {
 
 	var exitCode int
 
-	for _, x := range diags {
-		//fmt.Printf("diag: %+v\n", x)
-		fmt.Printf("diag: %s\n", x.Severity)
-		fmt.Printf("diag: %s\n", x.Message)
-		fmt.Printf("diag: %s\n", x.Context)
-	}
-	for _, d := range diags {
-		var buf bytes.Buffer
-		switch d.Severity {
-		case analysis.Error:
-			buf.WriteString(color.RedString("error: "))
-			exitCode = 1
-		case analysis.Warning:
-			buf.WriteString(color.YellowString("warning: "))
-			if *strictFlag {
-				exitCode = 1
+	//var jsonOutput map[int][]byte
+	//for i, x := range diags {
+	//fmt.Printf("diag: %+v\n", x)
+	//fmt.Printf("diag: %s\n", x.Severity)
+	//fmt.Printf("diag: %s\n", x.Message)
+	//fmt.Printf("diag: %s\n", x.Context)
+	//b, _ := json.Marshal(x)
+	//jsonOutput[i], _ = json.Marshal(x)
+	//	}
+	if cfg.Global.JSONOutput {
+		output, _ := json.MarshalIndent(diags, "", "  ")
+		fmt.Fprintln(os.Stdout, string(output))
+		for name := range diags {
+			for _, d := range diags[name] {
+				switch d.Severity {
+				case analysis.Error:
+					exitCode = 1
+				case analysis.Warning:
+					if *strictFlag {
+						exitCode = 1
+					}
+				}
 			}
 		}
+		os.Exit(exitCode)
+	}
+	for name := range diags {
+		for _, d := range diags[name] {
+			var buf bytes.Buffer
+			switch d.Severity {
+			case analysis.Error:
+				buf.WriteString(color.RedString("error: "))
+				exitCode = 1
+			case analysis.Warning:
+				buf.WriteString(color.YellowString("warning: "))
+				if *strictFlag {
+					exitCode = 1
+				}
+			case analysis.OK:
+				buf.WriteString(color.GreenString("ok: "))
+			}
 
-		if d.Context != "" {
-			buf.WriteString(d.Context + ": ")
+			if d.Context != "" {
+				buf.WriteString(d.Context + ": ")
+			}
+
+			buf.WriteString(d.Message)
+			fmt.Fprintln(os.Stderr, buf.String())
 		}
-
-		buf.WriteString(d.Message)
-
-		fmt.Fprintln(os.Stderr, buf.String())
 	}
 
 	os.Exit(exitCode)

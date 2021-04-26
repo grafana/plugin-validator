@@ -24,7 +24,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	re := regexp.MustCompile("^# Grafana (Panel|Data Source|Data Source Backend) Plugin Template")
 
 	if m := re.Find(readme); m != nil {
-		pass.Reportf(templateReadme, "README.md: uses README from template")
+		pass.Reportf(pass.AnalyzerName, templateReadme, "README.md: uses README from template")
 	}
 
 	return nil, nil

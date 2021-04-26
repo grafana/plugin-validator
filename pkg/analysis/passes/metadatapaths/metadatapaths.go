@@ -44,17 +44,17 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 	for _, path := range paths {
 		u, err := url.Parse(path)
 		if err != nil {
-			pass.Reportf(invalidPath, fmt.Sprintf("plugin.json: invalid path: %s", path))
+			pass.Reportf(pass.AnalyzerName, invalidPath, fmt.Sprintf("plugin.json: invalid path: %s", path))
 			continue
 		}
 
 		if u.IsAbs() {
-			pass.Reportf(pathRelativeToMetadata, fmt.Sprintf("plugin.json: path should be relative to plugin.json: %s", path))
+			pass.Reportf(pass.AnalyzerName, pathRelativeToMetadata, fmt.Sprintf("plugin.json: path should be relative to plugin.json: %s", path))
 			continue
 		}
 
 		if strings.HasPrefix(path, ".") || strings.HasPrefix(path, "/") {
-			pass.Reportf(invalidRelativePath, fmt.Sprintf("plugin.json: relative path should not start with '.' or '/': %s", path))
+			pass.Reportf(pass.AnalyzerName, invalidRelativePath, fmt.Sprintf("plugin.json: relative path should not start with '.' or '/': %s", path))
 			continue
 		}
 	}

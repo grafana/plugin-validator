@@ -40,12 +40,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if regexp.MustCompile("^[0-9]+.[0-9]+.x$").Match([]byte(data.Dependencies.GrafanaDependency)) {
 		version := strings.TrimSuffix(data.Dependencies.GrafanaDependency, ".x")
-		pass.Reportf(dependsOnPatchReleases, fmt.Sprintf("plugin.json: plugin only targets patch releases of Grafana %s", version))
+		pass.Reportf(pass.AnalyzerName, dependsOnPatchReleases, fmt.Sprintf("plugin.json: plugin only targets patch releases of Grafana %s", version))
 		return nil, nil
 	}
 
 	if regexp.MustCompile("^[0-9]+.[0-9]+.[0-9]+$").Match([]byte(data.Dependencies.GrafanaDependency)) {
-		pass.Reportf(dependsOnSingleRelease, fmt.Sprintf("plugin.json: plugin only targets Grafana %s", data.Dependencies.GrafanaDependency))
+		pass.Reportf(pass.AnalyzerName, dependsOnSingleRelease, fmt.Sprintf("plugin.json: plugin only targets Grafana %s", data.Dependencies.GrafanaDependency))
 		return nil, nil
 	}
 

@@ -59,8 +59,10 @@ func TestRunner(t *testing.T) {
 
 			var diagnostics []string
 
-			for _, d := range ds {
-				diagnostics = append(diagnostics, d.Message)
+			for name := range ds {
+				for _, d := range ds[name] {
+					diagnostics = append(diagnostics, d.Message)
+				}
 			}
 
 			for _, w := range tt.Messages {

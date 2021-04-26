@@ -34,7 +34,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(found) > 0 {
-		pass.Reportf(developerJargon, "README.md: remove developer jargon for more user-friendly docs")
+		pass.Reportf(pass.AnalyzerName, developerJargon, "README.md: remove developer jargon for more user-friendly docs")
+	} else {
+		if developerJargon.ReportAll {
+			developerJargon.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, developerJargon, "README.md contains no developer jargon")
+		}
 	}
 
 	return nil, nil

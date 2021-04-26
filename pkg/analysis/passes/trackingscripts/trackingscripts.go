@@ -29,7 +29,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, url := range servers {
 		if bytes.Contains(module, []byte(url)) {
-			pass.Reportf(trackingScripts, "module.js: should not include tracking scripts")
+			pass.Reportf(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts")
 			break
 		}
 	}

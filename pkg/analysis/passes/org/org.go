@@ -45,7 +45,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err := client.FindOrgBySlug(username)
 	if err != nil {
 		if err == grafana.ErrOrganizationNotFound {
-			pass.Reportf(missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username))
+			pass.Reportf(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username))
 		} else if err == grafana.ErrPrivateOrganization {
 			return nil, nil
 		}

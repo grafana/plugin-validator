@@ -34,7 +34,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	idParts := strings.Split(data.ID, "-")
 
 	if idParts[len(idParts)-1] != data.Type {
-		pass.Reportf(pluginTypeSuffix, "plugin.json: plugin id should end with plugin type")
+		pass.Reportf(pass.AnalyzerName, pluginTypeSuffix, "plugin.json: plugin id should end with plugin type")
 	}
 
 	return nil, nil

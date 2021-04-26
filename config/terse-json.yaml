@@ -2,4 +2,4 @@ global:
   enabled: true
   severity: warning
   jsonOutput: true
-  jsonResults: all
+  reportAll: false
