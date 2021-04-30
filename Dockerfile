@@ -24,4 +24,4 @@ RUN apk update && \
 WORKDIR /app
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/bin bin
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/config config
-CMD ["/app/bin/plugincheck2", "-h"]
+CMD ["/app/bin/linux_amd64/plugincheck2", "-h"]

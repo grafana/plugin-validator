@@ -6,6 +6,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -45,7 +46,7 @@ func (Docker) Build(ctx context.Context) {
 		Clean,
 		Test.Verbose,
 		pluginCheckCmd,
-		pluginCheck2Cmd,
+		pluginCheck2CmdLinux,
 		buildDockerImage)
 }
 
@@ -55,7 +56,7 @@ func (Docker) Push(ctx context.Context) {
 		Clean,
 		Test.Verbose,
 		pluginCheckCmd,
-		pluginCheck2Cmd,
+		pluginCheck2CmdLinux,
 		buildDockerImage,
 		pushDockerImage)
 }
@@ -67,10 +68,29 @@ func pluginCheckCmd() error {
 	return sh.RunV("go", "build", "-o", "bin/plugincheck", "./pkg/cmd/plugincheck")
 }
 
-func pluginCheck2Cmd() error {
-	os.Setenv("GO111MODULE", "on")
-	os.Setenv("CGO_ENABLED", "0")
-	return sh.RunV("go", "build", "-o", "bin/plugincheck2", "./pkg/cmd/plugincheck2")
+func pluginCheck2CmdDarwin() error {
+	env := map[string]string{
+		"CGO_ENABLED": "0",
+		"GO111MODULE": "on",
+		"GOARCH":      "amd64",
+		"GOOS":        "darwin",
+	}
+	if err := sh.RunWith(env, "go", "build", "-o", "bin/darwin_amd64/plugincheck2", "./pkg/cmd/plugincheck2"); err != nil {
+		return err
+	}
+	return nil
+}
+func pluginCheck2CmdLinux() error {
+	env := map[string]string{
+		"CGO_ENABLED": "0",
+		"GO111MODULE": "on",
+		"GOARCH":      "amd64",
+		"GOOS":        "linux",
+	}
+	if err := sh.RunWith(env, "go", "build", "-o", "bin/linux_amd64/plugincheck2", "./pkg/cmd/plugincheck2"); err != nil {
+		return err
+	}
+	return nil
 }
 
 func testVerbose() error {
@@ -98,7 +118,9 @@ func (Build) Local(ctx context.Context) {
 	mg.Deps(
 		Clean,
 		pluginCheckCmd,
-		pluginCheck2Cmd)
+		pluginCheck2CmdDarwin,
+		pluginCheck2CmdLinux,
+	)
 }
 
 // Lint/Format/Test/Build
@@ -109,7 +131,9 @@ func (Build) CI(ctx context.Context) {
 		Test.Verbose,
 		Clean,
 		pluginCheckCmd,
-		pluginCheck2Cmd)
+		pluginCheck2CmdDarwin,
+		pluginCheck2CmdLinux,
+	)
 }
 
 // Run linter against codebase
@@ -137,7 +161,8 @@ func (Test) Default() {
 func Clean() error {
 	log.Printf("Cleaning all")
 	os.RemoveAll("./bin/plugincheck")
-	return os.RemoveAll("./bin/plugincheck2")
+	os.RemoveAll("./bin/linux_amd64")
+	return os.RemoveAll("./bin/darwin_amd64")
 }
 
 // Build and Run V1
@@ -153,7 +178,7 @@ func (Run) V1() error {
 func (Run) V2() error {
 	mg.Deps(Build.Local)
 	return sh.RunV(
-		"./bin/plugincheck2",
+		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
 		"-config",
 		"config/verbose-json.yaml",
 		"https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip",
