@@ -63,15 +63,6 @@ func main() {
 
 	var exitCode int
 
-	//var jsonOutput map[int][]byte
-	//for i, x := range diags {
-	//fmt.Printf("diag: %+v\n", x)
-	//fmt.Printf("diag: %s\n", x.Severity)
-	//fmt.Printf("diag: %s\n", x.Message)
-	//fmt.Printf("diag: %s\n", x.Context)
-	//b, _ := json.Marshal(x)
-	//jsonOutput[i], _ = json.Marshal(x)
-	//	}
 	if cfg.Global.JSONOutput {
 		output, _ := json.MarshalIndent(diags, "", "  ")
 		fmt.Fprintln(os.Stdout, string(output))
