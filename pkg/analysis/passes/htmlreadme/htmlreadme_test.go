@@ -21,7 +21,7 @@ func TestClean(t *testing.T) {
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			readme.Analyzer: b,
 		},
-		Report: func(d analysis.Diagnostic) {
+		Report: func(n string, d analysis.Diagnostic) {
 			invoked = true
 		},
 	}
@@ -48,7 +48,7 @@ func TestHTML(t *testing.T) {
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			readme.Analyzer: b,
 		},
-		Report: func(d analysis.Diagnostic) {
+		Report: func(n string, d analysis.Diagnostic) {
 			if d.Message != "README.md: html is not supported and will not render correctly" {
 				t.Errorf("unexpected diagnostic message: %q", d.Message)
 			}

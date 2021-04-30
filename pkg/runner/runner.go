@@ -12,8 +12,10 @@ type Config struct {
 }
 
 type GlobalConfig struct {
-	Enabled  bool              `yaml:"enabled"`
-	Severity analysis.Severity `yaml:"severity"`
+	Enabled    bool              `yaml:"enabled"`
+	Severity   analysis.Severity `yaml:"severity"`
+	JSONOutput bool              `yaml:"jsonOutput"`
+	ReportAll  bool              `yaml:"reportAll"`
 }
 
 type AnalyzerConfig struct {
@@ -27,17 +29,17 @@ type RuleConfig struct {
 	Severity *analysis.Severity `yaml:"severity"`
 }
 
-func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) ([]analysis.Diagnostic, error) {
+func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
 	initAnalyzers(analyzers, cfg)
-
-	var diagnostics []analysis.Diagnostic
+	diagnostics := make(map[string][]analysis.Diagnostic)
+	//var diagnostics []analysis.Diagnostic
 
 	pass := &analysis.Pass{
 		RootDir:  dir,
 		ResultOf: make(map[*analysis.Analyzer]interface{}),
-		Report: func(d analysis.Diagnostic) {
+		Report: func(name string, d analysis.Diagnostic) {
 			// Collect all diagnostics for presenting at the end.
-			diagnostics = append(diagnostics, d)
+			diagnostics[name] = append(diagnostics[name], d)
 		},
 	}
 
@@ -68,7 +70,7 @@ func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) ([]analysis.D
 				return nil
 			}
 		}
-
+		pass.AnalyzerName = a.Name
 		res, err := a.Run(pass)
 		if err != nil {
 			return err
@@ -120,6 +122,7 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 
 			r.Disabled = !ruleEnabled
 			r.Severity = ruleSeverity
+			r.ReportAll = cfg.Global.ReportAll
 		}
 	}
 }

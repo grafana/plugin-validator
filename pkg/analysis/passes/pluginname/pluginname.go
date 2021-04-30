@@ -27,7 +27,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if data.ID != "" && data.Name != "" && data.ID == data.Name {
-		pass.Reportf(humanFriendlyName, "plugin.json: plugin name should be human-friendly")
+		pass.Reportf(pass.AnalyzerName, humanFriendlyName, "plugin.json: plugin name should be human-friendly")
+	} else {
+		if humanFriendlyName.ReportAll {
+			humanFriendlyName.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, humanFriendlyName, "plugin.json: plugin name is human-friendly")
+		}
 	}
 
 	return nil, nil

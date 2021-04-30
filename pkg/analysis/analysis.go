@@ -9,15 +9,17 @@ type Severity string
 var (
 	Error   Severity = "error"
 	Warning Severity = "warning"
+	OK      Severity = "ok"
 )
 
 type Pass struct {
-	RootDir  string
-	ResultOf map[*Analyzer]interface{}
-	Report   func(Diagnostic)
+	AnalyzerName string
+	RootDir      string
+	ResultOf     map[*Analyzer]interface{}
+	Report       func(string, Diagnostic)
 }
 
-func (p *Pass) Reportf(rule *Rule, message string, as ...string) {
+func (p *Pass) Reportf(analysisName string, rule *Rule, message string, as ...string) {
 	if rule.Disabled {
 		return
 	}
@@ -27,7 +29,8 @@ func (p *Pass) Reportf(rule *Rule, message string, as ...string) {
 		is = append(is, a)
 	}
 
-	p.Report(Diagnostic{
+	p.Report(analysisName, Diagnostic{
+		Name:     rule.Name,
 		Severity: rule.Severity,
 		Message:  fmt.Sprintf(message, is...),
 	})
@@ -36,13 +39,15 @@ func (p *Pass) Reportf(rule *Rule, message string, as ...string) {
 type Diagnostic struct {
 	Severity Severity
 	Message  string
-	Context  string
+	Context  string `json:"Context,omitempty"`
+	Name     string
 }
 
 type Rule struct {
-	Name     string
-	Disabled bool
-	Severity Severity
+	Name      string
+	Disabled  bool
+	Severity  Severity
+	ReportAll bool
 }
 
 type Analyzer struct {

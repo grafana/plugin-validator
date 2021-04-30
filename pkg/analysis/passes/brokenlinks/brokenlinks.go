@@ -81,8 +81,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				context: "README.md",
 				url:     path,
 			})
+			if relativeLink.ReportAll {
+				relativeLink.Severity = analysis.OK
+				pass.Reportf(pass.AnalyzerName, relativeLink, "Link has absolute path: %s", path)
+			}
 		} else {
-			pass.Reportf(relativeLink, "convert relative link to absolute: %s", path)
+			pass.Reportf(pass.AnalyzerName, relativeLink, "convert relative link to absolute: %s", path)
 		}
 	}
 
@@ -125,8 +129,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		close(brokenCh)
 	}()
 
+	reportCount := 0
 	for link := range brokenCh {
-		pass.Reportf(brokenLink, "%s: broken link: %s (%s)", link.context, link.url, link.status)
+		pass.Reportf(pass.AnalyzerName, brokenLink, "%s: broken link: %s (%s)", link.context, link.url, link.status)
+		reportCount++
+	}
+	if reportCount == 0 && brokenLink.ReportAll {
+		brokenLink.Severity = analysis.OK
+		pass.Reportf(pass.AnalyzerName, brokenLink, "All links pass")
 	}
 
 	return nil, nil

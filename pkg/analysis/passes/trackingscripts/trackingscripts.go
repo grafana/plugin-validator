@@ -27,10 +27,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		"https://mixpanel.com",
 	}
 
+	hasTrackingScripts := false
 	for _, url := range servers {
 		if bytes.Contains(module, []byte(url)) {
-			pass.Reportf(trackingScripts, "module.js: should not include tracking scripts")
+			pass.Reportf(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts")
+			hasTrackingScripts = true
 			break
+		}
+	}
+
+	if !hasTrackingScripts {
+		if trackingScripts.ReportAll {
+			trackingScripts.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, trackingScripts, "module.js: no tracking scripts detected")
 		}
 	}
 

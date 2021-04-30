@@ -78,6 +78,9 @@ func readArchive(archiveURL string) ([]byte, error) {
 // Check executes a number of checks to validate a plugin.
 func Check(archiveURL string, schemaPath string, private bool, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
 	b, err := readArchive(archiveURL)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, cleanup, err := extractPlugin(bytes.NewReader(b))
@@ -210,7 +213,9 @@ func usernameFromMetadata(metadata []byte) string {
 	var meta struct {
 		ID string `json:"id"`
 	}
-	json.Unmarshal(metadata, &meta)
+	if err := json.Unmarshal(metadata, &meta); err != nil {
+		return ""
+	}
 
 	fields := strings.Split(meta.ID, "-")
 
@@ -287,7 +292,9 @@ func unzip(src string, dest string) ([]string, error) {
 
 		if f.FileInfo().IsDir() {
 			// Make Folder
-			os.MkdirAll(fpath, os.ModePerm)
+			if err = os.MkdirAll(fpath, os.ModePerm); err != nil {
+				return nil, err
+			}
 			continue
 		}
 

@@ -28,18 +28,30 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) == 0 {
-		pass.Reportf(emptyArchive, "archive is empty")
+		pass.Reportf(pass.AnalyzerName, emptyArchive, "archive is empty")
 		return nil, nil
+	}
+	if emptyArchive.ReportAll {
+		emptyArchive.Severity = analysis.OK
+		pass.Reportf(pass.AnalyzerName, emptyArchive, "Archive is not empty")
 	}
 
 	if len(fis) != 1 {
-		pass.Reportf(moreThanOneDir, "archive contains more than one directory")
+		pass.Reportf(pass.AnalyzerName, moreThanOneDir, "archive contains more than one directory")
 		return nil, nil
+	}
+	if moreThanOneDir.ReportAll {
+		moreThanOneDir.Severity = analysis.OK
+		pass.Reportf(pass.AnalyzerName, moreThanOneDir, "Archive has a single directory")
 	}
 
 	if !fis[0].IsDir() {
-		pass.Reportf(noRootDir, "archive does not contain a root directory")
+		pass.Reportf(pass.AnalyzerName, noRootDir, "archive does not contain a root directory")
 		return nil, nil
+	}
+	if noRootDir.ReportAll {
+		noRootDir.Severity = analysis.OK
+		pass.Reportf(pass.AnalyzerName, noRootDir, "Archive contains a root directory")
 	}
 
 	rootDir := filepath.Join(pass.RootDir, fis[0].Name())
@@ -48,12 +60,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err = os.Stat(legacyRoot)
 	if err != nil {
 		if os.IsNotExist(err) {
+			if dist.ReportAll {
+				dist.Severity = analysis.OK
+				pass.Reportf(pass.AnalyzerName, dist, "Archive has expected content")
+			}
 			return rootDir, nil
 		}
 		return nil, err
 	}
 
-	pass.Reportf(dist, "dist should be renamed to plugin id and moved to root")
+	pass.Reportf(pass.AnalyzerName, dist, "dist should be renamed to plugin id and moved to root")
 
 	return legacyRoot, nil
 }
