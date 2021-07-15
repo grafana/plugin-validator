@@ -13,6 +13,12 @@ cd cmd/plugincheck
 go install
 ```
 
+Alternative: using docker
+
+```
+docker pull ghcr.io/grafana/plugin-validator:v0.6.2
+```
+
 ## Run
 
 Validate a remote archive:
@@ -21,10 +27,22 @@ Validate a remote archive:
 plugincheck https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
 ```
 
+Validate a remote archive using docker:
+
+```
+docker run --rm ghcr.io/grafana/plugin-validator:v0.6.2 https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
+```
+
 Validate a local plugin archive:
 
 ```
 plugincheck ./marcusolsson-json-datasource-0.6.0.zip
+```
+
+Validate a local plugin archive using docker:
+
+```
+docker run --rm -v $(pwd):/plugin ghcr.io/grafana/plugin-validator:v0.6.2 /plugin/marcusolsson-json-datasource-0.6.0.zip
 ```
 
 ## License
