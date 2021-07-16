@@ -27,7 +27,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	)
 
 	if angularExp.Match(module) && !reactExp.Match(module) {
-		pass.Reportf(legacyPlatform, "module.js: uses legacy plugin platform")
+		pass.Reportf(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform")
+	} else {
+		if legacyPlatform.ReportAll {
+			legacyPlatform.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, legacyPlatform, "module.js: uses current plugin platform")
+		}
 	}
 
 	return nil, nil

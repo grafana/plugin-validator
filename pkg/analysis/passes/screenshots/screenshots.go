@@ -27,8 +27,13 @@ func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(data.Info.Screenshots) == 0 {
-		pass.Reportf(screenshots, "plugin.json: should include screenshots for marketplace")
+		pass.Reportf(pass.AnalyzerName, screenshots, "plugin.json: should include screenshots for marketplace")
 		return nil, nil
+	} else {
+		if screenshots.ReportAll {
+			screenshots.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, screenshots, "plugin.json: includes screenshots for marketplace")
+		}
 	}
 
 	return data.Info.Screenshots, nil

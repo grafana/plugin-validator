@@ -191,7 +191,7 @@ type largeFileChecker struct{}
 func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	var errs []ValidationComment
 
-	filepath.Walk(ctx.RootDir, func(path string, info os.FileInfo, err error) error {
+	walkErr := filepath.Walk(ctx.RootDir, func(path string, info os.FileInfo, err error) error {
 		if info.Size() > 1000000 {
 			b, err := ioutil.ReadFile(path)
 			if err != nil {
@@ -209,6 +209,9 @@ func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) 
 		}
 		return nil
 	})
+	if walkErr != nil {
+		return nil, walkErr
+	}
 
 	return errs, nil
 }

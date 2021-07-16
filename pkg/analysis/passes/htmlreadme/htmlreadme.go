@@ -24,7 +24,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	re := regexp.MustCompile("</[a-z]+>")
 
 	if re.Match(readme) {
-		pass.Reportf(noHTMLReadme, "README.md: html is not supported and will not render correctly")
+		pass.Reportf(pass.AnalyzerName, noHTMLReadme, "README.md: html is not supported and will not render correctly")
+	} else {
+		if noHTMLReadme.ReportAll {
+			noHTMLReadme.Severity = analysis.OK
+			pass.Reportf(pass.AnalyzerName, noHTMLReadme, "README.md contains no html")
+		}
 	}
 
 	return nil, nil
