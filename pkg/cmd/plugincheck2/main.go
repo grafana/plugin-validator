@@ -18,7 +18,7 @@ import (
 type FormattedOutput struct {
 	ID         string                           `json:"id"`
 	Version    string                           `json:"version"`
-	Diagnotics map[string][]analysis.Diagnostic `json:"plugin-validator"`
+	Diagnostics map[string][]analysis.Diagnostic `json:"plugin-validator"`
 }
 
 func main() {
