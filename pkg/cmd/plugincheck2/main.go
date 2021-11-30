@@ -16,8 +16,8 @@ import (
 )
 
 type FormattedOutput struct {
-	ID         string                           `json:"id"`
-	Version    string                           `json:"version"`
+	ID          string                           `json:"id"`
+	Version     string                           `json:"version"`
 	Diagnostics map[string][]analysis.Diagnostic `json:"plugin-validator"`
 }
 
@@ -72,15 +72,20 @@ func main() {
 	if cfg.Global.JSONOutput {
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, fmt.Errorf("failed to get ID and Version: %w", err))
-			unknown := "unknown"
-			pluginID = &unknown
-			pluginVersion = &unknown
+			pluginID = "unknown"
+			pluginVersion = "unknown"
+			archiveDiag := analysis.Diagnostic{
+				Name:     "zip-invalid",
+				Severity: analysis.Error,
+				Message:  "ZIP is improperly structured",
+				Context:  "could not read plugin.json from archive to determine id and version",
+			}
+			diags["archive"] = append(diags["archive"], archiveDiag)
 		}
 		allData := FormattedOutput{
-			ID:         *pluginID,
-			Version:    *pluginVersion,
-			Diagnotics: diags,
+			ID:          pluginID,
+			Version:     pluginVersion,
+			Diagnostics: diags,
 		}
 		output, _ := json.MarshalIndent(allData, "", "  ")
 		fmt.Fprintln(os.Stdout, string(output))
