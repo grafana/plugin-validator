@@ -15,6 +15,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type FormattedOutput struct {
+	ID          string                           `json:"id"`
+	Version     string                           `json:"version"`
+	Diagnostics map[string][]analysis.Diagnostic `json:"plugin-validator"`
+}
+
 func main() {
 	var (
 		strictFlag = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
@@ -64,7 +70,24 @@ func main() {
 	var exitCode int
 
 	if cfg.Global.JSONOutput {
-		output, _ := json.MarshalIndent(diags, "", "  ")
+		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
+		if err != nil {
+			pluginID = "unknown"
+			pluginVersion = "unknown"
+			archiveDiag := analysis.Diagnostic{
+				Name:     "zip-invalid",
+				Severity: analysis.Error,
+				Message:  "ZIP is improperly structured",
+				Context:  "could not read plugin.json from archive to determine id and version",
+			}
+			diags["archive"] = append(diags["archive"], archiveDiag)
+		}
+		allData := FormattedOutput{
+			ID:          pluginID,
+			Version:     pluginVersion,
+			Diagnostics: diags,
+		}
+		output, _ := json.MarshalIndent(allData, "", "  ")
 		fmt.Fprintln(os.Stdout, string(output))
 		for name := range diags {
 			for _, d := range diags[name] {
