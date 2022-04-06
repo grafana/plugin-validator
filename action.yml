@@ -4,7 +4,7 @@ inputs:
   config:
     description: 'Path to configuration file'
     required: false
-    default: 'config/default.yaml'
+    default: '/app/config/default.yaml'
 runs:
   using: 'docker'
   image: 'Dockerfile'
