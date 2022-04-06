@@ -9,4 +9,5 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - '-config ${{ inputs.config }}'
+    - '-config'
+    - '${{ inputs.config }}'
