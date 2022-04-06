@@ -1,0 +1,12 @@
+name: 'Grafana Plugin Validator'
+description: 'A tool for validating community plugins for publishing to Grafana.com.'
+inputs:
+  config:
+    description: 'Path to configuration file'
+    required: false
+    default: 'config/default.yaml'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - '-config ${{ inputs.config }}'
