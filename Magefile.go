@@ -1,3 +1,4 @@
+//go:build mage
 // +build mage
 
 package main
@@ -19,7 +20,7 @@ type Docker mg.Namespace
 type Run mg.Namespace
 
 const imageName = "grafana/plugin-validator-cli"
-const imageVersion = "v1"
+const imageVersion = "v2"
 
 // Default target to run when none is specified
 // If not set, running mage will list available targets
