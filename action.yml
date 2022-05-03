@@ -7,8 +7,7 @@ inputs:
     default: '/app/config/default.yaml'
   package:
     description: 'Path to plugin package file'
-    required: false
-    default: 'plugin.zip'
+    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
