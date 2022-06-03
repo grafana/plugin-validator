@@ -1,0 +1,5 @@
+global:
+  enabled: true
+  severity: warning
+  jsonOutput: false
+  reportAll: false

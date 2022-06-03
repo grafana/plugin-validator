@@ -13,7 +13,7 @@ func TestDistDir(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir:  filepath.Join("testdata", "DistDir"),
 		ResultOf: make(map[*analysis.Analyzer]interface{}),
-		Report: func(analysis.Diagnostic) {
+		Report: func(string, analysis.Diagnostic) {
 			invoked = true
 		},
 	}
@@ -40,7 +40,7 @@ func TestIDDir(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir:  filepath.Join("testdata", "IDDir"),
 		ResultOf: make(map[*analysis.Analyzer]interface{}),
-		Report: func(analysis.Diagnostic) {
+		Report: func(string, analysis.Diagnostic) {
 			invoked = true
 		},
 	}
@@ -67,7 +67,7 @@ func TestEmpty(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir:  filepath.Join("testdata", "Empty"),
 		ResultOf: make(map[*analysis.Analyzer]interface{}),
-		Report: func(d analysis.Diagnostic) {
+		Report: func(n string, d analysis.Diagnostic) {
 			invoked = true
 
 			if d.Message != "archive does not contain a root directory" {
