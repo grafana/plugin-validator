@@ -2,6 +2,7 @@ package jargon
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
@@ -34,7 +35,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(found) > 0 {
-		pass.Reportf(pass.AnalyzerName, developerJargon, "README.md: remove developer jargon for more user-friendly docs")
+		pass.Reportf(pass.AnalyzerName, developerJargon, "README.md: remove developer jargon for more user-friendly docs ("+strings.Join(jargon, ", ")+")")
 	} else {
 		if developerJargon.ReportAll {
 			developerJargon.Severity = analysis.OK
