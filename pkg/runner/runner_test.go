@@ -30,6 +30,8 @@ var tests = []struct {
 		"plugin.json: (root): id is required",
 		"plugin.json: (root): info is required",
 		"plugin.json: (root): dependencies is required",
+		"plugin.json: invalid empty small logo path",
+		"plugin.json: invalid empty large logo path",
 	}},
 }
 
