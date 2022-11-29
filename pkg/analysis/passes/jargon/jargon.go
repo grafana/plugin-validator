@@ -35,7 +35,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(found) > 0 {
-		pass.Reportf(pass.AnalyzerName, developerJargon, "README.md: remove developer jargon for more user-friendly docs ("+strings.Join(jargon, ", ")+")")
+		reportMessage := "README.md contains developer jargon: (" + strings.Join(found, ", ") + ")" +
+			"\n     Move any developer and contributor documentation to a separate file" +
+			"\n     and link to it from the README.md" +
+			"\n     for example, CONTRIBUTING.md, DEVELOPMENT.md, etc."
+		pass.Reportf(pass.AnalyzerName, developerJargon, reportMessage)
 	} else {
 		if developerJargon.ReportAll {
 			developerJargon.Severity = analysis.OK
