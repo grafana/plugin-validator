@@ -26,7 +26,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "MANIFEST.txt"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Reportf(pass.AnalyzerName, unsignedPlugin, "unsigned plugin")
+			pass.Reportf(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin.")
 			return nil, nil
 		} else {
 			if unsignedPlugin.ReportAll {
