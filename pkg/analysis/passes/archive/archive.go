@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -37,7 +38,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) != 1 {
-		pass.Reportf(pass.AnalyzerName, moreThanOneDir, "archive contains more than one directory")
+		pass.Reportf(pass.AnalyzerName, moreThanOneDir,
+			"archive contains more than one directory",
+			fmt.Sprintf("archive should contain only one directory named after plugin id. Found %d directories", len(fis)))
 		return nil, nil
 	}
 	if moreThanOneDir.ReportAll {
@@ -46,7 +49,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if !fis[0].IsDir() {
-		pass.Reportf(pass.AnalyzerName, noRootDir, "archive does not contain a root directory")
+		pass.Reportf(pass.AnalyzerName, noRootDir, "archive does not contain a root directory", "archive should contain a single root directory. Found a file instead")
 		return nil, nil
 	}
 	if noRootDir.ReportAll {
