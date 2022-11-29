@@ -2,6 +2,7 @@ package screenshots
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -28,15 +29,15 @@ func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(data.Info.Screenshots) == 0 {
-		extraMessage := "Screenshots are displayed in the plugin's catalog. Please add at least one screenshot to your plugin.json."
-		pass.Reportf(pass.AnalyzerName, screenshots, "plugin.json should include screenshots for marketplace.\n>> %s", extraMessage)
+		explanation := "Screenshots are displayed in the plugin's catalog. Please add at least one screenshot to your plugin.json."
+		pass.Reportf(pass.AnalyzerName, screenshots, "plugin.json: should include screenshots for marketplace", explanation)
 		return nil, nil
 	} else {
 		reportCount := 0
 		for _, screenshot := range data.Info.Screenshots {
 			if strings.TrimSpace(screenshot.Path) == "" {
 				reportCount++
-				pass.Reportf(pass.AnalyzerName, screenshots, "plugin.json: invalid empty screenshot path: %q", screenshot.Name)
+				pass.Reportf(pass.AnalyzerName, screenshots, fmt.Sprintf("plugin.json: invalid empty screenshot path: %q", screenshot.Name))
 			}
 		}
 

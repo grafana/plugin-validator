@@ -124,6 +124,10 @@ func main() {
 			}
 
 			buf.WriteString(d.Message)
+			if len(d.Detail) > 0 {
+				buf.WriteString("\n" + color.BlueString("detail: "))
+				buf.WriteString(d.Detail)
+			}
 			fmt.Fprintln(os.Stderr, buf.String())
 		}
 	}

@@ -2,6 +2,7 @@ package archivename
 
 import (
 	"encoding/json"
+	"fmt"
 	"path/filepath"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -36,17 +37,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// deprecated archive structure.
 		if noIdentRootDir.ReportAll {
 			noIdentRootDir.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, noIdentRootDir, "Archive contains directory named %s", data.ID)
+			pass.Reportf(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("Archive contains directory named %s", data.ID))
 		}
 		return nil, nil
 	}
 
 	if data.ID != "" && base != data.ID {
-		pass.Reportf(pass.AnalyzerName, noIdentRootDir, "archive should contain a directory named %s", data.ID)
+		pass.Reportf(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("archive should contain a directory named %s", data.ID))
 	} else {
 		if noIdentRootDir.ReportAll {
 			noIdentRootDir.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, noIdentRootDir, "Archive contains directory named %s", data.ID)
+			pass.Reportf(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("Archive contains directory named %s", data.ID))
 		}
 	}
 
