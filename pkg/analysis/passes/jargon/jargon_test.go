@@ -1,8 +1,6 @@
 package jargon
 
 import (
-	"io/ioutil"
-	"path/filepath"
 	"testing"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -10,17 +8,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var cleanReadme = []byte(`
+# Test
+
+This is a README without jargon in it.
+`)
+
+var jargonReadme = []byte(`
+# Test
+
+This is a README with jargon on it
+
+# Development instructions
+
+yarn install
+
+`)
+
 func TestClean(t *testing.T) {
 	var invoked bool
 
-	b, err := ioutil.ReadFile(filepath.Join("testdata", "README.clean.md"))
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			readme.Analyzer: b,
+			readme.Analyzer: cleanReadme,
 			Analyzer:        nil,
 		},
 		Report: func(_ string, _ analysis.Diagnostic) {
@@ -28,7 +38,7 @@ func TestClean(t *testing.T) {
 		},
 	}
 
-	_, err = Analyzer.Run(pass)
+	_, err := Analyzer.Run(pass)
 	assert.NoError(t, err)
 
 	// should not call the report function
@@ -37,14 +47,10 @@ func TestClean(t *testing.T) {
 }
 
 func TestWithJargon(t *testing.T) {
-	b, err := ioutil.ReadFile(filepath.Join("testdata", "README.jargon.md"))
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			readme.Analyzer: b,
+			readme.Analyzer: jargonReadme,
 			Analyzer:        nil,
 		},
 		Report: func(_ string, d analysis.Diagnostic) {
@@ -52,7 +58,7 @@ func TestWithJargon(t *testing.T) {
 		},
 	}
 
-	_, err = Analyzer.Run(pass)
+	_, err := Analyzer.Run(pass)
 	if err != nil {
 		t.Fatal(err)
 	}
