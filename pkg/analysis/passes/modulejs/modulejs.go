@@ -26,14 +26,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "module.js"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Reportf(pass.AnalyzerName, missingModulejs, "missing module.js")
+			pass.ReportResult(pass.AnalyzerName, missingModulejs, "missing module.js", "Your plugin must have a module.js file to be loaded by Grafana.")
 			return nil, nil
 		}
 		return nil, err
 	} else {
 		if missingModulejs.ReportAll {
 			missingModulejs.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, missingModulejs, "module.js: exists")
+			pass.ReportResult(pass.AnalyzerName, missingModulejs, "module.js: exists", "")
 		}
 	}
 

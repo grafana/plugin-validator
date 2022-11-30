@@ -39,11 +39,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		foundJargon := strings.Join(found, ", ")
 		reportMessage := fmt.Sprintf("README.md contains developer jargon: (%s)", foundJargon)
 		explanation := "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc."
-		pass.Reportf(pass.AnalyzerName, developerJargon, reportMessage, explanation)
+		pass.ReportResult(pass.AnalyzerName, developerJargon, reportMessage, explanation)
 	} else {
 		if developerJargon.ReportAll {
 			developerJargon.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, developerJargon, "README.md contains no developer jargon")
+			pass.ReportResult(pass.AnalyzerName, developerJargon, "README.md contains no developer jargon", "")
 		}
 	}
 

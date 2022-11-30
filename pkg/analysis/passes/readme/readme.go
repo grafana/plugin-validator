@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
@@ -26,14 +27,18 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "README.md"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Reportf(pass.AnalyzerName, missingReadme, "missing README.md")
+			pass.ReportResult(pass.AnalyzerName, missingReadme, "missing README.md", "A README.md file is required for plugins. The contents of the file will be displayed on the Grafana catalog.")
 			return nil, nil
 		}
 		return nil, err
 	} else {
+		if len(strings.TrimSpace(string(b))) == 0 {
+			pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md is empty", "A README.md file is required for plugins. The contents of the file will be displayed on the Grafana catalog.")
+			return nil, nil
+		}
 		if missingReadme.ReportAll {
 			missingReadme.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, missingReadme, "README.md: exists")
+			pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md: exists", "")
 		}
 	}
 

@@ -77,7 +77,7 @@ func main() {
 			archiveDiag := analysis.Diagnostic{
 				Name:     "zip-invalid",
 				Severity: analysis.Error,
-				Message:  "ZIP is improperly structured",
+				Title:    "ZIP is improperly structured",
 				Context:  "could not read plugin.json from archive to determine id and version",
 			}
 			diags["archive"] = append(diags["archive"], archiveDiag)
@@ -123,7 +123,7 @@ func main() {
 				buf.WriteString(d.Context + ": ")
 			}
 
-			buf.WriteString(d.Message)
+			buf.WriteString(d.Title)
 			if len(d.Detail) > 0 {
 				buf.WriteString("\n" + color.BlueString("detail: "))
 				buf.WriteString(d.Detail)

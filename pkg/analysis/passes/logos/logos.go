@@ -30,12 +30,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	reportCount := 0
 	if strings.TrimSpace(data.Info.Logos.Small) == "" {
 		reportCount++
-		pass.Reportf(pass.AnalyzerName, logos, "plugin.json: invalid empty small logo path")
+		pass.ReportResult(pass.AnalyzerName, logos, "plugin.json: invalid empty small logo path", "Logo path cannot be empty")
 	}
 
 	if strings.TrimSpace(data.Info.Logos.Large) == "" {
 		reportCount++
-		pass.Reportf(pass.AnalyzerName, logos, "plugin.json: invalid empty large logo path")
+		pass.ReportResult(pass.AnalyzerName, logos, "plugin.json: invalid empty large logo path", "Logo path cannot be empty")
 	}
 
 	if reportCount > 0 {

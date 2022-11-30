@@ -63,7 +63,7 @@ func TestRunner(t *testing.T) {
 
 			for name := range ds {
 				for _, d := range ds[name] {
-					diagnostics = append(diagnostics, d.Message)
+					diagnostics = append(diagnostics, d.Title)
 				}
 			}
 

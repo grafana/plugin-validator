@@ -26,12 +26,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.Reportf(pass.AnalyzerName, missingMetadata, "missing plugin.json")
+			pass.ReportResult(pass.AnalyzerName, missingMetadata, "missing plugin.json", "A plugin.json file is required to describe the plugin.")
 			return nil, nil
 		} else {
 			if missingMetadata.ReportAll {
 				missingMetadata.Severity = analysis.OK
-				pass.Reportf(pass.AnalyzerName, missingMetadata, "plugin.json exists")
+				pass.ReportResult(pass.AnalyzerName, missingMetadata, "plugin.json exists", "")
 			}
 		}
 		return nil, err

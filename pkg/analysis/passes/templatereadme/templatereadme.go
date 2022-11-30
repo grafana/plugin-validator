@@ -24,11 +24,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	re := regexp.MustCompile("^# Grafana (Panel|Data Source|Data Source Backend) Plugin Template")
 
 	if m := re.Find(readme); m != nil {
-		pass.Reportf(pass.AnalyzerName, templateReadme, "README.md: uses README from template")
+		pass.ReportResult(pass.AnalyzerName, templateReadme, "README.md: uses README from template", "The README.md file uses the README from the plugin template. Please update it to describe your plugin.")
 	} else {
 		if templateReadme.ReportAll {
 			templateReadme.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, templateReadme, "README.md: does not use README from template")
+			pass.ReportResult(pass.AnalyzerName, templateReadme, "README.md: does not use README from template", "")
 		}
 	}
 

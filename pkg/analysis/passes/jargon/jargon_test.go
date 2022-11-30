@@ -54,7 +54,7 @@ func TestWithJargon(t *testing.T) {
 			Analyzer:        nil,
 		},
 		Report: func(_ string, d analysis.Diagnostic) {
-			assert.Equal(t, "README.md contains developer jargon: (yarn)", d.Message)
+			assert.Equal(t, "README.md contains developer jargon: (yarn)", d.Title)
 		},
 	}
 

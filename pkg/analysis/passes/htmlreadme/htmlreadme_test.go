@@ -49,8 +49,8 @@ func TestHTML(t *testing.T) {
 			readme.Analyzer: b,
 		},
 		Report: func(n string, d analysis.Diagnostic) {
-			if d.Message != "README.md: html is not supported and will not render correctly" {
-				t.Errorf("unexpected diagnostic message: %q", d.Message)
+			if d.Title != "README.md: html is not supported and will not render correctly" {
+				t.Errorf("unexpected diagnostic message: %q", d.Title)
 			}
 			invoked = true
 		},
