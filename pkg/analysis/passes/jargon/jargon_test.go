@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestClean(t *testing.T) {
@@ -28,18 +29,14 @@ func TestClean(t *testing.T) {
 	}
 
 	_, err = Analyzer.Run(pass)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
-	if invoked {
-		t.Error("unexpected report")
-	}
+	// should not call the report function
+	assert.False(t, invoked)
+
 }
 
 func TestWithJargon(t *testing.T) {
-	var invoked bool
-
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "README.jargon.md"))
 	if err != nil {
 		t.Fatal(err)
@@ -51,19 +48,12 @@ func TestWithJargon(t *testing.T) {
 			Analyzer:        nil,
 		},
 		Report: func(_ string, d analysis.Diagnostic) {
-			if d.Message != "README.md contains developer jargon: (yarn)" {
-				t.Errorf("unexpected diagnostic message: %q", d.Message)
-			}
-			invoked = true
+			assert.Equal(t, "README.md contains developer jargon: (yarn)", d.Message)
 		},
 	}
 
 	_, err = Analyzer.Run(pass)
 	if err != nil {
 		t.Fatal(err)
-	}
-
-	if !invoked {
-		t.Error("unexpected report")
 	}
 }
