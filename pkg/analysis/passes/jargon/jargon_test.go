@@ -48,12 +48,15 @@ func TestClean(t *testing.T) {
 
 func TestWithJargon(t *testing.T) {
 
+	var invoked bool
+
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			readme.Analyzer: jargonReadme,
 			Analyzer:        nil,
 		},
 		Report: func(_ string, d analysis.Diagnostic) {
+			invoked = true
 			assert.Equal(t, "README.md contains developer jargon: (yarn)", d.Title)
 		},
 	}
@@ -62,4 +65,6 @@ func TestWithJargon(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	assert.True(t, invoked, "report should be called")
 }
