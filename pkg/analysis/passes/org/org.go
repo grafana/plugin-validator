@@ -45,7 +45,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err := client.FindOrgBySlug(username)
 	if err != nil {
 		if err == grafana.ErrOrganizationNotFound {
-			pass.Reportf(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username))
+			pass.ReportResult(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username), "The plugin's ID is prefixed with a Grafana Cloud account name, but that account does not exist. Please create the account or correct the name.")
 		} else if err == grafana.ErrPrivateOrganization {
 			return nil, nil
 		}
@@ -53,7 +53,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	} else {
 		if missingGrafanaCloudAccount.ReportAll {
 			missingGrafanaCloudAccount.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("found Grafana Cloud account: %s", username))
+			pass.ReportResult(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("found Grafana Cloud account: %s", username), "")
 		}
 	}
 

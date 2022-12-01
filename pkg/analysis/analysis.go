@@ -1,9 +1,5 @@
 package analysis
 
-import (
-	"fmt"
-)
-
 type Severity string
 
 var (
@@ -19,26 +15,23 @@ type Pass struct {
 	Report       func(string, Diagnostic)
 }
 
-func (p *Pass) Reportf(analysisName string, rule *Rule, message string, as ...string) {
+func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, detail string) {
 	if rule.Disabled {
 		return
-	}
-
-	var is []interface{}
-	for _, a := range as {
-		is = append(is, a)
 	}
 
 	p.Report(analysisName, Diagnostic{
 		Name:     rule.Name,
 		Severity: rule.Severity,
-		Message:  fmt.Sprintf(message, is...),
+		Title:    message,
+		Detail:   detail,
 	})
 }
 
 type Diagnostic struct {
 	Severity Severity
-	Message  string
+	Title    string
+	Detail   string
 	Context  string `json:"Context,omitempty"`
 	Name     string
 }

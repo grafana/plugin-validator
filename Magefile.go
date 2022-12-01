@@ -185,3 +185,17 @@ func (Run) V2() error {
 		"https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip",
 	)
 }
+
+func (Run) V2Local(ctx context.Context, path string) error {
+	mg.Deps(Build.Local)
+
+	if _, err := os.Stat(path); err != nil {
+		return err
+	}
+
+	return sh.RunV(
+		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
+		"-config",
+		"config/default.yaml",
+		path)
+}

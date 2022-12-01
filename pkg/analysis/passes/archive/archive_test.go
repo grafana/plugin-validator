@@ -70,8 +70,8 @@ func TestEmpty(t *testing.T) {
 		Report: func(n string, d analysis.Diagnostic) {
 			invoked = true
 
-			if d.Message != "archive does not contain a root directory" {
-				t.Errorf("unexpected diagnostic message: %q", d.Message)
+			if d.Title != "archive does not contain a root directory" {
+				t.Errorf("unexpected diagnostic message: %q", d.Title)
 			}
 		},
 	}

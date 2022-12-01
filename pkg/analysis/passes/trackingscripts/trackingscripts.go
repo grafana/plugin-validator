@@ -30,7 +30,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	hasTrackingScripts := false
 	for _, url := range servers {
 		if bytes.Contains(module, []byte(url)) {
-			pass.Reportf(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts")
+			pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts", "Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code.")
 			hasTrackingScripts = true
 			break
 		}
@@ -39,7 +39,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if !hasTrackingScripts {
 		if trackingScripts.ReportAll {
 			trackingScripts.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, trackingScripts, "module.js: no tracking scripts detected")
+			pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: no tracking scripts detected", "")
 		}
 	}
 

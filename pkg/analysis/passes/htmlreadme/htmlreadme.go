@@ -24,11 +24,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	re := regexp.MustCompile("</[a-z]+>")
 
 	if re.Match(readme) {
-		pass.Reportf(pass.AnalyzerName, noHTMLReadme, "README.md: html is not supported and will not render correctly")
+		pass.ReportResult(pass.AnalyzerName, noHTMLReadme, "README.md: html is not supported and will not render correctly", "Remove all HTML from your README.md file. It will not render correctly on the Grafana catalog.")
 	} else {
 		if noHTMLReadme.ReportAll {
 			noHTMLReadme.Severity = analysis.OK
-			pass.Reportf(pass.AnalyzerName, noHTMLReadme, "README.md contains no html")
+			pass.ReportResult(pass.AnalyzerName, noHTMLReadme, "README.md contains no html", "")
 		}
 	}
 

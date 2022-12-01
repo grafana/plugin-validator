@@ -1,6 +1,7 @@
 package archive
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -28,30 +29,32 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) == 0 {
-		pass.Reportf(pass.AnalyzerName, emptyArchive, "archive is empty")
+		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is empty", "")
 		return nil, nil
 	}
 	if emptyArchive.ReportAll {
 		emptyArchive.Severity = analysis.OK
-		pass.Reportf(pass.AnalyzerName, emptyArchive, "Archive is not empty")
+		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is not empty", "")
 	}
 
 	if len(fis) != 1 {
-		pass.Reportf(pass.AnalyzerName, moreThanOneDir, "archive contains more than one directory")
+		pass.ReportResult(pass.AnalyzerName, moreThanOneDir,
+			"Archive contains more than one directory",
+			fmt.Sprintf("Archive should contain only one directory named after plugin id. Found %d directories", len(fis)))
 		return nil, nil
 	}
 	if moreThanOneDir.ReportAll {
 		moreThanOneDir.Severity = analysis.OK
-		pass.Reportf(pass.AnalyzerName, moreThanOneDir, "Archive has a single directory")
+		pass.ReportResult(pass.AnalyzerName, moreThanOneDir, "Archive has a single directory", "")
 	}
 
 	if !fis[0].IsDir() {
-		pass.Reportf(pass.AnalyzerName, noRootDir, "archive does not contain a root directory")
+		pass.ReportResult(pass.AnalyzerName, noRootDir, "archive does not contain a root directory", "Archive should contain a single root directory. Found a file instead")
 		return nil, nil
 	}
 	if noRootDir.ReportAll {
 		noRootDir.Severity = analysis.OK
-		pass.Reportf(pass.AnalyzerName, noRootDir, "Archive contains a root directory")
+		pass.ReportResult(pass.AnalyzerName, noRootDir, "Archive contains a root directory", "")
 	}
 
 	rootDir := filepath.Join(pass.RootDir, fis[0].Name())
@@ -62,14 +65,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if os.IsNotExist(err) {
 			if dist.ReportAll {
 				dist.Severity = analysis.OK
-				pass.Reportf(pass.AnalyzerName, dist, "Archive has expected content")
+				pass.ReportResult(pass.AnalyzerName, dist, "Archive has expected content", "")
 			}
 			return rootDir, nil
 		}
 		return nil, err
 	}
 
-	pass.Reportf(pass.AnalyzerName, dist, "dist should be renamed to plugin id and moved to root")
+	pass.ReportResult(pass.AnalyzerName, dist, "dist should be renamed to plugin id and moved to root", "")
 
 	return legacyRoot, nil
 }
