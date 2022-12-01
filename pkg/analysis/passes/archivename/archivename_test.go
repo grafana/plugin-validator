@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const pluginId = "test-plugin-panel"
+
 func TestRootDirNotDist(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-
-	const pluginId = "test-plugin-panel"
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("testdata", "dist-folder"),
@@ -39,8 +39,6 @@ func TestRootDirNotDist(t *testing.T) {
 
 func TestRootSameAsPluginId(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-
-	const pluginId = "test-plugin-panel"
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("testdata", "not-plugin-id"),
