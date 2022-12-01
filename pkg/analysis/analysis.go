@@ -1,7 +1,5 @@
 package analysis
 
-import ()
-
 type Severity string
 
 var (
