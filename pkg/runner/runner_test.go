@@ -14,7 +14,7 @@ var tests = []struct {
 	Messages []string
 }{
 	{Dir: "EmptyArchive", Messages: []string{
-		"archive is empty",
+		"Archive is empty",
 	}},
 	{Dir: "EmptyDirectory", Messages: []string{
 		"missing plugin.json",
@@ -24,8 +24,7 @@ var tests = []struct {
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"unsigned plugin",
-		"README.md is empty",
-		"plugin.json: should include screenshots for marketplace",
+		"README.md is empty", "plugin.json: should include screenshots for marketplace",
 		"plugin.json: (root): type is required",
 		"plugin.json: (root): name is required",
 		"plugin.json: (root): id is required",
