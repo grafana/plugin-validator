@@ -65,6 +65,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRootDirNotDist(t *testing.T) {
@@ -86,10 +87,10 @@ func TestRootDirNotDist(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if assert.Equal(t, 2, interceptor.Counter) {
-		assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive root directory named dist. It should contain a directory named test-plugin-panel")
-		assert.Equal(t, interceptor.Diagnostics[1].Title, "Archive should contain a directory named test-plugin-panel")
-	}
+	require.Len(t, interceptor.Diagnostics, 2)
+
+	assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive root directory named dist. It should contain a directory named test-plugin-panel")
+	assert.Equal(t, interceptor.Diagnostics[1].Title, "Archive should contain a directory named test-plugin-panel")
 }
 
 func TestRootSameAsPluginId(t *testing.T) {
@@ -111,9 +112,7 @@ func TestRootSameAsPluginId(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if assert.Equal(t, 1, interceptor.Counter) {
-		assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive should contain a directory named test-plugin-panel")
-	}
-
+	require.Len(t, interceptor.Diagnostics, 1)
+	assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive should contain a directory named test-plugin-panel")
 }
 >>>>>>> 292cb93 (Add tests for archivename pass)
