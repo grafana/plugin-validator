@@ -29,7 +29,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) == 0 {
-		pass.ReportResult(pass.AnalyzerName, emptyArchive, "archive is empty", "")
+		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is empty", "")
 		return nil, nil
 	}
 	if emptyArchive.ReportAll {
@@ -39,8 +39,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if len(fis) != 1 {
 		pass.ReportResult(pass.AnalyzerName, moreThanOneDir,
-			"archive contains more than one directory",
-			fmt.Sprintf("archive should contain only one directory named after plugin id. Found %d directories", len(fis)))
+			"Archive contains more than one directory",
+			fmt.Sprintf("Archive should contain only one directory named after plugin id. Found %d directories", len(fis)))
 		return nil, nil
 	}
 	if moreThanOneDir.ReportAll {
@@ -49,7 +49,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if !fis[0].IsDir() {
-		pass.ReportResult(pass.AnalyzerName, noRootDir, "archive does not contain a root directory", "archive should contain a single root directory. Found a file instead")
+		pass.ReportResult(pass.AnalyzerName, noRootDir, "archive does not contain a root directory", "Archive should contain a single root directory. Found a file instead")
 		return nil, nil
 	}
 	if noRootDir.ReportAll {
