@@ -189,7 +189,7 @@ func (Run) V2() error {
 func (Run) V2Local(ctx context.Context, path string) error {
 	mg.Deps(Build.Local)
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
+	if _, err := os.Stat(path); err != nil {
 		return err
 	}
 
