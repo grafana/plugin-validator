@@ -67,7 +67,7 @@ func TestEmpty(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir:  filepath.Join("testdata", "Empty"),
 		ResultOf: make(map[*analysis.Analyzer]interface{}),
-		Report: func(n string, d analysis.Diagnostic) {
+		Report: func(_ string, d analysis.Diagnostic) {
 			invoked = true
 
 			if d.Title != "archive does not contain a root directory" {
