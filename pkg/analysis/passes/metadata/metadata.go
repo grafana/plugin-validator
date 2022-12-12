@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -24,6 +25,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir := pass.ResultOf[archive.Analyzer].(string)
 
 	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "plugin.json"))
+	fmt.Println("plugin.json path: ", filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			pass.ReportResult(pass.AnalyzerName, missingMetadata, "missing plugin.json", "A plugin.json file is required to describe the plugin.")
