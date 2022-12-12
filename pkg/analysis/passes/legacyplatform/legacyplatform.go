@@ -23,7 +23,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	var (
 		reactExp   = regexp.MustCompile(`(@grafana/data)`)
-		angularExp = regexp.MustCompile(`\s(app/plugins/sdk)`)
+		angularExp = regexp.MustCompile(`([\s"']grafana/app/)`)
 	)
 
 	if angularExp.Match(module) && !reactExp.Match(module) {
