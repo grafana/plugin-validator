@@ -25,7 +25,7 @@ func TestManifestNoManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "unsigned plugin: no manifest file")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "unsigned plugin")
 }
 
 func TestWithManfiest(t *testing.T) {
