@@ -27,12 +27,8 @@ func TestRootDirNotDist(t *testing.T) {
 	}
 
 	_, err := Analyzer.Run(pass)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 2)
-
 	assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive root directory named dist. It should contain a directory named test-plugin-panel")
 	assert.Equal(t, interceptor.Diagnostics[1].Title, "Archive should contain a directory named test-plugin-panel")
 }
@@ -50,10 +46,8 @@ func TestRootSameAsPluginId(t *testing.T) {
 	}
 
 	_, err := Analyzer.Run(pass)
-	if err != nil {
-		t.Fatal(err)
-	}
 
+	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive should contain a directory named test-plugin-panel")
 }
