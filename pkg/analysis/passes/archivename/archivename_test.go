@@ -27,7 +27,6 @@ func TestRootDirNotDist(t *testing.T) {
 	}
 
 	_, err := Analyzer.Run(pass)
-
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 2)
 	assert.Equal(t, interceptor.Diagnostics[0].Title, "Archive root directory named dist. It should contain a directory named test-plugin-panel")
