@@ -33,11 +33,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	base := filepath.Base(archiveDir)
 
 	if base == "dist" {
-		pass.ReportResult(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("archive root directory named dist. It should contain a directory named %s", data.ID), "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.")
+		pass.ReportResult(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("Archive root directory named dist. It should contain a directory named %s", data.ID), "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.")
 	}
 
 	if data.ID != "" && base != data.ID {
-		pass.ReportResult(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("archive should contain a directory named %s", data.ID), "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.")
+		pass.ReportResult(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("Archive should contain a directory named %s", data.ID), "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.")
 	} else {
 		if noIdentRootDir.ReportAll {
 			noIdentRootDir.Severity = analysis.OK
