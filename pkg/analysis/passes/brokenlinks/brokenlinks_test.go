@@ -13,7 +13,7 @@ import (
 
 const pluginId = "test-plugin-panel"
 
-func TestNoAbsolutePaths(t *testing.T) {
+func TestNoRelativePaths(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
