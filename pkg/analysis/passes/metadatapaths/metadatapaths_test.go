@@ -2,7 +2,10 @@ package metadatapaths
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -13,76 +16,115 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
-	//prepare logosMeatadata
-	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata)
+type analysisSetterFunc func(m map[*analysis.Analyzer]interface{}, k *analysis.Analyzer) error
 
-	//prepare screenshots
-	var screenshotsMetadata metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"path": "img/screenshot.png", "name": "test"}]`), &screenshotsMetadata)
-
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			logos.Analyzer:       logosMeatadata,
-			screenshots.Analyzer: screenshotsMetadata,
-		},
-		Report: interceptor.ReportInterceptor(),
+func unmarshalJSONOfType(typ interface{}, payload string) analysisSetterFunc {
+	return func(m map[*analysis.Analyzer]interface{}, k *analysis.Analyzer) error {
+		rv := reflect.New(reflect.TypeOf(typ))
+		iface := rv.Interface()
+		if err := json.Unmarshal([]byte(payload), &iface); err != nil {
+			return err
+		}
+		m[k] = rv.Elem().Interface()
+		return nil
 	}
-
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
 }
 
-func TestMetadatapathsWithWrongLogoPath(t *testing.T) {
-	//prepare logosMeatadata
-	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "/img/wrong-with-slash.svg", "large": "./img/wrong-with-dot.svg"}`), &logosMeatadata)
-
-	//prepare screenshots
-	var screenshotsMetadata []metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"name": "test", "path": "img/screenshots.png"}]`), &screenshotsMetadata)
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			logos.Analyzer:       logosMeatadata,
-			screenshots.Analyzer: screenshotsMetadata,
-		},
-		Report: interceptor.ReportInterceptor(),
+func TestMetadatapaths(t *testing.T) {
+	type tc struct {
+		name     string
+		resultOf map[*analysis.Analyzer]interface{}
+		exp      []string
 	}
 
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 2)
-	require.Contains(t, interceptor.Diagnostics[0].Title, "plugin.json: relative small logo path should not start with")
-	require.Contains(t, interceptor.Diagnostics[1].Title, "plugin.json: relative large logo path should not start with")
-}
-
-func TestMetadatapathsWithWrongScreenshotPath(t *testing.T) {
-	//prepare logosMeatadata
-	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata)
-
-	//prepare screenshots
-	var screenshotsMetadata []metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"name": "test", "path": "/img/wrong-with-slash.png"}, {"name": "test2", "path":"./img/wrong-with-dot"}]`), &screenshotsMetadata)
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			logos.Analyzer:       logosMeatadata,
-			screenshots.Analyzer: screenshotsMetadata,
+	for _, tc := range []tc{
+		{
+			name: "with correct metadata",
+			resultOf: map[*analysis.Analyzer]interface{}{
+				logos.Analyzer: unmarshalJSONOfType(
+					metadata.MetadataLogos{},
+					`{"small": "img/logo.svg", "large": "img/logo.svg"}`,
+				),
+				screenshots.Analyzer: unmarshalJSONOfType(
+					[]metadata.MetadataScreenshots{},
+					`[{"path": "img/screenshot.png", "name": "test"}]`,
+				),
+			},
+			exp: nil,
 		},
-		Report: interceptor.ReportInterceptor(),
-	}
+		{
+			name: "with wrong logo path",
+			resultOf: map[*analysis.Analyzer]interface{}{
+				logos.Analyzer: unmarshalJSONOfType(
+					metadata.MetadataLogos{},
+					`{"small": "/img/wrong-with-slash.svg", "large": "./img/wrong-with-dot.svg"}`,
+				),
+				screenshots.Analyzer: unmarshalJSONOfType(
+					[]metadata.MetadataScreenshots{},
+					`[{"name": "test", "path": "img/screenshots.png"}]`,
+				),
+			},
+			exp: []string{
+				"plugin.json: relative small logo path should not start with",
+				"plugin.json: relative large logo path should not start with",
+			},
+		},
+		{
+			name: "with wrong screenshots path",
+			resultOf: map[*analysis.Analyzer]interface{}{
+				logos.Analyzer: unmarshalJSONOfType(
+					metadata.MetadataLogos{},
+					`{"small": "img/logo.svg", "large": "img/logo.svg"}`,
+				),
+				screenshots.Analyzer: unmarshalJSONOfType(
+					[]metadata.MetadataScreenshots{},
+					`[{"name": "test", "path": "/img/wrong-with-slash.png"}, {"name": "test2", "path":"./img/wrong-with-dot"}]`,
+				),
+			},
+			exp: []string{
+				"plugin.json: relative screenshot path should not start with",
+				"plugin.json: relative screenshot path should not start with",
+			},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			resultOf := make(map[*analysis.Analyzer]interface{}, len(tc.resultOf))
+			for k, v := range tc.resultOf {
+				if f, ok := v.(analysisSetterFunc); ok {
+					// Call the analysisSetterFunc
+					require.NoError(t, f(resultOf, k))
+				} else {
+					// Plain value
+					resultOf[k] = v
+				}
+			}
 
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 2)
-	require.Contains(t, interceptor.Diagnostics[0].Title, "plugin.json: relative screenshot path should not start with")
-	require.Contains(t, interceptor.Diagnostics[1].Title, "plugin.json: relative screenshot path should not start with")
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pass := &analysis.Pass{
+				RootDir:  filepath.Join("./"),
+				ResultOf: resultOf,
+				Report:   interceptor.ReportInterceptor(),
+			}
+			_, err := Analyzer.Run(pass)
+			require.NoError(t, err)
+
+			// Check exp by len first
+			assert.Len(t, interceptor.Diagnostics, len(tc.exp), "wrong number of diagnostics compared to expectations")
+
+			// Check content of all expectations
+			for _, d := range interceptor.Diagnostics {
+				for i, e := range tc.exp {
+					if strings.Contains(d.Title, e) {
+						// Exp met, delete it
+						tc.exp[i] = tc.exp[len(tc.exp)-1]
+						tc.exp = tc.exp[:len(tc.exp)-1]
+						break
+					}
+				}
+			}
+
+			// All exp met <=> all exps have been deleted <=> empty slice
+			assert.Empty(t, tc.exp, "some expectations haven't been met")
+		})
+	}
 }
