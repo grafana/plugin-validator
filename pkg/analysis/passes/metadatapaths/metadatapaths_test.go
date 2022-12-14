@@ -16,11 +16,11 @@ import (
 func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
 	//prepare logosMeatadata
 	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata)
+	require.NoError(t, json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata))
 
 	//prepare screenshots
 	var screenshotsMetadata metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"path": "img/screenshot.png", "name": "test"}]`), &screenshotsMetadata)
+	require.NoError(t, json.Unmarshal([]byte(`[{"path": "img/screenshot.png", "name": "test"}]`), &screenshotsMetadata))
 
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
@@ -40,11 +40,11 @@ func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
 func TestMetadatapathsWithWrongLogoPath(t *testing.T) {
 	//prepare logosMeatadata
 	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "/img/wrong-with-slash.svg", "large": "./img/wrong-with-dot.svg"}`), &logosMeatadata)
+	require.NoError(t, json.Unmarshal([]byte(`{"small": "/img/wrong-with-slash.svg", "large": "./img/wrong-with-dot.svg"}`), &logosMeatadata))
 
 	//prepare screenshots
 	var screenshotsMetadata []metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"name": "test", "path": "img/screenshots.png"}]`), &screenshotsMetadata)
+	require.NoError(t, json.Unmarshal([]byte(`[{"name": "test", "path": "img/screenshots.png"}]`), &screenshotsMetadata))
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
