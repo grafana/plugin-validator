@@ -19,8 +19,8 @@ func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
 	require.NoError(t, json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata))
 
 	//prepare screenshots
-	var screenshotsMetadata metadata.MetadataScreenshots
-	require.NoError(t, json.Unmarshal([]byte(`[{"path": "img/screenshot.png", "name": "test"}]`), &screenshotsMetadata))
+	var screenshotsMetadata []metadata.MetadataScreenshots
+	require.NoError(t, json.Unmarshal([]byte(`[{"name": "test", "path": "img/screenshots.png"}]`), &screenshotsMetadata))
 
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
