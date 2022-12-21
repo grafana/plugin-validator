@@ -21,7 +21,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	readme := pass.ResultOf[readme.Analyzer].([]byte)
 
-	re := regexp.MustCompile("^# Grafana (Panel|Data Source|Data Source Backend) Plugin Template")
+	re := regexp.MustCompile("(?i)Grafana (Panel|Data Source|Datasource|App|Data Source Backend) Plugin Template")
 
 	if m := re.Find(readme); m != nil {
 		pass.ReportResult(pass.AnalyzerName, templateReadme, "README.md: uses README from template", "The README.md file uses the README from the plugin template. Please update it to describe your plugin.")
