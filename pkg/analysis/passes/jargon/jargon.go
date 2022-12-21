@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	developerJargon = &analysis.Rule{Name: "developer-jargon"}
+	developerJargon = &analysis.Rule{Name: "developer-jargon", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{

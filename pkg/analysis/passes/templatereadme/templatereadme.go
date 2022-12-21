@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	templateReadme = &analysis.Rule{Name: "template-readme"}
+	templateReadme = &analysis.Rule{Name: "template-readme", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

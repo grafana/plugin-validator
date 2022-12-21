@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	pluginTypeSuffix = &analysis.Rule{Name: "plugin-type-suffix"}
+	pluginTypeSuffix = &analysis.Rule{Name: "plugin-type-suffix", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

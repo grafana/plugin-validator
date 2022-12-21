@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	noHTMLReadme = &analysis.Rule{Name: "no-html-readme"}
+	noHTMLReadme = &analysis.Rule{Name: "no-html-readme", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

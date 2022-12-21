@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	invalidPath            = &analysis.Rule{Name: "invalid-path"}
-	pathRelativeToMetadata = &analysis.Rule{Name: "path-relative-to-metadata"}
-	invalidRelativePath    = &analysis.Rule{Name: "invalid-relative-path"}
-	pathNotExists          = &analysis.Rule{Name: "path-not-exists"}
+	invalidPath            = &analysis.Rule{Name: "invalid-path", Severity: analysis.Error}
+	pathRelativeToMetadata = &analysis.Rule{Name: "path-relative-to-metadata", Severity: analysis.Error}
+	invalidRelativePath    = &analysis.Rule{Name: "invalid-relative-path", Severity: analysis.Error}
+	pathNotExists          = &analysis.Rule{Name: "path-not-exists", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	screenshots = &analysis.Rule{Name: "screenshots"}
+	screenshots = &analysis.Rule{Name: "screenshots", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
