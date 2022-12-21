@@ -196,6 +196,6 @@ func (Run) V2Local(ctx context.Context, path string) error {
 	return sh.RunV(
 		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
 		"-config",
-		"config/default.yaml",
+		"config/pipeline.yaml",
 		path)
 }
