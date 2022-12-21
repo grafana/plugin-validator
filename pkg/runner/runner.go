@@ -29,6 +29,8 @@ type RuleConfig struct {
 	Severity *analysis.Severity `yaml:"severity"`
 }
 
+var defaultSeverity = analysis.Warning
+
 func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
 	initAnalyzers(analyzers, cfg)
 	diagnostics := make(map[string][]analysis.Diagnostic)
@@ -94,6 +96,10 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 		// Inherit global config
 		analyzerEnabled := cfg.Global.Enabled
 		analyzerSeverity := cfg.Global.Severity
+
+		if analyzerSeverity == "" {
+			analyzerSeverity = defaultSeverity
+		}
 
 		acfg, ok := cfg.Analyzers[a.Name]
 		if ok {
