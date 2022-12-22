@@ -29,6 +29,8 @@ type RuleConfig struct {
 	Severity *analysis.Severity `yaml:"severity"`
 }
 
+var defaultSeverity = analysis.Warning
+
 func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
 	initAnalyzers(analyzers, cfg)
 	diagnostics := make(map[string][]analysis.Diagnostic)
@@ -91,32 +93,44 @@ func Check(analyzers []*analysis.Analyzer, dir string, cfg Config) (map[string][
 
 func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 	for _, a := range analyzers {
-		// Inherit global config
+		// Inherit global config file
 		analyzerEnabled := cfg.Global.Enabled
 		analyzerSeverity := cfg.Global.Severity
 
-		acfg, ok := cfg.Analyzers[a.Name]
+		// default to hardcoded defaultSeverity if not set
+		if analyzerSeverity == "" {
+			analyzerSeverity = defaultSeverity
+		}
+
+		// Override via config file
+		analyzerConfig, ok := cfg.Analyzers[a.Name]
 		if ok {
-			if acfg.Enabled != nil {
-				analyzerEnabled = *acfg.Enabled
+			if analyzerConfig.Enabled != nil {
+				analyzerEnabled = *analyzerConfig.Enabled
 			}
-			if acfg.Severity != nil {
-				analyzerSeverity = *acfg.Severity
+			if analyzerConfig.Severity != nil {
+				analyzerSeverity = *analyzerConfig.Severity
 			}
 		}
 
 		for _, r := range a.Rules {
 			// Inherit analyzer config
 			ruleEnabled := analyzerEnabled
-			ruleSeverity := analyzerSeverity
 
-			rcfg, ok := acfg.Rules[r.Name]
+			// use own config if available
+			ruleSeverity := r.Severity
+			if ruleSeverity == "" {
+				ruleSeverity = analyzerSeverity
+			}
+
+			// overwrite via config file
+			ruleConfig, ok := analyzerConfig.Rules[r.Name]
 			if ok {
-				if rcfg.Enabled != nil {
-					ruleEnabled = *rcfg.Enabled
+				if ruleConfig.Enabled != nil {
+					ruleEnabled = *ruleConfig.Enabled
 				}
-				if rcfg.Severity != nil {
-					ruleSeverity = *rcfg.Severity
+				if ruleConfig.Severity != nil {
+					ruleSeverity = *ruleConfig.Severity
 				}
 			}
 

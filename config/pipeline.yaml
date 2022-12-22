@@ -1,0 +1,4 @@
+global:
+  enabled: true
+  jsonOutput: false
+  reportAll: false

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	noIdentRootDir = &analysis.Rule{Name: "no-ident-root-dir"}
+	noIdentRootDir = &analysis.Rule{Name: "no-ident-root-dir", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

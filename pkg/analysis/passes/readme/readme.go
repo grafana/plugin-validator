@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	missingReadme = &analysis.Rule{Name: "missing-readme"}
+	missingReadme = &analysis.Rule{Name: "missing-readme", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

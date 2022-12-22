@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	logos = &analysis.Rule{Name: "logos"}
+	logos = &analysis.Rule{Name: "logos", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

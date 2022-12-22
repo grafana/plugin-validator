@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	trackingScripts = &analysis.Rule{Name: "tracking-scripts"}
+	trackingScripts = &analysis.Rule{Name: "tracking-scripts", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

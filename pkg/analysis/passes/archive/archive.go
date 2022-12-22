@@ -10,10 +10,10 @@ import (
 )
 
 var (
-	emptyArchive   = &analysis.Rule{Name: "empty-archive"}
-	moreThanOneDir = &analysis.Rule{Name: "more-than-one-dir"}
-	noRootDir      = &analysis.Rule{Name: "no-root-dir"}
-	dist           = &analysis.Rule{Name: "dist"}
+	emptyArchive   = &analysis.Rule{Name: "empty-archive", Severity: analysis.Error}
+	moreThanOneDir = &analysis.Rule{Name: "more-than-one-dir", Severity: analysis.Error}
+	noRootDir      = &analysis.Rule{Name: "no-root-dir", Severity: analysis.Error}
+	dist           = &analysis.Rule{Name: "dist", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

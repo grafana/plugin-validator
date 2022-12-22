@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	missingGrafanaCloudAccount = &analysis.Rule{Name: "missing-grafanacloud-account"}
+	missingGrafanaCloudAccount = &analysis.Rule{Name: "missing-grafanacloud-account", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{

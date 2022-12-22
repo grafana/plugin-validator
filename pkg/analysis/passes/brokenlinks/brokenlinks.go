@@ -14,8 +14,8 @@ import (
 )
 
 var (
-	relativeLink = &analysis.Rule{Name: "relative-link"}
-	brokenLink   = &analysis.Rule{Name: "broken-link"}
+	relativeLink = &analysis.Rule{Name: "relative-link", Severity: analysis.Error}
+	brokenLink   = &analysis.Rule{Name: "broken-link", Severity: analysis.Warning}
 )
 
 var mdLinks = regexp.MustCompile(`\[.+?\]\((.+?)\)`)

@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	invalidMetadata = &analysis.Rule{Name: "invalid-metadata"}
+	invalidMetadata = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -64,7 +64,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for _, desc := range result.Errors() {
-		pass.ReportResult(pass.AnalyzerName, invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()), "The plugin.json file is not following the schema. Please refer to the documentation for more information.")
+		pass.ReportResult(pass.AnalyzerName, invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()), "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/")
 	}
 	if len(result.Errors()) == 0 && invalidMetadata.ReportAll {
 		invalidMetadata.Severity = analysis.OK
