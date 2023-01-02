@@ -2,6 +2,7 @@ package archivetool
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,53 @@ import (
 	"strings"
 )
 
+func ArchiveToLocalPath(uri string) (string, func(), error) {
+	b, err := ReadArchive(uri)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Extract the ZIP archive in a temporary directory.
+	archiveDir, cleanup, err := ExtractPlugin(bytes.NewReader(b))
+	if err != nil {
+		return "", nil, err
+	}
+	return archiveDir, cleanup, nil
+}
+
+// Given a uri to a plugin archive, this function will download the archive and extract it to a temporary directory.
+// Extract it and return the path to the extracted directory where the plugin dist is located.
+// A cleanup function is returned that should be called when the plugin is no longer needed.
+func PluginArchiveToTempDir(uri string) (string, func(), error) {
+	archivePath, archiveCleanup, err := ArchiveToLocalPath(uri)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// get first folder inside archivepath
+	files, err := os.ReadDir(archivePath)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(files) == 0 {
+		return "", nil, errors.New("no files in archive")
+	}
+	archivePath = filepath.Join(archivePath, files[0].Name())
+
+	// validate is a dir
+	fileInfo, err := os.Stat(archivePath)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if !fileInfo.IsDir() {
+		return "", nil, errors.New("Archive root is not a directory. Plugins archives must contain a single directory at the root")
+	}
+
+	return archivePath, archiveCleanup, nil
+}
+
+// reads an archive from a URL or a local file
 func ReadArchive(archiveURL string) ([]byte, error) {
 	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
 		resp, err := http.Get(archiveURL)
