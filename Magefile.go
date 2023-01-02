@@ -238,3 +238,11 @@ func (Run) V2Local(ctx context.Context, path string) error {
 		"config/default.yaml",
 		path)
 }
+
+func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
+	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
+	return sh.RunV(
+		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/sourcemapdiff",
+		"-archiveUri", archive, "-sourceCodeUri", source)
+
+}
