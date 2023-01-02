@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
+	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 	"gopkg.in/yaml.v2"
 )
@@ -47,14 +48,14 @@ func main() {
 
 	pluginURL := flag.Args()[0]
 
-	b, err := readArchive(pluginURL)
+	b, err := archivetool.ReadArchive(pluginURL)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch plugin archive: %w", err))
 		os.Exit(1)
 	}
 
 	// Extract the ZIP archive in a temporary directory.
-	archiveDir, cleanup, err := extractPlugin(bytes.NewReader(b))
+	archiveDir, cleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't extract plugin archive: %w", err))
 		os.Exit(1)

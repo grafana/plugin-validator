@@ -1,4 +1,4 @@
-package main
+package archivetool
 
 import (
 	"archive/zip"
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func readArchive(archiveURL string) ([]byte, error) {
+func ReadArchive(archiveURL string) ([]byte, error) {
 	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
 		resp, err := http.Get(archiveURL)
 		if err != nil {
@@ -33,7 +33,7 @@ func readArchive(archiveURL string) ([]byte, error) {
 	return ioutil.ReadFile(archiveURL)
 }
 
-func extractPlugin(body io.Reader) (string, func(), error) {
+func ExtractPlugin(body io.Reader) (string, func(), error) {
 	// Create a file for the zipball.
 	zipball, err := ioutil.TempFile("", "")
 	if err != nil {
@@ -56,7 +56,7 @@ func extractPlugin(body io.Reader) (string, func(), error) {
 		os.RemoveAll(output)
 	}
 
-	if _, err := unzip(zipball.Name(), output); err != nil {
+	if _, err := Unzip(zipball.Name(), output); err != nil {
 		cleanup()
 		return "", nil, err
 	}
@@ -64,7 +64,7 @@ func extractPlugin(body io.Reader) (string, func(), error) {
 	return output, cleanup, nil
 }
 
-func unzip(src string, dest string) ([]string, error) {
+func Unzip(src string, dest string) ([]string, error) {
 	var filenames []string
 
 	r, err := zip.OpenReader(src)
