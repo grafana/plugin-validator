@@ -22,6 +22,8 @@ type sourceMap struct {
 var ignoreStartingWith = []string{
 	"external ",
 	"webpack/",
+	"../node_modules",
+	"./node_modules/",
 }
 
 var replaceRegex = regexp.MustCompile(`^webpack:\/*`)
