@@ -7,6 +7,7 @@ require (
 	github.com/go-git/go-git/v5 v5.5.1
 	github.com/magefile/mage v1.14.0
 	github.com/smartystreets/goconvey v1.7.2
+	github.com/sourcegraph/go-diff-patch v0.0.0-20220818153721-50706a0e22c3
 	github.com/stretchr/testify v1.8.1
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.3.0
@@ -31,7 +32,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pjbgf/sha1cd v0.2.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/smartystreets/assertions v1.2.1 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect

@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/repotool"
 )
 
-func procesSourceCode(sourceCodeUri string) (string, func(), error) {
+func getLocalPathFromSourceCodeOption(sourceCodeUri string) (string, func(), error) {
 	sourceCodePath, sourceCodeCleanup, err := sourceCodeUriToLocalPath(sourceCodeUri)
 
 	// check if there's a src/plugin.json file

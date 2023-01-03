@@ -4,6 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
+
+	"github.com/grafana/plugin-validator/pkg/cmd/sourcemapdiff/difftool"
 )
 
 var options = map[string]*string{
@@ -13,24 +16,33 @@ var options = map[string]*string{
 
 func main() {
 	flag.Parse()
+
+	// resolve the pluginPath from options
 	pluginPath, archiveCleanup, err := getLocalPathFromArchiveOption(*options["archiveUri"])
 	defer archiveCleanup()
-
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
+	// resolve the sourceCodePath from options
 	sourceCodePath, sourceCodeCleanup, err := getLocalPathFromSourceCodeOption(*options["sourceCodeUri"])
 	defer sourceCodeCleanup()
-
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	fmt.Println("--->")
-	fmt.Println("plugin path code", pluginPath)
-	fmt.Println("source path code", sourceCodePath)
+	// extract the source map into a temporal folder
+	sourceCodeMapPath := filepath.Join(pluginPath, "module.js.map")
+
+	// compare the source map with the source code
+	report, err := difftool.CompareSourceMapToSourceCode(sourceCodeMapPath, filepath.Join(sourceCodePath, "src"))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println(report.GeneratePrintableReport())
 
 }
