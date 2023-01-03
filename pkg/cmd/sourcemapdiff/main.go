@@ -60,6 +60,7 @@ func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
 	var answer string
 	fmt.Println("Do you want to see the differences in your diff tool?")
 	fmt.Println("Be aware the original source code will contain more files than the source map such as images, readme files and typescript typefiles.")
+	fmt.Println("\n\nIt is recommended to install meld (https://meldmerge.org/) to see the differences.")
 	fmt.Print("Open diff tool? (y/n): ")
 	fmt.Scanln(&answer)
 
@@ -82,23 +83,33 @@ func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
 		command := fmt.Sprintf(systemDiffTool, sourceCodeMapPath, filepath.Join(sourceCodePath, "src"))
 
 		// run the command
+		fmt.Println("Running command: ", command)
 		cmd := exec.Command("sh", "-c", command)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		err = cmd.Run()
-		if err != nil {
-			fmt.Println("Error running command")
-			fmt.Println(err)
-			os.Exit(1)
-		}
 	}
 }
 
 func getSystemDiffTool() (string, error) {
+	var err error
+
 	// try meld
-	_, err := exec.LookPath("meld")
+	_, err = exec.LookPath("meld")
 	if err == nil {
 		return "meld %s %s", nil
+	}
+
+	// try colordiff
+	_, err = exec.LookPath("colordiff")
+	if err == nil {
+		return "colordiff -bur %s %s", nil
+	}
+
+	// try old good diff
+	_, err = exec.LookPath("diff")
+	if err == nil {
+		return "diff -bur %s %s", nil
 	}
 
 	return "", fmt.Errorf("Could not find a diff tool. Please install one.")

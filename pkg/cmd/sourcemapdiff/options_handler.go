@@ -11,6 +11,9 @@ import (
 
 func getLocalPathFromSourceCodeOption(sourceCodeUri string) (string, func(), error) {
 	sourceCodePath, sourceCodeCleanup, err := sourceCodeUriToLocalPath(sourceCodeUri)
+	if err != nil {
+		return "", nil, err
+	}
 
 	// check if there's a src/plugin.json file
 	pluginJSONPath := filepath.Join(sourceCodePath, "src", "plugin.json")
