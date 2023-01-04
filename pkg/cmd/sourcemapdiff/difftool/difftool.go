@@ -27,10 +27,11 @@ type sourceDiff struct {
 }
 
 func CompareSourceMapToSourceCode(sourceCodeMapPath string, sourceCodePath string) (diffReport, error) {
-	var report diffReport
-	report.SourceCodeMapPath = sourceCodeMapPath
-	report.SourceCodePath = sourceCodePath
-	report.Sources = make(map[string]*sourceDiff)
+	report := diffReport{
+		SourceCodeMapPath: sourceCodeMapPath,
+		SourceCodePath:    sourceCodePath,
+		Sources:           map[string]*sourceDiff{},
+	}
 
 	sourceCode, err := sourcemap.ParseSourceMapFromPath(sourceCodeMapPath)
 	if err != nil {
@@ -40,12 +41,13 @@ func CompareSourceMapToSourceCode(sourceCodeMapPath string, sourceCodePath strin
 	for sourceMapFileName, sourceMapContent := range sourceCode.Sources {
 		sourceCodeFilePath := filepath.Join(sourceCodePath, sourceMapFileName)
 
-		sourceDiffReport := sourceDiff{}
-		sourceDiffReport.SourceCodePath = sourceCodeFilePath
-		sourceDiffReport.SourceCodeMapPath = sourceMapFileName
-		sourceDiffReport.SourceCodeMapFileContent = &sourceMapContent
-		sourceDiffReport.FileFound = true
-		sourceDiffReport.Equal = false
+		sourceDiffReport := sourceDiff{
+			SourceCodePath:           sourceCodeFilePath,
+			SourceCodeMapPath:        sourceMapFileName,
+			SourceCodeMapFileContent: &sourceMapContent,
+			FileFound:                true,
+			Equal:                    false,
+		}
 
 		report.Sources[sourceMapFileName] = &sourceDiffReport
 

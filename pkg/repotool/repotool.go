@@ -18,12 +18,14 @@ func CloneToTempDir(uri string) (string, func(), error) {
 		Depth:    1, // only clone the latest commit
 	})
 
-	if err != nil {
-		return "", nil, err
-	}
-
 	cleanup := func() {
 		os.RemoveAll(tmpDir)
 	}
+
+	if err != nil {
+		cleanup()
+		return "", nil, err
+	}
+
 	return tmpDir, cleanup, nil
 }
