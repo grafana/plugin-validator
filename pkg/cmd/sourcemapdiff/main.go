@@ -24,19 +24,19 @@ func main() {
 
 	// resolve the pluginPath from options
 	pluginPath, archiveCleanup, err := getLocalPathFromArchiveOption(*options["archiveUri"])
-	defer archiveCleanup()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	defer archiveCleanup()
 
 	// resolve the sourceCodePath from options
 	sourceCodePath, sourceCodeCleanup, err := getLocalPathFromSourceCodeOption(*options["sourceCodeUri"])
-	defer sourceCodeCleanup()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	defer sourceCodeCleanup()
 
 	// extract the source map into a temporal folder
 	sourceCodeMapPath := filepath.Join(pluginPath, "module.js.map")
