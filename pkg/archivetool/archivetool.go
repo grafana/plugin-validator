@@ -49,6 +49,7 @@ func PluginArchiveToTempDir(uri string) (string, func(), error) {
 	// validate is a dir
 	fileInfo, err := os.Stat(archivePath)
 	if err != nil {
+		archiveCleanup()
 		return "", nil, err
 	}
 
@@ -59,7 +60,7 @@ func PluginArchiveToTempDir(uri string) (string, func(), error) {
 	return archivePath, archiveCleanup, nil
 }
 
-// reads an archive from a URL or a local file
+// ReadArchive reads an archive from a URL or a local file
 func ReadArchive(archiveURL string) ([]byte, error) {
 	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
 		resp, err := http.Get(archiveURL)
