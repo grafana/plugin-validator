@@ -87,7 +87,10 @@ func pluginCheckCmd() error {
 }
 
 func buildCommand(command string, arch string) error {
-	env := archTargets[arch]
+	env, ok := archTargets[arch]
+	if !ok {
+		return fmt.Errorf("unknown arch %s", arch)
+	}
 	log.Printf("Building %s/%s\n", arch, command)
 	outDir := fmt.Sprintf("./bin/%s/%s", arch, command)
 	cmdDir := fmt.Sprintf("./pkg/cmd/%s", command)
