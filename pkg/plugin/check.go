@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/grafana"
 )
 
@@ -54,30 +54,9 @@ type ValidationComment struct {
 // ErrPluginNotFound is returned whenever a plugin could be found for a given ref.
 var ErrPluginNotFound = errors.New("plugin not found")
 
-func readArchive(archiveURL string) ([]byte, error) {
-	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
-		resp, err := http.Get(archiveURL)
-		if err != nil {
-			return nil, err
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			if resp.StatusCode == http.StatusNotFound {
-				return nil, ErrPluginNotFound
-			}
-			return nil, fmt.Errorf("unexpected status: %s", resp.Status)
-		}
-
-		return ioutil.ReadAll(resp.Body)
-	}
-
-	return ioutil.ReadFile(archiveURL)
-}
-
 // Check executes a number of checks to validate a plugin.
 func Check(archiveURL string, schemaPath string, private bool, client *grafana.Client) (json.RawMessage, []ValidationComment, error) {
-	b, err := readArchive(archiveURL)
+	b, err := archivetool.ReadArchive(archiveURL)
 	if err != nil {
 		return nil, nil, err
 	}
