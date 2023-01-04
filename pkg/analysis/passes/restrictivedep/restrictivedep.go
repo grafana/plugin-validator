@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	dependsOnPatchReleases = &analysis.Rule{Name: "depends-on-patch-releases"}
-	dependsOnSingleRelease = &analysis.Rule{Name: "depends-on-single-release"}
+	dependsOnPatchReleases = &analysis.Rule{Name: "depends-on-patch-releases", Severity: analysis.Warning}
+	dependsOnSingleRelease = &analysis.Rule{Name: "depends-on-single-release", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{

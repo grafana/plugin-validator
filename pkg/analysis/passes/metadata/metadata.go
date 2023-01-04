@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	missingMetadata = &analysis.Rule{Name: "missing-metadata"}
+	missingMetadata = &analysis.Rule{Name: "missing-metadata", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{

@@ -21,10 +21,10 @@ import (
 )
 
 var (
-	unsignedPlugin    = &analysis.Rule{Name: "unsigned-plugin"}
-	modifiedSignature = &analysis.Rule{Name: "modified-signature"}
-	invalidSignature  = &analysis.Rule{Name: "invalid-signature"}
-	privateSignature  = &analysis.Rule{Name: "private-signature"}
+	unsignedPlugin    = &analysis.Rule{Name: "unsigned-plugin", Severity: analysis.Warning}
+	modifiedSignature = &analysis.Rule{Name: "modified-signature", Severity: analysis.Warning}
+	invalidSignature  = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Warning}
+	privateSignature  = &analysis.Rule{Name: "private-signature", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{

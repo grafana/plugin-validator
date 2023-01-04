@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	missingModulejs = &analysis.Rule{Name: "missing-modulejs"}
+	missingModulejs = &analysis.Rule{Name: "missing-modulejs", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
