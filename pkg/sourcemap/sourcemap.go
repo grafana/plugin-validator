@@ -57,13 +57,8 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 }
 
 func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
-	sourceMapContent, err := os.ReadFile(sourceMapPath)
-	if err != nil {
-		return "", err
-	}
-
 	// parse source map
-	sourceMapParsed, err := ParseSourceMapFromBytes(sourceMapContent)
+	sourceMapParsed, err := ParseSourceMapFromPath(sourceMapPath)
 
 	// create a temporal dir to extract the source map
 	tmpSourceMapPath, err := os.MkdirTemp(os.TempDir(), "plugin-validator")
