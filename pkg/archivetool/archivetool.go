@@ -27,7 +27,7 @@ func ArchiveToLocalPath(uri string) (string, func(), error) {
 	return archiveDir, cleanup, nil
 }
 
-// Given a uri to a plugin archive, this function will download the archive and extract it to a temporary directory.
+// PluginArchiveToTempDir takes a uri to a plugin archive, downloads the archive and extract it to a temporary directory.
 // Extract it and return the path to the extracted directory where the plugin dist is located.
 // A cleanup function is returned that should be called when the plugin is no longer needed.
 func PluginArchiveToTempDir(uri string) (string, func(), error) {
