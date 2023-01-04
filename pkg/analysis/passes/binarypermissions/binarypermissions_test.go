@@ -1,6 +1,7 @@
 package binarypermissions
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -20,11 +21,17 @@ func TestBinaryFoundWithCorrectPermissions(t *testing.T) {
 		"type": "panel",
 		"executable": "test-plugin-panel"
 	}`)
+
+	// due to CI running on linux, we need to re-create the correct permissions
+	testDataContainer := filepath.Join("testdata", "correct-permissions")
+	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0755)
+	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0755)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
-			archive.Analyzer:  filepath.Join("testdata", "correct-permissions"),
+			archive.Analyzer:  testDataContainer,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -58,18 +65,23 @@ func TestBinaryNotFound(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Title, "No binary found for `executable` test-plugin-panel defined in plugin.json")
 }
 
-func TestBinaryNotFoundNested(t *testing.T) {
+func TestBinaryFoundNested(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pluginJsonContent := []byte(`{
 		"id": "` + pluginId + `",
 		"type": "panel",
 		"executable": "binaries/test-plugin-panel"
 	}`)
+
+	// due to CI running on linux, we need to re-create the correct permissions
+	testDataContainer := filepath.Join("testdata", "correct-permissions-nested")
+	os.Chmod(filepath.Join(testDataContainer, "binaries", "test-plugin-panel_linux_amd64"), 0755)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
-			archive.Analyzer:  filepath.Join("testdata", "correct-permissions-nested"),
+			archive.Analyzer:  testDataContainer,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -87,6 +99,12 @@ func TestBinaryIncorrectPermissions(t *testing.T) {
 		"type": "panel",
 		"executable": "test-plugin-panel"
 	}`)
+
+	// due to CI running on linux, we need to re-create the correct permissions
+	testDataContainer := filepath.Join("testdata", "wrong-permissions")
+	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0777)
+	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0711)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
