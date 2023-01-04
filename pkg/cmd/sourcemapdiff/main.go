@@ -64,7 +64,7 @@ func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
 	fmt.Print("Open diff tool? (y/n): ")
 	fmt.Scanln(&answer)
 
-	if (answer == "y") || (answer == "Y") {
+	if answer == "y" || answer == "Y" {
 
 		systemDiffTool, err := getSystemDiffTool()
 		if err != nil {
