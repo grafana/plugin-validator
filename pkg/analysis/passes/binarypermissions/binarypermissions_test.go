@@ -100,6 +100,6 @@ func TestBinaryIncorrectPermissions(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 2)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "Permissions for binary executable test-plugin-panel are incorrect (0777 found).")
-	require.Equal(t, interceptor.Diagnostics[1].Title, "Permissions for binary executable test-plugin-panel are incorrect (0711 found).")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "Permissions for binary executable test-plugin-panel_linux_amd64 are incorrect (0777 found).")
+	require.Equal(t, interceptor.Diagnostics[1].Title, "Permissions for binary executable test-plugin-panel_darwin_amd64 are incorrect (0711 found).")
 }

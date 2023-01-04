@@ -23,7 +23,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "archivename",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{binaryExecutableFound},
+	Rules:    []*analysis.Rule{binaryExecutableFound, binaryExecutablePermissions},
 }
 
 var binarySuffixes = []string{
@@ -43,7 +43,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	if data.Executable == "" {
+	if data.Executable == "" && binaryExecutableFound.ReportAll {
 		binaryExecutableFound.Severity = analysis.OK
 		pass.ReportResult(pass.AnalyzerName, binaryExecutableFound, "No executable defined in plugin.json", "")
 		return nil, nil
@@ -81,16 +81,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if err != nil {
 			pass.ReportResult(pass.AnalyzerName,
 				binaryExecutablePermissions,
-				fmt.Sprintf("Could not read permissions for executable %s", executable),
-				fmt.Sprintf("Could not read the file %s. This could be too restrictive in your binary files or your zip file is corrupted", executable))
+				fmt.Sprintf("Could not read permissions for executable %s", binaryPath),
+				fmt.Sprintf("Could not read the file %s. This could be too restrictive in your binary files or your zip file is corrupted", binaryPath))
 		}
 
 		filePermissions := fileInfo.Mode().Perm()
 		if filePermissions != REQUIRED_PERMISSIONS {
 			pass.ReportResult(pass.AnalyzerName,
 				binaryExecutablePermissions,
-				fmt.Sprintf("Permissions for binary executable %s are incorrect (%04o found).", executable, filePermissions),
-				fmt.Sprintf("The binary file %s must have exact permissions %04o (%s).", executable, REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS))
+				fmt.Sprintf("Permissions for binary executable %s are incorrect (%04o found).", filepath.Base(binaryPath), filePermissions),
+				fmt.Sprintf("The binary file %s must have exact permissions %04o (%s).", filepath.Base(binaryPath), REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS))
 		}
 	}
 
