@@ -87,7 +87,7 @@ func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
 		cmd := exec.Command("sh", "-c", command)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		err = cmd.Run()
+		cmd.Run()
 	}
 }
 
