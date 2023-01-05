@@ -82,7 +82,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.ReportResult(pass.AnalyzerName,
 				binaryExecutablePermissions,
 				fmt.Sprintf("Could not read permissions for executable %s", binaryPath),
-				fmt.Sprintf("Could not read the file %s. This could be too restrictive in your binary files or your zip file is corrupted", binaryPath))
+				fmt.Sprintf("Could not read the file %s. This could be too few permissions in your binary files or your zip file is corrupted", binaryPath))
 			return nil, nil
 		}
 
