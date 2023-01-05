@@ -22,6 +22,9 @@ func ArchiveToLocalPath(uri string) (string, func(), error) {
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, cleanup, err := ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
+		if cleanup != nil {
+			cleanup()
+		}
 		return "", nil, err
 	}
 	return archiveDir, cleanup, nil
