@@ -17,7 +17,7 @@ var (
 	binaryExecutablePermissions = &analysis.Rule{Name: "binary-executable-permissions", Severity: analysis.Error}
 )
 
-var REQUIRED_PERMISSIONS = fs.FileMode.Perm(0755)
+var requiredPermissions = fs.FileMode.Perm(0755)
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "archivename",
@@ -89,11 +89,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		filePermissions := fileInfo.Mode().Perm()
-		if filePermissions != REQUIRED_PERMISSIONS {
+		if filePermissions != requiredPermissions {
 			pass.ReportResult(pass.AnalyzerName,
 				binaryExecutablePermissions,
 				fmt.Sprintf("Permissions for binary executable %s are incorrect (%04o found).", filepath.Base(binaryPath), filePermissions),
-				fmt.Sprintf("The binary file %s must have exact permissions %04o (%s).", filepath.Base(binaryPath), REQUIRED_PERMISSIONS, REQUIRED_PERMISSIONS))
+				fmt.Sprintf("The binary file %s must have exact permissions %04o (%s).", filepath.Base(binaryPath), requiredPermissions, requiredPermissions))
 		}
 	}
 
