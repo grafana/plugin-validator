@@ -56,7 +56,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var foundBinaries = []string{}
 	for _, suffix := range binarySuffixes {
 		binaryPath := filepath.Join(executableParentDir, executableName+suffix)
-		if _, err := os.Stat(binaryPath); os.IsNotExist(err) {
+		if _, err := os.Stat(binaryPath); err == nil {
 			continue
 		}
 		foundBinaries = append(foundBinaries, binaryPath)
