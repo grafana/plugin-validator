@@ -13,6 +13,8 @@ import (
 	"github.com/grafana/plugin-validator/pkg/plugin"
 )
 
+// Deprecated: plugincheck V1 is deprecated and will be removed in a future release.
+// Use plugincheck2 instead. See https://github.com/grafana/plugin-validator
 func main() {
 
 	fmt.Println(`
@@ -28,7 +30,7 @@ Y88b 888Y8b.    888 d88P888    Y8b.    Y88b.   888  888Y88b. Y8b.    Y88b 888
                 888
                 888
 
-	**pluginvalidator V1 is deprecated and you should not use it.
+	**plugincheck V1 is deprecated and you should not use it.
 
 	Use V2 instead: plugincheck2
 
