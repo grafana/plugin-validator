@@ -11,10 +11,14 @@ import (
 
 func getLocalPathFromSourceCodeOption(sourceCodeUri string) (string, func(), error) {
 	sourceCodePath, sourceCodeCleanup, err := sourceCodeUriToLocalPath(sourceCodeUri)
-	if err != nil {
-		if sourceCodeCleanup != nil {
+
+	defer func() {
+		if err != nil && sourceCodeCleanup != nil {
 			sourceCodeCleanup()
 		}
+	}()
+
+	if err != nil {
 		return "", nil, err
 	}
 
@@ -33,6 +37,13 @@ func sourceCodeUriToLocalPath(sourceCodeUri string) (string, func(), error) {
 		cleanup        func() = func() {}
 		err            error
 	)
+
+	defer func() {
+		if err != nil && cleanup != nil {
+			cleanup()
+		}
+	}()
+
 	// if sourceCode is a zip, let archivetool handle it
 	if filepath.Ext(sourceCodeUri) == ".zip" {
 		sourceCodePath, cleanup, err = archivetool.ArchiveToLocalPath(sourceCodeUri)
@@ -53,7 +64,7 @@ func sourceCodeUriToLocalPath(sourceCodeUri string) (string, func(), error) {
 	}
 
 	// if it is a local path, check if it exists
-	if _, err := os.Stat(sourceCodeUri); os.IsNotExist(err) {
+	if _, err := os.Stat(sourceCodeUri); err != nil {
 		return "", nil, err
 	}
 	sourceCodePath = sourceCodeUri
@@ -91,7 +102,7 @@ func getLocalPathFromArchiveOption(uri string) (string, func(), error) {
 
 	// validate there's a plugin.json file
 	pluginJSONPath := filepath.Join(archivePath, "plugin.json")
-	if _, err := os.Stat(pluginJSONPath); os.IsNotExist(err) {
+	if _, err := os.Stat(pluginJSONPath); err != nil {
 		return "", nil, fmt.Errorf("plugin.json file not found. A plugin must contain a plugin.json file at the root")
 	}
 

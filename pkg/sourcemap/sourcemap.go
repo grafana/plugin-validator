@@ -60,6 +60,9 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
 	// parse source map
 	sourceMapParsed, err := ParseSourceMapFromPath(sourceMapPath)
+	if err != nil {
+		return "", err
+	}
 
 	// create a temporal dir to extract the source map
 	tmpSourceMapPath, err := os.MkdirTemp(os.TempDir(), "plugin-validator")
@@ -87,7 +90,7 @@ func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
 }
 
 func isIgnoredFile(sourceName string) bool {
-	// ignore external and webpack bootstrapf iles
+	// ignore external and webpack bootstrap iles
 	ignore := false
 	for _, ignoreStart := range ignoreStartingWith {
 		if len(sourceName) > len(ignoreStart) && sourceName[:len(ignoreStart)] == ignoreStart {
