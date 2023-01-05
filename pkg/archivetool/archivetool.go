@@ -36,25 +36,32 @@ func PluginArchiveToTempDir(uri string) (string, func(), error) {
 		return "", nil, err
 	}
 
+	defer func() {
+		if err != nil && archiveCleanup != nil {
+			archiveCleanup()
+		}
+	}()
+
 	// get first folder inside archivepath
 	files, err := os.ReadDir(archivePath)
 	if err != nil {
 		return "", nil, err
 	}
 	if len(files) == 0 {
-		return "", nil, errors.New("no files in archive")
+		err = errors.New("no files in archive")
+		return "", nil, err
 	}
 	archivePath = filepath.Join(archivePath, files[0].Name())
 
 	// validate is a dir
 	fileInfo, err := os.Stat(archivePath)
 	if err != nil {
-		archiveCleanup()
 		return "", nil, err
 	}
 
 	if !fileInfo.IsDir() {
-		return "", nil, errors.New("Archive root is not a directory. Plugins archives must contain a single directory at the root")
+		err = errors.New("no files in archive")
+		return "", nil, err
 	}
 
 	return archivePath, archiveCleanup, nil
