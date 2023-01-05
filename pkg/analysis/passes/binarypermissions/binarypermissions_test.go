@@ -24,8 +24,8 @@ func TestBinaryFoundWithCorrectPermissions(t *testing.T) {
 
 	// due to CI running on linux, we need to re-create the correct permissions
 	testDataContainer := filepath.Join("testdata", "correct-permissions")
-	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0755)
-	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0755)
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0755))
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0755))
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -75,7 +75,7 @@ func TestBinaryFoundNested(t *testing.T) {
 
 	// due to CI running on linux, we need to re-create the correct permissions
 	testDataContainer := filepath.Join("testdata", "correct-permissions-nested")
-	os.Chmod(filepath.Join(testDataContainer, "binaries", "test-plugin-panel_linux_amd64"), 0755)
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "binaries", "test-plugin-panel_linux_amd64"), 0755))
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -102,8 +102,8 @@ func TestBinaryIncorrectPermissions(t *testing.T) {
 
 	// due to CI running on linux, we need to re-create the correct permissions
 	testDataContainer := filepath.Join("testdata", "wrong-permissions")
-	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0777)
-	os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0711)
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_linux_amd64"), 0777))
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "test-plugin-panel_darwin_amd64"), 0711))
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
