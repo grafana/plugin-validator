@@ -40,6 +40,7 @@ func CompareSourceMapToSourceCode(sourceCodeMapPath string, sourceCodePath strin
 
 	for sourceMapFileName, sourceMapContent := range sourceCode.Sources {
 		sourceCodeFilePath := filepath.Join(sourceCodePath, sourceMapFileName)
+		sourceMapContent := sourceMapContent
 
 		sourceDiffReport := sourceDiff{
 			SourceCodePath:           sourceCodeFilePath,

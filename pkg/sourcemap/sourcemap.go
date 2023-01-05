@@ -63,6 +63,9 @@ func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
 
 	// create a temporal dir to extract the source map
 	tmpSourceMapPath, err := os.MkdirTemp(os.TempDir(), "plugin-validator")
+	if err != nil {
+		return "", err
+	}
 
 	for sourceName, sourceContent := range sourceMapParsed.Sources {
 
