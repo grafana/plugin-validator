@@ -1,7 +1,8 @@
-package main
+package archivetool
 
 import (
 	"archive/zip"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,7 +13,65 @@ import (
 	"strings"
 )
 
-func readArchive(archiveURL string) ([]byte, error) {
+func ArchiveToLocalPath(uri string) (string, func(), error) {
+	b, err := ReadArchive(uri)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Extract the ZIP archive in a temporary directory.
+	archiveDir, cleanup, err := ExtractPlugin(bytes.NewReader(b))
+	if err != nil {
+		if cleanup != nil {
+			cleanup()
+		}
+		return "", nil, err
+	}
+	return archiveDir, cleanup, nil
+}
+
+// PluginArchiveToTempDir takes a uri to a plugin archive, downloads the archive and extract it to a temporary directory.
+// Extract it and return the path to the extracted directory where the plugin dist is located.
+// A cleanup function is returned that should be called when the plugin is no longer needed.
+func PluginArchiveToTempDir(uri string) (string, func(), error) {
+	archivePath, archiveCleanup, err := ArchiveToLocalPath(uri)
+	if err != nil {
+		return "", nil, err
+	}
+
+	defer func() {
+		if err != nil && archiveCleanup != nil {
+			archiveCleanup()
+		}
+	}()
+
+	// get first folder inside archivepath
+	files, err := os.ReadDir(archivePath)
+	if err != nil {
+		return "", nil, err
+	}
+	if len(files) == 0 {
+		err = errors.New("no files in archive")
+		return "", nil, err
+	}
+	archivePath = filepath.Join(archivePath, files[0].Name())
+
+	// validate is a dir
+	fileInfo, err := os.Stat(archivePath)
+	if err != nil {
+		return "", nil, err
+	}
+
+	if !fileInfo.IsDir() {
+		err = errors.New("no files in archive")
+		return "", nil, err
+	}
+
+	return archivePath, archiveCleanup, nil
+}
+
+// ReadArchive reads an archive from a URL or a local file
+func ReadArchive(archiveURL string) ([]byte, error) {
 	if strings.HasPrefix(archiveURL, "https://") || strings.HasPrefix(archiveURL, "http://") {
 		resp, err := http.Get(archiveURL)
 		if err != nil {
@@ -33,7 +92,7 @@ func readArchive(archiveURL string) ([]byte, error) {
 	return ioutil.ReadFile(archiveURL)
 }
 
-func extractPlugin(body io.Reader) (string, func(), error) {
+func ExtractPlugin(body io.Reader) (string, func(), error) {
 	// Create a file for the zipball.
 	zipball, err := ioutil.TempFile("", "")
 	if err != nil {
@@ -56,7 +115,7 @@ func extractPlugin(body io.Reader) (string, func(), error) {
 		os.RemoveAll(output)
 	}
 
-	if _, err := unzip(zipball.Name(), output); err != nil {
+	if _, err := Unzip(zipball.Name(), output); err != nil {
 		cleanup()
 		return "", nil, err
 	}
@@ -64,7 +123,7 @@ func extractPlugin(body io.Reader) (string, func(), error) {
 	return output, cleanup, nil
 }
 
-func unzip(src string, dest string) ([]string, error) {
+func Unzip(src string, dest string) ([]string, error) {
 	var filenames []string
 
 	r, err := zip.OpenReader(src)
