@@ -111,7 +111,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				brokenCh <- urlstatus{url: url.url, status: err.Error(), context: url.context}
 				return
 			}
-			req.Header.Add("User-Agent", "Mozilla/5.0 (compatible; GrafanaPluginValidatorBot; +https://github.com/grafana/plugin-validator)")
+			req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0")
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
