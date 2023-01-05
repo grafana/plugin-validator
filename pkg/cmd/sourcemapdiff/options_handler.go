@@ -68,13 +68,16 @@ func getLocalPathFromArchiveOption(uri string) (string, func(), error) {
 		err            error
 	)
 
+	defer func() {
+		if err != nil && archiveCleanup != nil {
+			archiveCleanup()
+		}
+	}()
+
 	// if archivePath ends with .zip, then it's a zip file let archivetool handle it
 	if filepath.Ext(uri) == ".zip" {
 		archivePath, archiveCleanup, err = archivetool.PluginArchiveToTempDir(uri)
 		if err != nil {
-			if archiveCleanup != nil {
-				archiveCleanup()
-			}
 			return "", nil, err
 		}
 		// else is a path to a directory
