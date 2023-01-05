@@ -1,10 +1,11 @@
 package metadata
 
 type Metadata struct {
-	ID   string       `json:"id"`
-	Name string       `json:"name"`
-	Type string       `json:"type"`
-	Info MetadataInfo `json:"info"`
+	ID         string       `json:"id"`
+	Name       string       `json:"name"`
+	Type       string       `json:"type"`
+	Info       MetadataInfo `json:"info"`
+	Executable string       `json:"executable"`
 }
 
 type MetadataInfo struct {
