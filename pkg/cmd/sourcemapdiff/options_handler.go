@@ -12,13 +12,16 @@ import (
 func getLocalPathFromSourceCodeOption(sourceCodeUri string) (string, func(), error) {
 	sourceCodePath, sourceCodeCleanup, err := sourceCodeUriToLocalPath(sourceCodeUri)
 	if err != nil {
+		if sourceCodeCleanup != nil {
+			sourceCodeCleanup()
+		}
 		return "", nil, err
 	}
 
 	// check if there's a src/plugin.json file
 	pluginJSONPath := filepath.Join(sourceCodePath, "src", "plugin.json")
-	if _, err := os.Stat(pluginJSONPath); os.IsNotExist(err) {
-		return "", nil, fmt.Errorf("src/plugin.json file not found in %s", pluginJSONPath)
+	if _, err := os.Stat(pluginJSONPath); err != nil {
+		return "", nil, fmt.Errorf("src/plugin.json in %s: stat error: %w", pluginJSONPath, err)
 	}
 
 	return sourceCodePath, sourceCodeCleanup, err
@@ -69,12 +72,15 @@ func getLocalPathFromArchiveOption(uri string) (string, func(), error) {
 	if filepath.Ext(uri) == ".zip" {
 		archivePath, archiveCleanup, err = archivetool.PluginArchiveToTempDir(uri)
 		if err != nil {
+			if archiveCleanup != nil {
+				archiveCleanup()
+			}
 			return "", nil, err
 		}
 		// else is a path to a directory
 	} else {
 		// check if exists in the filesystem
-		if _, err := os.Stat(uri); os.IsNotExist(err) {
+		if _, err := os.Stat(uri); err != nil {
 			return "", nil, err
 		}
 		archivePath = uri
