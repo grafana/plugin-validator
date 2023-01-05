@@ -43,9 +43,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	if data.Executable == "" && binaryExecutableFound.ReportAll {
-		binaryExecutableFound.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, binaryExecutableFound, "No executable defined in plugin.json", "")
+	if data.Executable == "" {
+		if binaryExecutableFound.ReportAll {
+			binaryExecutableFound.Severity = analysis.OK
+			pass.ReportResult(pass.AnalyzerName, binaryExecutableFound, "No executable defined in plugin.json", "")
+		}
 		return nil, nil
 	}
 
@@ -56,7 +58,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var foundBinaries = []string{}
 	for _, suffix := range binarySuffixes {
 		binaryPath := filepath.Join(executableParentDir, executableName+suffix)
-		if _, err := os.Stat(binaryPath); err == nil {
+		if _, err := os.Stat(binaryPath); err != nil {
 			continue
 		}
 		foundBinaries = append(foundBinaries, binaryPath)
