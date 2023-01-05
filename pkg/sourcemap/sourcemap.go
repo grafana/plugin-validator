@@ -37,23 +37,24 @@ func ParseSourceMapFromPath(sourceMapPath string) (*sourceMap, error) {
 }
 
 func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
-	var parsedSourceMap rawSourceMap
-	err := json.Unmarshal(data, &parsedSourceMap)
+	var rawSourceMap rawSourceMap
+	err := json.Unmarshal(data, &rawSourceMap)
 	if err != nil {
 		return nil, err
 	}
 
-	var sourceMap sourceMap
-	sourceMap.Version = parsedSourceMap.Version
-	sourceMap.Sources = make(map[string]string)
-	for i, sourceName := range parsedSourceMap.Sources {
+	parseSourceMap := sourceMap{
+		Version: rawSourceMap.Version,
+		Sources: map[string]string{},
+	}
+	for i, sourceName := range rawSourceMap.Sources {
 		fileName := replaceRegex.ReplaceAllString(sourceName, "")
 		if isIgnoredFile(fileName) {
 			continue
 		}
-		sourceMap.Sources[fileName] = parsedSourceMap.SourcesContent[i]
+		parseSourceMap.Sources[fileName] = rawSourceMap.SourcesContent[i]
 	}
-	return &sourceMap, nil
+	return &parseSourceMap, nil
 }
 
 func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
