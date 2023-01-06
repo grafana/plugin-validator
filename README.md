@@ -9,32 +9,11 @@ The tool expects path to either a remote or a local ZIP archive.
 ## Install
 
 ```SHELL
-cd pkg/cmd/plugincheck
-go install
-```
-
-## Run
-
-Validate a remote archive:
-
-```SHELL
-plugincheck https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
-```
-
-Validate a local plugin archive:
-
-```SHELL
-plugincheck ./marcusolsson-json-datasource-0.6.0.zip
-```
-
-## Install V2
-
-```SHELL
 cd pkg/cmd/plugincheck2
 go install
 ```
 
-## Run V2
+## Run
 
 Typically running the checker with default settings is the easiest method to see if there are issues with a plugin.
 
