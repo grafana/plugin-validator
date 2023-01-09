@@ -13,6 +13,7 @@ type MetadataInfo struct {
 	Screenshots []MetadataScreenshots `json:"screenshots"`
 	Logos       MetadataLogos         `json:"logos"`
 	Links       []MetadataLink        `json:"links"`
+	Version     string                `json:"version"`
 }
 
 type MetadataAuthor struct {
