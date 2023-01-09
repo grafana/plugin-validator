@@ -20,7 +20,7 @@ var (
 var requiredPermissions = fs.FileMode.Perm(0755)
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "archivename",
+	Name:     "binarypermissions",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{binaryExecutableFound, binaryExecutablePermissions},
