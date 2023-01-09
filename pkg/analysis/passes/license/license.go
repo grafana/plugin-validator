@@ -14,7 +14,7 @@ var (
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "manifest",
+	Name:     "license",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{licenseNotProvided},
