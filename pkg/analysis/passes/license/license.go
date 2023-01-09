@@ -41,15 +41,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	var foundLicense = false
 	for licenseName, licenseData := range licenses {
-		if licenseData.Confidence >= minRequiredConfidenceLevel {
-			for _, prefix := range validLicenseStart {
-				if strings.HasPrefix(licenseName, prefix) {
-					foundLicense = true
-					break
-				}
-			}
-		}
-		if foundLicense {
+		if licenseData.Confidence >= minRequiredConfidenceLevel && isValidLicense(licenseName) {
+			foundLicense = true
 			break
 		}
 	}
@@ -62,4 +55,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func isValidLicense(licenseName string) bool {
+	for _, prefix := range validLicenseStart {
+		if strings.HasPrefix(licenseName, prefix) {
+			return true
+		}
+	}
+	return false
 }
