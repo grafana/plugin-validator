@@ -45,8 +45,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			for _, prefix := range validLicenseStart {
 				if strings.HasPrefix(licenseName, prefix) {
 					foundLicense = true
+					break
 				}
 			}
+		}
+		if foundLicense {
+			break
 		}
 	}
 
