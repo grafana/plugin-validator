@@ -20,7 +20,7 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{licenseNotProvided},
 }
 
-var validStart = []string{"AGPL-3.0", "Apache-2.0"}
+var validLicenseStart = []string{"AGPL-3.0", "Apache-2.0"}
 var minRequiredConfidenceLevel float32 = 0.9
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -40,7 +40,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var foundLicense = false
 	for licenseName, licenseData := range licenses {
 		if licenseData.Confidence >= minRequiredConfidenceLevel {
-			for _, prefix := range validStart {
+			for _, prefix := range validLicenseStart {
 				if strings.HasPrefix(licenseName, prefix) {
 					foundLicense = true
 				}
