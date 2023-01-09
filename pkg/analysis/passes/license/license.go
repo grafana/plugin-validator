@@ -29,7 +29,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	filer, err := filer.FromDirectory(archiveDir)
 	if err != nil {
-		return nil, err
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "License not found", "Could not find or parse the license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		return nil, nil
 	}
 
 	licenses, err := licensedb.Detect(filer)
