@@ -1,11 +1,12 @@
 package version
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -48,7 +49,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	pluginStatus, err := getPluginDataFromGrafanaCom(data.ID)
+	context, canc := context.WithTimeout(context.Background(), time.Second*15)
+	defer canc()
+
+	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
 	if err != nil {
 		// in case of any error getting the online status, skip this check
 		return nil, nil
@@ -78,10 +82,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
-func getPluginDataFromGrafanaCom(pluginId string) (*PluginStatus, error) {
+func getPluginDataFromGrafanaCom(context context.Context, pluginId string) (*PluginStatus, error) {
 	pluginUrl := fmt.Sprintf("https://grafana.com/api/plugins/%s?version=latest", pluginId)
 	// fetch content for pluginUrl
-	request, err := http.NewRequest("GET", pluginUrl, nil)
+	request, err := http.NewRequestWithContext(context, "GET", pluginUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -98,18 +102,12 @@ func getPluginDataFromGrafanaCom(pluginId string) (*PluginStatus, error) {
 
 	// != 200 = something went wrong. We can't check the plugin
 	if response.StatusCode != http.StatusOK {
-		return nil, err
-	}
-
-	content, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("wrong status code, expected 200 got %d", response.StatusCode)
 	}
 
 	status := PluginStatus{}
-
-	err = json.Unmarshal(content, &status)
-	if err != nil {
+	defer response.Body.Close()
+	if err := json.NewDecoder(response.Body).Decode(&status); err != nil {
 		return nil, err
 	}
 	return &status, nil
