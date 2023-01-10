@@ -4,7 +4,10 @@ go 1.19
 
 require (
 	github.com/fatih/color v1.13.0
+	github.com/go-enry/go-license-detector/v4 v4.3.0
 	github.com/go-git/go-git/v5 v5.5.1
+	github.com/hashicorp/go-version v1.6.0
+	github.com/jarcoal/httpmock v1.2.0
 	github.com/magefile/mage v1.14.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/sourcegraph/go-diff-patch v0.0.0-20220818153721-50706a0e22c3
@@ -23,7 +26,6 @@ require (
 	github.com/dgryski/go-minhash v0.0.0-20170608043002-7fe510aff544 // indirect
 	github.com/ekzhu/minhash-lsh v0.0.0-20171225071031-5c06ee8586a1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/go-enry/go-license-detector/v4 v4.3.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20211111143520-d0d5ecc1a356 // indirect
@@ -49,9 +51,9 @@ require (
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/exp v0.0.0-20190125153040-c74c464bbbf2 // indirect
-	golang.org/x/net v0.2.0 // indirect
-	golang.org/x/sys v0.2.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	gonum.org/v1/gonum v0.7.0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.6 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect

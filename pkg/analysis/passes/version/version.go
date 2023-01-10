@@ -2,13 +2,14 @@ package version
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
+	"github.com/hashicorp/go-version"
 )
 
 var (
@@ -36,15 +37,43 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	pluginStatus, err := getPluginDataFromGrafanaCom(data.ID)
+	// try to parse the submission version
+	pluginSubmissionVersion := data.Info.Version
+	parsedSubmissionVersion, err := version.NewVersion(pluginSubmissionVersion)
 	if err != nil {
-		// in case of any error getting the online status, skip this check
-		// we can't fail the validator beacuse the network or API could be down and
-		// other checks work offline
+		pass.ReportResult(pass.AnalyzerName,
+			wrongPluginVersion,
+			fmt.Sprintf("Plugin version %s is invalid.", pluginSubmissionVersion),
+			fmt.Sprintf("Could not parse plugin version \"%s\". Please use a valid semver version for your plugin. See https://semver.org/.", pluginSubmissionVersion))
 		return nil, nil
 	}
 
-	prettyprint.Print(pluginStatus)
+	pluginStatus, err := getPluginDataFromGrafanaCom(data.ID)
+	if err != nil {
+		// in case of any error getting the online status, skip this check
+		return nil, nil
+	}
+	grafanaComVersion := pluginStatus.Version
+	parsedGrafanaVersion, err := version.NewVersion(grafanaComVersion)
+	if err != nil {
+		// in case of any error parsing the online status, skip this check
+		return nil, nil
+	}
+
+	if !parsedSubmissionVersion.GreaterThan(parsedGrafanaVersion) {
+		pass.ReportResult(pass.AnalyzerName,
+			wrongPluginVersion,
+			fmt.Sprintf("Plugin version %s is invalid.", pluginSubmissionVersion),
+			fmt.Sprintf("The submitted plugin version %s is not greater than the latest published version %s on grafana.com.", pluginSubmissionVersion, grafanaComVersion),
+		)
+		return nil, nil
+	} else if wrongPluginVersion.ReportAll {
+		wrongPluginVersion.Severity = analysis.OK
+		pass.ReportResult(pass.AnalyzerName,
+			wrongPluginVersion,
+			fmt.Sprintf("Valid Plugin version %s", pluginSubmissionVersion),
+			"")
+	}
 
 	return nil, nil
 }
@@ -62,9 +91,13 @@ func getPluginDataFromGrafanaCom(pluginId string) (*PluginStatus, error) {
 		return nil, err
 	}
 
-	if response.StatusCode == 404 || response.StatusCode != 200 {
-		// 404 = the plugin is not yet published
-		// != 200 = something went wrong. We can't check the plugin
+	// 404 = the plugin is not yet published
+	if response.StatusCode == http.StatusNotFound {
+		return nil, errors.New("plugin not found")
+	}
+
+	// != 200 = something went wrong. We can't check the plugin
+	if response.StatusCode != http.StatusOK {
 		return nil, err
 	}
 
@@ -73,11 +106,11 @@ func getPluginDataFromGrafanaCom(pluginId string) (*PluginStatus, error) {
 		return nil, err
 	}
 
-	status := &PluginStatus{}
+	status := PluginStatus{}
 
-	err = json.Unmarshal(content, status)
+	err = json.Unmarshal(content, &status)
 	if err != nil {
 		return nil, err
 	}
-	return status, nil
+	return &status, nil
 }
