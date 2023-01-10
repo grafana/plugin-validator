@@ -49,8 +49,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	context, canc := context.WithTimeout(context.Background(), time.Second*15)
-	defer canc()
+	context, cancelContext := context.WithTimeout(context.Background(), time.Second*15)
+	defer cancelContext()
 
 	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
 	if err != nil {
