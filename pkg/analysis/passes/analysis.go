@@ -25,6 +25,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
 )
 
 var Analyzers = []*analysis.Analyzer{
@@ -51,4 +52,5 @@ var Analyzers = []*analysis.Analyzer{
 	templatereadme.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
+	version.Analyzer,
 }

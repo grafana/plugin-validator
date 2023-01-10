@@ -162,7 +162,7 @@ func TestWrongVersionFormat(t *testing.T) {
 
 	require.Len(t, httpmock.GetCallCountInfo(), 1)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Plugin version first-one is invalid.", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "Plugin version \"first-one\" is invalid.", interceptor.Diagnostics[0].Title)
 	require.Equal(t, "Could not parse plugin version \"first-one\". Please use a valid semver version for your plugin. See https://semver.org/.", interceptor.Diagnostics[0].Detail)
 	require.Nil(t, analyzerResult)
 }

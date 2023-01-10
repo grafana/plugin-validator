@@ -43,7 +43,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		pass.ReportResult(pass.AnalyzerName,
 			wrongPluginVersion,
-			fmt.Sprintf("Plugin version %s is invalid.", pluginSubmissionVersion),
+			fmt.Sprintf("Plugin version \"%s\" is invalid.", pluginSubmissionVersion),
 			fmt.Sprintf("Could not parse plugin version \"%s\". Please use a valid semver version for your plugin. See https://semver.org/.", pluginSubmissionVersion))
 		return nil, nil
 	}
