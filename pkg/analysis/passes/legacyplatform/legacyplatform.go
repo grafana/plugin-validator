@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	legacyPlatform = &analysis.Rule{Name: "legacy-platform"}
+	legacyPlatform = &analysis.Rule{Name: "legacy-platform", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{

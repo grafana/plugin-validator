@@ -4,10 +4,12 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/htmlreadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -29,10 +31,12 @@ var Analyzers = []*analysis.Analyzer{
 	archive.Analyzer,
 	archivename.Analyzer,
 	brokenlinks.Analyzer,
+	binarypermissions.Analyzer,
 	htmlreadme.Analyzer,
 	jargon.Analyzer,
 	legacyplatform.Analyzer,
 	logos.Analyzer,
+	license.Analyzer,
 	manifest.Analyzer,
 	metadata.Analyzer,
 	metadatapaths.Analyzer,

@@ -5,6 +5,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -21,6 +23,21 @@ type Run mg.Namespace
 
 const imageName = "grafana/plugin-validator-cli"
 const imageVersion = "v2"
+
+var archTargets = map[string]map[string]string{
+	"darwin_amd64": {
+		"CGO_ENABLED": "0",
+		"GO111MODULE": "on",
+		"GOARCH":      "amd64",
+		"GOOS":        "darwin",
+	},
+	"linux_amd64": {
+		"CGO_ENABLED": "0",
+		"GO111MODULE": "on",
+		"GOARCH":      "amd64",
+		"GOOS":        "linux",
+	},
+}
 
 // Default target to run when none is specified
 // If not set, running mage will list available targets
@@ -62,36 +79,62 @@ func (Docker) Push(ctx context.Context) {
 		pushDockerImage)
 }
 
-/* executables */
+// deprecated - use pluginCheck2
 func pluginCheckCmd() error {
 	os.Setenv("GO111MODULE", "on")
 	os.Setenv("CGO_ENABLED", "0")
 	return sh.RunV("go", "build", "-o", "bin/plugincheck", "./pkg/cmd/plugincheck")
 }
 
-func pluginCheck2CmdDarwin() error {
-	env := map[string]string{
-		"CGO_ENABLED": "0",
-		"GO111MODULE": "on",
-		"GOARCH":      "amd64",
-		"GOOS":        "darwin",
+func buildCommand(command string, arch string) error {
+	env, ok := archTargets[arch]
+	if !ok {
+		return fmt.Errorf("unknown arch %s", arch)
 	}
-	if err := sh.RunWith(env, "go", "build", "-o", "bin/darwin_amd64/plugincheck2", "./pkg/cmd/plugincheck2"); err != nil {
+	log.Printf("Building %s/%s\n", arch, command)
+	outDir := fmt.Sprintf("./bin/%s/%s", arch, command)
+	cmdDir := fmt.Sprintf("./pkg/cmd/%s", command)
+	if err := sh.RunWith(env, "go", "build", "-o", outDir, cmdDir); err != nil {
 		return err
 	}
+
+	// intentionally igores errors
+	sh.RunV("chmod", "+x", outDir)
 	return nil
 }
-func pluginCheck2CmdLinux() error {
-	env := map[string]string{
-		"CGO_ENABLED": "0",
-		"GO111MODULE": "on",
-		"GOARCH":      "amd64",
-		"GOOS":        "linux",
-	}
-	if err := sh.RunWith(env, "go", "build", "-o", "bin/linux_amd64/plugincheck2", "./pkg/cmd/plugincheck2"); err != nil {
+
+// build all commands inside ./pkg/cmd
+func (Build) Commands(ctx context.Context) error {
+	mg.Deps(
+		Clean,
+	)
+
+	const commandsFolder = "./pkg/cmd"
+	folders, err := ioutil.ReadDir(commandsFolder)
+
+	if err != nil {
 		return err
 	}
+
+	for _, folder := range folders {
+		if folder.IsDir() {
+			for arch := range archTargets {
+				err := buildCommand(folder.Name(), arch)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return nil
+}
+
+func pluginCheck2CmdDarwin() error {
+	return buildCommand("plugincheck2", "darwin_amd64")
+}
+func pluginCheck2CmdLinux() error {
+	return buildCommand("plugincheck2", "linux_amd64")
 }
 
 func testVerbose() error {
@@ -119,8 +162,7 @@ func (Build) Local(ctx context.Context) {
 	mg.Deps(
 		Clean,
 		pluginCheckCmd,
-		pluginCheck2CmdDarwin,
-		pluginCheck2CmdLinux,
+		Build.Commands,
 	)
 }
 
@@ -159,11 +201,11 @@ func (Test) Default() {
 }
 
 // Removes built files
-func Clean() error {
+func Clean() {
 	log.Printf("Cleaning all")
 	os.RemoveAll("./bin/plugincheck")
 	os.RemoveAll("./bin/linux_amd64")
-	return os.RemoveAll("./bin/darwin_amd64")
+	os.RemoveAll("./bin/darwin_amd64")
 }
 
 // Build and Run V1
@@ -196,6 +238,14 @@ func (Run) V2Local(ctx context.Context, path string) error {
 	return sh.RunV(
 		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
 		"-config",
-		"config/default.yaml",
+		"config/pipeline.yaml",
 		path)
+}
+
+func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
+	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
+	return sh.RunV(
+		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/sourcemapdiff",
+		"-archiveUri", archive, "-sourceCodeUri", source)
+
 }

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	humanFriendlyName = &analysis.Rule{Name: "human-friendly-name"}
+	humanFriendlyName = &analysis.Rule{Name: "human-friendly-name", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
