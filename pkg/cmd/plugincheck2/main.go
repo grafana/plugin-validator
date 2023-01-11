@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
+	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 	"gopkg.in/yaml.v2"
 )
@@ -24,11 +25,13 @@ type FormattedOutput struct {
 
 func main() {
 	var (
-		strictFlag = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
-		configFlag = flag.String("config", "", "Path to configuration file")
+		strictFlag    = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		configFlag    = flag.String("config", "", "Path to configuration file")
+		sourceCodeUri = flag.String("sourceCodeUri", "", "URL to the source code of the plugin. If set, the source code will be downloaded and analyzed. This can be a ZIP file or an URL to git repository")
 	)
 
 	flag.Parse()
+	os.Exit(0)
 
 	if *configFlag == "" {
 		fmt.Fprintln(os.Stderr, "missing config")
@@ -67,6 +70,30 @@ func main() {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("check failed: %w", err))
 		os.Exit(1)
 	}
+
+	sourceCodeDir := ""
+	if sourceCodeUri != nil && *sourceCodeUri != "" {
+		// if sourceCodeUrl has a .zip extension
+		if strings.HasSuffix(*sourceCodeUri, ".zip") {
+			extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code archive: %w", err))
+				os.Exit(1)
+			}
+			defer sourceCodeCleanUp()
+			sourceCodeDir = extractedDir
+		} else {
+			extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code repository: %w", err))
+				os.Exit(1)
+			}
+			defer sourceCodeCleanUp()
+			sourceCodeDir = extractedGitRepo
+		}
+	}
+
+	fmt.Println("Source code dir: ", sourceCodeDir)
 
 	var exitCode int
 
@@ -137,7 +164,7 @@ func main() {
 }
 
 func readConfigFile(path string) (runner.Config, error) {
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return runner.Config{}, err
 	}

@@ -1,6 +1,7 @@
 package repotool
 
 import (
+	"errors"
 	"os"
 
 	"github.com/go-git/go-git/v5"
@@ -28,4 +29,8 @@ func CloneToTempDir(uri string) (string, func(), error) {
 	}
 
 	return tmpDir, cleanup, nil
+}
+
+func GitUrlToLocalPath(uri string) (string, func(), error) {
+	return "", nil, errors.New("not implemented")
 }

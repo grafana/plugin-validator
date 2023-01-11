@@ -9,10 +9,11 @@ var (
 )
 
 type Pass struct {
-	AnalyzerName string
-	RootDir      string
-	ResultOf     map[*Analyzer]interface{}
-	Report       func(string, Diagnostic)
+	AnalyzerName  string
+	RootDir       string
+	SourceCodeDir string
+	ResultOf      map[*Analyzer]interface{}
+	Report        func(string, Diagnostic)
 }
 
 func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, detail string) {

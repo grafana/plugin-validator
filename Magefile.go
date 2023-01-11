@@ -228,7 +228,7 @@ func (Run) V2() error {
 	)
 }
 
-func (Run) V2Local(ctx context.Context, path string) error {
+func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) error {
 	mg.Deps(Build.Local)
 
 	if _, err := os.Stat(path); err != nil {
@@ -239,6 +239,8 @@ func (Run) V2Local(ctx context.Context, path string) error {
 		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
 		"-config",
 		"config/pipeline.yaml",
+		"-sourceCodeUri",
+		sourceCodePath,
 		path)
 }
 
