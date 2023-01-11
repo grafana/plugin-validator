@@ -94,6 +94,7 @@ func getPluginDataFromGrafanaCom(context context.Context, pluginId string) (*Plu
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
 	// 404 = the plugin is not yet published
 	if response.StatusCode == http.StatusNotFound {
@@ -106,7 +107,6 @@ func getPluginDataFromGrafanaCom(context context.Context, pluginId string) (*Plu
 	}
 
 	status := PluginStatus{}
-	defer response.Body.Close()
 	if err := json.NewDecoder(response.Body).Decode(&status); err != nil {
 		return nil, err
 	}
