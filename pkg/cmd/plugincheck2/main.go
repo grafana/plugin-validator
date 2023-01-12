@@ -72,12 +72,6 @@ func main() {
 	}
 	defer cleanup()
 
-	diags, err := runner.Check(passes.Analyzers, archiveDir, cfg)
-	if err != nil {
-		logme.Errorln(fmt.Errorf("check failed: %w", err))
-		os.Exit(1)
-	}
-
 	sourceCodeDir, err := getSourceCodeDir(sourceCodeUri)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("couldn't fetch source code: %w", err))
@@ -85,7 +79,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Source code dir: ", sourceCodeDir)
+	diags, err := runner.Check(passes.Analyzers, archiveDir, sourceCodeDir, cfg)
+	if err != nil {
+		logme.Errorln(fmt.Errorf("check failed: %w", err))
+		os.Exit(1)
+	}
 
 	var exitCode int
 
