@@ -246,8 +246,14 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 
 func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
 	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
-	return sh.RunV(
-		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/sourcemapdiff",
-		"-archiveUri", archive, "-sourceCodeUri", source)
+	command := []string{
+		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/sourcemapdiff",
+		"-archiveUri", archive}
+
+	if source != "" {
+		command = append(command, "-sourceUri", source)
+	}
+
+	return sh.RunV(command[0], command[1:]...)
 
 }

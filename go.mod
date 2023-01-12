@@ -5,13 +5,13 @@ go 1.19
 require (
 	github.com/fatih/color v1.13.0
 	github.com/go-enry/go-license-detector/v4 v4.3.0
-	github.com/go-git/go-git/v5 v5.5.1
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/magefile/mage v1.14.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/sourcegraph/go-diff-patch v0.0.0-20220818153721-50706a0e22c3
 	github.com/stretchr/testify v1.8.1
+	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.3.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -28,6 +28,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
+	github.com/go-git/go-git/v5 v5.5.1 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20211111143520-d0d5ecc1a356 // indirect
 	github.com/hhatto/gorst v0.0.0-20181029133204-ca9f730cac5b // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
