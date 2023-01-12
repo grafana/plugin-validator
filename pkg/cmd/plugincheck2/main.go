@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -39,7 +40,8 @@ func main() {
 	logme.Debugln("archive file: ", flag.Arg(0))
 
 	if *configFlag == "" {
-		fmt.Fprintln(os.Stderr, "missing config")
+		logme.Errorln("no config file specified")
+		flag.Usage()
 		os.Exit(1)
 	}
 
@@ -76,26 +78,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	sourceCodeDir := ""
-	if sourceCodeUri != nil && *sourceCodeUri != "" {
-		// if sourceCodeUrl has a .zip extension
-		if strings.HasSuffix(*sourceCodeUri, ".zip") {
-			extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code archive: %w", err))
-				os.Exit(1)
-			}
-			defer sourceCodeCleanUp()
-			sourceCodeDir = extractedDir
-		} else {
-			extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code repository: %w", err))
-				os.Exit(1)
-			}
-			defer sourceCodeCleanUp()
-			sourceCodeDir = extractedGitRepo
-		}
+	sourceCodeDir, err := getSourceCodeDir(sourceCodeUri)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code: %w", err))
+		fmt.Println("This could be because the source code is not available, the URL is invalid or the git ref in the URL doesn't exist.")
+		os.Exit(1)
 	}
 
 	fmt.Println("Source code dir: ", sourceCodeDir)
@@ -180,4 +167,28 @@ func readConfigFile(path string) (runner.Config, error) {
 	}
 
 	return config, nil
+}
+
+func getSourceCodeDir(sourceCodeUri *string) (string, error) {
+	var sourceCodeDir string
+	if sourceCodeUri != nil && *sourceCodeUri != "" {
+		// if sourceCodeUrl has a .zip extension
+		if strings.HasSuffix(*sourceCodeUri, ".zip") {
+			extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
+			if err != nil {
+				return "", fmt.Errorf("couldn't extract source code archive: %s. %w", *sourceCodeUri, err)
+			}
+			defer sourceCodeCleanUp()
+			sourceCodeDir = extractedDir
+		} else {
+			extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
+			if err != nil {
+				return "", err
+			}
+			defer sourceCodeCleanUp()
+			sourceCodeDir = extractedGitRepo
+		}
+		return sourceCodeDir, nil
+	}
+	return "", errors.New("no source code directory specified")
 }
