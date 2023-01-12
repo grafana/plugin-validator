@@ -20,7 +20,7 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{licenseNotProvided},
 }
 
-var validLicenseStart = []string{"AGPL-3.0", "Apache-2.0"}
+var validLicenseStart = []string{"AGPL-3.0", "Apache-2.0", "MIT"}
 
 const minRequiredConfidenceLevel float32 = 0.9
 
