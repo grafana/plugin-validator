@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
+	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 	"gopkg.in/yaml.v2"
@@ -31,7 +32,11 @@ func main() {
 	)
 
 	flag.Parse()
-	os.Exit(0)
+
+	logme.Debugln("stric mode: ", *strictFlag)
+	logme.Debugln("config file: ", *configFlag)
+	logme.Debugln("source code: ", *sourceCodeUri)
+	logme.Debugln("archive file: ", flag.Arg(0))
 
 	if *configFlag == "" {
 		fmt.Fprintln(os.Stderr, "missing config")
