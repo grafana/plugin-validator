@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -65,18 +64,26 @@ func main() {
 	}
 
 	// Extract the ZIP archive in a temporary directory.
-	archiveDir, cleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
+	archiveDir, archiveCleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
 		logme.Errorln(fmt.Errorf("couldn't extract plugin archive: %w", err))
 		os.Exit(1)
 	}
-	defer cleanup()
+	defer archiveCleanup()
 
-	sourceCodeDir, err := getSourceCodeDir(sourceCodeUri)
-	if err != nil {
-		logme.Errorln(fmt.Errorf("couldn't fetch source code: %w", err))
-		fmt.Println("This could be because the source code is not available, the URL is invalid or the git ref in the URL doesn't exist.")
-		os.Exit(1)
+	var sourceCodeDir string
+	if sourceCodeUri != nil && *sourceCodeUri != "" {
+		foundSourceCodeDir, sourceCodeCleanup, err := getSourceCodeDir(sourceCodeUri)
+		if err != nil {
+			if sourceCodeCleanup != nil {
+				sourceCodeCleanup()
+			}
+			logme.Errorln(fmt.Errorf("couldn't fetch source code: %w", err))
+			fmt.Println("This could be because the source code is not available, the URL is invalid or the git ref in the URL doesn't exist.")
+			os.Exit(1)
+		}
+		defer sourceCodeCleanup()
+		sourceCodeDir = foundSourceCodeDir
 	}
 
 	diags, err := runner.Check(passes.Analyzers, archiveDir, sourceCodeDir, cfg)
@@ -167,26 +174,18 @@ func readConfigFile(path string) (runner.Config, error) {
 	return config, nil
 }
 
-func getSourceCodeDir(sourceCodeUri *string) (string, error) {
-	var sourceCodeDir string
-	if sourceCodeUri != nil && *sourceCodeUri != "" {
-		// if sourceCodeUrl has a .zip extension
-		if strings.HasSuffix(*sourceCodeUri, ".zip") {
-			extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
-			if err != nil {
-				return "", fmt.Errorf("couldn't extract source code archive: %s. %w", *sourceCodeUri, err)
-			}
-			defer sourceCodeCleanUp()
-			sourceCodeDir = extractedDir
-		} else {
-			extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
-			if err != nil {
-				return "", err
-			}
-			defer sourceCodeCleanUp()
-			sourceCodeDir = extractedGitRepo
+func getSourceCodeDir(sourceCodeUri *string) (string, func(), error) {
+	// if sourceCodeUrl has a .zip extension
+	if strings.HasSuffix(*sourceCodeUri, ".zip") {
+		extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
+		if err != nil {
+			return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", *sourceCodeUri, err)
 		}
-		return sourceCodeDir, nil
+		return extractedDir, sourceCodeCleanUp, nil
 	}
-	return "", errors.New("no source code directory specified")
+	extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
+	if err != nil {
+		return "", sourceCodeCleanUp, err
+	}
+	return extractedGitRepo, sourceCodeCleanUp, nil
 }

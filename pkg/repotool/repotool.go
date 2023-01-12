@@ -80,8 +80,7 @@ func GitUrlToLocalPath(url string) (string, func(), error) {
 
 	// check if rootDir exists
 	if _, err := os.Stat(rootDir); err != nil {
-		cleanup()
-		return "", nil, fmt.Errorf("Couldn't find root dir: %s. The sourcecode was cloned but the passed sub-directory was not found.", parsedGitUrl.RootDir)
+		return tmpDir, cleanup, fmt.Errorf("Couldn't find root dir: %s. The sourcecode was cloned but the passed sub-directory was not found.", parsedGitUrl.RootDir)
 	}
 	return rootDir, cleanup, nil
 
