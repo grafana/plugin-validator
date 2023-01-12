@@ -47,7 +47,7 @@ func main() {
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't read configuration: %w", err))
+		logme.Errorln(fmt.Errorf("couldn't read configuration: %w", err))
 		os.Exit(1)
 	}
 
@@ -60,27 +60,27 @@ func main() {
 
 	b, err := archivetool.ReadArchive(pluginURL)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch plugin archive: %w", err))
+		logme.Errorln(fmt.Errorf("couldn't fetch plugin archive: %w", err))
 		os.Exit(1)
 	}
 
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, cleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't extract plugin archive: %w", err))
+		logme.Errorln(fmt.Errorf("couldn't extract plugin archive: %w", err))
 		os.Exit(1)
 	}
 	defer cleanup()
 
 	diags, err := runner.Check(passes.Analyzers, archiveDir, cfg)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("check failed: %w", err))
+		logme.Errorln(fmt.Errorf("check failed: %w", err))
 		os.Exit(1)
 	}
 
 	sourceCodeDir, err := getSourceCodeDir(sourceCodeUri)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't fetch source code: %w", err))
+		logme.Errorln(fmt.Errorf("couldn't fetch source code: %w", err))
 		fmt.Println("This could be because the source code is not available, the URL is invalid or the git ref in the URL doesn't exist.")
 		os.Exit(1)
 	}

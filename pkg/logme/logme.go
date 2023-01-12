@@ -7,11 +7,12 @@ import (
 
 var isDebugMode bool = os.Getenv("DEBUG") == "1"
 
-func DebugF(msg string, args ...interface{}) {
+func DebugFln(msg string, args ...interface{}) {
 	// check if ENV DEBUG is 1
 	if isDebugMode {
 		fmt.Print("[DEBUG] ")
 		fmt.Fprintf(os.Stdout, msg, args...)
+		fmt.Println()
 	}
 }
 

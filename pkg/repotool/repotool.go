@@ -6,6 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strings"
+
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 type GitUrl struct {
@@ -70,7 +73,16 @@ func GitUrlToLocalPath(url string) (string, func(), error) {
 	}
 
 	rootDir := fmt.Sprintf("%s/%s", tmpDir, parsedGitUrl.RootDir)
-	fmt.Printf("rootDir: %s", rootDir)
+	// add trailing slash to rootDir if it doesn't have one
+	if !strings.HasSuffix(rootDir, "/") {
+		rootDir = fmt.Sprintf("%s/", rootDir)
+	}
+
+	// check if rootDir exists
+	if _, err := os.Stat(rootDir); err != nil {
+		cleanup()
+		return "", nil, fmt.Errorf("Couldn't find root dir: %s. The sourcecode was cloned but the passed sub-directory was not found.", parsedGitUrl.RootDir)
+	}
 	return rootDir, cleanup, nil
 
 }
@@ -99,11 +111,15 @@ func parseGitUrl(url string) (GitUrl, error) {
 	}
 
 	if len(match) > 0 {
-		return GitUrl{
-			BaseUrl: match[1],
-			Ref:     match[3],
-			RootDir: match[4],
-		}, nil
+		parsedUrl := GitUrl{
+			BaseUrl: strings.TrimSpace(match[1]),
+			Ref:     strings.TrimSpace(match[3]),
+			RootDir: strings.TrimSpace(match[4]),
+		}
+		logme.DebugFln("Matched git url: %s", parsedUrl.BaseUrl)
+		logme.DebugFln("Matched git ref: %s", parsedUrl.Ref)
+		logme.DebugFln("Matched git root dir: %s", parsedUrl.RootDir)
+		return parsedUrl, nil
 	}
 
 	return GitUrl{}, fmt.Errorf("couldn't parse git url: %s. This git service is not supported.", url)
