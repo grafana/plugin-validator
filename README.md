@@ -37,7 +37,7 @@ plugincheck2 -config config/verbose-json.yaml https://github.com/marcusolsson/gr
 You must pass a configuration file to the validator with the `-config` option. Several configuraton examples are available to use here https://github.com/grafana/plugin-validator/tree/main/config
 
 
-### Enabling and disabling checks
+### Enabling and disabling analyzers
 
 If you wish to disable an specific check (analyzer) you can define this in your configuration file adding an `analyzers` section and specyfing which analyzer or analyzer rules to enable and disable.
 
