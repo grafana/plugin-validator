@@ -51,7 +51,7 @@ global:
 
 analyzers:
   version:
-    enabled: true
+    enabled: false
 ```
 
 You can also disable specific rules or change their severity level:
