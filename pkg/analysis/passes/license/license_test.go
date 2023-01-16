@@ -60,7 +60,7 @@ func TestNoLicenseFound(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Detail, "Could not find or parse the license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
 }
 
-func TestInvalidMitLicense(t *testing.T) {
+func TestValidMitLicense(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	pass := &analysis.Pass{
@@ -73,9 +73,7 @@ func TestInvalidMitLicense(t *testing.T) {
 
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "Valid license not found")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "Could not find a license file inside the plugin archive or the provided license is not compatible with Grafana plugins. Please refer to https://grafana.com/licensing/ for more information.")
+	require.Len(t, interceptor.Diagnostics, 0)
 }
 
 func TestInvalidICsLicense(t *testing.T) {
