@@ -11,7 +11,7 @@ var (
 type Pass struct {
 	AnalyzerName  string
 	RootDir       string
-	SourceCodeDir string
+	SourceCodeUri string
 	ResultOf      map[*Analyzer]interface{}
 	Report        func(string, Diagnostic)
 }

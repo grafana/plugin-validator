@@ -6,14 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 	"gopkg.in/yaml.v2"
 )
@@ -71,22 +69,7 @@ func main() {
 	}
 	defer archiveCleanup()
 
-	var sourceCodeDir string
-	if sourceCodeUri != nil && *sourceCodeUri != "" {
-		foundSourceCodeDir, sourceCodeCleanup, err := getSourceCodeDir(sourceCodeUri)
-		if err != nil {
-			if sourceCodeCleanup != nil {
-				sourceCodeCleanup()
-			}
-			logme.Errorln(fmt.Errorf("couldn't fetch source code: %w", err))
-			fmt.Println("This could be because the source code is not available, the URL is invalid or the git ref in the URL doesn't exist.")
-			os.Exit(1)
-		}
-		defer sourceCodeCleanup()
-		sourceCodeDir = foundSourceCodeDir
-	}
-
-	diags, err := runner.Check(passes.Analyzers, archiveDir, sourceCodeDir, cfg)
+	diags, err := runner.Check(passes.Analyzers, archiveDir, *sourceCodeUri, cfg)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("check failed: %w", err))
 		os.Exit(1)
@@ -172,20 +155,4 @@ func readConfigFile(path string) (runner.Config, error) {
 	}
 
 	return config, nil
-}
-
-func getSourceCodeDir(sourceCodeUri *string) (string, func(), error) {
-	// if sourceCodeUrl has a .zip extension
-	if strings.HasSuffix(*sourceCodeUri, ".zip") {
-		extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(*sourceCodeUri)
-		if err != nil {
-			return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", *sourceCodeUri, err)
-		}
-		return extractedDir, sourceCodeCleanUp, nil
-	}
-	extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(*sourceCodeUri)
-	if err != nil {
-		return "", sourceCodeCleanUp, err
-	}
-	return extractedGitRepo, sourceCodeCleanUp, nil
 }

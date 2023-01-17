@@ -35,6 +35,7 @@ var tests = []struct {
 		"plugin.json: invalid empty large logo path",
 		"License not found",
 		"Plugin version \"\" is invalid.",
+		"source code not provided",
 	}},
 }
 
