@@ -23,8 +23,8 @@ require (
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/cloudflare/circl v1.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgryski/go-minhash v0.0.0-20190315135803-ad340ca03076 // indirect
-	github.com/ekzhu/minhash-lsh v0.0.0-20190924033628-faac2c6342f8 // indirect
+	github.com/dgryski/go-minhash v0.0.0-20170608043002-7fe510aff544 // indirect
+	github.com/ekzhu/minhash-lsh v0.0.0-20171225071031-5c06ee8586a1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.0 // indirect
