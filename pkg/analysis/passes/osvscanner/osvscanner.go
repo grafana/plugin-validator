@@ -46,8 +46,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// check for yarn.lock
 		lockFile = filepath.Join(archiveDir, "yarn.lock")
 		if _, err := os.Stat(lockFile); err != nil {
-			// nothing to do...
-			return nil, err
+			// nothing to do... skip
+			return nil, nil
 		}
 	}
 	path, err := exec.LookPath("osv-scanner")
