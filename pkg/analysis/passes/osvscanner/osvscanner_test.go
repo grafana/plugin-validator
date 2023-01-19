@@ -71,8 +71,8 @@ func TestCriticalSeverityResults(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "osv-scanner detected critical severity issues", interceptor.Diagnostics[0].Title)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, "osv-scanner detected a critical severity issue", interceptor.Diagnostics[0].Title)
 }
 
 // TestHighSeverityResults checks for a high severity issue
@@ -88,8 +88,8 @@ func TestHighSeverityResults(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "osv-scanner detected high severity issues", interceptor.Diagnostics[0].Title)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, "osv-scanner detected a high severity issue", interceptor.Diagnostics[0].Title)
 }
 
 // TestModerateSeverityResults checks for a moderate severity issue
@@ -105,8 +105,8 @@ func TestModerateSeverityResults(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "osv-scanner detected moderate severity issues", interceptor.Diagnostics[0].Title)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, "osv-scanner detected a moderate severity issue", interceptor.Diagnostics[0].Title)
 }
 
 // TestLowSeverityResults checks for a low severity issue
@@ -122,6 +122,6 @@ func TestLowSeverityResults(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "osv-scanner detected low severity issues", interceptor.Diagnostics[0].Title)
+	require.Len(t, interceptor.Diagnostics, 4)
+	require.Equal(t, "osv-scanner detected a low severity issue", interceptor.Diagnostics[0].Title)
 }
