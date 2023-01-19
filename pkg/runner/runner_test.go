@@ -47,7 +47,7 @@ func TestRunner(t *testing.T) {
 		}
 	}
 	// create empty dir
-	emptyDir := filepath.Join("testdata", "EmptyDirectory/myorg-plugin-panel")
+	emptyDir := filepath.Join("testdata", "EmptyDirectory", "myorg-plugin-panel")
 	if _, err := os.Stat(emptyDir); os.IsNotExist(err) {
 		if err = os.MkdirAll(emptyDir, 0755); err != nil {
 			t.Fatal(err)
