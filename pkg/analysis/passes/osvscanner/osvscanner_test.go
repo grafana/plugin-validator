@@ -15,7 +15,7 @@ func TestCanRunScanner(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/golang/none",
+			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -31,7 +31,7 @@ func TestEmptyResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/golang/none",
+			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -47,7 +47,7 @@ func TestNoIssueResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/node/none",
+			archive.Analyzer: filepath.Join("testdata", "node", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -64,7 +64,7 @@ func TestCriticalSeverityResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/node/critical",
+			archive.Analyzer: filepath.Join("testdata", "node", "critical"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -81,7 +81,7 @@ func TestHighSeverityResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/node/high",
+			archive.Analyzer: filepath.Join("testdata", "node", "high"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -98,7 +98,7 @@ func TestModerateSeverityResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/golang/moderate",
+			archive.Analyzer: filepath.Join("testdata", "golang", "moderate"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -115,7 +115,7 @@ func TestLowSeverityResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: "testdata/node/low",
+			archive.Analyzer: filepath.Join("testdata", "node", "low"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
