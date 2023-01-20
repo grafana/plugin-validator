@@ -48,7 +48,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if _, err := os.Stat(lockFile); err != nil {
 			// nothing to do... skip
 			scanningSucceeded.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "There were no go.mod or yarn.lock files to check")
+			if scanningSucceeded.ReportAll {
+				pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "There were no go.mod or yarn.lock files to check")
+			}
 		}
 	}
 	path, err := exec.LookPath("osv-scanner")
@@ -60,10 +62,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	} else {
 		missingOSVScanner.Severity = analysis.OK
-		pass.ReportResult(
-			pass.AnalyzerName,
-			missingOSVScanner,
-			"Binary for osv-scanner was found in PATH", "osv-scanner executable exists in your shell PATH.")
+		if missingOSVScanner.ReportAll {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				missingOSVScanner,
+				"Binary for osv-scanner was found in PATH", "osv-scanner executable exists in your shell PATH.")
+		}
 	}
 	// exec
 	cmdArgs := []string{"--json", "--lockfile", lockFile}
