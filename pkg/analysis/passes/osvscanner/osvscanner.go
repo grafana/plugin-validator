@@ -13,14 +13,14 @@ import (
 )
 
 var (
-	missingOSVScanner                  = &analysis.Rule{Name: "missing-osvscanner-binary", Severity: analysis.Warning}
+	missingOSVScanner                  = &analysis.Rule{Name: "osvscanner-missing-binary", Severity: analysis.Warning}
 	scanningFailure                    = &analysis.Rule{Name: "osvscanner-failed", Severity: analysis.Warning}
 	scanningParseFailure               = &analysis.Rule{Name: "osvscanner-parse-failed", Severity: analysis.Warning}
-	noIssues                           = &analysis.Rule{Name: "osvscanner-no-issues", Severity: analysis.OK}
-	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "critical-severity-vulnerabilities-detected", Severity: analysis.Error}
-	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "high-severity-vulnerabilities-detected-golang", Severity: analysis.Warning}
-	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "moderate-severity-vulnerabilities-detected-golang", Severity: analysis.Warning}
-	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "low-severity-vulnerabilities-detected-golang", Severity: analysis.Warning}
+	scanningSucceeded                  = &analysis.Rule{Name: "osvscanner-succeeded", Severity: analysis.Warning}
+	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Error}
+	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osvscanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osvscanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osvscanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -34,8 +34,8 @@ var Analyzer = &analysis.Analyzer{
 		osvScannerModerateSeverityDetected,
 		osvScannerLowSeverityDetected,
 		scanningFailure,
-		noIssues,
-		scanningParseFailure},
+		scanningParseFailure,
+		scanningSucceeded},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -47,7 +47,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		lockFile = filepath.Join(archiveDir, "yarn.lock")
 		if _, err := os.Stat(lockFile); err != nil {
 			// nothing to do... skip
-			return nil, nil
+			scanningSucceeded.Severity = analysis.OK
+			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "There were no go.mod or yarn.lock files to check")
 		}
 	}
 	path, err := exec.LookPath("osv-scanner")
@@ -55,8 +56,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			missingOSVScanner,
-			"Binary for osv-scanner not found in PATH", "osv-scanner needs to be in your path.")
+			"Binary for osv-scanner not found in PATH", "osv-scanner executable must be in your shell PATH.")
 		return nil, nil
+	} else {
+		missingOSVScanner.Severity = analysis.OK
+		pass.ReportResult(
+			pass.AnalyzerName,
+			missingOSVScanner,
+			"Binary for osv-scanner was found in PATH", "osv-scanner executable exists in your shell PATH.")
 	}
 	// exec
 	cmdArgs := []string{"--json", "--lockfile", lockFile}
@@ -71,6 +78,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				fmt.Sprintf("osv-scanner found, but failed to run: %s", err))
 			return nil, nil
 		}
+	} else {
+		scanningFailure.Severity = analysis.OK
+		pass.ReportResult(
+			pass.AnalyzerName,
+			scanningFailure,
+			"osv-scanner successfully ran",
+			"osv-scanner successfully ran and has output")
 	}
 
 	// deserialize json output, detect CRITICAL severity
@@ -85,13 +99,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// iterate over results
+	// no results means no issues currently reported
 	if len(objmap.Results) == 0 {
-		pass.ReportResult(
-			pass.AnalyzerName,
-			noIssues,
-			"osv-scanner passed",
-			fmt.Sprintf("osv-scanner detected no current issues for lockfile: %s", lockFile))
 		return nil, nil
 	}
 
@@ -100,6 +109,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	moderateSeverityCount := 0
 	lowSeverityCount := 0
 
+	// iterate over results
 	for _, result := range objmap.Results {
 		for _, aPackage := range result.Packages {
 			for _, aVulnerability := range aPackage.Vulnerabilities {
