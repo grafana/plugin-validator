@@ -36,7 +36,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	sourceCodeDir := pass.SourceCodeDir
 	if sourceCodeDir == "" {
-		pass.ReportResult(pass.AnalyzerName, sourceCodeNotFound, fmt.Sprintf("Sourcecode not provided or the provided URL %s does not point to a valid source code repository", pass.SourceCodeDir), "If you are passing a Git ref or sub-directory in the URL make sure they are correct.")
+		pass.ReportResult(pass.AnalyzerName, sourceCodeNotProvided, fmt.Sprintf("Sourcecode not provided or the provided URL %s does not point to a valid source code repository", pass.SourceCodeDir), "If you are passing a Git ref or sub-directory in the URL make sure they are correct.")
 		return nil, nil
 	}
 
