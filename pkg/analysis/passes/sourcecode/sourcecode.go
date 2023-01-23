@@ -22,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "sourcecode",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{sourceCodeNotFound, sourceCodeVersionMissMatch},
+	Rules:    []*analysis.Rule{sourceCodeNotFound, sourceCodeVersionMissMatch, sourceCodeNotProvided},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
