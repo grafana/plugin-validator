@@ -122,7 +122,11 @@ func parseGitUrl(url string) (GitUrl, error) {
 	}
 
 	return GitUrl{}, fmt.Errorf("couldn't parse git url: %s. This git service is not supported.", url)
+}
 
+func IsSupportedGitUrl(url string) bool {
+	_, err := parseGitUrl(url)
+	return err == nil
 }
 
 func checkDependencies() error {

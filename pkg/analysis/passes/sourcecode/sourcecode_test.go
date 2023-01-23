@@ -12,6 +12,33 @@ import (
 
 const pluginId = "test-plugin-panel"
 
+func TestSourceCodeNotProvided(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pluginJsonContent := []byte(`{
+		"id": "` + pluginId + `",
+		"type": "panel",
+		"info": {
+			"version": "2.1.2"
+		}
+	}`)
+	pass := &analysis.Pass{
+		RootDir:       filepath.Join("./"),
+		SourceCodeDir: "",
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: pluginJsonContent,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	sourceCodeDir, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "Sourcecode not provided or the provided URL  does not point to a valid source code repository", interceptor.Diagnostics[0].Title)
+	require.Equal(t, nil, sourceCodeDir)
+
+}
+
 func TestVersionSourceCodeMatch(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pluginJsonContent := []byte(`{
@@ -24,7 +51,7 @@ func TestVersionSourceCodeMatch(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeUri: "file://" + filepath.Join("testdata", "version-match"),
+		SourceCodeDir: filepath.Join("testdata", "version-match"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -50,7 +77,7 @@ func TestNoPackageJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeUri: "file://" + filepath.Join("testdata", "no-package-json"),
+		SourceCodeDir: filepath.Join("testdata", "no-package-json"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -76,7 +103,7 @@ func TestInvalidPackageJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeUri: "file://" + filepath.Join("testdata", "invalid-package-json"),
+		SourceCodeDir: filepath.Join("testdata", "invalid-package-json"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -105,7 +132,7 @@ func TestAllowHumanJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeUri: "file://" + filepath.Join("testdata", "human-package-json"),
+		SourceCodeDir: filepath.Join("testdata", "human-package-json"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -132,7 +159,7 @@ func TestVersionMissMatch(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeUri: "file://" + filepath.Join("testdata", "version-missmatch"),
+		SourceCodeDir: filepath.Join("testdata", "version-missmatch"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},

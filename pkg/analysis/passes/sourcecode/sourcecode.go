@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/tailscale/hujson"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"github.com/grafana/plugin-validator/pkg/archivetool"
-	"github.com/grafana/plugin-validator/pkg/repotool"
 )
 
 var (
@@ -37,18 +34,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	if pass.SourceCodeUri == "" {
-		pass.ReportResult(pass.AnalyzerName, sourceCodeNotProvided, "source code not provided", "")
+	sourceCodeDir := pass.SourceCodeDir
+	if sourceCodeDir == "" {
+		pass.ReportResult(pass.AnalyzerName, sourceCodeNotFound, fmt.Sprintf("Sourcecode not provided or the provided URL %s does not point to a valid source code repository", pass.SourceCodeDir), "If you are passing a Git ref or sub-directory in the URL make sure they are correct.")
 		return nil, nil
-	}
-
-	// TODO handle cleanup
-	sourceCodeDir, _, err := getSourceCodeDir(pass.SourceCodeUri)
-	fmt.Println("sourceCodeDir", pass.SourceCodeUri, sourceCodeDir)
-	fmt.Println("sourceCodeDir", sourceCodeDir)
-	if err != nil || sourceCodeDir == "" {
-		pass.ReportResult(pass.AnalyzerName, sourceCodeNotFound, fmt.Sprintf("The provided URL %s does not point to a valid source code repository", pass.SourceCodeUri), "If you are passing a Git ref or sub-directory in the URL make sure they are correct.")
-		return "", nil
 	}
 
 	packageJsonPath := filepath.Join(sourceCodeDir, "package.json")
@@ -95,29 +84,4 @@ func parsePackageJson(packageJsonPath string) (*PackageJson, error) {
 		return &PackageJson{}, err
 	}
 	return &packageJson, nil
-}
-
-func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
-	// if sourceCodeUrl has a .zip extension
-	if strings.HasPrefix(sourceCodeUri, "file://") {
-		sourceCodeDir := strings.TrimPrefix(sourceCodeUri, "file://")
-		if _, err := os.Stat(sourceCodeDir); err != nil {
-			return "", nil, err
-		}
-		return sourceCodeDir, func() {}, nil
-	}
-
-	if strings.HasSuffix(sourceCodeUri, ".zip") {
-		extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(sourceCodeUri)
-		if err != nil {
-			return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", sourceCodeUri, err)
-		}
-		return extractedDir, sourceCodeCleanUp, nil
-	}
-
-	extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(sourceCodeUri)
-	if err != nil {
-		return "", sourceCodeCleanUp, err
-	}
-	return extractedGitRepo, sourceCodeCleanUp, nil
 }

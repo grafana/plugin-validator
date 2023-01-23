@@ -6,12 +6,14 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 	"gopkg.in/yaml.v2"
 )
@@ -69,7 +71,16 @@ func main() {
 	}
 	defer archiveCleanup()
 
-	diags, err := runner.Check(passes.Analyzers, archiveDir, *sourceCodeUri, cfg)
+	sourceCodeDir, sourceCodeDirCleanup, err := getSourceCodeDir(*sourceCodeUri)
+	if err != nil {
+		// if source code is not provided, we don't fail the validation
+		logme.Errorln(fmt.Errorf("couldn't get source code: %w", err))
+	}
+	if sourceCodeDirCleanup != nil {
+		defer sourceCodeDirCleanup()
+	}
+
+	diags, err := runner.Check(passes.Analyzers, archiveDir, sourceCodeDir, cfg)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("check failed: %w", err))
 		os.Exit(1)
@@ -155,4 +166,31 @@ func readConfigFile(path string) (runner.Config, error) {
 	}
 
 	return config, nil
+}
+
+func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
+	// file:// protocol for local directories
+	if strings.HasPrefix(sourceCodeUri, "file://") {
+		sourceCodeDir := strings.TrimPrefix(sourceCodeUri, "file://")
+		if _, err := os.Stat(sourceCodeDir); err != nil {
+			return "", nil, err
+		}
+		return sourceCodeDir, func() {}, nil
+	}
+
+	if repotool.IsSupportedGitUrl(sourceCodeUri) {
+		extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(sourceCodeUri)
+		if err != nil {
+			return "", sourceCodeCleanUp, err
+		}
+		return extractedGitRepo, sourceCodeCleanUp, nil
+	}
+
+	// assume is an archive url
+	extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(sourceCodeUri)
+	if err != nil {
+		return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", sourceCodeUri, err)
+	}
+	return extractedDir, sourceCodeCleanUp, nil
+
 }

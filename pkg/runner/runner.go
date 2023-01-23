@@ -31,14 +31,14 @@ type RuleConfig struct {
 
 var defaultSeverity = analysis.Warning
 
-func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeUri string, cfg Config) (map[string][]analysis.Diagnostic, error) {
+func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
 	initAnalyzers(analyzers, cfg)
 	diagnostics := make(map[string][]analysis.Diagnostic)
 	//var diagnostics []analysis.Diagnostic
 
 	pass := &analysis.Pass{
 		RootDir:       dir,
-		SourceCodeUri: sourceCodeUri,
+		SourceCodeDir: sourceCodeDir,
 		ResultOf:      make(map[*analysis.Analyzer]interface{}),
 		Report: func(name string, d analysis.Diagnostic) {
 			// Collect all diagnostics for presenting at the end.
