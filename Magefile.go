@@ -235,13 +235,17 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 		return err
 	}
 
-	return sh.RunV(
-		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
+	command := []string{
+		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
 		"config/pipeline.yaml",
-		"-sourceCodeUri",
-		sourceCodePath,
-		path)
+	}
+	if sourceCodePath != "" {
+		command = append(command, "-source-code-path", sourceCodePath)
+	}
+	command = append(command, path)
+
+	return sh.RunV(command[0], command[1:]...)
 }
 
 func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
