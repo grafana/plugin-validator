@@ -30,7 +30,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	var metadata metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &metadata); err != nil {
-		fmt.Println("error unmarshalling metadata")
 		return nil, err
 	}
 
@@ -68,7 +67,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func parsePackageJson(packageJsonPath string) (*PackageJson, error) {
 	rawPackageJson, err := os.ReadFile(packageJsonPath)
 	if err != nil {
-		return &PackageJson{}, err
+		return nil, err
 	}
 
 	// using hujson first to allow some tolerance in the package.json
