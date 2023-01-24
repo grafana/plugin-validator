@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
@@ -49,6 +50,7 @@ var Analyzers = []*analysis.Analyzer{
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
 	signature.Analyzer,
+	sourcecode.Analyzer,
 	templatereadme.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
