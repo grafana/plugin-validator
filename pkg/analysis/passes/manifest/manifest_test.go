@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestManifestNoManifest(t *testing.T) {
+func TestWithNoManifest(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -124,4 +124,21 @@ func TestBadFormedManifest(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Title, "could not parse MANIFEST.txt")
 
+}
+
+func TestInvalidChecksum(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "with-wrong-sha-sum"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "invalid file checksum")
+	require.Equal(t, interceptor.Diagnostics[0].Detail, "checksum for file module.js is invalid")
 }
