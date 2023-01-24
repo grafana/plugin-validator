@@ -13,16 +13,16 @@ import (
 )
 
 var (
-	sourceCodeNotProvided      = &analysis.Rule{Name: "source-code-not-provided", Severity: analysis.Warning}
-	sourceCodeNotFound         = &analysis.Rule{Name: "source-code-not-found", Severity: analysis.Error}
-	sourceCodeVersionMissMatch = &analysis.Rule{Name: "source-code-version-missmatch", Severity: analysis.Error}
+	sourceCodeNotProvided     = &analysis.Rule{Name: "source-code-not-provided", Severity: analysis.Warning}
+	sourceCodeNotFound        = &analysis.Rule{Name: "source-code-not-found", Severity: analysis.Error}
+	sourceCodeVersionMisMatch = &analysis.Rule{Name: "source-code-version-mismatch", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "sourcecode",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{sourceCodeNotFound, sourceCodeVersionMissMatch, sourceCodeNotProvided},
+	Rules:    []*analysis.Rule{sourceCodeNotFound, sourceCodeVersionMisMatch, sourceCodeNotProvided},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -55,7 +55,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if packageJson.Version != metadata.Info.Version {
 		pass.ReportResult(
 			pass.AnalyzerName,
-			sourceCodeVersionMissMatch,
+			sourceCodeVersionMisMatch,
 			fmt.Sprintf("The version in package.json (%s) doesn't match the version in plugin.json (%s)", packageJson.Version, metadata.Info.Version),
 			"The version in the source code package.json must match the version in plugin.json",
 		)
