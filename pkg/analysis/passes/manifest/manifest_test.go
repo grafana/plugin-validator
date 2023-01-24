@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const pluginId = "test-plugin-panel"
-
 func TestManifestNoManifest(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
@@ -28,12 +26,28 @@ func TestManifestNoManifest(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Title, "unsigned plugin")
 }
 
-func TestWithManfiest(t *testing.T) {
+func TestWithEmptyManfiest(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "with-manifest"),
+			archive.Analyzer: filepath.Join("testdata", "with-empty-manifest"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "empty manifest")
+}
+
+func TestManifestWithAllFiles(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "with-all-files"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -41,4 +55,73 @@ func TestWithManfiest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestManifestWithMissingFiles(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "manifest-missing-files"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "undeclared files in MANIFEST")
+
+	messages := []string{
+		"File img/clock-extra.svg is not declared in MANIFEST.txt",
+		"File not-declared.js is not declared in MANIFEST.txt",
+	}
+	details := []string{}
+	for _, d := range interceptor.Diagnostics {
+		details = append(details, d.Detail)
+	}
+	require.ElementsMatch(t, messages, details)
+}
+
+func TestManifestWithExtraFiles(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "manifest-extra-files"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "declared files in MANIFEST not present")
+
+	messages := []string{
+		"File extra-file.js is declared in MANIFEST.txt but does not exist",
+		"File img/extra-file.js is declared in MANIFEST.txt but does not exist",
+	}
+	details := []string{}
+	for _, d := range interceptor.Diagnostics {
+		details = append(details, d.Detail)
+	}
+	require.ElementsMatch(t, messages, details)
+}
+
+func TestBadFormedManifest(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "bad-formed-manifest"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "could not parse MANIFEST.txt")
+
 }

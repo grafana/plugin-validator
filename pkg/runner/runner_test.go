@@ -24,7 +24,7 @@ var tests = []struct {
 		"License not found",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
-		"unsigned plugin",
+		"empty manifest",
 		"README.md is empty", "plugin.json: should include screenshots for marketplace",
 		"plugin.json: (root): type is required",
 		"plugin.json: (root): name is required",
