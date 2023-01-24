@@ -241,7 +241,7 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 		"config/pipeline.yaml",
 	}
 	if sourceCodePath != "" {
-		command = append(command, "-source-code-path", sourceCodePath)
+		command = append(command, "-sourceCodeUri", sourceCodePath)
 	}
 	command = append(command, path)
 
