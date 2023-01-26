@@ -1,6 +1,8 @@
 package license
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-enry/go-license-detector/v4/licensedb"
@@ -27,15 +29,25 @@ const minRequiredConfidenceLevel float32 = 0.9
 func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir := pass.ResultOf[archive.Analyzer].(string)
 
-	filer, err := filer.FromDirectory(archiveDir)
-	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "License not found", "Could not find or parse the license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+	// validate that a LICENSE file is provided (go standard lib method)
+	licenseFilePath := filepath.Join(archiveDir, "LICENSE")
+	licenseFile, err := os.Stat(licenseFilePath)
+	if err != nil || licenseFile.IsDir() {
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
 		return nil, nil
 	}
 
+	// validate that the LICENSE file is exists (filer lib method)
+	filer, err := filer.FromDirectory(archiveDir)
+	if err != nil {
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		return nil, nil
+	}
+
+	// validate that the LICENSE file is parseable (go-license-detector lib method)
 	licenses, err := licensedb.Detect(filer)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "License not found", "Could not find or parse the license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file could not be parsed.", "Could not parse the license file inside the plugin archive. Please make sure to include a valid license in your LICENSE file in your archive.")
 		return nil, nil
 	}
 
@@ -48,7 +60,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if !foundLicense {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "Valid license not found", "Could not find a license file inside the plugin archive or the provided license is not compatible with Grafana plugins. Please refer to https://grafana.com/licensing/ for more information.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "Valid license not found", "The provided license is not compatible with Grafana plugins. Please refer to https://grafana.com/licensing/ for more information.")
 	} else if licenseNotProvided.ReportAll {
 		licenseNotProvided.Severity = analysis.OK
 		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "License found", "Found a valid license file inside the plugin archive.")
