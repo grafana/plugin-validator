@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
@@ -36,8 +37,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	b, err := os.ReadFile(filepath.Join(archiveDir, "MANIFEST.txt"))
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/")
-		return nil, nil
+		if os.IsNotExist(err) {
+
+			pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/")
+			return nil, nil
+		}
+		return nil, err
 	}
 
 	if len(b) == 0 {
@@ -57,7 +62,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// check if all existing files are declared in the manifest
-	_ = filepath.Walk(archiveDir, func(path string, file os.FileInfo, err error) error {
+	err = filepath.Walk(archiveDir, func(path string, file os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -83,12 +88,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil
 		}
 
-		if sha256sum != manifest.Files[relativePath] {
+		if sha256sum != strings.ToLower(manifest.Files[relativePath]) {
 			pass.ReportResult(pass.AnalyzerName, invalidShaSum, "invalid file checksum", fmt.Sprintf("checksum for file %s is invalid", relativePath))
 			return nil
 		}
 		return nil
 	})
+
+	if err != nil {
+		return nil, fmt.Errorf("walk: %w", err)
+	}
 
 	// check if all declared files exist
 	for path := range manifest.Files {
@@ -130,5 +139,5 @@ func calculateSha256sum(file string) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("%x", h.Sum(nil)), nil
+	return strings.ToLower(fmt.Sprintf("%x", h.Sum(nil))), nil
 }
