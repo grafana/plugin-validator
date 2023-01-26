@@ -61,6 +61,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	filesFound := make(map[string]struct{}, len(manifest.Files))
+
 	// check if all existing files are declared in the manifest
 	err = filepath.Walk(archiveDir, func(path string, file os.FileInfo, err error) error {
 		if err != nil {
@@ -69,11 +71,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if file.IsDir() {
 			return nil
 		}
+
 		if file.Name() == "MANIFEST.txt" {
 			return nil
 		}
 		// remove archiveDir from path
 		relativePath := path[len(archiveDir)+1:]
+
+		filesFound[relativePath] = struct{}{}
 
 		// check the file is declared
 		if _, ok := manifest.Files[relativePath]; !ok {
@@ -101,7 +106,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	// check if all declared files exist
 	for path := range manifest.Files {
-		if _, err := os.Stat(filepath.Join(archiveDir, path)); os.IsNotExist(err) {
+		if _, ok := filesFound[path]; !ok {
 			pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "declared files in MANIFEST not present", fmt.Sprintf("File %s is declared in MANIFEST.txt but does not exist", path))
 		}
 	}
