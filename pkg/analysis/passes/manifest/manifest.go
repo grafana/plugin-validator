@@ -124,8 +124,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func parseManifestFile(b []byte) (ManifestFile, error) {
 	block, _ := clearsign.Decode(b)
 	manifestFile := ManifestFile{}
-	content := (string(block.Plaintext))
-	err := json.Unmarshal([]byte(content), &manifestFile)
+	err := json.Unmarshal(block.Plaintext, &manifestFile)
 	if err != nil {
 		return manifestFile, err
 	}
