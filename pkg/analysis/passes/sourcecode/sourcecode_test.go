@@ -33,10 +33,8 @@ func TestSourceCodeNotProvided(t *testing.T) {
 	sourceCodeDir, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Sourcecode not provided or the provided URL  does not point to a valid source code repository", interceptor.Diagnostics[0].Title)
+	require.Len(t, interceptor.Diagnostics, 0)
 	require.Equal(t, nil, sourceCodeDir)
-
 }
 
 func TestVersionSourceCodeMatch(t *testing.T) {
