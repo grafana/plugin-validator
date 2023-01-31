@@ -21,7 +21,7 @@ var tests = []struct {
 		"missing module.js",
 		"missing README.md",
 		"unsigned plugin",
-		"License not found",
+		"LICENSE file not found",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"empty manifest",
@@ -33,7 +33,7 @@ var tests = []struct {
 		"plugin.json: (root): dependencies is required",
 		"plugin.json: invalid empty small logo path",
 		"plugin.json: invalid empty large logo path",
-		"License not found",
+		"LICENSE file not found",
 		"Plugin version \"\" is invalid.",
 	}},
 }
