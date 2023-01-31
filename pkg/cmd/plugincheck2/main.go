@@ -169,6 +169,12 @@ func readConfigFile(path string) (runner.Config, error) {
 }
 
 func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
+	// If source code URI is not provided, return immediately with an empty string
+	// otherwise we will get an error when trying to extract the source code archive
+	if sourceCodeUri == "" {
+		return "", func() {}, nil
+	}
+
 	// file:// protocol for local directories
 	if strings.HasPrefix(sourceCodeUri, "file://") {
 		sourceCodeDir := strings.TrimPrefix(sourceCodeUri, "file://")
