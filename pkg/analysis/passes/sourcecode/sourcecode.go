@@ -35,7 +35,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	sourceCodeDir := pass.SourceCodeDir
 	if sourceCodeDir == "" {
-		// Silently skip check if no source code is provided, for backwards compatibility
+		// If no source code dir is provided, only report the result if ReportAll is set, for backwards compatibility
+		if sourceCodeNotProvided.ReportAll {
+			pass.ReportResult(pass.AnalyzerName, sourceCodeNotProvided, fmt.Sprintf("Sourcecode not provided or the provided URL %s does not point to a valid source code repository", pass.SourceCodeDir), "If you are passing a Git ref or sub-directory in the URL make sure they are correct.")
+		}
 		return nil, nil
 	}
 
