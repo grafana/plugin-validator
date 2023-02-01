@@ -1,7 +1,6 @@
 package passes
 
 import (
-	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
@@ -29,7 +28,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
 )
 
-var Analyzers = []*analysis.Analyzer{
+var Analyzers = []interface{}{
 	archive.Analyzer,
 	archivename.Analyzer,
 	brokenlinks.Analyzer,
@@ -40,7 +39,7 @@ var Analyzers = []*analysis.Analyzer{
 	logos.Analyzer,
 	license.Analyzer,
 	manifest.Analyzer,
-	metadata.Analyzer,
+	metadata.NewStaticAnalyzer(),
 	metadatapaths.Analyzer,
 	metadatavalid.Analyzer,
 	modulejs.Analyzer,

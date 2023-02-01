@@ -128,7 +128,7 @@ func TestLinearDependencies(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{fourth}, "", "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]interface{}{fourth}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 4 {
 		t.Fatal("unexpected results")
@@ -162,7 +162,7 @@ func TestSharedParent(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{firstChild, secondChild}, "", "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]interface{}{firstChild, secondChild}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results")
@@ -196,7 +196,7 @@ func TestCachedRun(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent}, "", "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]interface{}{parent, firstChild, secondChild, firstChild, secondChild, parent}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results", res)
