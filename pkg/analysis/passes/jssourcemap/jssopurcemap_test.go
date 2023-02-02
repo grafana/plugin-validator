@@ -87,3 +87,20 @@ func TestSourceMapIncorrect(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "The provided javascript/typescript source code does not match your plugin archive assets.", interceptor.Diagnostics[0].Title)
 }
+
+func TestSourceMapCorrectNested(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "source-map-correct-nested", "dist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "source-map-correct-nested", "src"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Len(t, interceptor.Diagnostics, 0)
+}

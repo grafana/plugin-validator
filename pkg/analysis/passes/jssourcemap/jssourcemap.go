@@ -72,6 +72,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	for _, file := range mapFiles {
 		diffReport, err := difftool.CompareSourceMapToSourceCode(file, sourceCodeDirSrc)
 		if err != nil {
+			fmt.Println("found error")
 			pass.ReportResult(pass.AnalyzerName, jsMapInvalid, fmt.Sprintf("the sourcemap file %s could not be validated", file), "You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin")
 			logme.DebugFln("could not extract source map: %s", err)
 			return nil, nil

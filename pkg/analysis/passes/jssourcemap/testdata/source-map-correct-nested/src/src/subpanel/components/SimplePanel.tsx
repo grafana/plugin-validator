@@ -1,8 +1,8 @@
 import React from 'react';
 import { PanelProps } from '@grafana/data';
-import { SimpleOptions } from 'types';
 import { css, cx } from '@emotion/css';
 import { useStyles2, useTheme2 } from '@grafana/ui';
+import { SimpleOptions } from 'subpanel/types';
 
 interface Props extends PanelProps<SimpleOptions> {}
 
