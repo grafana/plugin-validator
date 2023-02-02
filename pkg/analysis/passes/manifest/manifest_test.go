@@ -76,11 +76,7 @@ func TestManifestWithMissingFiles(t *testing.T) {
 		"File img/clock-extra.svg is not declared in MANIFEST.txt",
 		"File not-declared.js is not declared in MANIFEST.txt",
 	}
-	details := []string{}
-	for _, d := range interceptor.Diagnostics {
-		details = append(details, d.Detail)
-	}
-	require.ElementsMatch(t, messages, details)
+	require.ElementsMatch(t, messages, interceptor.GetDetails())
 }
 
 func TestManifestWithExtraFiles(t *testing.T) {
@@ -102,11 +98,7 @@ func TestManifestWithExtraFiles(t *testing.T) {
 		"File extra-file.js is declared in MANIFEST.txt but does not exist",
 		"File img/extra-file.js is declared in MANIFEST.txt but does not exist",
 	}
-	details := []string{}
-	for _, d := range interceptor.Diagnostics {
-		details = append(details, d.Detail)
-	}
-	require.ElementsMatch(t, messages, details)
+	require.ElementsMatch(t, messages, interceptor.GetDetails())
 }
 
 func TestBadFormedManifest(t *testing.T) {
