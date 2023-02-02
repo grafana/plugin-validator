@@ -61,6 +61,7 @@ func CompareSourceMapToSourceCode(sourceCodeMapFile string, sourceCodePath strin
 		sourceCodeFileContent, err := os.ReadFile(sourceCodeFilePath)
 		if err != nil {
 			sourceDiffReport.FileFound = false
+			report.TotalDifferences++
 			continue
 		}
 
