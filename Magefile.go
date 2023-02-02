@@ -231,10 +231,6 @@ func (Run) V2() error {
 func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) error {
 	mg.Deps(Build.Local)
 
-	if _, err := os.Stat(path); err != nil {
-		return err
-	}
-
 	command := []string{
 		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
