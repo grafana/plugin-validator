@@ -26,14 +26,20 @@ type sourceDiff struct {
 	Equal                    bool
 }
 
-func CompareSourceMapToSourceCode(sourceCodeMapPath string, sourceCodePath string) (diffReport, error) {
+/*
+CompareSourceMapToSourceCode compares the source code map to the source code.
+It returns a diffReport that contains the differences between the source code map and the source code.
+sourceCodeMapFile is the path to the source code map file. (.js.map)
+sourceCodePath is the path to the source code directory. (the directory that contains the source code files)
+*/
+func CompareSourceMapToSourceCode(sourceCodeMapFile string, sourceCodePath string) (diffReport, error) {
 	report := diffReport{
-		SourceCodeMapPath: sourceCodeMapPath,
+		SourceCodeMapPath: sourceCodeMapFile,
 		SourceCodePath:    sourceCodePath,
 		Sources:           map[string]*sourceDiff{},
 	}
 
-	sourceCode, err := sourcemap.ParseSourceMapFromPath(sourceCodeMapPath)
+	sourceCode, err := sourcemap.ParseSourceMapFromPath(sourceCodeMapFile)
 	if err != nil {
 		return report, err
 	}
@@ -55,6 +61,7 @@ func CompareSourceMapToSourceCode(sourceCodeMapPath string, sourceCodePath strin
 		sourceCodeFileContent, err := os.ReadFile(sourceCodeFilePath)
 		if err != nil {
 			sourceDiffReport.FileFound = false
+			report.TotalDifferences++
 			continue
 		}
 

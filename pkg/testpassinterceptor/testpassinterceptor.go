@@ -11,3 +11,18 @@ func (t *TestPassInterceptor) ReportInterceptor() func(string, analysis.Diagnost
 		t.Diagnostics = append(t.Diagnostics, &diagnostic)
 	}
 }
+
+func (t *TestPassInterceptor) GetTitles() []string {
+	titles := []string{}
+	for _, d := range t.Diagnostics {
+		titles = append(titles, d.Title)
+	}
+	return titles
+}
+func (t *TestPassInterceptor) GetDetails() []string {
+	details := []string{}
+	for _, d := range t.Diagnostics {
+		details = append(details, d.Detail)
+	}
+	return details
+}
