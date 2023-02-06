@@ -10,7 +10,7 @@ RUN apt-get update && \
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.50.1
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.1
 
 RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v && \
@@ -22,7 +22,7 @@ RUN apk update && \
     apk upgrade --available && \
     apk add ca-certificates && \
     rm -rf /var/cache/apk/*
-RUN wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh
+RUN wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.14.0
 WORKDIR /app
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/bin bin
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/config config

@@ -40,12 +40,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			logme.Debugln("gosec not installed, skipping gosec analysis")
 			pass.ReportResult(pass.AnalyzerName, goSecNotInstalled, "gosec not installed", "Skipping gosec analysis")
 		}
+		return nil, nil
 	}
 
 	// run gosec
 	goSecCommand := exec.Command(goSecBin, "-quiet", "-severity", targetSeverity, "-fmt", "json", "-r")
 	goSecCommand.Dir = sourceCodeDir
 	goSecOutput, err := goSecCommand.Output()
+	if err != nil {
+		logme.Errorln("Error running gosec", "error", err)
+		return nil, err
+	}
 
 	if len(goSecOutput) == 0 {
 		logme.Debugln("gosec output is empty, skipping gosec report")
