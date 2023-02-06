@@ -48,7 +48,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecOutput, err := goSecCommand.Output()
 
 	if len(goSecOutput) == 0 {
-		logme.Debugln("gosec output is empty, skipping gosec analysis")
+		logme.Debugln("gosec output is empty, skipping gosec report")
+		if goSectIssueFound.ReportAll {
+			goSectIssueFound.Severity = analysis.OK
+			pass.ReportResult(pass.AnalyzerName, goSectIssueFound, "gosec output is empty, skipping gosec report", "Skipping gosec report")
+		}
 		return nil, nil
 	}
 
