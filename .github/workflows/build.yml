@@ -11,11 +11,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: 1.19
+          go-version: 1.20.0
           cache: true
 
       - name: Install dependencies
         run: go get .
+
+      - name: Install gosec
+        run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.14.0
 
       - name: Build
         run: go build -v ./...
