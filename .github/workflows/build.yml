@@ -17,6 +17,9 @@ jobs:
       - name: Install dependencies
         run: go get .
 
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
       - name: Build
         run: go build -v ./...
 
