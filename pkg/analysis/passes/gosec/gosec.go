@@ -49,6 +49,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecOutput, err := goSecCommand.Output()
 	if err != nil {
 		logme.Errorln("Error running gosec", "error", err)
+		fmt.Println("Error running gosec0", err)
 		return nil, err
 	}
 
@@ -64,6 +65,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var goSectResults GosecResult
 	err = json.Unmarshal(goSecOutput, &goSectResults)
 	if err != nil {
+		fmt.Println("Error running gosec1", err)
 		logme.Errorln("Error unmarshalling gosec output", "error", err)
 		// breaking the validator to notify the user that the gosec output is not as expected
 		return nil, err
@@ -88,6 +90,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
 	_, ok = err.(*exec.ExitError)
 	if !ok {
+		fmt.Println("Error running gosec2", err)
+		logme.ErrorF("Error running gosec: %v", err)
 		return nil, err
 	}
 
