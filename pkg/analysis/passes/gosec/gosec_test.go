@@ -1,6 +1,7 @@
 package gosec
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -31,6 +32,7 @@ func TestGoSecNoWarnings(t *testing.T) {
 	}
 
 	_, err := Analyzer.Run(pass)
+	fmt.Println(err)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
