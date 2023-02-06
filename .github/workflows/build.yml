@@ -18,7 +18,7 @@ jobs:
         run: go get .
 
       - name: Install gosec
-        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s 2.14.0
 
       - name: Build
         run: go build -v ./...
