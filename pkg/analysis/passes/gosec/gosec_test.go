@@ -52,10 +52,6 @@ func TestWithGoSecWarnings(t *testing.T) {
 	}
 
 	_, err := Analyzer.Run(pass)
-	fmt.Println("there's an error")
-	fmt.Print(fmt.Errorf("%v", err))
-	fmt.Println(err)
-	fmt.Println("end error")
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "Gosec analsys reports 2 issues with HIGH severity", interceptor.Diagnostics[0].Title)

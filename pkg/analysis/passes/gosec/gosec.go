@@ -47,9 +47,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecCommand := exec.Command(goSecBin, "-quiet", "-severity", targetSeverity, "-fmt", "json", "-r")
 	goSecCommand.Dir = sourceCodeDir
 	goSecOutput, err := goSecCommand.Output()
-	if err != nil {
-		logme.Errorln("Error running gosec", "error", err)
-		fmt.Println("Error running gosec0", err)
+	// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
+	_, ok = err.(*exec.ExitError)
+	if !ok {
+		logme.ErrorF("Error running gosec: %v", err)
 		return nil, err
 	}
 
@@ -85,14 +86,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if count > 0 {
 		pass.ReportResult(pass.AnalyzerName, goSectIssueFound, fmt.Sprintf("Gosec analsys reports %d issues with %s severity", count, targetSeverity), fmt.Sprintf("Run gosec https://github.com/securego/gosec in your plugin code to see the issues. Found issues in rules: %s", strings.Join(brokenRules, ", ")))
-	}
-
-	// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
-	_, ok = err.(*exec.ExitError)
-	if !ok {
-		fmt.Println("Error running gosec2", err)
-		logme.ErrorF("Error running gosec: %v", err)
-		return nil, err
 	}
 
 	return nil, nil
