@@ -47,11 +47,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecCommand := exec.Command(goSecBin, "-quiet", "-severity", targetSeverity, "-fmt", "json", "-r")
 	goSecCommand.Dir = sourceCodeDir
 	goSecOutput, err := goSecCommand.Output()
-	// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
-	_, ok = err.(*exec.ExitError)
-	if !ok {
-		logme.ErrorF("Error running gosec: %v", err)
-		return nil, err
+	if err != nil {
+		// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
+		_, ok = err.(*exec.ExitError)
+		if !ok {
+			logme.ErrorF("Error running gosec: %v", err)
+			return nil, err
+		}
 	}
 
 	if len(goSecOutput) == 0 {

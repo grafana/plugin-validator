@@ -151,6 +151,7 @@ func main() {
 		}
 	}
 
+	logme.DebugFln("exit code: %d", exitCode)
 	os.Exit(exitCode)
 }
 
