@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -86,15 +85,15 @@ func ReadArchive(archiveURL string) ([]byte, error) {
 			return nil, fmt.Errorf("unexpected status: %s", resp.Status)
 		}
 
-		return ioutil.ReadAll(resp.Body)
+		return io.ReadAll(resp.Body)
 	}
 
-	return ioutil.ReadFile(archiveURL)
+	return os.ReadFile(archiveURL)
 }
 
 func ExtractPlugin(body io.Reader) (string, func(), error) {
 	// Create a file for the zipball.
-	zipball, err := ioutil.TempFile("", "")
+	zipball, err := os.CreateTemp("", "")
 	if err != nil {
 		return "", nil, err
 	}
@@ -106,7 +105,7 @@ func ExtractPlugin(body io.Reader) (string, func(), error) {
 	}
 
 	// Create a directory where we'll extract the archive.
-	output, err := ioutil.TempDir("", "")
+	output, err := os.MkdirTemp("", "")
 	if err != nil {
 		return "", nil, err
 	}

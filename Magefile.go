@@ -228,24 +228,32 @@ func (Run) V2() error {
 	)
 }
 
-func (Run) V2Local(ctx context.Context, path string) error {
+func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) error {
 	mg.Deps(Build.Local)
 
-	if _, err := os.Stat(path); err != nil {
-		return err
-	}
-
-	return sh.RunV(
-		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/plugincheck2",
+	command := []string{
+		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
 		"config/pipeline.yaml",
-		path)
+	}
+	if sourceCodePath != "" {
+		command = append(command, "-sourceCodeUri", sourceCodePath)
+	}
+	command = append(command, path)
+
+	return sh.RunV(command[0], command[1:]...)
 }
 
 func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
 	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
-	return sh.RunV(
-		"./bin/"+runtime.GOOS+"_"+runtime.GOARCH+"/sourcemapdiff",
-		"-archiveUri", archive, "-sourceCodeUri", source)
+	command := []string{
+		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/sourcemapdiff",
+		"-archiveUri", archive}
+
+	if source != "" {
+		command = append(command, "-sourceUri", source)
+	}
+
+	return sh.RunV(command[0], command[1:]...)
 
 }

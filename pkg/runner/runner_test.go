@@ -21,10 +21,10 @@ var tests = []struct {
 		"missing module.js",
 		"missing README.md",
 		"unsigned plugin",
-		"License not found",
+		"LICENSE file not found",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
-		"unsigned plugin",
+		"empty manifest",
 		"README.md is empty", "plugin.json: should include screenshots for marketplace",
 		"plugin.json: (root): type is required",
 		"plugin.json: (root): name is required",
@@ -33,7 +33,7 @@ var tests = []struct {
 		"plugin.json: (root): dependencies is required",
 		"plugin.json: invalid empty small logo path",
 		"plugin.json: invalid empty large logo path",
-		"License not found",
+		"LICENSE file not found",
 		"Plugin version \"\" is invalid.",
 	}},
 }
@@ -57,7 +57,7 @@ func TestRunner(t *testing.T) {
 		t.Run(tt.Dir, func(t *testing.T) {
 			archiveDir := filepath.Join("testdata", tt.Dir)
 
-			ds, err := Check(passes.Analyzers, archiveDir, Config{Global: GlobalConfig{Enabled: true}})
+			ds, err := Check(passes.Analyzers, archiveDir, "", Config{Global: GlobalConfig{Enabled: true}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -128,7 +128,7 @@ func TestLinearDependencies(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{fourth}, "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]*analysis.Analyzer{fourth}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 4 {
 		t.Fatal("unexpected results")
@@ -162,7 +162,7 @@ func TestSharedParent(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{firstChild, secondChild}, "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]*analysis.Analyzer{firstChild, secondChild}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results")
@@ -196,7 +196,7 @@ func TestCachedRun(t *testing.T) {
 		},
 	}
 
-	_, _ = Check([]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent}, "", Config{Global: GlobalConfig{Enabled: true}})
+	_, _ = Check([]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent}, "", "", Config{Global: GlobalConfig{Enabled: true}})
 
 	if len(res) != 3 {
 		t.Fatal("unexpected results", res)

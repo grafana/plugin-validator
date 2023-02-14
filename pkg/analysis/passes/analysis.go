@@ -6,8 +6,10 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/htmlreadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
@@ -23,6 +25,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
@@ -34,8 +37,10 @@ var Analyzers = []*analysis.Analyzer{
 	archivename.Analyzer,
 	brokenlinks.Analyzer,
 	binarypermissions.Analyzer,
+	gosec.Analyzer,
 	htmlreadme.Analyzer,
 	jargon.Analyzer,
+	jssourcemap.Analyzer,
 	legacyplatform.Analyzer,
 	logos.Analyzer,
 	license.Analyzer,
@@ -51,6 +56,7 @@ var Analyzers = []*analysis.Analyzer{
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
 	signature.Analyzer,
+	sourcecode.Analyzer,
 	templatereadme.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
