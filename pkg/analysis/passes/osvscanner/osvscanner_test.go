@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +29,8 @@ func TestCanRunScanner(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -43,7 +45,8 @@ func TestCanRunScannerReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -66,7 +69,8 @@ func TestEmptyResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -81,7 +85,8 @@ func TestEmptyResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "golang", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -102,7 +107,8 @@ func TestNoIssueResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -117,7 +123,8 @@ func TestNoIssueResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "none"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "none"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "none"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -139,7 +146,8 @@ func TestCriticalSeverityResults(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "critical"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "critical"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -156,7 +164,8 @@ func TestCriticalSeverityResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "critical"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "critical"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -179,7 +188,8 @@ func TestHighSeverityResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "high"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "high"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "high"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -202,7 +212,8 @@ func TestModerateSeverityResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "golang", "moderate"),
+			archive.Analyzer:    filepath.Join("testdata", "golang", "moderate"),
+			sourcecode.Analyzer: filepath.Join("testdata", "golang", "moderate"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -224,7 +235,8 @@ func TestLowSeverityResultsReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "node", "low"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "low"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "low"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}

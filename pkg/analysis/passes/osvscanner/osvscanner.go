@@ -10,11 +10,12 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 )
 
 var (
 	missingOSVScanner                  = &analysis.Rule{Name: "osvscanner-missing-binary", Severity: analysis.Warning}
-	scanningFailure                    = &analysis.Rule{Name: "osvscanner-failed", Severity: analysis.Warning}
+	scanningFailure                    = &analysis.Rule{Name: "osvscanner-exec-failed", Severity: analysis.Warning}
 	scanningParseFailure               = &analysis.Rule{Name: "osvscanner-parse-failed", Severity: analysis.Warning}
 	scanningSucceeded                  = &analysis.Rule{Name: "osvscanner-succeeded", Severity: analysis.Warning}
 	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Error}
@@ -25,7 +26,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "osv-scanner",
-	Requires: []*analysis.Analyzer{archive.Analyzer},
+	Requires: []*analysis.Analyzer{sourcecode.Analyzer, archive.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
 		missingOSVScanner,
@@ -41,11 +42,17 @@ var Analyzer = &analysis.Analyzer{
 var scannerTypes = [...]string{
 	"go.mod",
 	"yarn.lock",
-	"package.lock",
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	archiveFilesPath, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok || archiveFilesPath == "" {
+		return nil, nil
+	}
+	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	if !ok || sourceCodeDir == "" {
+		return nil, nil
+	}
 
 	// make sure osv-scanner is in PATH
 	ovsBinaryPath, err := exec.LookPath("osv-scanner")
@@ -69,7 +76,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// if none are detected report OK
 	scanningPerformed := false
 	for _, scannerType := range scannerTypes {
-		lockFile := filepath.Join(archiveDir, scannerType)
+		lockFile := filepath.Join(sourceCodeDir, scannerType)
 		if _, err := os.Stat(lockFile); err == nil {
 			// perform scan
 			scanningPerformed = true
@@ -120,12 +127,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				moderateSeverityCount := 0
 				lowSeverityCount := 0
 
+				messagesReported := map[string]bool{}
 				// iterate over results
 				for _, result := range objmap.Results {
 					for _, aPackage := range result.Packages {
 						for _, aVulnerability := range aPackage.Vulnerabilities {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
 							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", aVulnerability.DatabaseSpecific.Severity, aPackage.Package.Name, aliases)
+							// prevent duplicate messages
+							if messagesReported[message] {
+								continue
+							}
+							// store it
+							messagesReported[message] = true
 							switch aVulnerability.DatabaseSpecific.Severity {
 							case SeverityCritical:
 								pass.ReportResult(
@@ -170,28 +184,28 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						pass.AnalyzerName,
 						osvScannerCriticalSeverityDetected,
 						"osv-scanner detected critical severity issues",
-						fmt.Sprintf("osv-scanner detected %d critical severity issues for lockfile: %s", criticalSeverityCount, lockFile))
+						fmt.Sprintf("osv-scanner detected %d unique critical severity issues for lockfile: %s", criticalSeverityCount, lockFile))
 				}
 				if highSeverityCount > 0 && osvScannerHighSeverityDetected.ReportAll {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						osvScannerHighSeverityDetected,
 						"osv-scanner detected high severity issues",
-						fmt.Sprintf("osv-scanner detected %d high severity issues for lockfile: %s", highSeverityCount, lockFile))
+						fmt.Sprintf("osv-scanner detected %d unique high severity issues for lockfile: %s", highSeverityCount, lockFile))
 				}
 				if moderateSeverityCount > 0 && osvScannerModerateSeverityDetected.ReportAll {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						osvScannerModerateSeverityDetected,
 						"osv-scanner detected moderate severity issues",
-						fmt.Sprintf("osv-scanner detected %d moderate severity issues for lockfile: %s", moderateSeverityCount, lockFile))
+						fmt.Sprintf("osv-scanner detected %d unique moderate severity issues for lockfile: %s", moderateSeverityCount, lockFile))
 				}
 				if lowSeverityCount > 0 && osvScannerLowSeverityDetected.ReportAll {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						osvScannerLowSeverityDetected,
 						"osv-scanner detected low severity issues",
-						fmt.Sprintf("osv-scanner detected %d low severity issues for lockfile: %s", lowSeverityCount, lockFile))
+						fmt.Sprintf("osv-scanner detected %d unique low severity issues for lockfile: %s", lowSeverityCount, lockFile))
 				}
 			}
 		}
@@ -200,7 +214,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// nothing to do...
 		scanningSucceeded.Severity = analysis.OK
 		if scanningSucceeded.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "There were no files to check")
+			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "Scanning skipped: No lock files detected")
 		}
 	}
 
