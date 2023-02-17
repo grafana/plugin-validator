@@ -24,7 +24,4 @@ jobs:
         run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.14.0
 
       - name: Build
-        run: go build -v ./...
-
-      - name: Test
-        run: go test -v ./...
+        run: mage -v build:ci
