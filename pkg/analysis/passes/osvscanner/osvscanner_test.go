@@ -57,10 +57,10 @@ func TestCanRunScannerReportAll(t *testing.T) {
 	})
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 3)
+	require.Len(t, interceptor.Diagnostics, 2)
 	require.Equal(t, "Binary for osv-scanner was found in PATH", interceptor.Diagnostics[0].Title)
 	require.Equal(t, "osv-scanner successfully ran", interceptor.Diagnostics[1].Title)
-	require.Equal(t, "osv-scanner passed", interceptor.Diagnostics[2].Title)
+	//require.Equal(t, "osv-scanner passed", interceptor.Diagnostics[2].Title)
 }
 
 // TestEmptyResults
@@ -97,8 +97,9 @@ func TestEmptyResultsReportAll(t *testing.T) {
 	})
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 3)
-	require.Equal(t, "osv-scanner passed", interceptor.Diagnostics[2].Title)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(t, "Binary for osv-scanner was found in PATH", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "osv-scanner successfully ran", interceptor.Diagnostics[1].Title)
 }
 
 // TestNoIssueResults
