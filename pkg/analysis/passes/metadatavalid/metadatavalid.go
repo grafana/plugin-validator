@@ -3,6 +3,7 @@ package metadatavalid
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
