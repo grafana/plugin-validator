@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"github.com/hashicorp/go-version"
+	version "github.com/hashicorp/go-version"
 )
 
 var (
