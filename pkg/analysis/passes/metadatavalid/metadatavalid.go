@@ -3,7 +3,6 @@ package metadatavalid
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -28,7 +27,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	schema := pass.ResultOf[metadataschema.Analyzer].([]byte)
 
-	schemaFile, err := os.TempFile("", "plugin_*.schema.json")
+	schemaFile, err := os.CreateTemp("", "plugin_*.schema.json")
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create schema file: %w", err)
 	}
