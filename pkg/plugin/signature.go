@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -35,7 +34,7 @@ type PluginBase struct {
 func getPluginSignatureState(pluginID, version, pluginDir string) PluginSignature {
 	manifestPath := filepath.Join(pluginDir, "MANIFEST.txt")
 
-	byteValue, err := ioutil.ReadFile(manifestPath)
+	byteValue, err := os.ReadFile(manifestPath)
 	if err != nil || len(byteValue) < 10 {
 		return PluginSignatureUnsigned
 	}

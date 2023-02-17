@@ -3,7 +3,7 @@ package plugin
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -86,7 +86,7 @@ func findPluginByPR(pr string) (string, string, error) { //nolint:golint,unused
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", "", err
 	}
