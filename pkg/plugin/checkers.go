@@ -186,7 +186,7 @@ func (c manifestChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	return errs, nil
 }
 
-type largeFileChecker struct{}
+type largeFileChecker struct{} //nolint:golint,unused
 
 func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	var errs []ValidationComment
