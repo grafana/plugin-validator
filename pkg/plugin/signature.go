@@ -12,8 +12,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp"           //lint:ignore SA1019 Ignore the deprecation warnings
+	"golang.org/x/crypto/openpgp/clearsign" //lint:ignore SA1019 Ignore the deprecation warnings
 )
 
 type PluginSignature int
