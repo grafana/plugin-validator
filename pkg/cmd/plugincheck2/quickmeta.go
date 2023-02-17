@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -22,7 +21,7 @@ func GetIDAndVersion(archiveDir string) (string, string, error) {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("path is not a directory (%s): %w", archiveDir, err))
 		return "", "", err
 	}
-	fis, _ := ioutil.ReadDir(archiveDir)
+	fis, _ := os.ReadDir(archiveDir)
 	// check if there is a top-level directory
 	if !fis[0].IsDir() {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("extracted zip does not have a subdirectory (%s)", archiveDir))
@@ -41,7 +40,7 @@ func GetIDAndVersion(archiveDir string) (string, string, error) {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("plugin.json is not a file: %s", filename))
 		return "", "", err
 	}
-	b, err := ioutil.ReadFile(filename)
+	b, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("cannot read plugin.json: %w", err))
 		return "", "", err
