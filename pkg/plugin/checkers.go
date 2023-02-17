@@ -188,7 +188,7 @@ func (c manifestChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 
 type largeFileChecker struct{} //nolint:golint,unused
 
-func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) { //nolint:golint,unused
 	var errs []ValidationComment
 
 	walkErr := filepath.Walk(ctx.RootDir, func(path string, info os.FileInfo, err error) error {
@@ -489,13 +489,13 @@ func (c *jsonSchemaChecker) check(ctx *checkContext) ([]ValidationComment, error
 	return errs, nil
 }
 
-type packageVersionMatchChecker struct {
+type packageVersionMatchChecker struct { //nolint:golint,unused
 	schema string
 }
 
 // check checks that the version specified in package.json is the same as the
 // version in plugin.json.
-func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComment, error) { //nolint:golint,unused
 	packageFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "package.json"))
 	if err != nil {
 		return nil, err
@@ -647,7 +647,7 @@ func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, e
 	return nil, nil
 }
 
-var errFileNotFound = errors.New("file not found")
+var errFileNotFound = errors.New("file not found") //nolint:golint,unused
 
 func fileExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {
