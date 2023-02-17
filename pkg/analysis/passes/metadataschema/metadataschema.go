@@ -25,7 +25,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	b, err := os.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
