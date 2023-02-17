@@ -172,8 +172,6 @@ func (Build) CI(ctx context.Context) {
 		Build.Format,
 		Test.Verbose,
 		Clean,
-		pluginCheckCmd,
-		pluginCheck2CmdDarwin,
 		pluginCheck2CmdLinux,
 	)
 }
