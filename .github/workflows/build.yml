@@ -23,8 +23,8 @@ jobs:
       - name: Install gosec
         run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.14.0
 
-      - name: Setup Mage
-        uses: magefile/mage@v1.14.0
-
       - name: Build with Mage
-        run: mage -v build:ci
+        uses: magefile/mage-action@v2
+        with:
+          version: latest
+          args: -v build:ci
