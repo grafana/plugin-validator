@@ -103,7 +103,7 @@ func buildCommand(command string, arch string) error {
 	return nil
 }
 
-// build all commands inside ./pkg/cmd
+// build all commands inside ./pkg/cmd for current architecture
 func (Build) Commands(ctx context.Context) error {
 	mg.Deps(
 		Clean,
@@ -118,11 +118,10 @@ func (Build) Commands(ctx context.Context) error {
 
 	for _, folder := range folders {
 		if folder.IsDir() {
-			for arch := range archTargets {
-				err := buildCommand(folder.Name(), arch)
-				if err != nil {
-					return err
-				}
+			currentArch := runtime.GOOS + "_" + runtime.GOARCH
+			err := buildCommand(folder.Name(), currentArch)
+			if err != nil {
+				return err
 			}
 		}
 	}
