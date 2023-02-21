@@ -3,6 +3,7 @@ package gomanifest
 import (
 	"bufio"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -83,13 +84,14 @@ func getGoFiles(dir string) []string {
 
 	if err != nil {
 		logme.Errorln(err)
+		return nil
 	}
 
 	return goFiles
 }
 
-// parseManifestFile parses the manifest file and returns a ManifestFile struct
-// it does not verify the signature only returns the content
+// parseManifestFile parses the manifest file and returns a map[string]string
+// the content of the manifest file
 func parseManifestFile(file string) (map[string]string, error) {
 	f, err := os.Open(file)
 	if err != nil {
@@ -120,28 +122,32 @@ func parseManifestFile(file string) (map[string]string, error) {
 		manifest[strings.TrimSpace(parsedLine[1])] = strings.TrimSpace(parsedLine[0])
 	}
 
+	if fileReader.Err() != nil {
+		return nil, fileReader.Err()
+	}
+
 	return manifest, nil
 }
 
 func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir string) error {
-	for _, goFile := range goFiles {
-		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFile)
+	for _, goFilePath := range goFiles {
+		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
 		if err != nil {
 			return err
 		}
 		// calculate the sha256sum of the go file
-		sha256sum, err := calculateSha256sum(goFile)
+		sha256sum, err := hashFileContent(goFilePath)
 		if err != nil {
 			return err
 		}
 		// check if the sha256sum is in the manifest
 		manifestSha256sum, ok := manifest[goFileRelativePath]
 		if !ok {
-			return fmt.Errorf("could not find %s in manifest", goFile)
+			return fmt.Errorf("could not find %s in manifest", goFilePath)
 		}
 		// check if the sha256sum in the manifest matches the calculated sha256sum
 		if sha256sum != manifestSha256sum {
-			return fmt.Errorf("sha256sum of %s does not match manifest", goFile)
+			return fmt.Errorf("sha256sum of %s does not match manifest", goFilePath)
 		}
 	}
 
@@ -155,17 +161,43 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 	return nil
 }
 
-func calculateSha256sum(file string) (string, error) {
-	f, err := os.Open(file)
+func hashFileContent(path string) (string, error) {
+	// Handle hashing big files.
+	// Source: https://stackoverflow.com/q/60328216/1722542
+
+	f, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
 
+	defer func() {
+		err = f.Close()
+		if err != nil {
+			fmt.Printf("error closing file for hashing: %v", err)
+		}
+	}()
+
+	buf := make([]byte, 1024*1024)
 	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return "", err
+
+	for {
+		bytesRead, err := f.Read(buf)
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				return "", err
+			}
+			_, err = h.Write(buf[:bytesRead])
+			if err != nil {
+				return "", err
+			}
+			break
+		}
+		_, err = h.Write(buf[:bytesRead])
+		if err != nil {
+			return "", err
+		}
 	}
 
-	return strings.ToLower(fmt.Sprintf("%x", h.Sum(nil))), nil
+	fileHash := hex.EncodeToString(h.Sum(nil))
+	return fileHash, nil
 }
