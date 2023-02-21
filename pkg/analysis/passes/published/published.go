@@ -40,7 +40,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	defer cancelContext()
 	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
 	if err != nil {
-		fmt.Println("I am here")
 		// in case of any error getting the online status, skip this check
 		return nil, nil
 	}
