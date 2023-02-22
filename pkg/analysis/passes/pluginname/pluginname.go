@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 )
 
 var (
@@ -13,13 +14,23 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "pluginname",
-	Requires: []*analysis.Analyzer{metadata.Analyzer},
+	Requires: []*analysis.Analyzer{metadata.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{humanFriendlyName},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	_, ok = pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+
+	// we don't check published plugins for naming conventions
+	if ok {
+		return nil, nil
+	}
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
