@@ -32,7 +32,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// find all svg
 	svgFiles, err := doublestar.FilepathGlob(archiveDir + "/**/*.svg")
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	for _, svgFile := range svgFiles {
