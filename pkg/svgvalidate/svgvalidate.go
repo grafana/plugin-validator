@@ -211,25 +211,22 @@ var svg_attributes = map[string]struct{}{
 	"y2":                          {},
 	"z":                           {},
 	"zoomandpan":                  {},
-
-	"xlink:href":  {},
-	"xml:id":      {},
-	"xlink:title": {},
-	"xml:space":   {},
-	"xmlns:xlink": {},
+	"xlink:href":                  {},
+	"xml:id":                      {},
+	"xlink:title":                 {},
+	"xml:space":                   {},
+	"xmlns:xlink":                 {},
 }
 
-// Validator is a struct with private variables for storing the whitelists
 type Validator struct {
-	whiteListAttributes map[string]struct{}
-	forbiddenElements   map[string]struct{}
+	allowedAttributes map[string]struct{}
+	forbiddenElements map[string]struct{}
 }
 
-// NewValidator creates a new validator with default whitelists
 func NewValidator() Validator {
 	vld := Validator{
-		whiteListAttributes: svg_attributes,
-		forbiddenElements:   svg_forbidden_elements,
+		allowedAttributes: svg_attributes,
+		forbiddenElements: svg_forbidden_elements,
 	}
 	return vld
 }
@@ -256,7 +253,7 @@ func (vld Validator) ValidateReader(r io.Reader) error {
 				return errors.New("Invalid element " + v.Name.Local)
 			}
 
-			if err := validAttributes(v.Attr, vld.whiteListAttributes); err != nil {
+			if err := validAttributes(v.Attr, vld.allowedAttributes); err != nil {
 				return err
 			}
 		case xml.EndElement:
@@ -287,28 +284,7 @@ func (vld Validator) ValidateReader(r io.Reader) error {
 	return nil
 }
 
-// WhitelistAttributes adds svg attributes to the whitelist
-func (vld *Validator) WhitelistAttributes(attributes ...string) {
-	for _, attr := range attributes {
-		vld.whiteListAttributes[attr] = struct{}{}
-	}
-}
-
-// BlacklistElements removes svg elements from the whitelist
-func (vld *Validator) BlacklistElements(elements ...string) {
-	for _, elem := range elements {
-		vld.forbiddenElements[elem] = struct{}{}
-	}
-}
-
-// BlacklistAttributes removes svg attributes from the whitelist
-func (vld *Validator) BlacklistAttributes(attributes ...string) {
-	for _, attr := range attributes {
-		delete(vld.whiteListAttributes, attr)
-	}
-}
-
-func validAttributes(attrs []xml.Attr, whiteListAttributes map[string]struct{}) error {
+func validAttributes(attrs []xml.Attr, allowedAttributes map[string]struct{}) error {
 	var key string
 	for _, attr := range attrs {
 		if attr.Name.Space != "" {
@@ -320,7 +296,7 @@ func validAttributes(attrs []xml.Attr, whiteListAttributes map[string]struct{}) 
 			key = attr.Name.Local
 		}
 		loKey := strings.ToLower(key)
-		_, found := whiteListAttributes[loKey]
+		_, found := allowedAttributes[loKey]
 		if !found {
 			if strings.HasPrefix(loKey, "on") {
 				return errors.New("Invalid attribute " + key)
