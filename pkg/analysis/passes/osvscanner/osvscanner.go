@@ -18,7 +18,7 @@ var (
 	scanningFailure                    = &analysis.Rule{Name: "osvscanner-exec-failed", Severity: analysis.Warning}
 	scanningParseFailure               = &analysis.Rule{Name: "osvscanner-parse-failed", Severity: analysis.Warning}
 	scanningSucceeded                  = &analysis.Rule{Name: "osvscanner-succeeded", Severity: analysis.Warning}
-	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Error}
+	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
 	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osvscanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
 	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osvscanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
 	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osvscanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
@@ -85,12 +85,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			// error output is expected from osv-scanner, but if the length is zero there was a problem
 			// running the command
 			if err != nil && len(string(err.Error())) == 0 {
-				pass.ReportResult(
-					pass.AnalyzerName,
-					scanningFailure,
-					"error running osv-scanner",
-					fmt.Sprintf("osv-scanner found, but failed to run: %s", err))
-				return nil, nil
+				// no output to stderr is an error
+				return nil, err
 			}
 			scanningFailure.Severity = analysis.OK
 			if scanningFailure.ReportAll {
