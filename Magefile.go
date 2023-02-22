@@ -180,7 +180,7 @@ func (Build) CI(ctx context.Context) {
 func (Build) Lint() error {
 	os.Setenv("GO111MODULE", "on")
 	log.Printf("Linting...")
-	return sh.RunV("golangci-lint", "run", "./pkg/...")
+	return sh.RunV("golangci-lint", "--timeout", "2m30s", "run", "./pkg/...")
 }
 
 // Run tests in verbose mode
