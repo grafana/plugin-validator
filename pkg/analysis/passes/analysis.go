@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/pluginname"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
@@ -52,6 +53,7 @@ var Analyzers = []*analysis.Analyzer{
 	modulejs.Analyzer,
 	org.Analyzer,
 	pluginname.Analyzer,
+	published.Analyzer,
 	readme.Analyzer,
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
