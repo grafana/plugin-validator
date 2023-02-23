@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/htmlreadme"
@@ -37,6 +38,7 @@ var Analyzers = []*analysis.Analyzer{
 	archivename.Analyzer,
 	brokenlinks.Analyzer,
 	binarypermissions.Analyzer,
+	coderules.Analyzer,
 	gosec.Analyzer,
 	gomanifest.Analyzer,
 	htmlreadme.Analyzer,
