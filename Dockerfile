@@ -1,21 +1,18 @@
-FROM golang:1.20 as builder
+FROM golang:1.20.1-alpine as builder
 
-ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /go/src/github.com/grafana/plugin-validator
 ADD . /go/src/github.com/grafana/plugin-validator
 
-RUN apt-get update && \
-    apt-get install ca-certificates -y && \
-    apt-get upgrade -y
+RUN apk update && \
+    apk add git curl ca-certificates
+
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
     curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.1
 
-RUN cd /go/src/github.com/grafana/plugin-validator && \
-    mage -v && \
+RUN mage -v && \
     ls -al bin
-ENV DEBIAN_FRONTEND=newt
 
 FROM alpine:3.15
 RUN apk update && \
