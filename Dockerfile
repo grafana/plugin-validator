@@ -17,8 +17,9 @@ RUN mage -v && \
 FROM alpine:3.15
 RUN apk update && \
     apk upgrade --available && \
-    apk add ca-certificates && \
-    rm -rf /var/cache/apk/*
+    apk add ca-certificates python3 python3-dev py3-pip alpine-sdk
+
+RUN python3 -m pip install semgrep --ignore-installed
 RUN wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s v2.14.0
 WORKDIR /app
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/bin bin
