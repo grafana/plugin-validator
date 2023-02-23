@@ -17,6 +17,9 @@ jobs:
       - name: Install dependencies
         run: go get .
 
+      - name: Install semgrep
+        run: python3 -m pip install semgrep
+
       - name: Install gosec
         run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.14.0
 
