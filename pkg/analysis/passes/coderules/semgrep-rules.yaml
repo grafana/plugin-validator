@@ -2,19 +2,28 @@ rules:
   - id: access-os-environment
     patterns:
       - pattern-either:
-          - pattern: os.Getenv(...)
-          - pattern: os.Environ(...)
-          - pattern: os.Clearenv(...)
-          - pattern: os.ExpandEnv(...)
-          - pattern: os.LookupEnv(...)
-          - pattern: os.Setenv(...)
-          - pattern: os.Unsetenv(...)
-          - pattern: syscall.Clearenv(...)
-          - pattern: syscall.Environ(...)
-          - pattern: syscall.Getenv(...)
-          - pattern: syscall.Setenv(...)
-          - pattern: syscall.Unsetenv(...)
+          - pattern: os.Environ()
+          - pattern: os.Clearenv()
+          - pattern: os.ExpandEnv()
+          - pattern: syscall.Clearenv()
+          - pattern: syscall.Environ()
     message: It is not permitted to access environment variables from plugins.
+    languages: [go]
+    severity: ERROR
+  - id: access-allowed-os-environment
+    patterns:
+      - pattern-either:
+          - pattern: os.Getenv("$ENV")
+          - pattern: os.LookupEnv("$ENV")
+          - pattern: os.Setenv("$ENV")
+          - pattern: os.Unsetenv("$ENV")
+          - pattern: syscall.Getenv("$ENV")
+          - pattern: syscall.Setenv("$ENV")
+          - pattern: syscall.Unsetenv("$ENV")
+      - metavariable-regex:
+          metavariable: $ENV
+          regex: (?!GF_PLUGIN.*)
+    message: It is not permitted to access environment variables from plugins. $ENV is not an accessible variable.
     languages: [go]
     severity: ERROR
   - id: access-file-system-with-fs
