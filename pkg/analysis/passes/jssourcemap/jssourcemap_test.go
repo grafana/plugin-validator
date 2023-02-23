@@ -1,7 +1,6 @@
 package jssourcemap
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -79,7 +78,6 @@ func TestSourceMapIncorrect(t *testing.T) {
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
-	fmt.Println(pass.RootDir)
 
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
