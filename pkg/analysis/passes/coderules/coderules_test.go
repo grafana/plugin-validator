@@ -1,6 +1,7 @@
 package coderules
 
 import (
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -10,7 +11,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func isSemgrepInstalled() bool {
+	semgrepPath, err := exec.LookPath("semgrep")
+	if err != nil {
+		return false
+	}
+	return semgrepPath != ""
+}
+
 func TestAccessEnvVariables(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -31,6 +44,10 @@ func TestAccessEnvVariables(t *testing.T) {
 }
 
 func TestAccessAllowedEnvVariables(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -52,6 +69,10 @@ func TestAccessAllowedEnvVariables(t *testing.T) {
 }
 
 func TestAccessFS(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -73,6 +94,10 @@ func TestAccessFS(t *testing.T) {
 }
 
 func TestUseSyscall(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),

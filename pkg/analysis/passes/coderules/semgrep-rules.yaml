@@ -10,7 +10,7 @@ rules:
     message: It is not permitted to access environment variables from plugins.
     languages: [go]
     severity: ERROR
-  - id: access-allowed-os-environment
+  - id: access-only-allowed-os-environment
     patterns:
       - pattern-either:
           - pattern: os.Getenv("$ENV")

@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -17,9 +18,10 @@ import (
 var semgrepRules string
 
 var (
-	codeRulesViolation = &analysis.Rule{Name: "code-rules-violation", Severity: analysis.Error}
-	semgrepNotFound    = &analysis.Rule{Name: "semgrep-not-found", Severity: analysis.Warning}
-	semgrepRunningErr  = &analysis.Rule{Name: "semgrep-running-err", Severity: analysis.Warning}
+	codeRulesViolation            = &analysis.Rule{Name: "code-rules-violation", Severity: analysis.Error}
+	codeRulesViolationAccesingEnv = &analysis.Rule{Name: "code-rules-violation-env", Severity: analysis.Warning}
+	semgrepNotFound               = &analysis.Rule{Name: "semgrep-not-found", Severity: analysis.Warning}
+	semgrepRunningErr             = &analysis.Rule{Name: "semgrep-running-err", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -105,7 +107,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	// report semgrep results
 	for _, result := range semgrepResults.Results {
-		pass.ReportResult(pass.AnalyzerName, codeRulesViolation, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+
+		ruleIdSplit := strings.Split(result.Check_id, ".")
+		ruleName := ""
+		if len(ruleIdSplit) == 2 {
+			ruleName = ruleIdSplit[1]
+		}
+
+		switch ruleName {
+		case "access-only-allowed-os-environment":
+			pass.ReportResult(pass.AnalyzerName, codeRulesViolationAccesingEnv, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+		default:
+			pass.ReportResult(pass.AnalyzerName, codeRulesViolation, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+		}
+
 	}
 
 	// no need to return anything
