@@ -176,6 +176,17 @@ func (Build) CI(ctx context.Context) {
 	)
 }
 
+func (Build) All(ctx context.Context) {
+	mg.Deps(
+		Build.Lint,
+		Build.Format,
+		Test.Verbose,
+		pluginCheck2CmdLinux,
+		pluginCheck2CmdDarwin,
+	)
+
+}
+
 // Run linter against codebase
 func (Build) Lint() error {
 	os.Setenv("GO111MODULE", "on")
