@@ -274,4 +274,8 @@ func TestLowSeverityResultsReportAll(t *testing.T) {
 		"osv-scanner detected low severity issues",
 	}
 	require.Subset(t, interceptor.GetTitles(), messages)
+	details := []string{
+		"SEVERITY: LOW in package debug, vulnerable to CVE-2017-16137",
+	}
+	require.Subset(t, interceptor.GetDetails(), details)
 }

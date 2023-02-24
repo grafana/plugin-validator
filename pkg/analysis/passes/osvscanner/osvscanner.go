@@ -106,8 +106,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					fmt.Sprintf("osv-scanner output for file %s could not be parsed: %s", scannerType, err))
 			}
 
+			filteredResults := FilterOSVResults(objmap)
+
 			// no results means no issues currently reported
-			if len(objmap.Results) == 0 {
+			if len(filteredResults.Results) == 0 {
 				scanningSucceeded.Severity = analysis.OK
 				if scanningSucceeded.ReportAll {
 					pass.ReportResult(
@@ -125,7 +127,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 				messagesReported := map[string]bool{}
 				// iterate over results
-				for _, result := range objmap.Results {
+				for _, result := range filteredResults.Results {
 					for _, aPackage := range result.Packages {
 						for _, aVulnerability := range aPackage.Vulnerabilities {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
