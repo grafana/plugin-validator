@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -50,7 +49,7 @@ Y88b 888Y8b.    888 d88P888    Y8b.    Y88b.   888  888Y88b. Y8b.    Y88b 888
 
 	pluginURL := flag.Arg(0)
 
-	schemaFile, err := ioutil.TempFile("", "plugin_*.schema.json")
+	schemaFile, err := os.CreateTemp("", "plugin_*.schema.json")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "couldn't create schema file")
 		os.Exit(1)

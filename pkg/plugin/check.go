@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -69,7 +69,7 @@ func Check(archiveURL string, schemaPath string, private bool, client *grafana.C
 	// if those checkers ran successfully.
 	var fatalErrs []ValidationComment
 
-	fis, err := ioutil.ReadDir(archiveDir)
+	fis, err := os.ReadDir(archiveDir)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -128,12 +128,12 @@ func Check(archiveURL string, schemaPath string, private bool, client *grafana.C
 		return nil, fatalErrs, nil
 	}
 
-	metadata, err := ioutil.ReadFile(metadataPath)
+	metadata, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	readme, err := ioutil.ReadFile(readmePath)
+	readme, err := os.ReadFile(readmePath)
 	if err != nil {
 		return nil, nil, err
 	}

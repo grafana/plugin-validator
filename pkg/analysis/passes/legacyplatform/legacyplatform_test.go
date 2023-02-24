@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const pluginId = "test-plugin-panel"
+const pluginId = "test-plugin-panel" //nolint:golint,unused
 
 func TestLegacyPlatformUsesCurrentPlatform(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor

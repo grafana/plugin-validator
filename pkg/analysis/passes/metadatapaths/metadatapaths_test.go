@@ -65,11 +65,13 @@ func TestMetadatapathsWithWrongLogoPath(t *testing.T) {
 func TestMetadatapathsWithWrongScreenshotPath(t *testing.T) {
 	//prepare logosMeatadata
 	var logosMeatadata metadata.MetadataLogos
-	json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata)
+	err := json.Unmarshal([]byte(`{"small": "img/logo.svg", "large": "img/logo.svg"}`), &logosMeatadata)
+	require.NoError(t, err)
 
 	//prepare screenshots
 	var screenshotsMetadata []metadata.MetadataScreenshots
-	json.Unmarshal([]byte(`[{"name": "test", "path": "/img/wrong-with-slash.png"}, {"name": "test2", "path":"./img/wrong-with-dot"}]`), &screenshotsMetadata)
+	err = json.Unmarshal([]byte(`[{"name": "test", "path": "/img/wrong-with-slash.png"}, {"name": "test2", "path":"./img/wrong-with-dot"}]`), &screenshotsMetadata)
+	require.NoError(t, err)
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -80,7 +82,7 @@ func TestMetadatapathsWithWrongScreenshotPath(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 2)
 	require.Contains(t, interceptor.Diagnostics[0].Title, "plugin.json: relative screenshot path should not start with")

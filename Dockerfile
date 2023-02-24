@@ -17,7 +17,7 @@ RUN cd /go/src/github.com/grafana/plugin-validator && \
     ls -al bin
 ENV DEBIAN_FRONTEND=newt
 
-FROM alpine:3.15
+FROM alpine:3.17
 RUN apk update && \
     apk upgrade --available && \
     apk add ca-certificates && \

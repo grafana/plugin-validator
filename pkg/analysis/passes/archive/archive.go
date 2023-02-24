@@ -2,7 +2,6 @@ package archive
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -23,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	fis, err := ioutil.ReadDir(pass.RootDir)
+	fis, err := os.ReadDir(pass.RootDir)
 	if err != nil {
 		return nil, err
 	}
