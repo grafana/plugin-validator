@@ -26,20 +26,6 @@ trigger:
       - "**/*.go"
 type: docker
 ---
-kind: pipeline
-name: linters
-steps:
-  - commands:
-      - apk add --no-cache make jsonnet
-      - make lint-jsonnet
-    image: alpine:3.17.0
-    name: lint jsonnet
-trigger:
-  event:
-    include:
-      - pull_request
-type: docker
----
 get:
   name: username
   path: secret/data/common/docker-hub
@@ -54,5 +40,3 @@ name: docker-hub-password
 ---
 kind: signature
 hmac: 5c78a7c1196c1ef559d1699bd5126a01d76e56a3940a727e61085d9344ade9b3
-
-...
