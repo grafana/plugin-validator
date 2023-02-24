@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -40,7 +41,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	goFiles := getGoFiles(sourceCodeDir)
+	goFiles, err := doublestar.FilepathGlob(sourceCodeDir + "/**/*.go")
+	if err != nil {
+		return nil, nil
+	}
 	if len(goFiles) == 0 {
 		// no go files found so we can't check the manifest
 		return nil, nil
@@ -67,27 +71,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	return nil, nil
 
-}
-
-// return all go files in dir using filepath.WalkDir and with error handling
-func getGoFiles(dir string) []string {
-	goFiles := []string{}
-	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if !d.IsDir() && filepath.Ext(path) == ".go" {
-			goFiles = append(goFiles, path)
-		}
-		return nil
-	})
-
-	if err != nil {
-		logme.Errorln(err)
-		return nil
-	}
-
-	return goFiles
 }
 
 // parseManifestFile parses the manifest file and returns a map[string]string
