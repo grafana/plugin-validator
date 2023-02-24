@@ -25,7 +25,7 @@ rules:
           regex: (?!GF_PLUGIN.*)
     message: It is not permitted to access environment variables from plugins. $ENV is not an accessible variable.
     languages: [go]
-    severity: ERROR
+    severity: WARNING
   - id: access-file-system-with-fs
     patterns:
       - pattern-either:

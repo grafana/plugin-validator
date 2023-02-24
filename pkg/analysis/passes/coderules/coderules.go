@@ -18,17 +18,17 @@ import (
 var semgrepRules string
 
 var (
-	codeRulesViolation            = &analysis.Rule{Name: "code-rules-violation", Severity: analysis.Error}
-	codeRulesViolationAccesingEnv = &analysis.Rule{Name: "code-rules-violation-env", Severity: analysis.Warning}
-	semgrepNotFound               = &analysis.Rule{Name: "semgrep-not-found", Severity: analysis.Warning}
-	semgrepRunningErr             = &analysis.Rule{Name: "semgrep-running-err", Severity: analysis.Warning}
+	codeRulesViolationError   = &analysis.Rule{Name: "code-rules-violation-error", Severity: analysis.Error}
+	codeRulesViolationWarning = &analysis.Rule{Name: "code-rules-violation-warning", Severity: analysis.Warning}
+	semgrepNotFound           = &analysis.Rule{Name: "semgrep-not-found", Severity: analysis.Warning}
+	semgrepRunningErr         = &analysis.Rule{Name: "semgrep-running-err", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "code-rules",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{codeRulesViolation},
+	Rules:    []*analysis.Rule{codeRulesViolationError, codeRulesViolationWarning, semgrepNotFound, semgrepRunningErr},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -108,19 +108,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// report semgrep results
 	for _, result := range semgrepResults.Results {
 
-		ruleIdSplit := strings.Split(result.Check_id, ".")
-		ruleName := ""
-		if len(ruleIdSplit) == 2 {
-			ruleName = ruleIdSplit[1]
-		}
-
-		switch ruleName {
-		case "access-only-allowed-os-environment":
-			pass.ReportResult(pass.AnalyzerName, codeRulesViolationAccesingEnv, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+		severity := strings.ToLower(result.Extra.Severity)
+		switch severity {
+		case "error":
+			pass.ReportResult(pass.AnalyzerName, codeRulesViolationError, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+		case "warning":
+			pass.ReportResult(pass.AnalyzerName, codeRulesViolationWarning, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
 		default:
-			pass.ReportResult(pass.AnalyzerName, codeRulesViolation, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+			pass.ReportResult(pass.AnalyzerName, codeRulesViolationWarning, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
 		}
-
 	}
 
 	// no need to return anything
