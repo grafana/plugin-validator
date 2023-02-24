@@ -91,11 +91,11 @@ func GitUrlToLocalPath(url string) (string, func(), error) {
 // group 4: root dir (might be empty)
 var servicesRe []*regexp.Regexp = []*regexp.Regexp{
 	// bitbucket
-	regexp.MustCompile(`(?i)^(https:\/\/bitbucket\.org\/[^/]+\/[^/]+\/)(src\/([^/]*)\/?(.*)$)?`),
+	regexp.MustCompile(`(?i)^(https:\/\/bitbucket\.org\/[^/]+\/[^/]+)(\/src\/([^/]*)\/?(.*)$)?`),
 	// gitlab
-	regexp.MustCompile(`(?i)^(https:\/\/gitlab\.com\/[^/]+\/[^/]+\/)(-\/tree\/([^/]*)\/?(.*)$)?`),
+	regexp.MustCompile(`(?i)^(https:\/\/gitlab\.com\/[^/]+\/[^/]+)(-\/tree\/([^/]*)\/?(.*)$)?`),
 	// github
-	regexp.MustCompile(`(?i)^(https:\/\/github\.com\/[^/]+\/[^/]+\/)(tree\/([^/]*)\/?(.*)$)?`),
+	regexp.MustCompile(`(?i)^(https:\/\/github\.com\/[^/]+\/[^/]+)(\/tree\/([^/]*)\/?(.*)$)?`),
 }
 
 func parseGitUrl(url string) (GitUrl, error) {

@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
-	"gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type FormattedOutput struct {
@@ -33,7 +33,7 @@ func main() {
 
 	flag.Parse()
 
-	logme.Debugln("stric mode: ", *strictFlag)
+	logme.Debugln("strict mode: ", *strictFlag)
 	logme.Debugln("config file: ", *configFlag)
 	logme.Debugln("source code: ", *sourceCodeUri)
 	logme.Debugln("archive file: ", flag.Arg(0))

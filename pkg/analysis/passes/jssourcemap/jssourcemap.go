@@ -2,11 +2,10 @@ package jssourcemap
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -39,7 +38,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	archiveModuleJs, err := findModuleJsFiles(archiveFilesPath)
+	archiveModuleJs, err := doublestar.FilepathGlob(archiveFilesPath + "/**/module.js")
+
 	if err != nil {
 		return nil, err
 	}
@@ -87,18 +87,4 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
-}
-
-func findModuleJsFiles(archivePath string) ([]string, error) {
-	var files []string
-	err := filepath.WalkDir(archivePath, func(path string, d fs.DirEntry, err error) error {
-		if d.IsDir() {
-			return nil
-		}
-		if strings.HasSuffix(path, "module.js") {
-			files = append(files, path)
-		}
-		return nil
-	})
-	return files, err
 }

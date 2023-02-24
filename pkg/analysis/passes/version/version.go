@@ -1,15 +1,12 @@
 package version
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
-	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/hashicorp/go-version"
 )
 
@@ -17,21 +14,18 @@ var (
 	wrongPluginVersion = &analysis.Rule{Name: "wrong-plugin-version", Severity: analysis.Error}
 )
 
-type PluginStatus struct {
-	Status  string `json:"status"`
-	Slug    string `json:"slug"`
-	Version string `json:"version"`
-}
-
 var Analyzer = &analysis.Analyzer{
 	Name:     "version",
-	Requires: []*analysis.Analyzer{metadata.Analyzer},
+	Requires: []*analysis.Analyzer{metadata.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{wrongPluginVersion},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
@@ -49,14 +43,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	context, cancelContext := context.WithTimeout(context.Background(), time.Second*15)
-	defer cancelContext()
-
-	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
-	if err != nil {
+	pluginStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	if !ok {
 		// in case of any error getting the online status, skip this check
 		return nil, nil
 	}
+
+	// if the plugin is not published, skip this check
+	if pluginStatus == nil {
+		return nil, nil
+	}
+
 	grafanaComVersion := pluginStatus.Version
 	parsedGrafanaVersion, err := version.NewVersion(grafanaComVersion)
 	if err != nil {
@@ -80,35 +77,4 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
-}
-
-func getPluginDataFromGrafanaCom(context context.Context, pluginId string) (*PluginStatus, error) {
-	pluginUrl := fmt.Sprintf("https://grafana.com/api/plugins/%s?version=latest", pluginId)
-	// fetch content for pluginUrl
-	request, err := http.NewRequestWithContext(context, "GET", pluginUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Add("Accept", "application/json")
-	response, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	// 404 = the plugin is not yet published
-	if response.StatusCode == http.StatusNotFound {
-		return nil, errors.New("plugin not found")
-	}
-
-	// != 200 = something went wrong. We can't check the plugin
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("wrong status code, expected 200 got %d", response.StatusCode)
-	}
-
-	status := PluginStatus{}
-	if err := json.NewDecoder(response.Body).Decode(&status); err != nil {
-		return nil, err
-	}
-	return &status, nil
 }

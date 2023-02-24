@@ -1,7 +1,7 @@
 package htmlreadme
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -12,7 +12,7 @@ import (
 func TestClean(t *testing.T) {
 	var invoked bool
 
-	b, err := ioutil.ReadFile(filepath.Join("testdata", "README.clean.md"))
+	b, err := os.ReadFile(filepath.Join("testdata", "README.clean.md"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +39,7 @@ func TestClean(t *testing.T) {
 func TestHTML(t *testing.T) {
 	var invoked bool
 
-	b, err := ioutil.ReadFile(filepath.Join("testdata", "README.html.md"))
+	b, err := os.ReadFile(filepath.Join("testdata", "README.html.md"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -16,8 +16,8 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp"           //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
 )
 
 var (

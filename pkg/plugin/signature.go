@@ -8,13 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 
-	"golang.org/x/crypto/openpgp"
-	"golang.org/x/crypto/openpgp/clearsign"
+	"golang.org/x/crypto/openpgp"           //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
 )
 
 type PluginSignature int
@@ -35,7 +34,7 @@ type PluginBase struct {
 func getPluginSignatureState(pluginID, version, pluginDir string) PluginSignature {
 	manifestPath := filepath.Join(pluginDir, "MANIFEST.txt")
 
-	byteValue, err := ioutil.ReadFile(manifestPath)
+	byteValue, err := os.ReadFile(manifestPath)
 	if err != nil || len(byteValue) < 10 {
 		return PluginSignatureUnsigned
 	}

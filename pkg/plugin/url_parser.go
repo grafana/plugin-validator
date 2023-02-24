@@ -3,7 +3,7 @@ package plugin
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -14,7 +14,7 @@ import (
 var ErrInvalidPullRequest = errors.New("invalid pull request")
 
 // parseRef parses a references to a GitHub repository from a URL.
-func parseRef(rawurl string) (Ref, error) {
+func parseRef(rawurl string) (Ref, error) { //nolint:golint,unused
 	if !strings.HasPrefix(rawurl, "https://github.com/") {
 		ref := "master"
 
@@ -71,7 +71,7 @@ func parseRef(rawurl string) (Ref, error) {
 
 // findPluginByPR parses the diff for a pull request and extracts the URL and
 // commit SHA.
-func findPluginByPR(pr string) (string, string, error) {
+func findPluginByPR(pr string) (string, string, error) { //nolint:golint,unused
 	url := fmt.Sprintf("https://api.github.com/repos/grafana/grafana-plugin-repository/pulls/%s", pr)
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -86,7 +86,7 @@ func findPluginByPR(pr string) (string, string, error) {
 	}
 	defer resp.Body.Close()
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", "", err
 	}
@@ -96,7 +96,7 @@ func findPluginByPR(pr string) (string, string, error) {
 
 // versionFromDiff looks for a url and commit property in the diff and returns
 // their values.
-func versionFromDiff(b []byte) (string, string, error) {
+func versionFromDiff(b []byte) (string, string, error) { //nolint:golint,unused
 	urlMatches := regexp.MustCompile(`\+\s+"url":\s"(.+)"`).FindAllSubmatch(b, -1)
 	if len(urlMatches) < 1 {
 		return "", "", ErrInvalidPullRequest

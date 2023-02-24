@@ -14,7 +14,7 @@ RUN git clone https://github.com/magefile/mage --depth 1 && \
 RUN mage -v && \
     ls -al bin
 
-FROM alpine:3.15
+FROM alpine:3.17
 RUN apk update && \
     apk upgrade --available && \
     apk add ca-certificates python3 python3-dev py3-pip alpine-sdk

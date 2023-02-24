@@ -21,7 +21,9 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/pluginname"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
@@ -30,6 +32,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
 )
 
@@ -53,7 +56,9 @@ var Analyzers = []*analysis.Analyzer{
 	metadatavalid.Analyzer,
 	modulejs.Analyzer,
 	org.Analyzer,
+	osvscanner.Analyzer,
 	pluginname.Analyzer,
+	published.Analyzer,
 	readme.Analyzer,
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
@@ -62,5 +67,6 @@ var Analyzers = []*analysis.Analyzer{
 	templatereadme.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
+	unsafesvg.Analyzer,
 	version.Analyzer,
 }

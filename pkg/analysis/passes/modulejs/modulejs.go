@@ -1,7 +1,6 @@
 package modulejs
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -23,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir := pass.ResultOf[archive.Analyzer].(string)
 
-	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "module.js"))
+	b, err := os.ReadFile(filepath.Join(archiveDir, "module.js"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			pass.ReportResult(pass.AnalyzerName, missingModulejs, "missing module.js", "Your plugin must have a module.js file to be loaded by Grafana.")

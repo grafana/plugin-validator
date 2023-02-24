@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -24,7 +23,7 @@ type trackingChecker struct{}
 // This isn't foolproof, but will detect cases where the author is unaware of
 // our guidelines.
 func (c *trackingChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	source, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "module.js"))
+	source, err := os.ReadFile(filepath.Join(ctx.RootDir, "module.js"))
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +118,7 @@ type privateSignatureChecker struct {
 func (c privateSignatureChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	manifestPath := filepath.Join(ctx.RootDir, "MANIFEST.txt")
 
-	byteValue, err := ioutil.ReadFile(manifestPath)
+	byteValue, err := os.ReadFile(manifestPath)
 	if err != nil || len(byteValue) < 10 {
 		return nil, err
 	}
@@ -186,14 +185,14 @@ func (c manifestChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	return errs, nil
 }
 
-type largeFileChecker struct{}
+type largeFileChecker struct{} //nolint:golint,unused
 
-func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) {
+func (c largeFileChecker) check(ctx *checkContext) ([]ValidationComment, error) { //nolint:golint,unused
 	var errs []ValidationComment
 
 	walkErr := filepath.Walk(ctx.RootDir, func(path string, info os.FileInfo, err error) error {
 		if info.Size() > 1000000 {
-			b, err := ioutil.ReadFile(path)
+			b, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
@@ -489,14 +488,14 @@ func (c *jsonSchemaChecker) check(ctx *checkContext) ([]ValidationComment, error
 	return errs, nil
 }
 
-type packageVersionMatchChecker struct {
+type packageVersionMatchChecker struct { //nolint:golint,unused
 	schema string
 }
 
 // check checks that the version specified in package.json is the same as the
 // version in plugin.json.
-func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	packageFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "package.json"))
+func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComment, error) { //nolint:golint,unused
+	packageFile, err := os.ReadFile(filepath.Join(ctx.RootDir, "package.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -508,7 +507,7 @@ func (c *packageVersionMatchChecker) check(ctx *checkContext) ([]ValidationComme
 		return nil, err
 	}
 
-	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
+	pluginFile, err := os.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -539,7 +538,7 @@ type logosExistChecker struct{}
 
 // check checks whether the specified logos exists.
 func (c *logosExistChecker) check(ctx *checkContext) ([]ValidationComment, error) {
-	pluginFile, err := ioutil.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
+	pluginFile, err := os.ReadFile(filepath.Join(ctx.RootDir, "plugin.json"))
 	if err != nil {
 		return nil, err
 	}
@@ -626,7 +625,7 @@ type pluginPlatformChecker struct{}
 func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, error) {
 	jsModulePath := filepath.Join(ctx.RootDir, "module.js")
 
-	b, err := ioutil.ReadFile(jsModulePath)
+	b, err := os.ReadFile(jsModulePath)
 	if err != nil {
 		return nil, err
 	}
@@ -647,7 +646,7 @@ func (c *pluginPlatformChecker) check(ctx *checkContext) ([]ValidationComment, e
 	return nil, nil
 }
 
-var errFileNotFound = errors.New("file not found")
+var errFileNotFound = errors.New("file not found") //nolint:golint,unused
 
 func fileExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {
