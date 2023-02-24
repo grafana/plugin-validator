@@ -1,6 +1,7 @@
 package osvscanner
 
 import (
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -10,6 +11,11 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
+
+func isOSVScannerInstalled(t *testing.T) bool {
+	osvScannerPath, _ := exec.LookPath("osv-scanner")
+	return osvScannerPath != ""
+}
 
 func reportAll(a *analysis.Analyzer) {
 	for _, r := range a.Rules {
@@ -25,6 +31,10 @@ func undoReportAll(a *analysis.Analyzer) {
 
 // TestCanRunScanner
 func TestCanRunScanner(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -41,6 +51,10 @@ func TestCanRunScanner(t *testing.T) {
 
 // TestCanRunScannerReportAll
 func TestCanRunScannerReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -67,6 +81,10 @@ func TestCanRunScannerReportAll(t *testing.T) {
 
 // TestEmptyResults
 func TestEmptyResults(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -83,6 +101,10 @@ func TestEmptyResults(t *testing.T) {
 
 // TestEmptyResultsReportAll
 func TestEmptyResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -109,6 +131,10 @@ func TestEmptyResultsReportAll(t *testing.T) {
 
 // TestNoIssueResults
 func TestNoIssueResults(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -125,6 +151,10 @@ func TestNoIssueResults(t *testing.T) {
 
 // TestNoIssueResultsReportAll
 func TestNoIssueResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -151,6 +181,10 @@ func TestNoIssueResultsReportAll(t *testing.T) {
 
 // TestCriticalSeverityResults
 func TestCriticalSeverityResults(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -172,6 +206,10 @@ func TestCriticalSeverityResults(t *testing.T) {
 
 // TestCriticalSeverityResultsReportAll checks for a critical severity issue
 func TestCriticalSeverityResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -199,6 +237,10 @@ func TestCriticalSeverityResultsReportAll(t *testing.T) {
 // TestHighSeverityResultsReportAll
 // high severity does not report any output, unless the report all option is enabled
 func TestHighSeverityResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -226,6 +268,10 @@ func TestHighSeverityResultsReportAll(t *testing.T) {
 // TestModerateSeverityResultsReportAll checks for a moderate severity issue
 // moderate severity does not report any output, unless the report all option is enabled
 func TestModerateSeverityResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -252,6 +298,10 @@ func TestModerateSeverityResultsReportAll(t *testing.T) {
 
 // TestLowSeverityResultsReportAll checks for a low severity issue
 func TestLowSeverityResultsReportAll(t *testing.T) {
+	if !isOSVScannerInstalled(t) {
+		t.Skip("osv-scanner not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
