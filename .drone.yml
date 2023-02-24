@@ -39,4 +39,6 @@ kind: secret
 name: docker-hub-password
 ---
 kind: signature
-hmac: 5c78a7c1196c1ef559d1699bd5126a01d76e56a3940a727e61085d9344ade9b3
+hmac: 813d442af2ca48cd37871782dda991e7442d6679af5cd74b090395b2374badba
+
+...
