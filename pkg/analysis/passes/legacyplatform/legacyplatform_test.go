@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
@@ -51,7 +52,30 @@ func TestLegacyPlatformUsesLegacy(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, interceptor.Diagnostics, 1)
 		require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: uses legacy plugin platform")
+		require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Error)
+	}
+}
 
+func TestOnlyWarnInPublishedPlugins(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pluginStatus := published.PluginStatus{
+		Status:  "active",
+		Slug:    pluginId,
+		Version: "1.0.0",
 	}
 
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			modulejs.Analyzer:  &map[string][]byte{"module.js": []byte(`import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';`)},
+			published.Analyzer: &pluginStatus,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: uses legacy plugin platform")
+	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Warning)
 }

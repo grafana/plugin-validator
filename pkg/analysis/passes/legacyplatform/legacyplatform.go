@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 )
 
 var (
@@ -14,7 +14,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "legacyplatform",
-	Requires: []*analysis.Analyzer{modulejs.Analyzer, sourcecode.Analyzer},
+	Requires: []*analysis.Analyzer{modulejs.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{legacyPlatform},
 }
@@ -27,6 +27,14 @@ var legacyDetectionRegexes = []*regexp.Regexp{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+
+	_, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+
+	// we don't fail published plugins for using angular
+	if ok {
+		legacyPlatform.Severity = analysis.Warning
+	}
+
 	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(*map[string][]byte)
 	if !ok || moduleJsMap == nil {
 		return nil, nil
