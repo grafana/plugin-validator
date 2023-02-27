@@ -1,9 +1,10 @@
 package modulejs
 
 import (
+	"fmt"
 	"os"
-	"path/filepath"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 )
@@ -20,21 +21,35 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
-
-	b, err := os.ReadFile(filepath.Join(archiveDir, "module.js"))
-	if err != nil {
-		if os.IsNotExist(err) {
-			pass.ReportResult(pass.AnalyzerName, missingModulejs, "missing module.js", "Your plugin must have a module.js file to be loaded by Grafana.")
-			return nil, nil
-		}
-		return nil, err
-	} else {
-		if missingModulejs.ReportAll {
-			missingModulejs.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, missingModulejs, "module.js: exists", "")
-		}
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok || archiveDir == "" {
+		// this should never happen
+		return nil, fmt.Errorf("archive dir not found")
 	}
 
-	return b, nil
+	//find all module.js files with doublestar
+	moduleJsFiles, err := doublestar.FilepathGlob(archiveDir + "/**/module.js")
+	if err != nil {
+		return nil, nil
+	}
+
+	if len(moduleJsFiles) == 0 {
+		pass.ReportResult(pass.AnalyzerName, missingModulejs, "missing module.js", "Your plugin must have a module.js file to be loaded by Grafana.")
+		return nil, nil
+	} else if missingModulejs.ReportAll {
+		missingModulejs.Severity = analysis.OK
+		pass.ReportResult(pass.AnalyzerName, missingModulejs, "module.js: exists", "")
+	}
+
+	moduleJsFilesContent := map[string][]byte{}
+
+	for _, moduleJsFile := range moduleJsFiles {
+		content, err := os.ReadFile(moduleJsFile)
+		if err != nil {
+			return nil, err
+		}
+		moduleJsFilesContent[moduleJsFile] = content
+	}
+
+	return &moduleJsFilesContent, nil
 }
