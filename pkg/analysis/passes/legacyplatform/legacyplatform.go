@@ -21,7 +21,7 @@ var Analyzer = &analysis.Analyzer{
 
 var legacyDetectionRegexes = []*regexp.Regexp{
 	// regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`),
-	regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)|(app/core/core_module)|(app/core/core)['"]`),
+	regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`),
 	regexp.MustCompile(`from\s+['"]grafana\/app\/`),
 	regexp.MustCompile(`System\.register\(`),
 }
