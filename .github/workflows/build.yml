@@ -17,6 +17,9 @@ jobs:
       - name: Install dependencies
         run: go get .
 
+      - name: Install semgrep
+        run: python3 -m pip install semgrep
+
       - name: Install osv-scanner
         run: go install github.com/google/osv-scanner/cmd/osv-scanner@v1
 
