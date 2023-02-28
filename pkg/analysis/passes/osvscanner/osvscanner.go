@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -129,6 +130,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				// iterate over results
 				for _, result := range filteredResults.Results {
 					for _, aPackage := range result.Packages {
+						logme.DebugFln("vulnerabilities in package: %s", aPackage.Package.Name)
 						for _, aVulnerability := range aPackage.Vulnerabilities {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
 							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", aVulnerability.DatabaseSpecific.Severity, aPackage.Package.Name, aliases)

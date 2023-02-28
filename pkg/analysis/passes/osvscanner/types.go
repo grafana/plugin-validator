@@ -245,3 +245,8 @@ var GrafanaE2EPackages = map[string]bool{
 	"uuid":                          true,
 	"yaml":                          true,
 }
+
+// CommonPackages Packages that are frequently flagged but will be ignored
+var CommonPackages = map[string]bool{
+	"underscore": true,
+}
