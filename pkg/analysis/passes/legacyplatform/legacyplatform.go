@@ -35,14 +35,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		legacyPlatform.Severity = analysis.Warning
 	}
 
-	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(*map[string][]byte)
+	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(map[string][]byte)
 	if !ok || moduleJsMap == nil {
 		return nil, nil
 	}
 
 	hasLegacyPlatform := false
 
-	for _, content := range *moduleJsMap {
+	for _, content := range moduleJsMap {
 		if hasLegacyPlatform {
 			break
 		}
