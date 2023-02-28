@@ -1,7 +1,7 @@
 package metadataschema
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -25,7 +25,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

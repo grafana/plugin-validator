@@ -24,7 +24,8 @@ Y88b 888Y8b.    888 d88P888    Y8b.    Y88b.   888  888Y88b. Y8b.    Y88b 888
 
 	Use V2 instead: plugincheck2
 
-	To install it see README https://github.com/grafana/plugin-validator\n`)
+	To install it see README https://github.com/grafana/plugin-validator`)
+	fmt.Println()
 
 	if isGithubCi() {
 

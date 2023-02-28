@@ -103,7 +103,7 @@ func buildCommand(command string, arch string) error {
 	return nil
 }
 
-// build all commands inside ./pkg/cmd
+// build all commands inside ./pkg/cmd for current architecture
 func (Build) Commands(ctx context.Context) error {
 	mg.Deps(
 		Clean,
@@ -118,11 +118,10 @@ func (Build) Commands(ctx context.Context) error {
 
 	for _, folder := range folders {
 		if folder.IsDir() {
-			for arch := range archTargets {
-				err := buildCommand(folder.Name(), arch)
-				if err != nil {
-					return err
-				}
+			currentArch := runtime.GOOS + "_" + runtime.GOARCH
+			err := buildCommand(folder.Name(), currentArch)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -173,17 +172,26 @@ func (Build) CI(ctx context.Context) {
 		Build.Format,
 		Test.Verbose,
 		Clean,
-		pluginCheckCmd,
-		pluginCheck2CmdDarwin,
 		pluginCheck2CmdLinux,
 	)
+}
+
+func (Build) All(ctx context.Context) {
+	mg.Deps(
+		Build.Lint,
+		Build.Format,
+		Test.Verbose,
+		pluginCheck2CmdLinux,
+		pluginCheck2CmdDarwin,
+	)
+
 }
 
 // Run linter against codebase
 func (Build) Lint() error {
 	os.Setenv("GO111MODULE", "on")
 	log.Printf("Linting...")
-	return sh.RunV("golangci-lint", "run", "./pkg/...")
+	return sh.RunV("golangci-lint", "--timeout", "2m30s", "run", "./pkg/...")
 }
 
 // Run tests in verbose mode

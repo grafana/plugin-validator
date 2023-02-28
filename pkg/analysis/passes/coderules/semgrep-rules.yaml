@@ -1,0 +1,112 @@
+rules:
+  - id: access-os-environment
+    patterns:
+      - pattern-either:
+          - pattern: os.Environ()
+          - pattern: os.Clearenv()
+          - pattern: os.ExpandEnv()
+          - pattern: syscall.Clearenv()
+          - pattern: syscall.Environ()
+    message: It is not permitted to access environment variables from plugins.
+    languages: [go]
+    severity: ERROR
+  - id: access-only-allowed-os-environment
+    patterns:
+      - pattern-either:
+          - pattern: os.Getenv("$ENV")
+          - pattern: os.LookupEnv("$ENV")
+          - pattern: os.Setenv("$ENV")
+          - pattern: os.Unsetenv("$ENV")
+          - pattern: syscall.Getenv("$ENV")
+          - pattern: syscall.Setenv("$ENV")
+          - pattern: syscall.Unsetenv("$ENV")
+      - metavariable-regex:
+          metavariable: $ENV
+          regex: (?!GF_PLUGIN.*)
+    message: It is not permitted to access environment variables from plugins. $ENV is not an accessible variable.
+    languages: [go]
+    severity: WARNING
+  - id: access-file-system-with-fs
+    patterns:
+      - pattern-either:
+          - pattern: fs.$F(...)
+    message: It is not permitted to access the file system. Using fs.$F is not permited.
+    languages: [go]
+    severity: ERROR
+  - id: access-file-system-with-filepath
+    patterns:
+      - pattern-either:
+          - pattern: filepath.Walk(...)
+          - pattern: filepath.WalkDir(...)
+          - pattern: filepath.VolumeName(...)
+          - pattern: filepath.EvalSymlinks(...)
+          - pattern: filepath.Glob(...)
+    message: It is not permitted to access the file system.
+    languages: [go]
+    severity: ERROR
+  - id: access-file-system-with-os
+    patterns:
+      - pattern-either:
+          - pattern: os.DirFS(...)
+          - pattern: os.Getwd(...)
+          - pattern: os.IsExist(...)
+          - pattern: os.IsNotExist(...)
+          - pattern: os.IsPermission(...)
+          - pattern: os.Lchown(...)
+          - pattern: os.Link(...)
+          - pattern: os.Mkdir(...)
+          - pattern: os.MkdirAll(...)
+          - pattern: os.MkdirTemp(...)
+          - pattern: os.Readfile(...)
+          - pattern: os.Readlink(...)
+          - pattern: os.Remove(...)
+          - pattern: os.RemoveAll(...)
+          - pattern: os.Rename(...)
+          - pattern: os.SameFile(...)
+          - pattern: os.Symlink(...)
+          - pattern: os.TempDir(...)
+          - pattern: os.Truncate(...)
+          - pattern: os.UserCacheDir(...)
+          - pattern: os.UserConfigDir(...)
+          - pattern: os.UserHomeDir(...)
+          - pattern: os.WriteFile(...)
+          - pattern: os.ReadDir(...)
+          - pattern: os.Create(...)
+          - pattern: os.CreateTemp(...)
+          - pattern: os.NewFile(...)
+          - pattern: os.Open(...)
+          - pattern: os.OpenFile(...)
+          - pattern: os.Chdir(...)
+          - pattern: os.Chmod(...)
+          - pattern: os.Chown(...)
+          - pattern: os.Chtimes(...)
+          - pattern: os.Close(...)
+          - pattern: os.Fd(...)
+          - pattern: os.Name(...)
+          - pattern: os.Read(...)
+          - pattern: os.ReadAt(...)
+          - pattern: os.ReadDir(...)
+          - pattern: os.Readdir(...)
+          - pattern: os.Readdirnames(...)
+          - pattern: os.Seek(...)
+          - pattern: os.Stat(...)
+          - pattern: os.Sync(...)
+          - pattern: os.Truncate(...)
+          - pattern: os.Write(...)
+          - pattern: os.WriteAt(...)
+          - pattern: os.WriteString(...)
+          - pattern: os.FileInfo(...)
+          - pattern: os.Lstat(...)
+    message: It is not permitted to access the file system.
+    languages: [go]
+    severity: ERROR
+  - id: access-syscall
+    patterns:
+      - pattern-either:
+          # note: this prevent many fs accesses and env variables
+          # generally speaking there's no valid reason for a plugin
+          # to use this module
+          - pattern: syscall.$F(...)
+    message: It is not permitted to use the syscall module. Using syscall.$F is not permited
+    languages: [go]
+    severity: ERROR

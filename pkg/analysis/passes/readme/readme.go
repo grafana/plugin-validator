@@ -1,7 +1,6 @@
 package readme
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,7 +23,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir := pass.ResultOf[archive.Analyzer].(string)
 
-	b, err := ioutil.ReadFile(filepath.Join(archiveDir, "README.md"))
+	b, err := os.ReadFile(filepath.Join(archiveDir, "README.md"))
 	if err != nil {
 		if os.IsNotExist(err) {
 			pass.ReportResult(pass.AnalyzerName, missingReadme, "missing README.md", "A README.md file is required for plugins. The contents of the file will be displayed on the Grafana catalog.")
