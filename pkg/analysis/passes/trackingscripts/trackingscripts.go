@@ -3,7 +3,6 @@ package trackingscripts
 import (
 	"bytes"
 	_ "embed"
-	"fmt"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
