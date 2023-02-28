@@ -5,34 +5,59 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 )
 
 var (
-	legacyPlatform = &analysis.Rule{Name: "legacy-platform", Severity: analysis.Warning}
+	legacyPlatform = &analysis.Rule{Name: "legacy-platform", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "legacyplatform",
-	Requires: []*analysis.Analyzer{modulejs.Analyzer},
+	Requires: []*analysis.Analyzer{modulejs.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{legacyPlatform},
 }
 
+var legacyDetectionRegexes = []*regexp.Regexp{
+	// regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`),
+	regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`),
+	regexp.MustCompile(`from\s+['"]grafana\/app\/`),
+	regexp.MustCompile(`System\.register\(`),
+}
+
 func run(pass *analysis.Pass) (interface{}, error) {
-	module := pass.ResultOf[modulejs.Analyzer].([]byte)
 
-	var (
-		reactExp   = regexp.MustCompile(`(@grafana/data)`)
-		angularExp = regexp.MustCompile(`([\s"']grafana/app/)`)
-	)
+	_, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
 
-	if angularExp.Match(module) && !reactExp.Match(module) {
-		pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (angularjs). Please migrate the plugin to use the new plugins platform.")
-	} else {
-		if legacyPlatform.ReportAll {
-			legacyPlatform.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses current plugin platform", "")
+	// we don't fail published plugins for using angular
+	if ok {
+		legacyPlatform.Severity = analysis.Warning
+	}
+
+	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(map[string][]byte)
+	if !ok || len(moduleJsMap) == 0 {
+		return nil, nil
+	}
+
+	hasLegacyPlatform := false
+
+	for _, content := range moduleJsMap {
+		if hasLegacyPlatform {
+			break
 		}
+		for _, regex := range legacyDetectionRegexes {
+			if regex.Match(content) {
+				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (e.g. angularjs). Please migrate the plugin to use the new plugins platform.")
+				hasLegacyPlatform = true
+				break
+			}
+		}
+	}
+
+	if legacyPlatform.ReportAll && !hasLegacyPlatform {
+		legacyPlatform.Severity = analysis.OK
+		pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses current plugin platform", "")
 	}
 
 	return nil, nil

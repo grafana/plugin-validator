@@ -19,7 +19,11 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	module := pass.ResultOf[modulejs.Analyzer].([]byte)
+
+	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(map[string][]byte)
+	if !ok || len(moduleJsMap) == 0 {
+		return nil, nil
+	}
 
 	servers := []string{
 		"https://www.google-analytics.com",
@@ -28,11 +32,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	hasTrackingScripts := false
-	for _, url := range servers {
-		if bytes.Contains(module, []byte(url)) {
-			pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts", "Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code.")
-			hasTrackingScripts = true
-			break
+
+	for _, content := range moduleJsMap {
+		for _, url := range servers {
+			if bytes.Contains(content, []byte(url)) {
+				pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts", "Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code.")
+				hasTrackingScripts = true
+				break
+			}
 		}
 	}
 
