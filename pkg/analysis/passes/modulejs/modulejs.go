@@ -51,5 +51,5 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		moduleJsFilesContent[moduleJsFile] = content
 	}
 
-	return &moduleJsFilesContent, nil
+	return moduleJsFilesContent, nil
 }

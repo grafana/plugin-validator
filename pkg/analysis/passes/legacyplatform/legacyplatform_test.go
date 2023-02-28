@@ -18,7 +18,7 @@ func TestLegacyPlatformUsesCurrentPlatform(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: &map[string][]byte{"module.js": []byte(`import { PanelPlugin } from '@grafana/data'`)},
+			modulejs.Analyzer: map[string][]byte{"module.js": []byte(`import { PanelPlugin } from '@grafana/data'`)},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -43,7 +43,7 @@ func TestLegacyPlatformUsesLegacy(t *testing.T) {
 		pass := &analysis.Pass{
 			RootDir: filepath.Join("./"),
 			ResultOf: map[*analysis.Analyzer]interface{}{
-				modulejs.Analyzer: &moduleJsMap,
+				modulejs.Analyzer: moduleJsMap,
 			},
 			Report: interceptor.ReportInterceptor(),
 		}
@@ -67,7 +67,7 @@ func TestOnlyWarnInPublishedPlugins(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer:  &map[string][]byte{"module.js": []byte(`import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';`)},
+			modulejs.Analyzer:  map[string][]byte{"module.js": []byte(`import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';`)},
 			published.Analyzer: &pluginStatus,
 		},
 		Report: interceptor.ReportInterceptor(),

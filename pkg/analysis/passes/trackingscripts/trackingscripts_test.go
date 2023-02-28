@@ -18,7 +18,7 @@ func TestTrackingScriptsValid(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: &moduleJsMap,
+			modulejs.Analyzer: moduleJsMap,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -36,7 +36,7 @@ func TestTrackingScriptsInvalid(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: &moduleJsMap,
+			modulejs.Analyzer: moduleJsMap,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}

@@ -1,19 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-
-	"github.com/grafana/plugin-validator/pkg/grafana"
-	"github.com/grafana/plugin-validator/pkg/plugin"
 )
 
-// Deprecated: plugincheck V1 is deprecated and will be removed in a future release.
-// Use plugincheck2 instead. See https://github.com/grafana/plugin-validator
 func main() {
 
 	fmt.Println(`
@@ -29,75 +20,35 @@ Y88b 888Y8b.    888 d88P888    Y8b.    Y88b.   888  888Y88b. Y8b.    Y88b 888
                 888
                 888
 
-	**plugincheck V1 is deprecated and you should not use it.
+	**plugincheck V1 is no longer supported.**
 
 	Use V2 instead: plugincheck2
 
 	To install it see README https://github.com/grafana/plugin-validator`)
 	fmt.Println()
-	var (
-		strictFlag  = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
-		privateFlag = flag.Bool("private", false, "If set, plugincheck reports private signature check error as warning")
-	)
 
-	flag.Parse()
+	if isGithubCi() {
 
-	if len(flag.Args()) < 1 {
-		fmt.Fprintln(os.Stderr, "missing plugin url")
-		os.Exit(1)
+		fmt.Println(`
+
+		You are running plugincheck in a Github Action.
+
+		Replace your github action plugincheck-related code with the following:
+
+		- name: Lint plugin
+        run: |
+          git clone https://github.com/grafana/plugin-validator
+          pushd ./plugin-validator/pkg/cmd/plugincheck2
+          go install
+          popd
+          plugincheck2 ${{ steps.metadata.outputs.archive }}
+
+		`)
 	}
+	os.Exit(1)
 
-	pluginURL := flag.Arg(0)
+}
 
-	schemaFile, err := os.CreateTemp("", "plugin_*.schema.json")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "couldn't create schema file")
-		os.Exit(1)
-	}
-	defer os.Remove(schemaFile.Name())
-
-	resp, err := http.Get("https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "couldn't download plugin schema")
-		os.Exit(1)
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(schemaFile, resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "couldn't download plugin schema")
-		os.Exit(1)
-	}
-
-	client := grafana.NewClient()
-
-	_, result, err := plugin.Check(pluginURL, schemaFile.Name(), *privateFlag, client)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-
-	for _, e := range result {
-		enc := json.NewEncoder(os.Stdout)
-		enc.SetEscapeHTML(false)
-		enc.SetIndent("", "  ")
-
-		err := enc.Encode(e)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
-		}
-	}
-
-	if len(result) > 0 {
-		if *strictFlag {
-			os.Exit(1)
-		}
-
-		for _, res := range result {
-			if res.Severity == "error" {
-				os.Exit(1)
-			}
-		}
-	}
+func isGithubCi() bool {
+	return os.Getenv("GITHUB_ACTIONS") == "true"
 }
