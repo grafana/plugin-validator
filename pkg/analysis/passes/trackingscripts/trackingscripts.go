@@ -2,6 +2,9 @@ package trackingscripts
 
 import (
 	"bytes"
+	_ "embed"
+	"fmt"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
@@ -10,6 +13,9 @@ import (
 var (
 	trackingScripts = &analysis.Rule{Name: "tracking-scripts", Severity: analysis.Error}
 )
+
+//go:embed list.txt
+var serversList string
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "trackingscripts",
@@ -25,17 +31,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	servers := []string{
-		"https://www.google-analytics.com",
-		"https://api-js.mixpanel.com",
-		"https://mixpanel.com",
-	}
+	servers := getServerList()
 
 	hasTrackingScripts := false
 
 	for _, content := range *moduleJsMap {
 		for _, url := range servers {
-			if bytes.Contains(content, []byte(url)) {
+			fmt.Println("url: ", url)
+			if len(url) > 0 && bytes.Contains(content, []byte(url)) {
 				pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts", "Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code.")
 				hasTrackingScripts = true
 				break
@@ -51,4 +54,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func getServerList() []string {
+	servers := strings.Split(serversList, "\n")
+	// remove empty lines and starting with # from servers
+	for i := 0; i < len(servers); i++ {
+		if len(servers[i]) == 0 || servers[i][0] == '#' {
+			servers = append(servers[:i], servers[i+1:]...)
+			i--
+		}
+	}
+	return servers
 }
