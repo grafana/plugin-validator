@@ -20,7 +20,7 @@ Example:
 docker run --pull=always grafana/plugin-validator-cli -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
 ```
 
-\* Docker is recommended because the image contains all the [security scanning tools](#Security tools) for the validator
+> \* Docker is recommended because the image contains all the [security scanning tools](#security-tools) for the validator
 
 ### With NPX
 
