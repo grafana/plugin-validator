@@ -16,6 +16,8 @@ builds:
       - darwin
     env:
       - CGO_ENABLED=0
+archives:
+  - format: binary
 
 checksum:
   name_template: "checksums.txt"
