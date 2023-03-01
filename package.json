@@ -3,7 +3,12 @@
   "version": "0.7.3",
   "description": "Grafana Plugin Validator",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "install": "binwrap-install",
+    "prepare": "binwrap-prepare",
+    "test": "binwrap-test",
+    "prepublish": "npm test"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grafana/plugin-validator.git"
@@ -20,13 +25,13 @@
   },
   "homepage": "https://github.com/grafana/plugin-validator#readme",
   "dependencies": {
-    "go-npm": "^0.1.9"
+    "binwrap": "^0.2.3"
   },
-  "postinstall": "go-npm install",
-  "preuninstall": "go-npm uninstall",
-  "goBinary": {
-    "name": "plugincheck2",
-    "path": "./bin",
-    "url": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
+  "files": [
+    "index.js",
+    "bin"
+  ],
+  "bin": {
+    "plugincheck2": "bin/plugincheck2"
   }
 }
