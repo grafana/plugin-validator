@@ -1,5 +1,28 @@
 ---
 kind: pipeline
+name: test docker build
+steps:
+  - image: plugins/docker
+    name: build + test + push
+    settings:
+      dry_run: true
+      password:
+        from_secret: docker-hub-password
+      repo: grafana/plugin-validator-cli
+      tags: latest
+      username:
+        from_secret: docker-hub-username
+trigger:
+  branch:
+    exclude:
+      - main
+  event:
+    include:
+      - push
+      - pull_request
+type: docker
+---
+kind: pipeline
 name: build and push pipeline
 steps:
   - image: plugins/docker
@@ -19,11 +42,6 @@ trigger:
   event:
     include:
       - push
-  paths:
-    include:
-      - go.mod
-      - go.sum
-      - "**/*.go"
 type: docker
 ---
 get:
@@ -39,6 +57,6 @@ kind: secret
 name: docker-hub-password
 ---
 kind: signature
-hmac: 813d442af2ca48cd37871782dda991e7442d6679af5cd74b090395b2374badba
+hmac: 931e3ddd7923cb1c3a3dfa888495ab6789a0ba731c9a018a7987fd8081ab286c
 
 ...
