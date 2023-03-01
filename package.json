@@ -1,11 +1,9 @@
 {
-  "name": "plugin-validator",
+  "name": "@grafana/plugin-validator",
   "version": "0.7.1",
   "description": "Grafana Plugin Validator",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grafana/plugin-validator.git"
@@ -15,7 +13,7 @@
     "plugins",
     "validator"
   ],
-  "author": "GrafanaLabs",
+  "author": "Grafana",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/grafana/plugin-validator/issues"
@@ -27,8 +25,8 @@
   "postinstall": "go-npm install",
   "preuninstall": "go-npm uninstall",
   "goBinary": {
-    "name": "command-name",
+    "name": "plugincheck2",
     "path": "./bin",
-    "url": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin_check2_{{platform}}_{{arch}}.tar.gz"
+    "url": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
   }
 }
