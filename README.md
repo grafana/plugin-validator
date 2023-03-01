@@ -135,8 +135,8 @@ You may pass the sourceCodeUri to the validator in order to perform source code 
 
 The following git services are supported
 
-- Github
-- Gitlab
+- GitHub
+- GitLab
 - Bitbucket
 
 Make sure to include the ref (branch or tag) of the corresponding source code.
