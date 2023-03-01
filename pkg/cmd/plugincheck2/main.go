@@ -38,12 +38,6 @@ func main() {
 	logme.Debugln("source code: ", *sourceCodeUri)
 	logme.Debugln("archive file: ", flag.Arg(0))
 
-	if *configFlag == "" {
-		logme.Errorln("no config file specified")
-		flag.Usage()
-		os.Exit(1)
-	}
-
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("couldn't read configuration: %w", err))
@@ -156,6 +150,16 @@ func main() {
 }
 
 func readConfigFile(path string) (runner.Config, error) {
+
+	// provide a default config if no config file is provided
+	if path == "" {
+		return runner.Config{
+			Global: runner.GlobalConfig{
+				Enabled: true,
+			},
+		}, nil
+	}
+
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return runner.Config{}, err

@@ -12,10 +12,13 @@ import (
 
 func TestTrackingScriptsValid(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
+	var moduleJsMap = map[string][]byte{
+		"module.js": []byte(`import { PanelPlugin } from '@grafana/data'`),
+	}
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: []byte(`import { PanelPlugin } from '@grafana/data'`),
+			modulejs.Analyzer: moduleJsMap,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -27,10 +30,13 @@ func TestTrackingScriptsValid(t *testing.T) {
 
 func TestTrackingScriptsInvalid(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
+	var moduleJsMap = map[string][]byte{
+		"module.js": []byte(`https://www.google-analytics.com/analytics.js`),
+	}
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: []byte(`https://www.google-analytics.com/analytics.js`),
+			modulejs.Analyzer: moduleJsMap,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}

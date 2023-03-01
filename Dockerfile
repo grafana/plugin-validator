@@ -15,7 +15,6 @@ RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v build:ci && \
     ls -al bin
 
-
 FROM alpine:3.17
 RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk && \
     update-ca-certificates

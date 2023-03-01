@@ -12,13 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func isGoSecInstalled(t *testing.T) bool {
+func isGoSecInstalled() bool {
 	goSecPath, _ := exec.LookPath("gosec")
 	return goSecPath != ""
 }
 
 func TestGoSecNoWarnings(t *testing.T) {
-	if !isGoSecInstalled(t) {
+	if !isGoSecInstalled() {
 		t.Skip("gosec not installed, skipping test")
 		return
 	}
@@ -38,7 +38,7 @@ func TestGoSecNoWarnings(t *testing.T) {
 }
 
 func TestWithGoSecWarnings(t *testing.T) {
-	if !isGoSecInstalled(t) {
+	if !isGoSecInstalled() {
 		t.Skip("gosec not installed, skipping test")
 		return
 	}
