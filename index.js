@@ -9,7 +9,6 @@ module.exports = binwrap({
   dirname: __dirname,
   binaries: ["plugincheck2"],
   urls: {
-    // plugin-validator_0.7.3_darwin_amd64.tar.gz
     "darwin-x64":
       root + "/plugin-validator_" + version + "_darwin_amd64.tar.gz",
     "darwin-arm64":
