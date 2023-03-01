@@ -19,11 +19,6 @@ trigger:
   event:
     include:
       - push
-  paths:
-    include:
-      - go.mod
-      - go.sum
-      - "**/*.go"
 type: docker
 ---
 get:
@@ -39,6 +34,6 @@ kind: secret
 name: docker-hub-password
 ---
 kind: signature
-hmac: 813d442af2ca48cd37871782dda991e7442d6679af5cd74b090395b2374badba
+hmac: c53b967164396292dd774c23370f4ee7065f6afcc8d93a9bda01c46ba960106f
 
 ...
