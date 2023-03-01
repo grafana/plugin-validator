@@ -6,16 +6,16 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 builds:
-  # - env:
-  #     - CGO_ENABLED=0
-  #   goos:
-  #     - linux
-  #     - windows
-  #     - darwin
   - # plugin check
     id: plugincheck2
     main: ./pkg/cmd/plugincheck2
     binary: plugincheck2
+    goos:
+      - linux
+      - windows
+      - darwin
+    env:
+      - CGO_ENABLED=0
 
 archives:
   - format: tar.gz
