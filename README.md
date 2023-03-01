@@ -6,36 +6,67 @@ A tool for validating community plugins for publishing to Grafana.com.
 
 The tool expects path to either a remote or a local ZIP archive.
 
-## Install
+## Install and usage
+
+### With docker (recommended\*)
 
 ```SHELL
-cd pkg/cmd/plugincheck2
+docker run --pull=always grafana/plugin-validator-cli -sourceCodeUri [source_code_location/] [plugin_archive.zip]
+```
+
+Example:
+
+```SHELL
+docker run --pull=always grafana/plugin-validator-cli -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
+```
+
+> \* Docker is recommended because the image contains all the security scanning tools for the validator such as semgrep, gosec and osv-scanner
+
+### With NPX
+
+```SHELL
+npx -y @grafana/plugin-validator -sourceCodeUri [source_code_location/] [plugin_archive.zip]
+```
+
+Example:
+
+```SHELL
+nnpx -y @grafana/plugin-validator -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zippx -y @grafana/plugin-validator -sourceCodeUri
+```
+
+### Locally
+
+First you must compile and install it
+
+```SHELL
+git clone git@github.com:grafana/plugin-validator.git
+cd plugin-validator/pkg/cmd/plugincheck2
 go install
 ```
 
-## Run
-
-Typically running the checker with default settings is the easiest method to see if there are issues with a plugin.
+Then you can run the utility
 
 ```SHELL
-plugincheck2 -config config/default.yaml https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
+plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 ```
 
-To wrap the output with another tool (like the validator ui), running with the `terse-json.yaml` config can be used.
+## Options
 
-```SHELL
-plugincheck2 -config config/terse-json.yaml https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
 ```
+❯ plugincheck2 -help
+Usage plugincheck2:
+  -config string (optional)
+        Path to configuration file
+  -sourceCodeUri string (optional)
+        URI to the source code of the plugin. If set, the source code will be downloaded and analyzed. This can be a ZIP file URL, an URL to git repository or a local file (starting with `file://`)
+  -strict (optional)
+        If set, plugincheck returns non-zero exit code for warnings
 
-Verbose json output is available to show all checks made, with status for each.
-
-```SHELL
-plugincheck2 -config config/verbose-json.yaml https://github.com/marcusolsson/grafana-jsonapi-datasource/releases/download/v0.6.0/marcusolsson-json-datasource-0.6.0.zip
 ```
 
 ## Configuration
 
-You must pass a configuration file to the validator with the `-config` option. Several configuraton examples are available to use here <https://github.com/grafana/plugin-validator/tree/main/config>
+You can pass a configuration file to the validator with the `-config` option. Several configuraton examples are available to use here <https://github.com/grafana/plugin-validator/tree/main/config>
 
 ### Enabling and disabling analyzers via config
 
@@ -73,6 +104,58 @@ analyzers:
 Severity levels could be: `error`, `warning`, `ok`
 
 Please notice that Grafanalabs uses its own configuration for plugins submissions and your own config file can't change these rules.
+
+## Debug mode
+
+You can run the validator in debug mode to get more information about the running checks and possible errors.
+
+With Docker:
+
+```SHELL
+docker run --pull=always -e DEBUG=1 grafana/plugin-validator-cli -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
+```
+
+With NPX:
+
+```SHELL
+DEBUG=1 npx -y @grafana/plugin-validator -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
+```
+
+Locally:
+
+```SHELL
+DEBUG=1 plugincheck2 -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
+```
+
+## Sourcecode and Git repositories
+
+You may pass the sourceCodeUri to the validator in order to perform source code checks (`-sourceCodeUri` option).
+
+### Using git URLs
+
+The following git services are supported
+
+- Github
+- Gitlab
+- Bitbucket
+
+Make sure to include the ref (branch or tag) of the corresponding source code.
+
+e.g.: You are validating version `v2.1.2` and your project is in github. Make sure you create a corresponding tag or branch and use the url `https://github.com/grafana/clock-panel/tree/v2.1.2`
+
+> Do you use a different service and would like us to support it? Open a [feature request](https://github.com/grafana/clock-panel/issues)
+
+## Security tools
+
+This validator makes uses of the following open source security tools:
+
+- [osv-scanner](https://github.com/google/osv-scanner)
+- [semgrep](https://github.com/returntocorp/semgrep)
+- [gosec](https://github.com/securego/gosec)
+
+If you run the validator locally or via NPX you can benefit from installing these tools in your system to make them part of your validation checks.
+
+---
 
 ## Analyzers
 
