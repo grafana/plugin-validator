@@ -20,7 +20,7 @@ Example:
 docker run --pull=always grafana/plugin-validator-cli -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
 ```
 
-> \* Docker is recommended because the image contains all the security scanning tools for the validator such as semgrep, gosec and osv-scanner
+> \* Docker is recommended because the image contains all the [security scanning tools](#Security tools) for the validator
 
 ### With NPX
 
@@ -31,7 +31,7 @@ npx -y @grafana/plugin-validator -sourceCodeUri [source_code_location/] [plugin_
 Example:
 
 ```SHELL
-nnpx -y @grafana/plugin-validator -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zippx -y @grafana/plugin-validator -sourceCodeUri
+npx -y @grafana/plugin-validator -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
 ```
 
 ### Locally
