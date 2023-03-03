@@ -289,7 +289,7 @@ global:
 ## Getting Help
 
 - :open_book: Check out our plugin [documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
-- See our other [Plugin Tools](https://grafana.github.io/plugin-tools/) to create and update plugins.  
+- :rocket: See our other [Plugin Tools](https://grafana.github.io/plugin-tools/) to create and update plugins.  
 - :handshake: Join the [community forum](https://community.grafana.com/tag/plugins).  
 - :speech_balloon: Chat to us in the Grafana Slack [#plugins channel](https://grafana.slack.com/archives/C3HJV5PNE).  
 - :memo: [File an issue](https://github.com/grafana/plugin-validator/issues) for any bugs or feature requests.  
