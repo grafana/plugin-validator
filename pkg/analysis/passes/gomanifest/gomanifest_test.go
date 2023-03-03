@@ -25,7 +25,7 @@ func TestSrcWithGoFilesNoManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "Could not find or parse go manifest file")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "Could not find or parse Go manifest file")
 }
 
 func TestSrcWithoutGoFiles(t *testing.T) {
