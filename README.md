@@ -57,6 +57,23 @@ Then you can run the utility:
 plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 ```
 
+### NPX With Local Files
+
+You must create a `.zip` archive containing the `dist/` directory but named as your plugin ID.
+
+```SHELL
+PLUGIN_ID=$(grep '"id"' < src/plugin.json | sed -E 's/.*"id" *: *"(.*)".*/\1/')
+cp -r dist "${PLUGIN_ID}"
+zip -qr "${PLUGIN_ID}.zip" "${PLUGIN_ID}"
+npx @grafana/plugin-validator@latest -sourceCodeUri file://. "${PLUGIN_ID}.zip"
+```
+
+You can optionally remove the files that were generated:
+
+```SHELL
+rm -r "${PLUGIN_ID}" "${PLUGIN_ID}.zip"
+```
+
 ## Options
 
 Additional options can be passed to the tool:
