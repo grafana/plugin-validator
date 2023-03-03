@@ -86,7 +86,7 @@ func TestAccessFS(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 3)
 	titles := []string{
-		"It is not permitted to access the file system. Using fs.ReadFile is not permited.",
+		"It is not permitted to access the file system. Using fs.ReadFile is not permitted.",
 		"It is not permitted to access the file system.",
 		"It is not permitted to access the file system.",
 	}
@@ -110,5 +110,5 @@ func TestUseSyscall(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "It is not permitted to use the syscall module. Using syscall.Getcwd is not permited", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "It is not permitted to use the syscall module. Using syscall.Getcwd is not permitted", interceptor.Diagnostics[0].Title)
 }

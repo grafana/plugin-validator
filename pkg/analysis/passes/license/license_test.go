@@ -57,7 +57,7 @@ func TestNoLicenseFound(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Title, "LICENSE file not found")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+	require.Equal(t, interceptor.Diagnostics[0].Detail, "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
 }
 
 func TestValidMitLicense(t *testing.T) {
