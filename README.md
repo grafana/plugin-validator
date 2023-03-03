@@ -177,7 +177,7 @@ The tool runs a series of analyzers to ensure submitted plugins are following be
 | Broken Links / `brokenlinks` | Detects if any url does not resolve to a valid location. | None |
 | Code Rules / `coderules` | Checks for forbidden access to environment variables, file system or use of `syscall` module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
 | Go Manifest / `gomanifest` | Validates the build manifest. | `sourceCodeUri` |
-| Go Security Checker / `gosec` | Inspects source code for security problems by scanning the Go AST. | [[gosec](https://github.com/securego/gosec)], `sourceCodeUri` |
+| Go Security Checker / `gosec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
 | JS Source Map / `jssourcemap` | Checks for required module.js.map file(s) in archive. | `sourceCodeUri` |
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the marketplace. | none |
 | HTML in Readme / `htmlreadme` | Detects if there are any html tags used in the README.md, as they will not render in the marketplace. | None |
