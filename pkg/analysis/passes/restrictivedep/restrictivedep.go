@@ -40,7 +40,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if regexp.MustCompile("^[0-9]+.[0-9]+.x$").Match([]byte(data.Dependencies.GrafanaDependency)) {
 		version := strings.TrimSuffix(data.Dependencies.GrafanaDependency, ".x")
-		pass.ReportResult(pass.AnalyzerName, dependsOnPatchReleases, fmt.Sprintf("plugin.json: grafanaDependency only targets patch releases of Grafana %s", version), "The plugin will only work in patch releases of the specified minor grafana version.")
+		pass.ReportResult(pass.AnalyzerName, dependsOnPatchReleases, fmt.Sprintf("plugin.json: grafanaDependency only targets patch releases of Grafana %s", version), "The plugin will only work in patch releases of the specified minor Grafana version.")
 		return nil, nil
 	} else {
 		if dependsOnPatchReleases.ReportAll {
@@ -50,7 +50,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if regexp.MustCompile("^[0-9]+.[0-9]+.[0-9]+$").Match([]byte(data.Dependencies.GrafanaDependency)) {
-		pass.ReportResult(pass.AnalyzerName, dependsOnSingleRelease, fmt.Sprintf("plugin.json: grafanaDependency only targets Grafana %s", data.Dependencies.GrafanaDependency), "The plugin will only work in the specific version of grafana down to patch version.")
+		pass.ReportResult(pass.AnalyzerName, dependsOnSingleRelease, fmt.Sprintf("plugin.json: grafanaDependency only targets Grafana %s", data.Dependencies.GrafanaDependency), "The plugin will only work in the specific version of Grafana down to patch version.")
 		return nil, nil
 	} else {
 		if dependsOnSingleRelease.ReportAll {

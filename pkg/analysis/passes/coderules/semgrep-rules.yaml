@@ -30,7 +30,7 @@ rules:
     patterns:
       - pattern-either:
           - pattern: fs.$F(...)
-    message: It is not permitted to access the file system. Using fs.$F is not permited.
+    message: It is not permitted to access the file system. Using fs.$F is not permitted.
     languages: [go]
     severity: ERROR
   - id: access-file-system-with-filepath
@@ -107,6 +107,6 @@ rules:
           # generally speaking there's no valid reason for a plugin
           # to use this module
           - pattern: syscall.$F(...)
-    message: It is not permitted to use the syscall module. Using syscall.$F is not permited
+    message: It is not permitted to use the syscall module. Using syscall.$F is not permitted
     languages: [go]
     severity: ERROR

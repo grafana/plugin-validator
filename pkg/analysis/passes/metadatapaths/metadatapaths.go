@@ -110,7 +110,7 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 			_, err = os.Stat(fullPath)
 			if err != nil {
 				if os.IsNotExist(err) {
-					pass.ReportResult(pass.AnalyzerName, pathNotExists, fmt.Sprintf("plugin.json: %s path doesn't exists: %s", path.kind, path.path), "Refer only existing files. Make sure the files refered in plugin.json are included in the archive.")
+					pass.ReportResult(pass.AnalyzerName, pathNotExists, fmt.Sprintf("plugin.json: %s path doesn't exists: %s", path.kind, path.path), "Refer only existing files. Make sure the files referred in plugin.json are included in the archive.")
 				}
 			}
 		}

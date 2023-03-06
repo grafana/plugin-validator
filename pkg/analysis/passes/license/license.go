@@ -33,14 +33,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	licenseFilePath := filepath.Join(archiveDir, "LICENSE")
 	licenseFile, err := os.Stat(licenseFilePath)
 	if err != nil || licenseFile.IsDir() {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
 		return nil, nil
 	}
 
 	// validate that the LICENSE file is exists (filer lib method)
 	filer, err := filer.FromDirectory(archiveDir)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
 		return nil, nil
 	}
 

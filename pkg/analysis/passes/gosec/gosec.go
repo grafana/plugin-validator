@@ -68,7 +68,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var goSectResults GosecResult
 	err = json.Unmarshal(goSecOutput, &goSectResults)
 	if err != nil {
-		fmt.Println("Error running gosec1", err)
+		fmt.Println("Error running gosec", err)
 		logme.Errorln("Error unmarshalling gosec output", "error", err)
 		// breaking the validator to notify the user that the gosec output is not as expected
 		return nil, err
@@ -87,7 +87,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if count > 0 {
-		pass.ReportResult(pass.AnalyzerName, goSectIssueFound, fmt.Sprintf("Gosec analsys reports %d issues with %s severity", count, targetSeverity), fmt.Sprintf("Run gosec https://github.com/securego/gosec in your plugin code to see the issues. Found issues in rules: %s", strings.Join(brokenRules, ", ")))
+		pass.ReportResult(pass.AnalyzerName, goSectIssueFound, fmt.Sprintf("gosec analysis reports %d issues with %s severity", count, targetSeverity), fmt.Sprintf("Run gosec https://github.com/securego/gosec in your plugin code to see the issues. Found issues in rules: %s", strings.Join(brokenRules, ", ")))
 	}
 
 	return nil, nil
