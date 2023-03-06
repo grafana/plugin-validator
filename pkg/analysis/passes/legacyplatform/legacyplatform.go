@@ -48,7 +48,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		for _, regex := range legacyDetectionRegexes {
 			if regex.Match(content) {
-				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (e.g. angularjs). Please migrate the plugin to use the new plugins platform.")
+				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
 				hasLegacyPlatform = true
 				break
 			}

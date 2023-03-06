@@ -214,7 +214,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// nothing to do...
 		scanningSucceeded.Severity = analysis.OK
 		if scanningSucceeded.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scannner skipped", "Scanning skipped: No lock files detected")
+			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scanner skipped", "Scanning skipped: No lock files detected")
 		}
 	}
 

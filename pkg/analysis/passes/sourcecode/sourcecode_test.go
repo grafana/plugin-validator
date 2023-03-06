@@ -77,7 +77,7 @@ func TestSourceCodeNotProvidedReportAll(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Sourcecode not provided or the provided URL  does not point to a valid source code repository", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "Source code not provided or the provided URL  does not point to a valid source code repository", interceptor.Diagnostics[0].Title)
 	require.Equal(t, nil, sourceCodeDir)
 }
 
@@ -187,7 +187,7 @@ func TestAllowHumanJson(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
-func TestVersionMissMatch(t *testing.T) {
+func TestVersionMisMatch(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	// note the test file has version 2.1.2
@@ -201,7 +201,7 @@ func TestVersionMissMatch(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "version-missmatch"),
+		SourceCodeDir: filepath.Join("testdata", "version-mismatch"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},

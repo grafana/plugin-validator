@@ -78,7 +78,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if diffReport.TotalDifferences != 0 {
-			logme.DebugFln("source map missmatch for %s", file)
+			logme.DebugFln("source map mismatch for %s", file)
 			logme.Debugln("---REPORT START--")
 			logme.Debugln("\n\n" + diffReport.GeneratePrintableReport())
 			logme.Debugln("---REPORT-END---")

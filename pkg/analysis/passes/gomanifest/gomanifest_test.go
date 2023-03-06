@@ -25,7 +25,7 @@ func TestSrcWithGoFilesNoManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "Could not find or parse go manifest file")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "Could not find or parse Go manifest file")
 }
 
 func TestSrcWithoutGoFiles(t *testing.T) {
@@ -74,7 +74,7 @@ func TestIncorrectManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The go build manifest does not match the source code")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
 }
 
 func TestMissingFileInManifest(t *testing.T) {
@@ -91,7 +91,7 @@ func TestMissingFileInManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The go build manifest does not match the source code")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
 }
 
 func TestMissingFileInSourceCode(t *testing.T) {
@@ -108,5 +108,5 @@ func TestMissingFileInSourceCode(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The go build manifest does not match the source code")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
 }
