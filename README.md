@@ -57,7 +57,7 @@ Then you can run the utility:
 plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 ```
 
-### NPX With Local Files
+### Generating Local Files For Validation
 
 You must create a `.zip` archive containing the `dist/` directory but named as your plugin ID.
 
