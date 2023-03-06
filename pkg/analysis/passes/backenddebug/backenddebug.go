@@ -24,8 +24,14 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
@@ -49,7 +55,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			backendDebugFilePresent,
 			"found standalone backend file",
-			fmt.Sprintf("You have bundled %q, which will make the plugin unusable in production mode. Please get rid of it", fn),
+			fmt.Sprintf("You have bundled %q, which will make the plugin unusable in production mode. Please remove it", fn),
 		)
 	}
 	return nil, nil

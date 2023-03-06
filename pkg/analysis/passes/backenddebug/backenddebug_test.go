@@ -11,12 +11,46 @@ import (
 	"testing"
 )
 
-func TestBackendDebug(t *testing.T) {
-	var (
-		pluginJSONWithExecutable = []byte(`{"executable": "gpx_plugin"}`)
-		pluginJSONEmpty          = []byte(`{}`)
-	)
+var (
+	pluginJSONWithExecutable    = []byte(`{"executable": "gpx_plugin"}`)
+	pluginJSONWithoutExecutable = []byte(`{}`)
+)
 
+func TestBackendDebug_Correct(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		folder     string
+		pluginJSON []byte
+	}{
+		{
+			name:       "with executable",
+			folder:     "correct",
+			pluginJSON: pluginJSONWithExecutable,
+		},
+		{
+			name:       "standalone-txt without executable",
+			folder:     "standalone-txt",
+			pluginJSON: pluginJSONWithoutExecutable,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pass := &analysis.Pass{
+				RootDir: filepath.Join("testdata", tc.folder),
+				ResultOf: map[*analysis.Analyzer]interface{}{
+					archive.Analyzer:  filepath.Join("testdata", tc.folder),
+					metadata.Analyzer: tc.pluginJSON,
+				},
+				Report: interceptor.ReportInterceptor(),
+			}
+			_, err := Analyzer.Run(pass)
+			require.NoError(t, err)
+			require.Empty(t, interceptor.Diagnostics)
+		})
+	}
+}
+
+func TestBackendDebug(t *testing.T) {
 	for _, tc := range []struct {
 		name            string
 		folder          string
@@ -41,18 +75,6 @@ func TestBackendDebug(t *testing.T) {
 			pluginJSON:      pluginJSONWithExecutable,
 			failureFileName: []string{"standalone.txt", "pid.txt"},
 		},
-		{
-			name:            "correct",
-			folder:          "correct",
-			pluginJSON:      pluginJSONWithExecutable,
-			failureFileName: []string{},
-		},
-		{
-			name:            "standalone-txt with no executable",
-			folder:          "standalone-txt",
-			pluginJSON:      pluginJSONEmpty,
-			failureFileName: []string{},
-		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
@@ -66,11 +88,6 @@ func TestBackendDebug(t *testing.T) {
 			}
 			_, err := Analyzer.Run(pass)
 			require.NoError(t, err)
-			if len(tc.failureFileName) == 0 {
-				// Expect pass
-				require.Empty(t, interceptor.Diagnostics)
-				return
-			}
 
 			// Expect error
 			require.Len(t, interceptor.Diagnostics, len(tc.failureFileName))
