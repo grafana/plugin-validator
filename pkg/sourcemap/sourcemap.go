@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type rawSourceMap struct {
@@ -90,6 +91,14 @@ func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
 }
 
 func isIgnoredFile(sourceName string) bool {
+	// ignore css files
+	// remove anything after a ? to ignore query params
+	if strings.Contains(sourceName, "?") {
+		sourceName = sourceName[:strings.Index(sourceName, "?")]
+	}
+	if strings.HasSuffix(sourceName, ".css") {
+		return true
+	}
 	// ignore external and webpack bootstrap iles
 	ignore := false
 	for _, ignoreStart := range ignoreStartingWith {

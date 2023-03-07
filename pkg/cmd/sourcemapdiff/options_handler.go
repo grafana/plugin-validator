@@ -56,7 +56,7 @@ func sourceCodeUriToLocalPath(sourceCodeUri string) (string, func(), error) {
 	// if it is an url to a git repo, clone it
 	if (len(sourceCodeUri) > 4 && sourceCodeUri[:4] == "http") || (len(sourceCodeUri) > 3 && sourceCodeUri[:3] == "git") {
 		fmt.Println(":: URL found. Trying to clone repository...")
-		sourceCodePath, cleanup, err = repotool.CloneToTempDir(sourceCodeUri, "")
+		sourceCodePath, cleanup, err = repotool.GitUrlToLocalPath(sourceCodeUri)
 		if err != nil {
 			return "", nil, err
 		}
