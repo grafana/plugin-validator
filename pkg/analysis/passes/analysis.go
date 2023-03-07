@@ -4,6 +4,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/backenddebug"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
@@ -68,4 +69,5 @@ var Analyzers = []*analysis.Analyzer{
 	typesuffix.Analyzer,
 	unsafesvg.Analyzer,
 	version.Analyzer,
+	backenddebug.Analyzer,
 }

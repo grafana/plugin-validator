@@ -190,6 +190,7 @@ The tool runs a series of analyzers to ensure submitted plugins are following be
 | ------------- | ------------- | ------------- |
 | Archive Structure / `archive` | Ensures the contents of the zip file have the expected layout. | None |
 | Archive Name / `archivename` | The name of the archive should be correctly formatted. | None |
+| Backend Debug / `backenddebug` | Checks that the standalone debug files for backend plugins are not present. | None |
 | Binary Permissions / `binarypermissions` | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system. | None |
 | Broken Links / `brokenlinks` | Detects if any url does not resolve to a valid location. | None |
 | Code Rules / `coderules` | Checks for forbidden access to environment variables, file system or use of `syscall` module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
