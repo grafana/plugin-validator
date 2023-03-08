@@ -22,6 +22,8 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{licenseNotProvided},
 }
 
+// note: these follow the SPDX license list: https://spdx.org/licenses/
+// go-license-detector uses the same list with the same upper/lower case
 var validLicensesRegex = []*regexp.Regexp{
 	regexp.MustCompile(`^0BSD$`),
 	regexp.MustCompile(`^BSD-.*$`),
