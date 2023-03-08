@@ -80,9 +80,6 @@ func CompareSourceMapToSourceCode(sourceCodeMapFile string, sourceCodePath strin
 func (r *diffReport) GeneratePrintableReport() string {
 	var report string
 
-	report += fmt.Sprintf("Source code map path: %s\n", r.SourceCodeMapPath)
-	report += fmt.Sprintf("Source code path: %s\n", r.SourceCodePath)
-
 	if r.TotalDifferences > 0 {
 		report += fmt.Sprintf("\nFound %d file with differences\n", r.TotalDifferences)
 		for sourceMapFileName, source := range r.Sources {
