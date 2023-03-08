@@ -317,5 +317,3 @@ global:
 ## License
 
 Grafana Plugin Validator is distributed under the [Apache 2.0 License](https://github.com/grafana/plugin-validator/blob/master/LICENSE).
-
-We accept the following licenses for community plugins: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3.
