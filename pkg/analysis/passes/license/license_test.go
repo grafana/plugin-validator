@@ -76,13 +76,29 @@ func TestValidMitLicense(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
-func TestInvalidICsLicense(t *testing.T) {
+func TestValidLicenseBSD(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "ics"),
+			archive.Analyzer: filepath.Join("testdata", "bsd"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestInvalidUnilicenseLicense(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "unilicense"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
