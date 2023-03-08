@@ -3,7 +3,7 @@ package license
 import (
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 
 	"github.com/go-enry/go-license-detector/v4/licensedb"
 	"github.com/go-enry/go-license-detector/v4/licensedb/filer"
@@ -22,7 +22,15 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{licenseNotProvided},
 }
 
-var validLicenseStart = []string{"AGPL-3.0", "Apache-2.0", "MIT"}
+var validLicensesRegex = []*regexp.Regexp{
+	regexp.MustCompile(`^0BSD$`),
+	regexp.MustCompile(`^BSD-.*$`),
+	regexp.MustCompile(`^MIT.*$`),
+	regexp.MustCompile(`^Apache-2.0$`),
+	regexp.MustCompile(`^LGPL-3.*$`),
+	regexp.MustCompile(`^GPL-3.0.*$`),
+	regexp.MustCompile(`^AGPL-3.0.*$`),
+}
 
 const minRequiredConfidenceLevel float32 = 0.9
 
@@ -70,8 +78,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func isValidLicense(licenseName string) bool {
-	for _, prefix := range validLicenseStart {
-		if strings.HasPrefix(licenseName, prefix) {
+	for _, prefix := range validLicensesRegex {
+		if prefix.MatchString(licenseName) {
 			return true
 		}
 	}
