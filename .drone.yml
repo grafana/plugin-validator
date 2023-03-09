@@ -19,7 +19,6 @@ trigger:
   event:
     include:
       - push
-      - pull_request
 type: docker
 ---
 kind: pipeline
@@ -57,6 +56,4 @@ kind: secret
 name: docker-hub-password
 ---
 kind: signature
-hmac: 931e3ddd7923cb1c3a3dfa888495ab6789a0ba731c9a018a7987fd8081ab286c
-
-...
+hmac: c5e36f5208c6acff6c93589fa4657be8db5a5d9f016baa25a2d23aef0a74dfd4
