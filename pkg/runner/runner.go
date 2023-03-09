@@ -171,6 +171,9 @@ type BarebonePluginJson struct {
 * plugin.json file even exists
  */
 func getPluginId(archiveDir string) (string, error) {
+	if len(archiveDir) == 0 || archiveDir == "/" {
+		return "", fmt.Errorf("archiveDir is empty")
+	}
 	pluginJsonPath, err := doublestar.FilepathGlob(archiveDir + "/**/plugin.json")
 	if err != nil || len(pluginJsonPath) == 0 {
 		return "", fmt.Errorf("Error getting plugin.json path: %s", err)
