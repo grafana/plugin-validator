@@ -239,10 +239,16 @@ func (Run) V2() error {
 func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) error {
 	mg.Deps(Build.Local)
 
+	configFile := "config/pipeline.yaml"
+	// if config/custom.yaml exists, use it instead
+	if _, err := os.Stat("config/custom.yaml"); err == nil {
+		configFile = "config/custom.yaml"
+	}
+
 	command := []string{
 		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
-		"config/pipeline.yaml",
+		configFile,
 	}
 	if sourceCodePath != "" {
 		command = append(command, "-sourceCodeUri", sourceCodePath)
