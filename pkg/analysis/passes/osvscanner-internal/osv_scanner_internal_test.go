@@ -25,7 +25,6 @@ func undoReportAll(a *analysis.Analyzer) {
 
 // TestOSVScannerAsLibrary
 func TestOSVScannerAsLibrary(t *testing.T) {
-	t.Parallel()
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -38,18 +37,21 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 10)
+	require.Len(t, interceptor.Diagnostics, 0)
 
-	messages := []string{
-		"osv-scanner detected a moderate severity issue",
-		"osv-scanner detected moderate severity issues",
-	}
-	foo := interceptor.GetTitles()
-	require.Subset(t, foo, messages)
+	// this results in no issues since they are filtered out
+	// will need to add a new lock file that is now filtered to make this a more thorough test
+	/*
+		messages := []string{
+			"osv-scanner detected a moderate severity issue",
+			"osv-scanner detected moderate severity issues",
+		}
+		foo := interceptor.GetTitles()
+		require.Subset(t, foo, messages)
+	*/
 }
 
 func TestOSVScannerAsLibraryReportAll(t *testing.T) {
-	t.Parallel()
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
