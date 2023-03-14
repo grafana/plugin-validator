@@ -38,7 +38,7 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
+	require.Len(t, interceptor.Diagnostics, 10)
 
 	messages := []string{
 		"osv-scanner detected a moderate severity issue",
