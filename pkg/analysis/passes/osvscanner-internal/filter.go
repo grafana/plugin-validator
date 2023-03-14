@@ -1,6 +1,8 @@
 package OSVScannerInternal
 
 import (
+	"strings"
+
 	"github.com/google/osv-scanner/pkg/models"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner-internal/lockfile"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -17,6 +19,10 @@ func isFiltered(includeList map[string]bool) bool {
 
 // FilterOSVInternalResults
 func FilterOSVInternalResults(source models.VulnerabilityResults, lockFile string) models.VulnerabilityResults {
+	// not filtering go.mod yet
+	if strings.HasSuffix(lockFile, "go.mod") {
+		return source
+	}
 	var filtered models.VulnerabilityResults
 	// this expects a single result, with multiple packages since we are scanning a single file per-run
 	if len(source.Results) == 0 {
