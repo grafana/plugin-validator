@@ -52,7 +52,8 @@ func TestNoScreenshots(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	res, err := Analyzer.Run(pass)
+	require.Len(t, res, 0)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: should include screenshots for marketplace")
