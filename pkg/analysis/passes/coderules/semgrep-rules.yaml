@@ -22,7 +22,7 @@ rules:
           - pattern: syscall.Unsetenv("$ENV")
       - metavariable-regex:
           metavariable: $ENV
-          regex: (?!(GF_PLUGIN.*|GF_VERSION|GF_EDITION))
+          regex: (?!(GF_PLUGIN.*|GF_VERSION|GF_EDITION|GF_ENTERPRISE_LICENSE_PATH|GF_ENTERPRISE_LICENSE_TEXT|GF_ENTERPRISE_APP_URL|GF_ENTERPRISE_LICENSE_VALIDATION_KEY|GF_ENTERPRISE_LICENSE_VALIDATION_TYPE|AWS_AUTH_AllowedAuthProviders|AWS_AUTH_AssumeRoleEnabled|AWS_AUTH_SESSION_DURATION|GFAZPL_AZURE_CLOUD|GFAZPL_MANAGED_IDENTITY_ENABLED|GFAZPL_MANAGED_IDENTITY_CLIENT_ID|AZURE_CLOUD|AZURE_MANAGED_IDENTITY_ENABLED|AZURE_MANAGED_IDENTITY_CLIENT_ID))
     message: It is not permitted to access environment variables from plugins. $ENV is not an accessible variable.
     languages: [go]
     severity: WARNING
