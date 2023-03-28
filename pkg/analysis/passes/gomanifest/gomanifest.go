@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
@@ -25,12 +27,25 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "go-manifest",
-	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, errors.New("metadata not found")
+	}
+	var data metadata.Metadata
+	if err := json.Unmarshal(metadataBody, &data); err != nil {
+		return nil, err
+	}
+	if !data.Backend {
+		// not a backend plugin so we don't need to check the manifest
+		return nil, nil
+	}
+
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok {
 		return nil, errors.New("archive dir not found")
