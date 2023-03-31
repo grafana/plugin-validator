@@ -16,7 +16,7 @@ func getPackageDetails(locate string, packages []PackageDetails) (*PackageDetail
 
 // YarnWhyAll
 // Returns list of packages that caused the specified package to be pulled in
-// NOTE: this is a full list, without the hierarchy included (for speed)
+// NOTE: this is a full flattened list, without the hierarchy included (for speed)
 func YarnWhyAll(locate string, packages []PackageDetails) map[string]bool {
 	includedBy := make(map[string]bool)
 
