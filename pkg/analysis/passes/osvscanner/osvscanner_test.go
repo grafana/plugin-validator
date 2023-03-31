@@ -46,8 +46,8 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 			"osv-scanner detected a moderate severity issue",
 			"osv-scanner detected moderate severity issues",
 		}
-		foo := interceptor.GetTitles()
-		require.Subset(t, foo, messages)
+		titles := interceptor.GetTitles()
+		require.Subset(t, titles, messages)
 	*/
 }
 
@@ -80,6 +80,6 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 		"osv-scanner detected low severity issues",
 	}
 	require.Subset(t, interceptor.GetTitles(), messages)
-	foo := interceptor.GetTitles()
-	require.Subset(t, foo, messages)
+	titles := interceptor.GetTitles()
+	require.Subset(t, titles, messages)
 }
