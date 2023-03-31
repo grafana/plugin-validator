@@ -61,14 +61,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if _, err := os.Stat(lockFile); err == nil {
 			// perform scan
 			scanningPerformed = true
-			data, _ := scanInternal(lockFile)
-			scanningFailure.Severity = analysis.OK
-			if scanningFailure.ReportAll {
-				pass.ReportResult(
-					pass.AnalyzerName,
-					scanningFailure,
-					"osv-scanner successfully ran",
-					"osv-scanner successfully ran")
+			data, err := scanInternal(lockFile)
+			if err != nil {
+				if scanningFailure.ReportAll {
+					pass.ReportResult(
+						pass.AnalyzerName,
+						scanningFailure,
+						"osv-scanner failed to run",
+						fmt.Sprintf("osv-scanner failed to run: %s", err.Error()))
+				}
+			} else {
+				scanningFailure.Severity = analysis.OK
+				if scanningFailure.ReportAll {
+					pass.ReportResult(
+						pass.AnalyzerName,
+						scanningFailure,
+						"osv-scanner successfully ran",
+						"osv-scanner successfully ran")
+				}
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)

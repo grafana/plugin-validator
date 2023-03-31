@@ -1,6 +1,8 @@
 package osvscanner
 
 import (
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -82,4 +84,45 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 	require.Subset(t, interceptor.GetTitles(), messages)
 	titles := interceptor.GetTitles()
 	require.Subset(t, titles, messages)
+}
+
+func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "doesnotexist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "doesnotexist"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "invalid"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "invalid"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	// output goes to stderr, capture it and restore
+	saveStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+	_, err := Analyzer.Run(pass)
+	w.Close()
+	got, _ := ioutil.ReadAll(r)
+	os.Stderr = saveStderr
+
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+	require.Equal(t, "Failed to determine version of not a valid yarn.lock file while parsing a yarn.lock - please report this!\n", string(got))
 }
