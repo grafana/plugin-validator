@@ -15,13 +15,13 @@ import (
 )
 
 var (
-	scanningFailure                    = &analysis.Rule{Name: "osvscanner-failed", Severity: analysis.Warning}
-	scanningParseFailure               = &analysis.Rule{Name: "osvscanner-parse-failed", Severity: analysis.Warning}
-	scanningSucceeded                  = &analysis.Rule{Name: "osvscanner-succeeded", Severity: analysis.Warning}
-	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
-	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osvscanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osvscanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osvscanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	scanningFailure                    = &analysis.Rule{Name: "osv-scanner-failed", Severity: analysis.Warning}
+	scanningParseFailure               = &analysis.Rule{Name: "osv-scanner-parse-failed", Severity: analysis.Warning}
+	scanningSucceeded                  = &analysis.Rule{Name: "osv-scanner-succeeded", Severity: analysis.Warning}
+	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osv-scanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
+	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osv-scanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osv-scanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osv-scanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -67,8 +67,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				pass.ReportResult(
 					pass.AnalyzerName,
 					scanningFailure,
-					"osvscanner successfully ran",
-					"osvscanner successfully ran")
+					"osv-scanner successfully ran",
+					"osv-scanner successfully ran")
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
@@ -80,7 +80,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						scanningSucceeded,
-						"osvscanner passed",
+						"osv-scanner passed",
 						fmt.Sprintf("No issues for %s", scannerType))
 				}
 			} else {
