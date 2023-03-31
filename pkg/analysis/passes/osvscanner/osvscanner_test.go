@@ -1,7 +1,7 @@
 package osvscanner
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -119,7 +119,7 @@ func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
 	os.Stderr = w
 	_, err := Analyzer.Run(pass)
 	w.Close()
-	got, _ := ioutil.ReadAll(r)
+	got, _ := io.ReadAll(r)
 	os.Stderr = saveStderr
 
 	require.NoError(t, err)
