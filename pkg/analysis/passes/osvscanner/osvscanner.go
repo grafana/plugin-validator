@@ -67,8 +67,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				pass.ReportResult(
 					pass.AnalyzerName,
 					scanningFailure,
-					"osv-scanner-library successfully ran",
-					"osv-scanner-library successfully ran")
+					"osvscanner successfully ran",
+					"osvscanner successfully ran")
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
@@ -80,7 +80,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						scanningSucceeded,
-						"osvscanner-library passed",
+						"osvscanner passed",
 						fmt.Sprintf("No issues for %s", scannerType))
 				}
 			} else {
