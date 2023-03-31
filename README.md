@@ -78,7 +78,7 @@ rm -r "${PLUGIN_ID}" "${PLUGIN_ID}.zip"
 
 Additional options can be passed to the tool:
 
-```
+```BASH
 ❯ plugincheck2 -help
 Usage plugincheck2:
   -config string (optional)
