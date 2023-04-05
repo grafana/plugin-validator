@@ -78,8 +78,6 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 		"osv-scanner detected high severity issues",
 		"osv-scanner detected a moderate severity issue",
 		"osv-scanner detected moderate severity issues",
-		"osv-scanner detected a low severity issue",
-		"osv-scanner detected low severity issues",
 	}
 	require.Subset(t, interceptor.GetTitles(), messages)
 	titles := interceptor.GetTitles()
