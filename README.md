@@ -78,7 +78,7 @@ rm -r "${PLUGIN_ID}" "${PLUGIN_ID}.zip"
 
 Additional options can be passed to the tool:
 
-```
+```BASH
 ❯ plugincheck2 -help
 Usage plugincheck2:
   -config string (optional)
@@ -276,13 +276,13 @@ Resulting in output similar to:
         "Severity": "error",
         "Title": "osv-scanner detected a critical severity issue",
         "Detail": "SEVERITY: CRITICAL in package immer, vulnerable to CVE-2021-23436",
-        "Name": "osvscanner-critical-severity-vulnerabilities-detected"
+        "Name": "osv-scanner-critical-severity-vulnerabilities-detected"
       },
       {
         "Severity": "error",
         "Title": "osv-scanner detected a critical severity issue",
         "Detail": "SEVERITY: CRITICAL in package json-schema, vulnerable to CVE-2021-3918",
-        "Name": "osvscanner-critical-severity-vulnerabilities-detected"
+        "Name": "osv-scanner-critical-severity-vulnerabilities-detected"
       },
     ],
     "version": [

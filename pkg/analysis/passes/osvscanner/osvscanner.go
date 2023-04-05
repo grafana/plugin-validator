@@ -1,13 +1,13 @@
 package osvscanner
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/google/osv-scanner/pkg/models"
+	"github.com/google/osv-scanner/pkg/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -15,14 +15,13 @@ import (
 )
 
 var (
-	missingOSVScanner                  = &analysis.Rule{Name: "osvscanner-missing-binary", Severity: analysis.Warning}
-	scanningFailure                    = &analysis.Rule{Name: "osvscanner-exec-failed", Severity: analysis.Warning}
-	scanningParseFailure               = &analysis.Rule{Name: "osvscanner-parse-failed", Severity: analysis.Warning}
-	scanningSucceeded                  = &analysis.Rule{Name: "osvscanner-succeeded", Severity: analysis.Warning}
-	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osvscanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
-	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osvscanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osvscanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osvscanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	scanningFailure                    = &analysis.Rule{Name: "osv-scanner-failed", Severity: analysis.Warning}
+	scanningParseFailure               = &analysis.Rule{Name: "osv-scanner-parse-failed", Severity: analysis.Warning}
+	scanningSucceeded                  = &analysis.Rule{Name: "osv-scanner-succeeded", Severity: analysis.Warning}
+	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osv-scanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
+	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osv-scanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osv-scanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osv-scanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -30,7 +29,6 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, archive.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
-		missingOSVScanner,
 		osvScannerCriticalSeverityDetected,
 		osvScannerHighSeverityDetected,
 		osvScannerModerateSeverityDetected,
@@ -55,24 +53,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// make sure osv-scanner is in PATH
-	ovsBinaryPath, err := exec.LookPath("osv-scanner")
-	if err != nil {
-		pass.ReportResult(
-			pass.AnalyzerName,
-			missingOSVScanner,
-			"Binary for osv-scanner not found in PATH", "osv-scanner executable must be in your shell PATH.")
-		return nil, nil
-	} else {
-		missingOSVScanner.Severity = analysis.OK
-		if missingOSVScanner.ReportAll {
-			pass.ReportResult(
-				pass.AnalyzerName,
-				missingOSVScanner,
-				"Binary for osv-scanner was found in PATH", "osv-scanner executable exists in your shell PATH.")
-		}
-	}
-
 	// check for the different files we check for and run scanner on each
 	// if none are detected report OK
 	scanningPerformed := false
@@ -81,33 +61,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if _, err := os.Stat(lockFile); err == nil {
 			// perform scan
 			scanningPerformed = true
-			cmdArgs := []string{"--json", "--lockfile", lockFile}
-			data, err := exec.Command(ovsBinaryPath, cmdArgs...).Output()
-			// error output is expected from osv-scanner, but if the length is zero there was a problem
-			// running the command
-			if err != nil && len(string(err.Error())) == 0 {
-				// no output to stderr is an error
-				return nil, err
-			}
-			scanningFailure.Severity = analysis.OK
-			if scanningFailure.ReportAll {
-				pass.ReportResult(
-					pass.AnalyzerName,
-					scanningFailure,
-					"osv-scanner successfully ran",
-					"osv-scanner successfully ran and has output")
-			}
-			// deserialize json output, detect CRITICAL severity
-			var objmap OSVJsonOutput
-			if err := json.Unmarshal(data, &objmap); err != nil {
-				pass.ReportResult(
-					pass.AnalyzerName,
-					scanningFailure,
-					"osv-scanner output not recognized",
-					fmt.Sprintf("osv-scanner output for file %s could not be parsed: %s", scannerType, err))
+			data, err := scanInternal(lockFile)
+			if err != nil {
+				if scanningFailure.ReportAll {
+					pass.ReportResult(
+						pass.AnalyzerName,
+						scanningFailure,
+						"osv-scanner failed to run",
+						fmt.Sprintf("osv-scanner failed to run: %s", err.Error()))
+				}
+			} else {
+				scanningFailure.Severity = analysis.OK
+				if scanningFailure.ReportAll {
+					pass.ReportResult(
+						pass.AnalyzerName,
+						scanningFailure,
+						"osv-scanner successfully ran",
+						"osv-scanner successfully ran")
+				}
 			}
 
-			filteredResults := FilterOSVResults(objmap)
+			filteredResults := FilterOSVResults(data, lockFile)
 
 			// no results means no issues currently reported
 			if len(filteredResults.Results) == 0 {
@@ -133,14 +107,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						logme.DebugFln("vulnerabilities in package: %s", aPackage.Package.Name)
 						for _, aVulnerability := range aPackage.Vulnerabilities {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
-							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", aVulnerability.DatabaseSpecific.Severity, aPackage.Package.Name, aliases)
+							// make sure this key exists
+							severity := "n/a"
+							if val, ok := aVulnerability.DatabaseSpecific["severity"]; ok {
+								severity = val.(string)
+							}
+							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", severity, aPackage.Package.Name, aliases)
 							// prevent duplicate messages
 							if messagesReported[message] {
 								continue
 							}
 							// store it
 							messagesReported[message] = true
-							switch aVulnerability.DatabaseSpecific.Severity {
+							switch severity {
 							case SeverityCritical:
 								pass.ReportResult(
 									pass.AnalyzerName,
@@ -219,4 +198,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func scanInternal(lockPath string) (models.VulnerabilityResults, error) {
+	flagged := []string{
+		lockPath,
+	}
+
+	vulnResult, err := osvscanner.DoScan(osvscanner.ScannerActions{
+		LockfilePaths: flagged,
+	}, nil)
+
+	logme.DebugFln("%+v", vulnResult)
+	return vulnResult, err
 }

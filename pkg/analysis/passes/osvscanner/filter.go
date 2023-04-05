@@ -1,39 +1,48 @@
 package osvscanner
 
 import (
+	"strings"
+
+	"github.com/google/osv-scanner/pkg/models"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"golang.org/x/exp/maps"
 )
 
-func FilterOSVResults(source OSVJsonOutput) OSVJsonOutput {
-	// combine all packages
-	allPackages := make(map[string]bool, 0)
-	maps.Copy(allPackages, CommonPackages)
-	maps.Copy(allPackages, GrafanaDataPackages)
-	maps.Copy(allPackages, GrafanaE2EPackages)
-	maps.Copy(allPackages, GrafanaToolkitPackages)
-	maps.Copy(allPackages, GrafanaUIPackages)
-	// filter out known packages pulled in by our npm packages
-	filtered := filterPackages(allPackages, source)
-	return filtered
+func isFiltered(includeList map[string]bool) bool {
+	for packageName := range includeList {
+		if GrafanaPackages[packageName] {
+			return true
+		}
+	}
+	return false
 }
 
-// filterPackages
-func filterPackages(filters map[string]bool, source OSVJsonOutput) OSVJsonOutput {
-	var filtered OSVJsonOutput
+// FilterOSVResults
+func FilterOSVResults(source models.VulnerabilityResults, lockFile string) models.VulnerabilityResults {
+	// not filtering go.mod yet
+	if strings.HasSuffix(lockFile, "go.mod") {
+		return source
+	}
+	var filtered models.VulnerabilityResults
 	// this expects a single result, with multiple packages since we are scanning a single file per-run
 	if len(source.Results) == 0 {
 		// return empty results
+		return source
+	}
+	// parse the lockfile
+	parsedPackages, err := lockfile.ParseYarnLock(lockFile)
+	if err != nil {
 		return source
 	}
 	// copy the first (and only) result
 	filtered.Results = append(filtered.Results, source.Results[0])
 	// empty the packages
 	filtered.Results[0].Packages = nil
-	// process
+	// iterate over the vulnerabilities and match against our list
 	for _, aPackage := range source.Results[0].Packages {
 		packageName := aPackage.Package.Name
-		if !filters[packageName] {
+		includedBy := lockfile.YarnWhyAll(packageName, parsedPackages)
+		if !isFiltered(includedBy) {
 			logme.DebugFln("not filtered: %s", packageName)
 			filtered.Results[0].Packages = append(filtered.Results[0].Packages, aPackage)
 		} else {

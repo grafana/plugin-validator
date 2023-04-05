@@ -1,7 +1,8 @@
 package osvscanner
 
 import (
-	"os/exec"
+	"io"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -11,11 +12,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
-
-func isOSVScannerInstalled(t *testing.T) bool {
-	osvScannerPath, _ := exec.LookPath("osv-scanner")
-	return osvScannerPath != ""
-}
 
 func reportAll(a *analysis.Analyzer) {
 	for _, r := range a.Rules {
@@ -29,162 +25,8 @@ func undoReportAll(a *analysis.Analyzer) {
 	}
 }
 
-// TestCanRunScanner
-func TestCanRunScanner(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
-
-// TestCanRunScannerReportAll
-func TestCanRunScannerReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 2)
-	messages := []string{
-		"Binary for osv-scanner was found in PATH",
-		"osv-scanner successfully ran",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
-
-// TestEmptyResults
-func TestEmptyResults(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
-
-// TestEmptyResultsReportAll
-func TestEmptyResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "golang", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "golang", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 2)
-	messages := []string{
-		"Binary for osv-scanner was found in PATH",
-		"osv-scanner successfully ran",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
-
-// TestNoIssueResults
-func TestNoIssueResults(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
-
-// TestNoIssueResultsReportAll
-func TestNoIssueResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "none"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "none"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 3)
-	messages := []string{
-		"osv-scanner passed",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
-
-// TestCriticalSeverityResults
-func TestCriticalSeverityResults(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
+// TestOSVScannerAsLibrary
+func TestOSVScannerAsLibrary(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -194,22 +36,24 @@ func TestCriticalSeverityResults(t *testing.T) {
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
+
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 2)
-	messages := []string{
-		"osv-scanner detected a critical severity issue",
-		"osv-scanner detected critical severity issues",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
+	require.Len(t, interceptor.Diagnostics, 0)
+
+	// this results in no issues since they are filtered out
+	// will need to add a new lock file that is now filtered to make this a more thorough test
+	/*
+		messages := []string{
+			"osv-scanner detected a moderate severity issue",
+			"osv-scanner detected moderate severity issues",
+		}
+		titles := interceptor.GetTitles()
+		require.Subset(t, titles, messages)
+	*/
 }
 
-// TestCriticalSeverityResultsReportAll checks for a critical severity issue
-func TestCriticalSeverityResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
+func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -219,37 +63,7 @@ func TestCriticalSeverityResultsReportAll(t *testing.T) {
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 4)
-	messages := []string{
-		"osv-scanner detected a critical severity issue",
-		"osv-scanner detected critical severity issues",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
 
-// TestHighSeverityResultsReportAll
-// high severity does not report any output, unless the report all option is enabled
-func TestHighSeverityResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "high"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "high"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
 	// Turn on ReportAll for all rules, then turn it back off at the end of the test
 	reportAll(Analyzer)
 	t.Cleanup(func() {
@@ -257,75 +71,58 @@ func TestHighSeverityResultsReportAll(t *testing.T) {
 	})
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 4)
+	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 10)
+
 	messages := []string{
 		"osv-scanner detected a high severity issue",
 		"osv-scanner detected high severity issues",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
-
-// TestModerateSeverityResultsReportAll checks for a moderate severity issue
-// moderate severity does not report any output, unless the report all option is enabled
-func TestModerateSeverityResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "golang", "moderate"),
-			sourcecode.Analyzer: filepath.Join("testdata", "golang", "moderate"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 4)
-	messages := []string{
 		"osv-scanner detected a moderate severity issue",
 		"osv-scanner detected moderate severity issues",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-}
-
-// TestLowSeverityResultsReportAll checks for a low severity issue
-func TestLowSeverityResultsReportAll(t *testing.T) {
-	if !isOSVScannerInstalled(t) {
-		t.Skip("osv-scanner not installed, skipping test")
-		return
-	}
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "low"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "low"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 6)
-	messages := []string{
 		"osv-scanner detected a low severity issue",
 		"osv-scanner detected low severity issues",
 	}
 	require.Subset(t, interceptor.GetTitles(), messages)
-	details := []string{
-		"SEVERITY: LOW in package debug, vulnerable to CVE-2017-16137",
+	titles := interceptor.GetTitles()
+	require.Subset(t, titles, messages)
+}
+
+func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "doesnotexist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "doesnotexist"),
+		},
+		Report: interceptor.ReportInterceptor(),
 	}
-	require.Subset(t, interceptor.GetDetails(), details)
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "invalid"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "invalid"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	// output goes to stderr, capture it and restore
+	saveStderr := os.Stderr
+	r, w, _ := os.Pipe()
+	os.Stderr = w
+	_, err := Analyzer.Run(pass)
+	w.Close()
+	got, _ := io.ReadAll(r)
+	os.Stderr = saveStderr
+
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+	require.Equal(t, "Failed to determine version of not a valid yarn.lock file while parsing a yarn.lock - please report this!\n", string(got))
 }
