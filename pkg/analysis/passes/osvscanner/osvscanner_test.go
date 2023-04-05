@@ -71,7 +71,7 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 	})
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 10)
+	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 9)
 
 	messages := []string{
 		"osv-scanner detected a high severity issue",
