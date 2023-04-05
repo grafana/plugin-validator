@@ -40,7 +40,9 @@ var Analyzer = &analysis.Analyzer{
 
 var scannerTypes = [...]string{
 	"go.mod",
-	"yarn.lock",
+	"yarn.lock",         // YARN
+	"package-lock.json", // NPM
+	"pnpm-lock.yaml",    // PNPM
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
