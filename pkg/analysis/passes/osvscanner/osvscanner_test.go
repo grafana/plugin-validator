@@ -13,17 +13,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func reportAll(a *analysis.Analyzer) {
-	for _, r := range a.Rules {
-		r.ReportAll = true
-	}
-}
-
-func undoReportAll(a *analysis.Analyzer) {
-	for _, r := range a.Rules {
-		r.ReportAll = false
-	}
-}
+// func reportAll(a *analysis.Analyzer) {
+// 	for _, r := range a.Rules {
+// 		r.ReportAll = true
+// 	}
+// }
+//
+// func undoReportAll(a *analysis.Analyzer) {
+// 	for _, r := range a.Rules {
+// 		r.ReportAll = false
+// 	}
+// }
 
 // TestOSVScannerAsLibrary
 func TestOSVScannerAsLibrary(t *testing.T) {
