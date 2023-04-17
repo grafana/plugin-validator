@@ -110,8 +110,11 @@ func isIgnoredFile(sourceName string) bool {
 	if strings.Contains(sourceName, "?") {
 		sourceName = sourceName[:strings.Index(sourceName, "?")]
 	}
-	if strings.HasSuffix(sourceName, ".css") {
-		return true
+	var ignoredExtensions = []string{".css", ".scss", ".sass", ".less", ".svg"}
+	for _, ext := range ignoredExtensions {
+		if strings.HasSuffix(sourceName, ext) {
+			return true
+		}
 	}
 	// ignore external and webpack bootstrap iles
 	ignore := false
