@@ -1,4 +1,4 @@
-FROM golang:1.20.1-alpine as builder
+FROM golang:1.20-alpine as builder
 
 WORKDIR /go/src/github.com/grafana/plugin-validator
 ADD . /go/src/github.com/grafana/plugin-validator
