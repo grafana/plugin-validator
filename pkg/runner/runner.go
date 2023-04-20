@@ -1,9 +1,13 @@
 package runner
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 type Config struct {
@@ -19,9 +23,10 @@ type GlobalConfig struct {
 }
 
 type AnalyzerConfig struct {
-	Enabled  *bool                 `yaml:"enabled"`
-	Severity *analysis.Severity    `yaml:"severity"`
-	Rules    map[string]RuleConfig `yaml:"rules"`
+	Enabled    *bool                 `yaml:"enabled"`
+	Severity   *analysis.Severity    `yaml:"severity"`
+	Rules      map[string]RuleConfig `yaml:"rules"`
+	Exceptions []string              `yaml:"exceptions"`
 }
 
 type RuleConfig struct {
@@ -32,9 +37,15 @@ type RuleConfig struct {
 var defaultSeverity = analysis.Warning
 
 func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
-	initAnalyzers(analyzers, cfg)
+	pluginId, err := getPluginId(dir)
+	if err != nil {
+		// we only need the pluginId to check for exceptions
+		// it might not be available at all
+		logme.Debugln("Error getting plugin id")
+	}
+
+	initAnalyzers(analyzers, &cfg, pluginId)
 	diagnostics := make(map[string][]analysis.Diagnostic)
-	//var diagnostics []analysis.Diagnostic
 
 	pass := &analysis.Pass{
 		RootDir:       dir,
@@ -92,8 +103,8 @@ func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg
 	return diagnostics, nil
 }
 
-func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
-	for _, a := range analyzers {
+func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string) {
+	for _, currentAnalyzer := range analyzers {
 		// Inherit global config file
 		analyzerEnabled := cfg.Global.Enabled
 		analyzerSeverity := cfg.Global.Severity
@@ -104,7 +115,7 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 		}
 
 		// Override via config file
-		analyzerConfig, ok := cfg.Analyzers[a.Name]
+		analyzerConfig, ok := cfg.Analyzers[currentAnalyzer.Name]
 		if ok {
 			if analyzerConfig.Enabled != nil {
 				analyzerEnabled = *analyzerConfig.Enabled
@@ -114,18 +125,23 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 			}
 		}
 
-		for _, r := range a.Rules {
+		// Override via exceptions
+		if isExcepted(pluginId, &analyzerConfig) {
+			analyzerEnabled = false
+		}
+
+		for _, currentRule := range currentAnalyzer.Rules {
 			// Inherit analyzer config
 			ruleEnabled := analyzerEnabled
 
 			// use own config if available
-			ruleSeverity := r.Severity
+			ruleSeverity := currentRule.Severity
 			if ruleSeverity == "" {
 				ruleSeverity = analyzerSeverity
 			}
 
 			// overwrite via config file
-			ruleConfig, ok := analyzerConfig.Rules[r.Name]
+			ruleConfig, ok := analyzerConfig.Rules[currentRule.Name]
 			if ok {
 				if ruleConfig.Enabled != nil {
 					ruleEnabled = *ruleConfig.Enabled
@@ -135,9 +151,54 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg Config) {
 				}
 			}
 
-			r.Disabled = !ruleEnabled
-			r.Severity = ruleSeverity
-			r.ReportAll = cfg.Global.ReportAll
+			currentRule.Disabled = !ruleEnabled
+			currentRule.Severity = ruleSeverity
+			currentRule.ReportAll = cfg.Global.ReportAll
 		}
 	}
+}
+
+type BarebonePluginJson struct {
+	Id string `json:"id"`
+}
+
+/*
+* getPuginId returns the plugin id from the plugin.json file
+* in the archive directory
+*
+* The plugin.json file might not be in the root directory
+* at this point in the validator there's no certainty that the
+* plugin.json file even exists
+ */
+func getPluginId(archiveDir string) (string, error) {
+	if len(archiveDir) == 0 || archiveDir == "/" {
+		return "", fmt.Errorf("archiveDir is empty")
+	}
+	pluginJsonPath, err := doublestar.FilepathGlob(archiveDir + "/**/plugin.json")
+	if err != nil || len(pluginJsonPath) == 0 {
+		return "", fmt.Errorf("Error getting plugin.json path: %s", err)
+	}
+
+	pluginJsonContent, err := os.ReadFile(pluginJsonPath[0])
+	if err != nil {
+		return "", err
+	}
+	//unmarshal plugin.json
+	var pluginJson BarebonePluginJson
+	err = json.Unmarshal(pluginJsonContent, &pluginJson)
+	if err != nil {
+		return "", err
+	}
+	return pluginJson.Id, nil
+}
+
+func isExcepted(pluginId string, cfg *AnalyzerConfig) bool {
+	if len(pluginId) > 0 && cfg != nil && len(cfg.Exceptions) > 0 {
+		for _, exception := range cfg.Exceptions {
+			if exception == pluginId {
+				return true
+			}
+		}
+	}
+	return false
 }

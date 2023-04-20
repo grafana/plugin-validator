@@ -22,7 +22,7 @@ rules:
           - pattern: syscall.Unsetenv("$ENV")
       - metavariable-regex:
           metavariable: $ENV
-          regex: (?!GF_PLUGIN.*)
+          regex: (?!(GF_PLUGIN.*|GF_VERSION|GF_EDITION|GF_ENTERPRISE_LICENSE_PATH|GF_ENTERPRISE_LICENSE_TEXT|GF_ENTERPRISE_APP_URL|GF_ENTERPRISE_LICENSE_VALIDATION_KEY|GF_ENTERPRISE_LICENSE_VALIDATION_TYPE|AWS_AUTH_AllowedAuthProviders|AWS_AUTH_AssumeRoleEnabled|AWS_AUTH_SESSION_DURATION|GFAZPL_AZURE_CLOUD|GFAZPL_MANAGED_IDENTITY_ENABLED|GFAZPL_MANAGED_IDENTITY_CLIENT_ID|AZURE_CLOUD|AZURE_MANAGED_IDENTITY_ENABLED|AZURE_MANAGED_IDENTITY_CLIENT_ID))
     message: It is not permitted to access environment variables from plugins. $ENV is not an accessible variable.
     languages: [go]
     severity: WARNING
@@ -30,7 +30,7 @@ rules:
     patterns:
       - pattern-either:
           - pattern: fs.$F(...)
-    message: It is not permitted to access the file system. Using fs.$F is not permited.
+    message: It is not permitted to access the file system. Using fs.$F is not permitted.
     languages: [go]
     severity: ERROR
   - id: access-file-system-with-filepath
@@ -107,6 +107,6 @@ rules:
           # generally speaking there's no valid reason for a plugin
           # to use this module
           - pattern: syscall.$F(...)
-    message: It is not permitted to use the syscall module. Using syscall.$F is not permited
+    message: It is not permitted to use the syscall module. Using syscall.$F is not permitted
     languages: [go]
     severity: ERROR

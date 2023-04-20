@@ -1,5 +1,11 @@
 package analysis
 
+import (
+	"fmt"
+
+	"github.com/grafana/plugin-validator/pkg/logme"
+)
+
 type Severity string
 
 var (
@@ -18,6 +24,7 @@ type Pass struct {
 
 func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, detail string) {
 	if rule.Disabled {
+		logme.Debugln(fmt.Sprintf("Rule %s is disabled. Skipping report.", rule.Name))
 		return
 	}
 

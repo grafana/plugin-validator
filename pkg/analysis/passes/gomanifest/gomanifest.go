@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
@@ -25,12 +27,25 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "go-manifest",
-	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, errors.New("metadata not found")
+	}
+	var data metadata.Metadata
+	if err := json.Unmarshal(metadataBody, &data); err != nil {
+		return nil, err
+	}
+	if !data.Backend {
+		// not a backend plugin so we don't need to check the manifest
+		return nil, nil
+	}
+
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok {
 		return nil, errors.New("archive dir not found")
@@ -55,8 +70,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	maniFestFiles, err := parseManifestFile(manifestFilePath)
 	if err != nil {
 		pass.ReportResult(pass.AnalyzerName, noGoManifest,
-			"Could not find or parse go manifest file",
-			"Your sourcecode contains go files but there's no go build manifest. Make sure you are using the latest version of the go plugin SDK")
+			"Could not find or parse Go manifest file",
+			"Your source code contains Go files but there's no Go build manifest. Make sure you are using the latest version of the Go plugin SDK")
 		return nil, nil
 	}
 
@@ -64,8 +79,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		logme.DebugFln("verifyManifest error: %s", err)
 		pass.ReportResult(pass.AnalyzerName, invalidGoManifest,
-			"The go build manifest does not match the source code",
-			"The provided go build manifest does not match the provided source code. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL and it includes all the go files used to build the plugin binaries")
+			"The Go build manifest does not match the source code",
+			"The provided Go build manifest does not match the provided source code. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL and it includes all the Go files used to build the plugin binaries")
 		return nil, nil
 	}
 

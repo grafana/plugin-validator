@@ -3,7 +3,7 @@ package license
 import (
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 
 	"github.com/go-enry/go-license-detector/v4/licensedb"
 	"github.com/go-enry/go-license-detector/v4/licensedb/filer"
@@ -22,7 +22,17 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{licenseNotProvided},
 }
 
-var validLicenseStart = []string{"AGPL-3.0", "Apache-2.0", "MIT"}
+// note: these follow the SPDX license list: https://spdx.org/licenses/
+// go-license-detector uses the same list with the same upper/lower case
+var validLicensesRegex = []*regexp.Regexp{
+	regexp.MustCompile(`^0BSD$`),
+	regexp.MustCompile(`^BSD-.*$`),
+	regexp.MustCompile(`^MIT.*$`),
+	regexp.MustCompile(`^Apache-2.0$`),
+	regexp.MustCompile(`^LGPL-3.*$`),
+	regexp.MustCompile(`^GPL-3.0.*$`),
+	regexp.MustCompile(`^AGPL-3.0.*$`),
+}
 
 const minRequiredConfidenceLevel float32 = 0.9
 
@@ -33,14 +43,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	licenseFilePath := filepath.Join(archiveDir, "LICENSE")
 	licenseFile, err := os.Stat(licenseFilePath)
 	if err != nil || licenseFile.IsDir() {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
 		return nil, nil
 	}
 
 	// validate that the LICENSE file is exists (filer lib method)
 	filer, err := filer.FromDirectory(archiveDir)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENCE file in your archive.")
+		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "LICENSE file not found", "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
 		return nil, nil
 	}
 
@@ -70,8 +80,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func isValidLicense(licenseName string) bool {
-	for _, prefix := range validLicenseStart {
-		if strings.HasPrefix(licenseName, prefix) {
+	for _, prefix := range validLicensesRegex {
+		if prefix.MatchString(licenseName) {
 			return true
 		}
 	}

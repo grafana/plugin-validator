@@ -2,9 +2,11 @@ package sourcemap
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 type rawSourceMap struct {
@@ -43,6 +45,18 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 		return nil, err
 	}
 
+	if len(rawSourceMap.Sources) == 0 {
+		return nil, errors.New("generated source code map requires the original source file paths to be present in the sources property")
+	}
+
+	if len(rawSourceMap.SourcesContent) == 0 {
+		return nil, errors.New("generated source code map requires the original source code to be present in the sourcesContent property")
+	}
+
+	if len(rawSourceMap.Sources) != len(rawSourceMap.SourcesContent) {
+		return nil, errors.New("generated source code map requires the number of original source file paths (sources) to match with the number of original source code (sourcesContent)")
+	}
+
 	parseSourceMap := sourceMap{
 		Version: rawSourceMap.Version,
 		Sources: map[string]string{},
@@ -52,6 +66,7 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 		if isIgnoredFile(fileName) {
 			continue
 		}
+
 		parseSourceMap.Sources[fileName] = rawSourceMap.SourcesContent[i]
 	}
 	return &parseSourceMap, nil
@@ -90,6 +105,14 @@ func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
 }
 
 func isIgnoredFile(sourceName string) bool {
+	// ignore css files
+	// remove anything after a ? to ignore query params
+	if strings.Contains(sourceName, "?") {
+		sourceName = sourceName[:strings.Index(sourceName, "?")]
+	}
+	if strings.HasSuffix(sourceName, ".css") {
+		return true
+	}
 	// ignore external and webpack bootstrap iles
 	ignore := false
 	for _, ignoreStart := range ignoreStartingWith {

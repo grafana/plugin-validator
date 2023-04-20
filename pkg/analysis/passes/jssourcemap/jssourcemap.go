@@ -78,11 +78,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if diffReport.TotalDifferences != 0 {
-			logme.DebugFln("source map missmatch for %s", file)
+			reportText := diffReport.GeneratePrintableReport()
+			logme.DebugFln("source map mismatch for %s", file)
 			logme.Debugln("---REPORT START--")
-			logme.Debugln("\n\n" + diffReport.GeneratePrintableReport())
+			logme.Debugln("\n\n" + reportText)
 			logme.Debugln("---REPORT-END---")
-			pass.ReportResult(pass.AnalyzerName, jsMapNoMatch, "The provided javascript/typescript source code does not match your plugin archive assets.", "Verify the provided source code is the same as the one used to generate plugin archive. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL")
+
+			pass.ReportResult(pass.AnalyzerName, jsMapNoMatch, "The provided javascript/typescript source code does not match your plugin archive assets.", "Verify the provided source code is the same as the one used to generate plugin archive. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL. \n "+reportText)
 			return nil, nil
 		} else {
 			logme.DebugFln("source map matches source code")
