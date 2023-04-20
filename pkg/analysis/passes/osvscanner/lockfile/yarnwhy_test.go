@@ -9,7 +9,7 @@ import (
 
 func TestYarnWhyAll(t *testing.T) {
 	t.Parallel()
-	aLockfile := filepath.Join("..", "testdata", "node", "critical", "yarn.lock")
+	aLockfile := filepath.Join("..", "testdata", "node", "critical-yarn", "yarn.lock")
 	packages, err := ParseYarnLock(aLockfile)
 	require.NoError(t, err)
 

@@ -3,7 +3,8 @@ package lockfile
 import (
 	"fmt"
 	"os"
-	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -17,9 +18,10 @@ type PnpmLockPackageResolution struct {
 }
 
 type PnpmLockPackage struct {
-	Resolution PnpmLockPackageResolution `yaml:"resolution"`
-	Name       string                    `yaml:"name"`
-	Version    string                    `yaml:"version"`
+	Resolution   PnpmLockPackageResolution `yaml:"resolution"`
+	Name         string                    `yaml:"name"`
+	Version      string                    `yaml:"version"`
+	Dependencies map[string]string         `yaml:"dependencies"`
 }
 
 type PnpmLockfile struct {
@@ -27,10 +29,34 @@ type PnpmLockfile struct {
 	Packages map[string]PnpmLockPackage `yaml:"packages,omitempty"`
 }
 
+type pnpmLockfileV6 struct {
+	Version  string                     `yaml:"lockfileVersion"`
+	Packages map[string]PnpmLockPackage `yaml:"packages,omitempty"`
+}
+
+func (l *PnpmLockfile) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var lockfileV6 pnpmLockfileV6
+
+	if err := unmarshal(&lockfileV6); err != nil {
+		return err
+	}
+
+	parsedVersion, err := strconv.ParseFloat(lockfileV6.Version, 64)
+
+	if err != nil {
+		return err
+	}
+
+	l.Version = parsedVersion
+	l.Packages = lockfileV6.Packages
+
+	return nil
+}
+
 const PnpmEcosystem = NpmEcosystem
 
 func startsWithNumber(str string) bool {
-	matcher := regexp.MustCompile(`^\d`)
+	matcher := CachedMustCompile(`^\d`)
 
 	return matcher.MatchString(str)
 }
@@ -64,6 +90,10 @@ func extractPnpmPackageNameAndVersion(dependencyPath string) (string, string) {
 		version = parts[0]
 	}
 
+	if version == "" {
+		name, version = parseNameAtVersion(name)
+	}
+
 	if version == "" || !startsWithNumber(version) {
 		return "", ""
 	}
@@ -77,10 +107,23 @@ func extractPnpmPackageNameAndVersion(dependencyPath string) (string, string) {
 	return name, version
 }
 
+func parseNameAtVersion(value string) (name string, version string) {
+	// look for pattern "name@version", where name is allowed to contain zero or more "@"
+	matches := CachedMustCompile(`^(.+)@([\d.]+)$`).FindStringSubmatch(value)
+
+	if len(matches) != 3 {
+		return name, ""
+	}
+
+	return matches[1], matches[2]
+}
+
 func parsePnpmLock(lockfile PnpmLockfile) []PackageDetails {
 	packages := make([]PackageDetails, 0, len(lockfile.Packages))
 
 	for s, pkg := range lockfile.Packages {
+		dependencies := make([]Dependency, 0)
+
 		name, version := extractPnpmPackageNameAndVersion(s)
 
 		// "name" is only present if it's not in the dependency path and takes
@@ -102,7 +145,7 @@ func parsePnpmLock(lockfile PnpmLockfile) []PackageDetails {
 		commit := pkg.Resolution.Commit
 
 		if strings.HasPrefix(pkg.Resolution.Tarball, "https://codeload.github.com") {
-			re := regexp.MustCompile(`https://codeload\.github\.com(?:/[\w-.]+){2}/tar\.gz/(\w+)$`)
+			re := CachedMustCompile(`https://codeload\.github\.com(?:/[\w-.]+){2}/tar\.gz/(\w+)$`)
 			matched := re.FindStringSubmatch(pkg.Resolution.Tarball)
 
 			if matched != nil {
@@ -110,15 +153,30 @@ func parsePnpmLock(lockfile PnpmLockfile) []PackageDetails {
 			}
 		}
 
+		for aDependency, dependencyVersion := range pkg.Dependencies {
+			dependencies = append(dependencies, Dependency{
+				Name:    aDependency,
+				Version: dependencyVersion,
+			})
+		}
+
 		packages = append(packages, PackageDetails{
-			Name:      name,
-			Version:   version,
-			Ecosystem: PnpmEcosystem,
-			CompareAs: PnpmEcosystem,
-			Commit:    commit,
+			Name:         name,
+			Version:      version,
+			Ecosystem:    PnpmEcosystem,
+			CompareAs:    PnpmEcosystem,
+			Commit:       commit,
+			Dependencies: dependencies,
 		})
 	}
 
+	// sort the packages for consistent indexing
+	sort.SliceStable(packages, func(i, j int) bool {
+		if packages[i].Name == packages[j].Name {
+			return packages[i].Version < packages[j].Version
+		}
+		return packages[i].Name < packages[j].Name
+	})
 	return packages
 }
 

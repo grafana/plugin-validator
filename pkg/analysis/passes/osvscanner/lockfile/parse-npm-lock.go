@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"strings"
 )
 
@@ -32,8 +33,15 @@ const NpmEcosystem Ecosystem = "npm"
 func pkgDetailsMapToSlice(m map[string]PackageDetails) []PackageDetails {
 	details := make([]PackageDetails, 0, len(m))
 
-	for _, detail := range m {
-		details = append(details, detail)
+	// sort it
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		details = append(details, m[k])
 	}
 
 	return details
@@ -57,6 +65,7 @@ func parseNpmLockDependencies(dependencies map[string]NpmLockDependency) map[str
 	details := map[string]PackageDetails{}
 
 	for name, detail := range dependencies {
+		dependencies := make([]Dependency, 0)
 		if detail.Dependencies != nil {
 			details = mergePkgDetailsMap(details, parseNpmLockDependencies(detail.Dependencies))
 		}
@@ -80,13 +89,20 @@ func parseNpmLockDependencies(dependencies map[string]NpmLockDependency) map[str
 				version = commit
 			}
 		}
+		for aDependency, dependencyVersion := range detail.Dependencies {
+			dependencies = append(dependencies, Dependency{
+				Name:    aDependency,
+				Version: dependencyVersion.Version,
+			})
+		}
 
 		details[name+"@"+version] = PackageDetails{
-			Name:      name,
-			Version:   finalVersion,
-			Ecosystem: NpmEcosystem,
-			CompareAs: NpmEcosystem,
-			Commit:    commit,
+			Name:         name,
+			Version:      finalVersion,
+			Ecosystem:    NpmEcosystem,
+			CompareAs:    NpmEcosystem,
+			Commit:       commit,
+			Dependencies: dependencies,
 		}
 	}
 
@@ -108,6 +124,7 @@ func parseNpmLockPackages(packages map[string]NpmLockPackage) map[string]Package
 	details := map[string]PackageDetails{}
 
 	for namePath, detail := range packages {
+		dependencies := make([]Dependency, 0)
 		if namePath == "" {
 			continue
 		}
@@ -122,12 +139,20 @@ func parseNpmLockPackages(packages map[string]NpmLockPackage) map[string]Package
 			finalVersion = commit
 		}
 
+		for aDependency, dependencyVersion := range detail.Dependencies {
+			dependencies = append(dependencies, Dependency{
+				Name:    aDependency,
+				Version: dependencyVersion,
+			})
+		}
+
 		details[finalName+"@"+finalVersion] = PackageDetails{
-			Name:      finalName,
-			Version:   detail.Version,
-			Ecosystem: NpmEcosystem,
-			CompareAs: NpmEcosystem,
-			Commit:    commit,
+			Name:         finalName,
+			Version:      detail.Version,
+			Ecosystem:    NpmEcosystem,
+			CompareAs:    NpmEcosystem,
+			Commit:       commit,
+			Dependencies: dependencies,
 		}
 	}
 
@@ -136,10 +161,13 @@ func parseNpmLockPackages(packages map[string]NpmLockPackage) map[string]Package
 
 func parseNpmLock(lockfile NpmLockfile) map[string]PackageDetails {
 	if lockfile.Packages != nil {
-		return parseNpmLockPackages(lockfile.Packages)
+		packages := parseNpmLockPackages(lockfile.Packages)
+		return packages
 	}
 
-	return parseNpmLockDependencies(lockfile.Dependencies)
+	dependencies := parseNpmLockDependencies(lockfile.Dependencies)
+	// flatten?
+	return dependencies
 }
 
 func ParseNpmLock(pathToLockfile string) ([]PackageDetails, error) {

@@ -1,6 +1,7 @@
 package osvscanner
 
 import (
+	"path"
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/models"
@@ -29,9 +30,19 @@ func FilterOSVResults(source models.VulnerabilityResults, lockFile string) model
 		// return empty results
 		return source
 	}
+	lockFileType := path.Base(lockFile)
 	// parse the lockfile
-	parsedPackages, err := lockfile.ParseYarnLock(lockFile)
-	if err != nil {
+	var parsedPackages []lockfile.PackageDetails
+	var parseError error
+	switch lockFileType {
+	case "yarn.lock":
+		parsedPackages, parseError = lockfile.ParseYarnLock(lockFile)
+	case "package-lock.json":
+		parsedPackages, parseError = lockfile.ParseNpmLock(lockFile)
+	case "pnpm-lock.yaml":
+		parsedPackages, parseError = lockfile.ParsePnpmLock(lockFile)
+	}
+	if parseError != nil {
 		return source
 	}
 	// copy the first (and only) result

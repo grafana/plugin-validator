@@ -31,8 +31,8 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "critical"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "critical-yarn"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical-yarn"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -58,8 +58,8 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "critical"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical"),
+			archive.Analyzer:    filepath.Join("testdata", "node", "critical-yarn"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical-yarn"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}

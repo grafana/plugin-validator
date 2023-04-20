@@ -29,7 +29,7 @@ func TestFilterPackages(t *testing.T) {
 		},
 	}
 
-	filteredResults := FilterOSVResults(packages, filepath.Join("testdata", "node", "critical", "yarn.lock"))
+	filteredResults := FilterOSVResults(packages, filepath.Join("testdata", "node", "critical-yarn", "yarn.lock"))
 	// should not have moment
 	require.Len(t, filteredResults.Results, 1)
 	require.Equal(t, "d3-color", filteredResults.Results[0].Source.Path)
