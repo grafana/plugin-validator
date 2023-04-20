@@ -209,6 +209,6 @@ func scanInternal(lockPath string) (models.VulnerabilityResults, error) {
 		LockfilePaths: flagged,
 	}, nil)
 
-	logme.DebugFln("%+v", vulnResult)
+	// logme.DebugFln("%+v", vulnResult)
 	return vulnResult, err
 }
