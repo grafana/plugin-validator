@@ -22,3 +22,14 @@ type PackageDetails struct {
 type Ecosystem string
 
 type PackageDetailsParser = func(pathToLockfile string) ([]PackageDetails, error)
+
+type DependencyState struct {
+	Package   Dependency
+	Processed bool
+}
+
+type PackageFlattened struct {
+	Name         string
+	Version      string
+	Dependencies []DependencyState
+}
