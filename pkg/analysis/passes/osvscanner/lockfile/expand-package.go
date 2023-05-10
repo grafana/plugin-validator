@@ -84,7 +84,12 @@ func deepExpand(topLevelPackage *PackageFlattened, expandPackage *PackageFlatten
 			// set processed to true (prevents re-scanning this package)
 			topLevelPackage.Dependencies[primaryPackageDependencyIndex].Processed = true
 			// get the dependencies for the new package entry
-			packageToProcess, _ := getFlattenedPackageDependencies(primaryPackageDependency.Package.Name, packages)
+			packageToProcess, err := getFlattenedPackageDependencies(primaryPackageDependency.Package.Name, packages)
+			if err != nil {
+				// no dependencies for this package, just add it
+				topLevelPackage.Dependencies = append(topLevelPackage.Dependencies, primaryPackageDependency)
+				continue
+			}
 			addedPackages := false
 			for _, subDependency := range packageToProcess.Dependencies {
 				// if subDependency is not in topLevelPackage dependencies, add it, then expand again
@@ -109,9 +114,16 @@ func ExpandPackage(packageName string, packages []PackageDetails) (*PackageFlatt
 		return nil, err
 	}
 	deepExpand(primaryPackageFlattened, nil, packages)
+	// final deduplicate
+	reduced := PackageFlattened{
+		Name:         primaryPackageFlattened.Name,
+		Version:      primaryPackageFlattened.Version,
+		Dependencies: nil,
+	}
+	deduplicate(&reduced, primaryPackageFlattened)
 	// sort for easier debugging
-	sort.Slice(primaryPackageFlattened.Dependencies, func(i, j int) bool {
-		return primaryPackageFlattened.Dependencies[i].Package.Name < primaryPackageFlattened.Dependencies[j].Package.Name
+	sort.Slice(reduced.Dependencies, func(i, j int) bool {
+		return reduced.Dependencies[i].Package.Name < reduced.Dependencies[j].Package.Name
 	})
-	return primaryPackageFlattened, nil
+	return &reduced, nil
 }

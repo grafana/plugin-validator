@@ -19,7 +19,7 @@ func TestExpandPackageCircular(t *testing.T) {
 	require.Len(t, expandedCircular.Dependencies, 416)
 }
 
-func TestExpandGrafanaPackages(t *testing.T) {
+func TestExpandGrafanaPackagesFromYarn(t *testing.T) {
 	t.Parallel()
 	aLockfile := filepath.Join("..", "testdata", "node", "circular-yarn", "yarn.lock")
 	packages, err := ParseYarnLock(aLockfile)
@@ -44,4 +44,26 @@ func TestExpandGrafanaPackages(t *testing.T) {
 	expandedGrafanaUI, err := ExpandPackage("@grafana/ui", packages)
 	require.NoError(t, err)
 	require.Len(t, expandedGrafanaUI.Dependencies, 350)
+}
+
+func TestExpandGrafanaPackagesFromNPM(t *testing.T) {
+	t.Parallel()
+	aLockfile := filepath.Join("..", "testdata", "node", "critical-npm", "package-lock.json")
+	packages, err := ParseNpmLock(aLockfile)
+	require.NoError(t, err)
+
+	expandedGrafanaData, err := ExpandPackage("@grafana/data", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaData.Dependencies, 61)
+}
+
+func TestExpandGrafanaPackagesFromPnpm(t *testing.T) {
+	t.Parallel()
+	aLockfile := filepath.Join("..", "testdata", "node", "critical-pnpm", "pnpm-lock.yaml")
+	packages, err := ParsePnpmLock(aLockfile)
+	require.NoError(t, err)
+
+	expandedGrafanaData, err := ExpandPackage("@grafana/data", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaData.Dependencies, 64)
 }
