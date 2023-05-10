@@ -30,7 +30,7 @@ func TestExpandGrafanaPackagesFromYarn(t *testing.T) {
 	require.Len(t, expandedGrafanaData.Dependencies, 54)
 
 	expandedGrafanaE2E, err := ExpandPackage("@grafana/e2e", packages)
-	require.Error(t, err, "x")
+	require.Error(t, err)
 	require.Nil(t, expandedGrafanaE2E)
 
 	expandedGrafanaRuntime, err := ExpandPackage("@grafana/runtime", packages)
@@ -55,6 +55,25 @@ func TestExpandGrafanaPackagesFromNPM(t *testing.T) {
 	expandedGrafanaData, err := ExpandPackage("@grafana/data", packages)
 	require.NoError(t, err)
 	require.Len(t, expandedGrafanaData.Dependencies, 61)
+
+	expandedGrafanaToolkit, err := ExpandPackage("@grafana/toolkit", packages)
+	require.Equal(t, err.Error(), "package not found: @grafana/toolkit")
+	require.Nil(t, expandedGrafanaToolkit)
+
+	expandedGrafanaE2E, err := ExpandPackage("@grafana/e2e", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaE2E.Dependencies, 422)
+
+	expandedGrafanaRuntime, err := ExpandPackage("@grafana/runtime", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaRuntime.Dependencies, 404)
+
+	_, err = ExpandPackage("@grafana/toolkit", packages)
+	require.Error(t, err)
+
+	expandedGrafanaUI, err := ExpandPackage("@grafana/ui", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaUI.Dependencies, 389)
 }
 
 func TestExpandGrafanaPackagesFromPnpm(t *testing.T) {
@@ -66,4 +85,23 @@ func TestExpandGrafanaPackagesFromPnpm(t *testing.T) {
 	expandedGrafanaData, err := ExpandPackage("@grafana/data", packages)
 	require.NoError(t, err)
 	require.Len(t, expandedGrafanaData.Dependencies, 64)
+
+	expandedGrafanaToolkit, err := ExpandPackage("@grafana/toolkit", packages)
+	require.Equal(t, err.Error(), "package not found: @grafana/toolkit")
+	require.Nil(t, expandedGrafanaToolkit)
+
+	expandedGrafanaE2E, err := ExpandPackage("@grafana/e2e", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaE2E.Dependencies, 485)
+
+	expandedGrafanaRuntime, err := ExpandPackage("@grafana/runtime", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaRuntime.Dependencies, 439)
+
+	_, err = ExpandPackage("@grafana/toolkit", packages)
+	require.Error(t, err)
+
+	expandedGrafanaUI, err := ExpandPackage("@grafana/ui", packages)
+	require.NoError(t, err)
+	require.Len(t, expandedGrafanaUI.Dependencies, 424)
 }
