@@ -18,7 +18,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 )
 
 var (
@@ -126,9 +125,6 @@ func parseManifestFile(file string) (map[string]string, error) {
 	if fileReader.Err() != nil {
 		return nil, fileReader.Err()
 	}
-
-	logme.DebugFln(("the manifest"))
-	prettyprint.Print(manifest)
 
 	return manifest, nil
 }
