@@ -135,11 +135,8 @@ func normalizeFileName(fileName string) string {
 }
 
 func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir string) error {
-	logme.DebugFln(sourceCodeDir)
 	for _, goFilePath := range goFiles {
 		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
-		logme.DebugFln("goFileRelativePath: %s", goFileRelativePath)
-		logme.DebugFln("goFilePath: %s", goFilePath)
 		if err != nil {
 			return err
 		}
