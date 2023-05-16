@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/prettyprint"
 )
 
 var (
@@ -116,20 +117,33 @@ func parseManifestFile(file string) (map[string]string, error) {
 		if len(parsedLine) != 2 {
 			return nil, fmt.Errorf("invalid line in manifest file: %s", line)
 		}
+		sha256sum := strings.TrimSpace(parsedLine[0])
+		fileName := normalizeFileName(strings.TrimSpace(parsedLine[1]))
 		// format the manifest fileName:sha256sum
-		manifest[strings.TrimSpace(parsedLine[1])] = strings.TrimSpace(parsedLine[0])
+		manifest[fileName] = sha256sum
 	}
 
 	if fileReader.Err() != nil {
 		return nil, fileReader.Err()
 	}
 
+	logme.DebugFln(("the manifest"))
+	prettyprint.Print(manifest)
+
 	return manifest, nil
 }
 
+func normalizeFileName(fileName string) string {
+	// takes a filename that might have windows or linux separators and converts them to a linux separator
+	return strings.Replace(fileName, "\\", "/", -1)
+}
+
 func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir string) error {
+	logme.DebugFln(sourceCodeDir)
 	for _, goFilePath := range goFiles {
 		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
+		logme.DebugFln("goFileRelativePath: %s", goFileRelativePath)
+		logme.DebugFln("goFilePath: %s", goFilePath)
 		if err != nil {
 			return err
 		}
@@ -140,8 +154,9 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 		}
 		// check if the sha256sum is in the manifest
 		manifestSha256sum, ok := manifest[goFileRelativePath]
+
 		if !ok {
-			return fmt.Errorf("could not find %s in manifest", goFilePath)
+			return fmt.Errorf("could not find file %s with hash %s in manifest", goFileRelativePath, sha256sum)
 		}
 		// check if the sha256sum in the manifest matches the calculated sha256sum
 		if sha256sum != manifestSha256sum {
