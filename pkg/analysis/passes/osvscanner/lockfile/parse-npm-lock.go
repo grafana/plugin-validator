@@ -1,3 +1,8 @@
+/**
+This source code comes from here (it is not exported)
+https://github.com/google/osv-scanner/pkg/lockfile/parse-npm-lock.go
+*/
+
 package lockfile
 
 import (
