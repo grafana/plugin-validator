@@ -45,7 +45,7 @@ var Default = Build.Local
 
 /* Docker */
 func buildDockerImage() error {
-	return sh.RunV("docker", "build", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
+	return sh.RunV("docker", "build", "--no-cache", "--pull", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
 }
 
 func pushDockerImage() error {

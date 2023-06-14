@@ -1,6 +1,7 @@
 package legacyplatform
 
 import (
+	"bytes"
 	"regexp"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -19,11 +20,45 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{legacyPlatform},
 }
 
-var legacyDetectionRegexes = []*regexp.Regexp{
-	// regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`),
-	regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`),
-	regexp.MustCompile(`from\s+['"]grafana\/app\/`),
-	regexp.MustCompile(`System\.register\(`),
+// detector implements a check to see if a plugin uses a legacy platform (Angular).
+type detector interface {
+	// Detect takes the content of a module.js file and returns true if the plugin is using a legacy platform (Angular).
+	Detect(moduleJs []byte) bool
+}
+
+// containsBytesDetector is a detector that returns true if the file contains the "pattern" string.
+type containsBytesDetector struct {
+	pattern []byte
+}
+
+// Detect returns true if moduleJs contains the byte slice d.pattern.
+func (d *containsBytesDetector) Detect(moduleJs []byte) bool {
+	return bytes.Contains(moduleJs, d.pattern)
+}
+
+// regexDetector is a detector that returns true if the file content matches a regular expression.
+type regexDetector struct {
+	regex *regexp.Regexp
+}
+
+// Detect returns true if moduleJs matches the regular expression d.regex.
+func (d *regexDetector) Detect(moduleJs []byte) bool {
+	return d.regex.Match(moduleJs)
+}
+
+var legacyDetectors = []detector{
+	&containsBytesDetector{pattern: []byte("PanelCtrl")},
+	&containsBytesDetector{pattern: []byte("QueryCtrl")},
+	&containsBytesDetector{pattern: []byte("app/plugins/sdk")},
+	&containsBytesDetector{pattern: []byte("angular.isNumber(")},
+	&containsBytesDetector{pattern: []byte("editor.html")},
+	&containsBytesDetector{pattern: []byte("ctrl.annotation")},
+	&containsBytesDetector{pattern: []byte("getLegacyAngularInjector")},
+	&containsBytesDetector{pattern: []byte("System.register(")},
+
+	// &regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
+	&regexDetector{regex: regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`)},
+	&regexDetector{regex: regexp.MustCompile(`from\s+['"]grafana\/app\/`)},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -46,8 +81,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if hasLegacyPlatform {
 			break
 		}
-		for _, regex := range legacyDetectionRegexes {
-			if regex.Match(content) {
+		for _, detector := range legacyDetectors {
+			if detector.Detect(content) {
 				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
 				hasLegacyPlatform = true
 				break
