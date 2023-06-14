@@ -51,7 +51,7 @@ func FilterOSVResults(source models.VulnerabilityResults, lockFile string) model
 		packageName := aPackage.Package.Name
 		cacheHit, includedBy := IncludedByGrafanaPackage(packageName, cachedPackages)
 		if !cacheHit {
-			logme.DebugFln("not filtered: %s", packageName)
+			//logme.DebugFln("not filtered: %s", packageName)
 			filtered.Results[0].Packages = append(filtered.Results[0].Packages, aPackage)
 		} else {
 			logme.DebugFln("excluded by filter (%s): %s", includedBy, packageName)
