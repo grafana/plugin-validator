@@ -9,7 +9,7 @@ import (
 
 func TestParseYarnLock_v2_Dependencies(t *testing.T) {
 	t.Parallel()
-	aLockfile := filepath.Join("..", "testdata", "node", "critical", "yarn.lock")
+	aLockfile := filepath.Join("..", "testdata", "node", "critical-yarn", "yarn.lock")
 	packages, err := ParseYarnLock(aLockfile)
 	require.NoError(t, err)
 	require.Len(t, packages[0].Dependencies, 2)

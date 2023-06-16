@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"regexp"
 	"strings"
 )
 
@@ -67,7 +66,7 @@ func extractYarnPackageName(str string) string {
 
 func extractYarnPackageDependencies(group []string) []Dependency {
 	dependencies := make([]Dependency, 0)
-	re := regexp.MustCompile(`^  dependencies:$`)
+	re := CachedMustCompile(`^  dependencies:$`)
 	offset := 0
 	for i, s := range group {
 		matched := re.FindStringSubmatch(s)
@@ -105,7 +104,7 @@ func extractYarnPackageDependencies(group []string) []Dependency {
 }
 
 func determineYarnPackageVersion(group []string) string {
-	re := regexp.MustCompile(`^ {2}version:? "?([\w-.]+)"?$`)
+	re := CachedMustCompile(`^ {2}"?version"?:? "?([\w-.]+)"?$`)
 
 	for _, s := range group {
 		matched := re.FindStringSubmatch(s)
@@ -120,7 +119,7 @@ func determineYarnPackageVersion(group []string) string {
 }
 
 func determineYarnPackageResolution(group []string) string {
-	re := regexp.MustCompile(`^ {2}(?:resolution:|resolved) "([^ '"]+)"$`)
+	re := CachedMustCompile(`^ {2}"?(?:resolution:|resolved)"? "([^ '"]+)"$`)
 
 	for _, s := range group {
 		matched := re.FindStringSubmatch(s)
@@ -153,7 +152,7 @@ func tryExtractCommit(resolution string) string {
 	}
 
 	for _, matcher := range matchers {
-		re := regexp.MustCompile(matcher)
+		re := CachedMustCompile(matcher)
 		matched := re.FindStringSubmatch(resolution)
 
 		if matched != nil {

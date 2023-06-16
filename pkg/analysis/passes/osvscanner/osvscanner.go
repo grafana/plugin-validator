@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
-	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -40,7 +39,9 @@ var Analyzer = &analysis.Analyzer{
 
 var scannerTypes = [...]string{
 	"go.mod",
-	"yarn.lock",
+	"yarn.lock",         // YARN
+	"package-lock.json", // NPM
+	"pnpm-lock.yaml",    // PNPM
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -104,7 +105,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				// iterate over results
 				for _, result := range filteredResults.Results {
 					for _, aPackage := range result.Packages {
-						logme.DebugFln("vulnerabilities in package: %s", aPackage.Package.Name)
+						//logme.DebugFln("vulnerabilities in package: %s", aPackage.Package.Name)
 						for _, aVulnerability := range aPackage.Vulnerabilities {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
 							// make sure this key exists

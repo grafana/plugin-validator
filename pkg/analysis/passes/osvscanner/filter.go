@@ -1,21 +1,13 @@
 package osvscanner
 
 import (
+	"path"
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/models"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
-
-func isFiltered(includeList map[string]bool) bool {
-	for packageName := range includeList {
-		if GrafanaPackages[packageName] {
-			return true
-		}
-	}
-	return false
-}
 
 // FilterOSVResults
 func FilterOSVResults(source models.VulnerabilityResults, lockFile string) models.VulnerabilityResults {
@@ -29,24 +21,40 @@ func FilterOSVResults(source models.VulnerabilityResults, lockFile string) model
 		// return empty results
 		return source
 	}
+	lockFileType := path.Base(lockFile)
 	// parse the lockfile
-	parsedPackages, err := lockfile.ParseYarnLock(lockFile)
-	if err != nil {
+	var parsedPackages []lockfile.PackageDetails
+	var parseError error
+	switch lockFileType {
+	case "yarn.lock":
+		parsedPackages, parseError = lockfile.ParseYarnLock(lockFile)
+	case "package-lock.json":
+		parsedPackages, parseError = lockfile.ParseNpmLock(lockFile)
+	case "pnpm-lock.yaml":
+		parsedPackages, parseError = lockfile.ParsePnpmLock(lockFile)
+	}
+	if parseError != nil {
 		return source
 	}
 	// copy the first (and only) result
 	filtered.Results = append(filtered.Results, source.Results[0])
 	// empty the packages
 	filtered.Results[0].Packages = nil
+	cachedPackages, err := CacheGrafanaPackages(parsedPackages)
+	if err != nil {
+		// cache error
+		logme.Errorln("cache failure", err)
+		return filtered
+	}
 	// iterate over the vulnerabilities and match against our list
 	for _, aPackage := range source.Results[0].Packages {
 		packageName := aPackage.Package.Name
-		includedBy := lockfile.YarnWhyAll(packageName, parsedPackages)
-		if !isFiltered(includedBy) {
-			logme.DebugFln("not filtered: %s", packageName)
+		cacheHit, includedBy := IncludedByGrafanaPackage(packageName, cachedPackages)
+		if !cacheHit {
+			//logme.DebugFln("not filtered: %s", packageName)
 			filtered.Results[0].Packages = append(filtered.Results[0].Packages, aPackage)
 		} else {
-			logme.DebugFln("excluded by filters: %s", packageName)
+			logme.DebugFln("excluded by filter (%s): %s", includedBy, packageName)
 		}
 	}
 	return filtered
