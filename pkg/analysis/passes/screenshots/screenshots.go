@@ -29,8 +29,8 @@ func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(data.Info.Screenshots) == 0 {
-		explanation := "Screenshots are displayed in the Plugin Catalog. Please add at least one screenshot to your plugin.json."
-		pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: should include screenshots for the Plugin Catalog", explanation)
+		explanation := "Screenshots are displayed in the Plugin catalog. Please add at least one screenshot to your plugin.json."
+		pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: should include screenshots for the Plugin catalog", explanation)
 		return data.Info.Screenshots, nil
 	} else {
 		reportCount := 0
@@ -47,7 +47,7 @@ func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {
 
 		if screenshots.ReportAll {
 			screenshots.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: includes screenshots for the Plugin Catalog", "")
+			pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: includes screenshots for the Plugin catalog", "")
 		}
 	}
 
