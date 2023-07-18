@@ -56,7 +56,7 @@ func TestNoScreenshots(t *testing.T) {
 	require.Len(t, res, 0)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: should include screenshots for marketplace")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: should include screenshots for the Plugin catalog")
 }
 
 func TestInvalidScreenshotPath(t *testing.T) {
