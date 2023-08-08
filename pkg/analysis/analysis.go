@@ -9,9 +9,10 @@ import (
 type Severity string
 
 var (
-	Error   Severity = "error"
-	Warning Severity = "warning"
-	OK      Severity = "ok"
+	Error            Severity = "error"
+	Warning          Severity = "warning"
+	OK               Severity = "ok"
+	SuspectedProblem Severity = "suspected"
 )
 
 type Pass struct {

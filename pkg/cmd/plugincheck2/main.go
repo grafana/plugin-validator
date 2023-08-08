@@ -82,6 +82,7 @@ func main() {
 
 	var exitCode int
 
+	// JSON output
 	if cfg.Global.JSONOutput {
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 		if err != nil {
@@ -116,6 +117,8 @@ func main() {
 		}
 		os.Exit(exitCode)
 	}
+
+	// regular CLI output
 	for name := range diags {
 		for _, d := range diags[name] {
 			var buf bytes.Buffer
@@ -130,6 +133,8 @@ func main() {
 				}
 			case analysis.OK:
 				buf.WriteString(color.GreenString("ok: "))
+			case analysis.SuspectedProblem:
+				buf.WriteString(color.YellowString("suspected: "))
 			}
 
 			if d.Context != "" {
