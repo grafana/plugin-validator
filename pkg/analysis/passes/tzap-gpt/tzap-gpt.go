@@ -36,7 +36,7 @@ type GptJsonResponse struct {
 }
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "go-sec",
+	Name:     "tzap-gpt",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{tzapInstallError, tzapGptIssueFound},
