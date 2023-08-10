@@ -85,11 +85,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		retry := 3
 		for i := 0; i < retry; i++ {
 			response, err = askTzap(question, sourceCodeDir)
-			if err != nil {
-				response = GptJsonResponse{}
-				err = nil
-				retry--
-			} else {
+			if err == nil {
 				break
 			}
 		}
