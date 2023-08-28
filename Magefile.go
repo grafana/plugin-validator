@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -260,6 +261,12 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 
 func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
 	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
+
+	// if source doesn't start with http or file:// add file://
+	if !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "file://") {
+		source = "file://" + source
+	}
+
 	command := []string{
 		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/sourcemapdiff",
 		"-archiveUri", archive}

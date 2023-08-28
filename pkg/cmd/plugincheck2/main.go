@@ -86,8 +86,7 @@ func main() {
 	if cfg.Global.JSONOutput {
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 		if err != nil {
-			pluginID = "unknown"
-			pluginVersion = "unknown"
+			pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
 			archiveDiag := analysis.Diagnostic{
 				Name:     "zip-invalid",
 				Severity: analysis.Error,

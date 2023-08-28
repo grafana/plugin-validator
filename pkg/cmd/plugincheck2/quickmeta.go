@@ -5,7 +5,44 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/bmatcuk/doublestar/v4"
 )
+
+func getIdAndVersionFromFile(pluginJsonPath string) (string, string, error) {
+	b, err := os.ReadFile(pluginJsonPath)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, fmt.Errorf("cannot read plugin.json: %w", err))
+		return "", "", err
+	}
+	var data struct {
+		ID   string `json:"id"`
+		Info struct {
+			Version string `json:"version"`
+		} `json:"info"`
+	}
+	if err := json.Unmarshal(b, &data); err != nil {
+		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't get plugin meta: %w", err))
+		return "", "", err
+	}
+	return data.ID, data.Info.Version, nil
+
+}
+
+func GetIDAndVersionFallBack(archiveDir string) (string, string) {
+	// try to find a plugin.json anywhere in the archive
+	pluginJsonPath, err := doublestar.FilepathGlob(archiveDir + "/**/plugin.json")
+	if err != nil {
+		return "unknown", "unknown"
+	}
+
+	pluginId, pluginVersion, err := getIdAndVersionFromFile(pluginJsonPath[0])
+	if err != nil {
+		return "unknown", "unknown"
+	}
+	return pluginId, pluginVersion
+
+}
 
 // GetIDAndVersion Gets plugin id and version from extracted zip
 func GetIDAndVersion(archiveDir string) (string, string, error) {
@@ -40,20 +77,11 @@ func GetIDAndVersion(archiveDir string) (string, string, error) {
 		fmt.Fprintln(os.Stderr, fmt.Errorf("plugin.json is not a file: %s", filename))
 		return "", "", err
 	}
-	b, err := os.ReadFile(filename)
+
+	pluginId, pluginVersion, err := getIdAndVersionFromFile(filename)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("cannot read plugin.json: %w", err))
 		return "", "", err
 	}
-	var data struct {
-		ID   string `json:"id"`
-		Info struct {
-			Version string `json:"version"`
-		} `json:"info"`
-	}
-	if err := json.Unmarshal(b, &data); err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Errorf("couldn't get plugin meta: %w", err))
-		return "nil", "", err
-	}
-	return data.ID, data.Info.Version, nil
+
+	return pluginId, pluginVersion, nil
 }
