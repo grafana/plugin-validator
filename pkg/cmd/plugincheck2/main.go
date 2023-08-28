@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
@@ -90,8 +92,8 @@ func main() {
 			archiveDiag := analysis.Diagnostic{
 				Name:     "zip-invalid",
 				Severity: analysis.Error,
-				Title:    "ZIP is improperly structured",
-				Context:  "could not read plugin.json from archive to determine id and version",
+				Title:    "Plugin archive is improperly structured",
+				Context:  "Could not find a plugin.json in the expected located. It is possible your plugin archive structure is incorrect.",
 			}
 			diags["archive"] = append(diags["archive"], archiveDiag)
 		}
@@ -177,6 +179,26 @@ func readConfigFile(path string) (runner.Config, error) {
 	return config, nil
 }
 
+func getSourceCodeDirSubDir(sourceCodePath string) string {
+	// check if there's a package.json in the source code directory
+	// if so return the source code directory as is
+	if _, err := os.Stat(filepath.Join(sourceCodePath, "package.json")); err == nil {
+		return sourceCodePath
+	}
+
+	// use double start to find the first ocurrance of package.json
+	possiblePath, err := doublestar.FilepathGlob(sourceCodePath + "/**/package.json")
+	if err != nil {
+		return sourceCodePath
+	}
+	if len(possiblePath) == 0 {
+		return sourceCodePath
+	}
+	logme.DebugFln("Detected sourcecode inside a subdir: %v. Returning %s", possiblePath, filepath.Dir(possiblePath[0]))
+	// possiblePath points to a file, return the dir
+	return filepath.Dir(possiblePath[0])
+}
+
 func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
 	// If source code URI is not provided, return immediately with an empty string
 	// otherwise we will get an error when trying to extract the source code archive
@@ -206,6 +228,9 @@ func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
 	if err != nil {
 		return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", sourceCodeUri, err)
 	}
+	// some submissions from zip have their source code in a subdirectory
+	// of the extracted archive
+	extractedDir = getSourceCodeDirSubDir(extractedDir)
 	return extractedDir, sourceCodeCleanUp, nil
 
 }
