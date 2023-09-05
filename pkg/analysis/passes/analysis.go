@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/htmlreadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
@@ -47,7 +46,6 @@ var Analyzers = []*analysis.Analyzer{
 	coderules.Analyzer,
 	gosec.Analyzer,
 	gomanifest.Analyzer,
-	htmlreadme.Analyzer,
 	jargon.Analyzer,
 	jssourcemap.Analyzer,
 	legacyplatform.Analyzer,
