@@ -63,7 +63,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// a non private signature can't have rootUrls
-	if manifest.SignatureType != "private" && len(manifest.RootUrls) > 0 {
+	if manifest.SignatureType != "private" && manifest.SignatureType != "private-glob" && len(manifest.RootUrls) > 0 {
 		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: plugin signature contains rootUrls", fmt.Sprintf("The plugin is signed as %s but contains rootUrls. Do not pass --rootUrls when signing this plugin as %s type", manifest.SignatureType, manifest.SignatureType))
 		return nil, nil
 	}
