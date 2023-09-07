@@ -134,3 +134,20 @@ func TestInvalidChecksum(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Title, "invalid file checksum")
 	require.Equal(t, interceptor.Diagnostics[0].Detail, "checksum for file module.js is invalid")
 }
+
+func TestCommunityWithRootUrls(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "with-root-urls"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "MANIFEST.txt: plugin signature contains rootUrls")
+	require.Equal(t, interceptor.Diagnostics[0].Detail, "The plugin is signed as community but contains rootUrls. Do not pass --rootUrls when signing this plugin as community type")
+}

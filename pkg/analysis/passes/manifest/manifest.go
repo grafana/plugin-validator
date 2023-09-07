@@ -18,11 +18,12 @@ import (
 )
 
 var (
-	unsignedPlugin  = &analysis.Rule{Name: "unsigned-plugin", Severity: analysis.Warning}
-	undeclaredFiles = &analysis.Rule{Name: "undeclared-files", Severity: analysis.Error}
-	emptyManifest   = &analysis.Rule{Name: "empty-manifest", Severity: analysis.Error}
-	wrongManifest   = &analysis.Rule{Name: "wrong-manifest", Severity: analysis.Error}
-	invalidShaSum   = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
+	unsignedPlugin   = &analysis.Rule{Name: "unsigned-plugin", Severity: analysis.Warning}
+	undeclaredFiles  = &analysis.Rule{Name: "undeclared-files", Severity: analysis.Error}
+	emptyManifest    = &analysis.Rule{Name: "empty-manifest", Severity: analysis.Error}
+	wrongManifest    = &analysis.Rule{Name: "wrong-manifest", Severity: analysis.Error}
+	invalidShaSum    = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
+	invalidSignature = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -58,6 +59,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if (manifest.Files == nil) || (len(manifest.Files) == 0) {
 		pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "no files declared in MANIFEST.txt", "No files declared in MANIFEST.txt")
+		return nil, nil
+	}
+
+	// a non private signature can't have rootUrls
+	if manifest.SignatureType != "private" && len(manifest.RootUrls) > 0 {
+		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: plugin signature contains rootUrls", fmt.Sprintf("The plugin is signed as %s but contains rootUrls. Do not pass --rootUrls when signing this plugin as %s type", manifest.SignatureType, manifest.SignatureType))
 		return nil, nil
 	}
 
