@@ -53,7 +53,6 @@ var legacyDetectors = []detector{
 	&containsBytesDetector{pattern: []byte("angular.isNumber(")},
 	&containsBytesDetector{pattern: []byte("editor.html")},
 	&containsBytesDetector{pattern: []byte("ctrl.annotation")},
-	&containsBytesDetector{pattern: []byte("getLegacyAngularInjector")},
 	&containsBytesDetector{pattern: []byte("System.register(")},
 
 	// &regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
