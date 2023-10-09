@@ -81,7 +81,7 @@ func (r *diffReport) GeneratePrintableReport() string {
 	var report string
 
 	if r.TotalDifferences > 0 {
-		report += fmt.Sprintf("\nFound %d file with differences\n", r.TotalDifferences)
+		report += fmt.Sprintf("\nThe following %d file(s) differ when comparing source map with source code.\n", r.TotalDifferences)
 		for sourceMapFileName, source := range r.Sources {
 			if source.Equal {
 				continue
