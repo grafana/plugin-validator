@@ -74,6 +74,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// get the plugin id from the archive
 	pluginID, err := utils.GetPluginId(archiveFilesPath)
 	if err != nil || pluginID == "" {
+		pass.ReportResult(pass.AnalyzerName, jsMapInvalid, "plugin.json not found in src", "Required plugin.json must exist in src")
 		return nil, nil
 	}
 
