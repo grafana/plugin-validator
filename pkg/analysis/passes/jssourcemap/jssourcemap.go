@@ -39,13 +39,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// get the plugin id from the archive
-	pluginID, err := utils.GetPluginId(archiveFilesPath)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	archiveModuleJs, err := doublestar.FilepathGlob(archiveFilesPath + "/**/module.js")
 
 	if err != nil {
@@ -76,6 +69,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	sourceCodeDirSrc := filepath.Join(sourceCodeDir, "src")
 	if err != nil {
 		return nil, err
+	}
+
+	// get the plugin id from the archive
+	pluginID, err := utils.GetPluginId(archiveFilesPath)
+	if err != nil || pluginID == "" {
+		return nil, nil
 	}
 
 	for _, file := range mapFiles {
