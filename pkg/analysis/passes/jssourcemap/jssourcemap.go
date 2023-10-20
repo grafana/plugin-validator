@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/difftool"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/utils"
 )
 
 var (
@@ -36,6 +37,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	archiveFilesPath, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok || archiveFilesPath == "" {
 		return nil, nil
+	}
+
+	// get the plugin id from the archive
+	pluginID, err := utils.GetPluginId(archiveFilesPath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	archiveModuleJs, err := doublestar.FilepathGlob(archiveFilesPath + "/**/module.js")
@@ -69,8 +77,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	for _, file := range mapFiles {
-		diffReport, err := difftool.CompareSourceMapToSourceCode(file, sourceCodeDirSrc)
+		diffReport, err := difftool.CompareSourceMapToSourceCode(pluginID, file, sourceCodeDirSrc)
 		if err != nil {
 			pass.ReportResult(pass.AnalyzerName, jsMapInvalid, fmt.Sprintf("the sourcemap file %s could not be validated", file), "You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin")
 			logme.DebugFln("could not extract source map: %s", err)

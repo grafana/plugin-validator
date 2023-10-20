@@ -3,6 +3,7 @@ package sourcemap
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -30,7 +31,8 @@ var ignoreStartingWith = []string{
 
 var replaceRegex = regexp.MustCompile(`^webpack:\/*`)
 
-func ParseSourceMapFromPath(sourceMapPath string) (*sourceMap, error) {
+func ParseSourceMapFromPath(pluginID string, sourceMapPath string) (*sourceMap, error) {
+	replaceRegex = regexp.MustCompile(fmt.Sprintf("^webpack://%s/*|^webpack:/*", pluginID))
 	sourceMapContent, err := os.ReadFile(sourceMapPath)
 	if err != nil {
 		return nil, err
@@ -72,9 +74,9 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 	return &parseSourceMap, nil
 }
 
-func ExtractSourceMapToPath(sourceMapPath string) (string, error) {
+func ExtractSourceMapToPath(pluginID string, sourceMapPath string) (string, error) {
 	// parse source map
-	sourceMapParsed, err := ParseSourceMapFromPath(sourceMapPath)
+	sourceMapParsed, err := ParseSourceMapFromPath(pluginID, sourceMapPath)
 	if err != nil {
 		return "", err
 	}

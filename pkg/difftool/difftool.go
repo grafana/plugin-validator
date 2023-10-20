@@ -32,14 +32,14 @@ It returns a diffReport that contains the differences between the source code ma
 sourceCodeMapFile is the path to the source code map file. (.js.map)
 sourceCodePath is the path to the source code directory. (the directory that contains the source code files)
 */
-func CompareSourceMapToSourceCode(sourceCodeMapFile string, sourceCodePath string) (diffReport, error) {
+func CompareSourceMapToSourceCode(pluginID string, sourceCodeMapFile string, sourceCodePath string) (diffReport, error) {
 	report := diffReport{
 		SourceCodeMapPath: sourceCodeMapFile,
 		SourceCodePath:    sourceCodePath,
 		Sources:           map[string]*sourceDiff{},
 	}
 
-	sourceCode, err := sourcemap.ParseSourceMapFromPath(sourceCodeMapFile)
+	sourceCode, err := sourcemap.ParseSourceMapFromPath(pluginID, sourceCodeMapFile)
 	if err != nil {
 		return report, err
 	}
