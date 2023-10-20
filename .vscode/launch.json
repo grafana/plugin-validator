@@ -31,6 +31,22 @@
       ]
     },
     {
+      "name": "Debug sourcemapdiff (panel)",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/pkg/cmd/sourcemapdiff",
+      "cwd": "${workspaceFolder}",
+      "args": [
+        "-nonInteractive",
+        "y",
+        "-archiveUri",
+        "https://github.com/briangann/grafana-gauge-panel/releases/download/v2.0.0/briangann-gauge-panel-2.0.0.zip",
+        "-sourceCodeUri",
+        "https://github.com/briangann/grafana-gauge-panel/tree/v2.0.0",
+      ]
+    },
+    {
       "name": "Debug V2 (local invalid2)",
       "type": "go",
       "request": "launch",
