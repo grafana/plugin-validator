@@ -1,3 +1,17 @@
 {
-  "id": "fakeorg-fake-panel"
+  "id": "fakeorg-fake-panel",
+  "type": "panel",
+  "name": "Fake Panel",
+  "info": {
+    "logos": {
+      "small": "fake.svg",
+      "large": "fake.svg"
+    },
+    "keywords": ["fake"],
+    "updated": "%TODAY%",
+    "version": "%VERSION%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=10.0"
+  }
 }
