@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as builder
+FROM golang:1.21-alpine as builder
 
 WORKDIR /go/src/github.com/grafana/plugin-validator
 ADD . /go/src/github.com/grafana/plugin-validator
@@ -9,18 +9,18 @@ RUN apk add --no-cache git ca-certificates curl && \
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.1
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
 
 RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v build:ci && \
     ls -al bin
 
-FROM alpine:3.17
+FROM alpine:3.18
 RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk && \
     update-ca-certificates
 
 # install gosec
-RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin v2.14.0
+RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin v2.18.1
 
 # install semgrep
 RUN python3 -m pip install semgrep==1.28.0 --ignore-installed
