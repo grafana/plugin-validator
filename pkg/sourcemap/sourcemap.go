@@ -16,7 +16,7 @@ type rawSourceMap struct {
 	SourcesContent []string `json:"sourcesContent"`
 }
 
-type sourceMap struct {
+type SourceMap struct {
 	Version      int
 	Sources      map[string]string
 	SourcesNames []string
@@ -29,18 +29,19 @@ var ignoreStartingWith = []string{
 	"./node_modules/",
 }
 
-var replaceRegex = regexp.MustCompile(`^webpack:\/*`)
-
-func ParseSourceMapFromPath(pluginID string, sourceMapPath string) (*sourceMap, error) {
-	replaceRegex = regexp.MustCompile(fmt.Sprintf("^webpack://%s/*|^webpack:/*", pluginID))
+func ParseSourceMapFromPath(pluginID string, sourceMapPath string) (*SourceMap, error) {
+	replaceRegex, err := regexp.Compile(fmt.Sprintf("^webpack://%s/*|^webpack:/*", pluginID))
+	if err != nil {
+		return nil, fmt.Errorf("regexp compile: %w", err)
+	}
 	sourceMapContent, err := os.ReadFile(sourceMapPath)
 	if err != nil {
 		return nil, err
 	}
-	return ParseSourceMapFromBytes(sourceMapContent)
+	return ParseSourceMapFromBytes(replaceRegex, sourceMapContent)
 }
 
-func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
+func ParseSourceMapFromBytes(replaceRegex *regexp.Regexp, data []byte) (*SourceMap, error) {
 	var rawSourceMap rawSourceMap
 	err := json.Unmarshal(data, &rawSourceMap)
 	if err != nil {
@@ -59,7 +60,7 @@ func ParseSourceMapFromBytes(data []byte) (*sourceMap, error) {
 		return nil, errors.New("generated source code map requires the number of original source file paths (sources) to match with the number of original source code (sourcesContent)")
 	}
 
-	parseSourceMap := sourceMap{
+	parseSourceMap := SourceMap{
 		Version: rawSourceMap.Version,
 		Sources: map[string]string{},
 	}
