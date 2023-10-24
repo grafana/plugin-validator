@@ -9,7 +9,7 @@ RUN apk add --no-cache git ca-certificates curl && \
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.0
 
 RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v build:ci && \
@@ -20,7 +20,7 @@ RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip
     update-ca-certificates
 
 # install gosec
-RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin v2.18.1
+RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin v2.18.2
 
 # install semgrep
 RUN python3 -m pip install semgrep==1.28.0 --ignore-installed
