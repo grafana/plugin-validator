@@ -11,6 +11,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/grafana/plugin-validator/pkg/difftool"
 	"github.com/grafana/plugin-validator/pkg/sourcemap"
+	"github.com/grafana/plugin-validator/pkg/utils"
 )
 
 var options = map[string]*string{
@@ -41,8 +42,15 @@ func main() {
 	// extract the source map into a temporal folder
 	sourceCodeMapPath := filepath.Join(pluginPath, "module.js.map")
 
+	// get the plugin id from the archive
+	pluginID, err := utils.GetPluginId(pluginPath)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	// compare the source map with the source code
-	report, err := difftool.CompareSourceMapToSourceCode(sourceCodeMapPath, filepath.Join(sourceCodePath, "src"))
+	report, err := difftool.CompareSourceMapToSourceCode(pluginID, sourceCodeMapPath, filepath.Join(sourceCodePath, "src"))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -50,12 +58,12 @@ func main() {
 
 	fmt.Println(report.GeneratePrintableReport())
 	if report.TotalDifferences > 0 && *options["nonInteractive"] == "n" {
-		promptToSeeDiff(sourceCodeMapPath, sourceCodePath)
+		promptToSeeDiff(pluginID, sourceCodeMapPath, sourceCodePath)
 	}
 
 }
 
-func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
+func promptToSeeDiff(pluginID, sourceCodeMapPath string, sourceCodePath string) {
 
 	var answer string
 	fmt.Println("Do you want to see the differences in your diff tool?")
@@ -73,7 +81,7 @@ func promptToSeeDiff(sourceCodeMapPath string, sourceCodePath string) {
 			return
 		}
 
-		sourceCodeMapPath, err := sourcemap.ExtractSourceMapToPath(sourceCodeMapPath)
+		sourceCodeMapPath, err := sourcemap.ExtractSourceMapToPath(pluginID, sourceCodeMapPath)
 		if err != nil {
 			fmt.Println("Error extracting source map to file system")
 			fmt.Println(err)
@@ -117,7 +125,7 @@ func getSystemDiffTool() (string, error) {
 		return "diff -bur %s %s", nil
 	}
 
-	return "", fmt.Errorf("Could not find a diff tool. Please install one.")
+	return "", fmt.Errorf("could not find a diff tool. Please install one")
 }
 
 func suggestDiffTool() {

@@ -120,3 +120,36 @@ func TestSourceMapIncorrectNested(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "The provided javascript/typescript source code does not match your plugin archive assets.", interceptor.Diagnostics[0].Title)
 }
+
+func TestSourceMapCorrectYarnV3(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "source-map-correct-yarn-v3", "dist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "source-map-correct-yarn-v3", "src"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+}
+
+func TestSourceMapIncorrectYarnV3(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "source-map-incorrect-yarn-v3", "dist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "source-map-incorrect-yarn-v3", "src"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "The provided javascript/typescript source code does not match your plugin archive assets.", interceptor.Diagnostics[0].Title)
+}

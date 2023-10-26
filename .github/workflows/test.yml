@@ -17,7 +17,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "~1.20"
+          go-version: "~1.21"
           check-latest: true
 
       - name: Install dependencies
@@ -27,10 +27,10 @@ jobs:
         run: python3 -m pip install semgrep==1.28.0
 
       - name: Install gosec
-        run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.15.0
+        run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
 
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.51.2
+        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
 
       - name: Build with Mage
         uses: magefile/mage-action@v2

@@ -1,6 +1,8 @@
 package sourcemap
 
 import (
+	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,7 +13,7 @@ func TestParseSourceMapFromBytes(t *testing.T) {
 		desc              string
 		json              string
 		expectedError     string
-		expectedSourceMap *sourceMap
+		expectedSourceMap *SourceMap
 	}{
 		{
 			desc: "empty sources",
@@ -74,7 +76,7 @@ func TestParseSourceMapFromBytes(t *testing.T) {
 					"def"
 				]
 			}`,
-			expectedSourceMap: &sourceMap{
+			expectedSourceMap: &SourceMap{
 				Version: 3,
 				Sources: map[string]string{
 					"components/test.tsx":  "abc",
@@ -86,7 +88,10 @@ func TestParseSourceMapFromBytes(t *testing.T) {
 
 	for _, tc := range tcs {
 		t.Run(tc.desc, func(t *testing.T) {
-			sourceMap, err := ParseSourceMapFromBytes([]byte(tc.json))
+			pluginID := "test-anyorg-panel"
+			replaceRegex, err := regexp.Compile(fmt.Sprintf("^webpack://%s/*|^webpack:/*", pluginID))
+			require.NoError(t, err)
+			sourceMap, err := ParseSourceMapFromBytes(replaceRegex, []byte(tc.json))
 			if tc.expectedError != "" {
 				require.Equal(t, tc.expectedError, err.Error())
 			} else {

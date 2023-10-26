@@ -1,13 +1,11 @@
 package runner
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 
-	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/utils"
 )
 
 type Config struct {
@@ -37,7 +35,7 @@ type RuleConfig struct {
 var defaultSeverity = analysis.Warning
 
 func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
-	pluginId, err := getPluginId(dir)
+	pluginId, err := utils.GetPluginId(dir)
 	if err != nil {
 		// we only need the pluginId to check for exceptions
 		// it might not be available at all
@@ -156,40 +154,6 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string)
 			currentRule.ReportAll = cfg.Global.ReportAll
 		}
 	}
-}
-
-type BarebonePluginJson struct {
-	Id string `json:"id"`
-}
-
-/*
-* getPuginId returns the plugin id from the plugin.json file
-* in the archive directory
-*
-* The plugin.json file might not be in the root directory
-* at this point in the validator there's no certainty that the
-* plugin.json file even exists
- */
-func getPluginId(archiveDir string) (string, error) {
-	if len(archiveDir) == 0 || archiveDir == "/" {
-		return "", fmt.Errorf("archiveDir is empty")
-	}
-	pluginJsonPath, err := doublestar.FilepathGlob(archiveDir + "/**/plugin.json")
-	if err != nil || len(pluginJsonPath) == 0 {
-		return "", fmt.Errorf("Error getting plugin.json path: %s", err)
-	}
-
-	pluginJsonContent, err := os.ReadFile(pluginJsonPath[0])
-	if err != nil {
-		return "", err
-	}
-	//unmarshal plugin.json
-	var pluginJson BarebonePluginJson
-	err = json.Unmarshal(pluginJsonContent, &pluginJson)
-	if err != nil {
-		return "", err
-	}
-	return pluginJson.Id, nil
 }
 
 func isExcepted(pluginId string, cfg *AnalyzerConfig) bool {
