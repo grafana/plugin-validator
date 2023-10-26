@@ -9,7 +9,7 @@ RUN apk add --no-cache git ca-certificates curl && \
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.0
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
 
 RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v build:ci && \
