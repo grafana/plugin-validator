@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacybuilder"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
@@ -50,6 +51,7 @@ var Analyzers = []*analysis.Analyzer{
 	jargon.Analyzer,
 	jssourcemap.Analyzer,
 	legacyplatform.Analyzer,
+	legacybuilder.Analyzer,
 	logos.Analyzer,
 	license.Analyzer,
 	manifest.Analyzer,
