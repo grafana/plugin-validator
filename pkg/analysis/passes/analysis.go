@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacybuilder"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
@@ -21,6 +22,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
 	tzapgpt "github.com/grafana/plugin-validator/pkg/analysis/passes/tzap-gpt"
 
 	// "github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
@@ -49,6 +51,7 @@ var Analyzers = []*analysis.Analyzer{
 	jargon.Analyzer,
 	jssourcemap.Analyzer,
 	legacyplatform.Analyzer,
+	legacybuilder.Analyzer,
 	logos.Analyzer,
 	license.Analyzer,
 	manifest.Analyzer,
@@ -58,6 +61,7 @@ var Analyzers = []*analysis.Analyzer{
 	modulejs.Analyzer,
 	org.Analyzer,
 	// osvscanner.Analyzer,
+	packagejson.Analyzer,
 	pluginname.Analyzer,
 	published.Analyzer,
 	readme.Analyzer,
