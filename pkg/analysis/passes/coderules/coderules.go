@@ -75,8 +75,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// run semgrep against the source code
 	semGrepArgs := []string{
 		"--json",
-		"--lang",
-		"go",
 		"--quiet",
 		"--metrics",
 		"off",
