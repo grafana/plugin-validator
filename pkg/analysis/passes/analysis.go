@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
 	tzapgpt "github.com/grafana/plugin-validator/pkg/analysis/passes/tzap-gpt"
 
 	// "github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
@@ -58,6 +59,7 @@ var Analyzers = []*analysis.Analyzer{
 	modulejs.Analyzer,
 	org.Analyzer,
 	// osvscanner.Analyzer,
+	packagejson.Analyzer,
 	pluginname.Analyzer,
 	published.Analyzer,
 	readme.Analyzer,

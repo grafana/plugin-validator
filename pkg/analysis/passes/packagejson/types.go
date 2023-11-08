@@ -1,4 +1,4 @@
-package sourcecode
+package packagejson
 
 type PackageJson struct {
 	Name    string `json:"name"`
