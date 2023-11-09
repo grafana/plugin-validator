@@ -147,7 +147,7 @@ Private repositories are not currently supported.
 
 Make sure to include the `ref` (branch or tag) of the corresponding source code.
 
-For example: You are validating version `v2.1.2` and your project is in GitHub. Make sure you create a corresponding tag or branch and use the URL `https://github.com/grafana/clock-panel/tree/v2.1.2`.
+For example: you are validating version `v2.1.2` and your project is in GitHub. Make sure you create a corresponding tag or branch and use the URL `https://github.com/grafana/clock-panel/tree/v2.1.2`.
 
 ## Debug mode
 
