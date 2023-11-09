@@ -1,7 +1,6 @@
 package modulejs
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -24,7 +23,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok || archiveDir == "" {
 		// this should never happen
-		return nil, fmt.Errorf("archive dir not found")
+		return nil, nil
 	}
 
 	//find all module.js files with doublestar

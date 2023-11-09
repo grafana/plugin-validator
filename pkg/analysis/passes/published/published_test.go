@@ -97,7 +97,9 @@ func TestUnpublishedPlugin(t *testing.T) {
 
 	require.Len(t, httpmock.GetCallCountInfo(), 1)
 	require.Len(t, interceptor.Diagnostics, 0)
-	require.Nil(t, analyzerResult)
+	require.Equal(t, analyzerResult, &PluginStatus{
+		Status: "unknown",
+	})
 }
 
 func TestPublishedPlugin(t *testing.T) {

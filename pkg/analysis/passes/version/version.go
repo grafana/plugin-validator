@@ -50,7 +50,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// if the plugin is not published, skip this check
-	if pluginStatus == nil {
+	if pluginStatus.Status == "unknown" {
 		return nil, nil
 	}
 

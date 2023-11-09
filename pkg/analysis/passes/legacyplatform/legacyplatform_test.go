@@ -44,6 +44,9 @@ func TestLegacyPlatformUsesLegacy(t *testing.T) {
 			RootDir: filepath.Join("./"),
 			ResultOf: map[*analysis.Analyzer]interface{}{
 				modulejs.Analyzer: moduleJsMap,
+				published.Analyzer: &published.PluginStatus{
+					Status: "unknown",
+				},
 			},
 			Report: interceptor.ReportInterceptor(),
 		}
