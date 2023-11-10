@@ -23,7 +23,10 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadata := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadata, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var data struct {
 		Dependencies struct {

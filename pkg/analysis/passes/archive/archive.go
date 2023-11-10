@@ -31,6 +31,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is empty", "")
 		return nil, nil
 	}
+
 	if emptyArchive.ReportAll {
 		emptyArchive.Severity = analysis.OK
 		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is not empty", "")

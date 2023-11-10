@@ -22,8 +22,15 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {

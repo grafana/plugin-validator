@@ -25,10 +25,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	_, ok = pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	publishStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
 
 	// we don't check published plugins for naming conventions
-	if ok {
+	if ok && publishStatus.Status != "unknown" {
 		return nil, nil
 	}
 

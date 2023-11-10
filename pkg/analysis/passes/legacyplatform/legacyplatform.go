@@ -62,10 +62,14 @@ var legacyDetectors = []detector{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	_, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	status, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+
+	if !ok {
+		return nil, nil
+	}
 
 	// we don't fail published plugins for using angular
-	if ok {
+	if status.Status != "unknown" {
 		legacyPlatform.Severity = analysis.Warning
 	}
 

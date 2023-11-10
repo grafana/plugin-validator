@@ -50,7 +50,10 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// Logos
-	logos := pass.ResultOf[logos.Analyzer].(metadata.MetadataLogos)
+	logos, ok := pass.ResultOf[logos.Analyzer].(metadata.MetadataLogos)
+	if !ok {
+		return nil, nil
+	}
 	paths = append(paths, struct {
 		kind string
 		path string

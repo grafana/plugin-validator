@@ -41,7 +41,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
 	if err != nil {
 		// in case of any error getting the online status, skip this check
-		return nil, nil
+		return &PluginStatus{
+			Status: "unknown",
+		}, nil
 	}
 
 	return pluginStatus, nil

@@ -35,9 +35,20 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
-	metadata := pass.ResultOf[metadata.Analyzer].([]byte)
-	manifest := pass.ResultOf[manifest.Analyzer].([]byte)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
+
+	metadata, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	manifest, ok := pass.ResultOf[manifest.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var data struct {
 		ID   string `json:"id"`

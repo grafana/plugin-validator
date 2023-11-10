@@ -15,18 +15,22 @@ import (
 )
 
 var (
-	invalidMetadata = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Warning}
+	invalidMetadata  = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Warning}
+	metadataNotFound = &analysis.Rule{Name: "metadata-not-found", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "metadatavalid",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, metadataschema.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{invalidMetadata},
+	Rules:    []*analysis.Rule{invalidMetadata, metadataNotFound},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	schema := pass.ResultOf[metadataschema.Analyzer].([]byte)
+	schema, ok := pass.ResultOf[metadataschema.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	schemaFile, err := os.CreateTemp("", "plugin_*.schema.json")
 	if err != nil {
@@ -45,13 +49,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
 
 	// Using the path here rather than the result of metadata.Analyzer since
 	// gojsonschema needs an actual file.
 	metadataPath, err := filepath.Abs(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		return nil, err
+	}
+
+	_, err = os.Stat(metadataPath)
+	switch {
+	case os.IsNotExist(err):
+		pass.ReportResult(pass.AnalyzerName, metadataNotFound, "plugin.json not found", "plugin.json not found in the archive. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/")
+		return nil, nil
+	case err != nil:
+		return nil, fmt.Errorf("%q stat: %w", metadataPath, err)
+	case err == nil:
+		break	
 	}
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)

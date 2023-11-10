@@ -37,7 +37,10 @@ var validLicensesRegex = []*regexp.Regexp{
 const minRequiredConfidenceLevel float32 = 0.9
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
 
 	// validate that a LICENSE file is provided (go standard lib method)
 	licenseFilePath := filepath.Join(archiveDir, "LICENSE")
