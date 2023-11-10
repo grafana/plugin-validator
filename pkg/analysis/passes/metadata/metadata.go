@@ -20,7 +20,11 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+
+	if !ok {
+		return nil, nil
+	}
 
 	b, err := os.ReadFile(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {

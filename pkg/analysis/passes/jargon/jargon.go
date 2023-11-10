@@ -26,11 +26,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		"nodejs",
 	}
 
-	b := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeContent, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var found []string
 	for _, word := range jargon {
-		if bytes.Contains(b, []byte(word)) {
+		if bytes.Contains(readmeContent, []byte(word)) {
 			found = append(found, word)
 		}
 	}

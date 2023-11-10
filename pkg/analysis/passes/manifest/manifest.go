@@ -35,7 +35,10 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
 
 	publishStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
 	isPublished := false

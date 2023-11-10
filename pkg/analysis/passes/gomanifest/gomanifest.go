@@ -35,7 +35,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
 	if !ok {
-		return nil, errors.New("metadata not found")
+		return nil, nil
 	}
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {

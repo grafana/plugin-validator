@@ -24,7 +24,7 @@ var Analyzer = &analysis.Analyzer{
 func run(pass *analysis.Pass) (interface{}, error) {
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok {
-		return nil, fmt.Errorf("failed to get archive dir")
+		return nil, nil
 	}
 
 	svgValidator := svgvalidate.NewValidator()

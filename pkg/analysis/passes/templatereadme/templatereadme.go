@@ -19,7 +19,10 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	readme := pass.ResultOf[readme.Analyzer].([]byte)
+	readme, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	re := regexp.MustCompile("(?i)Grafana (Panel|Data Source|Datasource|App|Data Source Backend) Plugin Template")
 

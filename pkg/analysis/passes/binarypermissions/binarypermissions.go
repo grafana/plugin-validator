@@ -35,8 +35,15 @@ var binarySuffixes = []string{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir := pass.ResultOf[archive.Analyzer].(string)
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok {
+		return nil, nil
+	}
+
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {

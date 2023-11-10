@@ -36,6 +36,10 @@ func setupTestAnalyzer(pluginSubmissionVersion string, pluginGrafanaComVersion s
 			Slug:    testPluginId,
 			Version: pluginGrafanaComVersion,
 		}
+	} else {
+		pluginStatus = &published.PluginStatus{
+			Status: "unknown",
+		}
 	}
 
 	pass := &analysis.Pass{

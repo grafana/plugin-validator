@@ -57,37 +57,30 @@ func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg
 
 	seen := make(map[*analysis.Analyzer]bool)
 
-	var runFn func(a *analysis.Analyzer) error
+	var runFn func(currentAnalyzer *analysis.Analyzer) error
 
-	runFn = func(a *analysis.Analyzer) error {
-		if _, ok := seen[a]; ok {
+	runFn = func(currentAnalyzer *analysis.Analyzer) error {
+		// do not run the same analyzer twice
+		if _, ok := seen[currentAnalyzer]; ok {
 			return nil
 		}
 
-		seen[a] = true
+		seen[currentAnalyzer] = true
 
-		// Recurse until all required analyzers have been run.
-		for _, dep := range a.Requires {
-			if _, ok := seen[dep]; !ok {
-				if err := runFn(dep); err != nil {
-					return fmt.Errorf("%s: %w", dep.Name, err)
-				}
+		// run all the dependencies of the analyzer
+		for _, dep := range currentAnalyzer.Requires {
+			// if dependency returned error. This analyzer should return error too
+			if err := runFn(dep); err != nil {
+				return fmt.Errorf("%s: %w", dep.Name, err)
 			}
 		}
 
-		// TODO: Is there a better way to skip downstream analyzers than based
-		// on a nil result?
-		for _, dep := range a.Requires {
-			if pass.ResultOf[dep] == nil {
-				return nil
-			}
-		}
-		pass.AnalyzerName = a.Name
-		res, err := a.Run(pass)
+		pass.AnalyzerName = currentAnalyzer.Name
+		res, err := currentAnalyzer.Run(pass)
 		if err != nil {
 			return err
 		}
-		pass.ResultOf[a] = res
+		pass.ResultOf[currentAnalyzer] = res
 
 		return nil
 	}

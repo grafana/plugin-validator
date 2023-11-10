@@ -33,8 +33,15 @@ type contextURL struct {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
-	readme := pass.ResultOf[readme.Analyzer].([]byte)
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
+
+	readme, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
 	var urls []contextURL
 

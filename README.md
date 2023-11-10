@@ -4,14 +4,14 @@
 [![Drone](https://drone.grafana.net/api/badges/grafana/plugin-validator/status.svg)](https://drone.grafana.net/grafana/plugin-validator)
 [![Go Report Card](https://goreportcard.com/badge/github.com/grafana/plugin-validator)](https://goreportcard.com/report/github.com/grafana/plugin-validator)
 
-The tool helps speed up the process of publishing plugins to [Grafana.com](https://grafana.com/grafana/plugins/). It runs a series of [analyzers](#analyzers) to ensure plugins are following best practices; checking for security and structural issues, as well as specific requirements related to publishing. A general overview of these requirements can be found here: <https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/>.
+This tool helps speed up the process of publishing plugins to [Grafana.com](https://grafana.com/grafana/plugins/). It runs a series of [analyzers](#analyzers) to ensure plugins are following best practices, checking for security and structural issues, as well as specific requirements related to publishing. A general overview of these requirements can be found here: <https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/>.
 
 It requires a path to a remote or local ZIP archive of the plugin to be specified, for example:
 
 - **Remote**: `https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip`
 - **Local**: `file://Users/me/Downloads/grafana-clock-panel-2.1.2.zip`
 
-You can **additionally** provide a link to the source code for the project with `-sourceCodeUri` to enable additional analyzers such as the Vulnerability Scan.
+You can _additionally_ provide a link to the source code for the project with `-sourceCodeUri` to enable additional analyzers such as the Vulnerability Scan.
 
 ## Installation and usage
 
@@ -57,9 +57,9 @@ Then you can run the utility:
 plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 ```
 
-### Generating Local Files For Validation
+### Generating local files For validation
 
-You must create a `.zip` archive containing the `dist/` directory but named as your plugin ID.
+You must create a `.zip` archive containing the `dist/` directory but named as your plugin ID:
 
 ```SHELL
 PLUGIN_ID=$(grep '"id"' < src/plugin.json | sed -E 's/.*"id" *: *"(.*)".*/\1/')
@@ -92,13 +92,13 @@ Usage plugincheck2:
 
 ### Using a configuration file
 
-You can pass a configuration YAML file to the validator with the `-config` option. Several configuration examples are available to use here <https://github.com/grafana/plugin-validator/tree/main/config>
+You can pass a configuration YAML file to the validator with the `-config` option. Several configuration examples are available to use here: <https://github.com/grafana/plugin-validator/tree/main/config>.
 
 #### Enabling and disabling analyzers via config
 
-If you wish to disable an specific check (analyzer) you can define this in your [configuration file](#using-a-configuration-file), adding an `analyzers` section and specifying which analyzer or analyzer rules to enable and disable.
+If you want to disable an specific check (analyzer) you can define this in your [configuration file](#using-a-configuration-file), adding an `analyzers` section, and specifying which analyzer or analyzer rules to enable and disable.
 
-E.g.: disable the `version` analyzer
+For example, disable the `version` analyzer:
 
 ```yaml
 global:
@@ -127,7 +127,7 @@ analyzers:
         severity: warning
 ```
 
-Severity levels could be: `error`, `warning`, `ok`
+Severity levels could be: `error`, `warning`, or `ok`.
 
 > Note: Grafana Labs enforces its own configuration for plugins submissions and your own config file can't change these rules.
 
@@ -137,7 +137,7 @@ You can specify the location of the plugin source code to the validator with the
 
 ### Supported remote Git services
 
-The following **public** git services are supported
+The following **public** Git services are supported:
 
 - GitHub
 - GitLab
@@ -145,9 +145,9 @@ The following **public** git services are supported
 
 Private repositories are not currently supported.
 
-Make sure to include the ref (branch or tag) of the corresponding source code.
+Make sure to include the `ref` (branch or tag) of the corresponding source code.
 
-e.g.: You are validating version `v2.1.2` and your project is in github. Make sure you create a corresponding tag or branch and use the url `https://github.com/grafana/clock-panel/tree/v2.1.2`
+For example: you are validating version `v2.1.2` and your project is in GitHub. Make sure you create a corresponding tag or branch and use the URL `https://github.com/grafana/clock-panel/tree/v2.1.2`.
 
 ## Debug mode
 
@@ -185,7 +185,7 @@ If you run the validator locally or via NPX you can benefit from installing thes
 
 ## Analyzers
 
-The tool runs a series of analyzers to ensure submitted plugins are following best practices, and speed up the process of approving a plugin for publishing, detailed in the table below. The Analyzer column includes the name required for altering the behavior of a given check in a [configuration file](#using-a-configuration-file). The Dependencies column specifies whether the analyzer requires the source code for the plugin to be provided with `sourceCodeUri` or for any additional [security scanning tools](#security-tools) to be present.
+The tool runs a series of analyzers to ensure submitted plugins are following best practices, and speed up the process of approving a plugin for publishing, detailed in the table below. The _Analyzer_ column includes the name required for altering the behavior of a given check in a [configuration file](#using-a-configuration-file). The _Dependencies_ column specifies whether the analyzer requires the source code for the plugin to be provided with `sourceCodeUri` or for any additional [security scanning tools](#security-tools) to be present.
 
 | Analyzer                                          | Description                                                                                                                       | Dependencies                                                          |
 | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
@@ -193,37 +193,37 @@ The tool runs a series of analyzers to ensure submitted plugins are following be
 | Archive Name / `archivename`                      | The name of the archive should be correctly formatted.                                                                            | None                                                                  |
 | Backend Debug / `backenddebug`                    | Checks that the standalone debug files for backend plugins are not present.                                                       | None                                                                  |
 | Binary Permissions / `binarypermissions`          | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system.                               | None                                                                  |
-| Broken Links / `brokenlinks`                      | Detects if any url does not resolve to a valid location.                                                                          | None                                                                  |
+| Broken Links / `brokenlinks`                      | Detects if any URL doesn't resolve to a valid location.                                                                          | None                                                                  |
 | Code Rules / `coderules`                          | Checks for forbidden access to environment variables, file system or use of `syscall` module.                                     | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri`   |
 | Go Manifest / `gomanifest`                        | Validates the build manifest.                                                                                                     | `sourceCodeUri`                                                       |
 | Go Security Checker / `gosec`                     | Inspects source code for security problems by scanning the Go AST.                                                                | [gosec](https://github.com/securego/gosec), `sourceCodeUri`           |
-| JS Source Map / `jssourcemap`                     | Checks for required module.js.map file(s) in archive.                                                                             | `sourceCodeUri`                                                       |
+| JS Source Map / `jssourcemap`                     | Checks for required `module.js.map` file(s) in archive.                                                                             | `sourceCodeUri`                                                       |
 | Logos / `logos`                                   | Detects whether the plugin includes small and large logos to display in the Plugin catalog                                        | none                                                                  |
-| Developer Jargon / `jargon`                       | Generally discourage use of code jargon in the documentation.                                                                     | None                                                                  |
+| Developer Jargon / `jargon`                       | Generally discourages use of code jargon in the documentation.                                                                     | None                                                                  |
 | Legacy Platform / `legacyplatform`                | Detects use of Angular which is deprecated.                                                                                       | None                                                                  |
 | License Type / `license`                          | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3.                                                  | None                                                                  |
-| Manifest (Signing) / `manifest`                   | When a plugin is signed, the zip file will contain a signed MANIFEST.txt file.                                                    | None                                                                  |
+| Manifest (Signing) / `manifest`                   | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file.                                                    | None                                                                  |
 | Metadata Paths / `metadatapaths`                  | Ensures all paths are valid and images referenced exist.                                                                          | None                                                                  |
 | Metadata Validity / `metadatavalid`               | Ensures metadata is valid and matches plugin schema.                                                                              | None                                                                  |
-| module.js (exists) / `modulejs`                   | All plugins require a module.js to be loaded.                                                                                     | None                                                                  |
+| module.js (exists) / `modulejs`                   | All plugins require a `module.js` to be loaded.                                                                                     | None                                                                  |
 | Organization (exists) / `org`                     | Verifies the org specified in the plugin ID exists.                                                                               | None                                                                  |
-| Plugin Name formatting / `pluginname`             | Validates the plugin id used conforms to our naming convention.                                                                   | None                                                                  |
-| Published / `published`                           | Detects whether any version of this plugin exists in the Plugin catalog currently.                                                | None                                                                  |
-| Readme (exists) / `readme`                        | Ensures a README.md file exists within the zip file.                                                                              | None                                                                  |
+| Plugin Name formatting / `pluginname`             | Validates the plugin ID used conforms to our naming convention.                                                                   | None                                                                  |
+| Published / `published`                           | Detects whether any version of this plugin exists in the Grafana plugin catalog currently.                                                | None                                                                  |
+| Readme (exists) / `readme`                        | Ensures a `README.md` file exists within the zip file.                                                                              | None                                                                  |
 | Restrictive Dependency / `restrictivedep`         | Specifies a valid range of Grafana versions that work with this version of the plugin.                                            | None                                                                  |
-| Screenshots / `screenshots`                       | Screenshots are specified in plugin.json that will be used in the Plugin catalog.                                                 | None                                                                  |
+| Screenshots / `screenshots`                       | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog.                                                 | None                                                                  |
 | Signature / `signature`                           | Ensures the plugin has a valid signature.                                                                                         | None                                                                  |
 | !Source Code / `sourcecode`                       | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it.     | `sourceCodeUri`                                                       |
-| Unique README.md / `templatereadme`               | Ensures the plugin does not re-use the template from the create-plugin tool.                                                      | None                                                                  |
+| Unique README.md / `templatereadme`               | Ensures the plugin doesn't re-use the template from the `create-plugin` tool.                                                      | None                                                                  |
 | No Tracking Scripts / `trackingscripts`           | Detects if there are any known tracking scripts, which are not allowed.                                                           | None                                                                  |
 | Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified.                                                                                    | None                                                                  |
 | Version / `version`                               | Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped. | None                                                                  |
-| Vulnerability Scanner / `osv-scanner`             | Detects critical vulnerabilities in go modules and yarn lock files.                                                               | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |
-| Unsafe SVG / `unsafesvg`                          | Checks if any svg files are safe based on a whitelist of elements and attributes                                                  | none                                                                  |
+| Vulnerability Scanner / `osv-scanner`             | Detects critical vulnerabilities in Go modules and yarn lock files.                                                               | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |
+| Unsafe SVG / `unsafesvg`                          | Checks if any svg files are safe based on a whitelist of elements and attributes.                                                  | none                                                                  |
 
 ## Output
 
-By default, the tool will output results in plain text as shown below.
+By default, the tool outputs results in plain text as shown below.
 
 Default:
 
@@ -298,7 +298,7 @@ Resulting in output similar to:
 
 ### Severity
 
-By default the tool will show any warning or error level results from the analyzers. To see all results including successes, you can pass a configuration file which includes:
+By default, the tool will show any warning or error level results from the analyzers. To see all results including successes, you can pass a configuration file which includes:
 
 ```yaml
 global:
@@ -307,8 +307,7 @@ global:
 
 ## Getting Help
 
-- :open_book: Check out our plugin [documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
-- :rocket: See our other [Plugin Tools](https://grafana.github.io/plugin-tools/) to create and update plugins.
+- :open_book: Check out our plugin [documentation](https://grafana.com/developers/plugin-tools).
 - :handshake: Join the [community forum](https://community.grafana.com/tag/plugins).
 - :speech_balloon: Chat to us in the Grafana Slack [#plugins channel](https://grafana.slack.com/archives/C3HJV5PNE).
 - :memo: [File an issue](https://github.com/grafana/plugin-validator/issues) for any bugs or feature requests.

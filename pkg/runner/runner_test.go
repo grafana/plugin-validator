@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
+	"github.com/stretchr/testify/assert"
 )
 
 var tests = []struct {
@@ -21,6 +22,7 @@ var tests = []struct {
 		"missing module.js",
 		"missing README.md",
 		"LICENSE file not found",
+		"plugin.json not found",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"README.md is empty", "plugin.json: should include screenshots for the Plugin catalog",
@@ -32,6 +34,7 @@ var tests = []struct {
 		"plugin.json: invalid empty small logo path",
 		"plugin.json: invalid empty large logo path",
 		"LICENSE file not found",
+		"Plugin version \"\" is invalid.",
 	}},
 }
 
@@ -198,4 +201,27 @@ func TestCachedRun(t *testing.T) {
 	if len(res) != 3 {
 		t.Fatal("unexpected results", res)
 	}
+}
+
+func TestDependencyReturnsNil(t *testing.T) {
+	res := make(map[string]interface{})
+
+	parent := &analysis.Analyzer{
+		Name: "parent",
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			res["parent"] = nil
+			return nil, nil
+		},
+	}
+	firstChild := &analysis.Analyzer{
+		Name:     "firstChild",
+		Requires: []*analysis.Analyzer{parent},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			res["firstChild"] = true
+			return true, nil
+		},
+	}
+	_, _ = Check([]*analysis.Analyzer{firstChild}, "", "", Config{Global: GlobalConfig{Enabled: true}})
+
+	assert.Len(t, res, 2)
 }
