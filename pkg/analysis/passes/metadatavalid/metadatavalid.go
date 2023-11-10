@@ -62,9 +62,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	_, err = os.Stat(metadataPath)
-	if err != nil {
+	switch {
+	case os.IsNotExist(err):
 		pass.ReportResult(pass.AnalyzerName, metadataNotFound, "plugin.json not found", "plugin.json not found in the archive. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/")
 		return nil, nil
+	case err != nil:
+		return nil, fmt.Errorf("%q stat: %w", metadataPath, err)
+	case err == nil:
+		break	
 	}
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
