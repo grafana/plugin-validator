@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
@@ -16,6 +17,9 @@ func TestWithNoManifest(t *testing.T) {
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			archive.Analyzer: filepath.Join("testdata", "no-manifest"),
+			published.Analyzer: &published.PluginStatus{
+				Status: "published",
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -23,7 +27,28 @@ func TestWithNoManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "unsigned plugin")
+	require.Equal(t, "unsigned plugin", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/", interceptor.Diagnostics[0].Detail)
+}
+
+func TestWithNoManifestNewPlugin(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "no-manifest"),
+			published.Analyzer: &published.PluginStatus{
+				Status: "unknown",
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "unsigned plugin", interceptor.Diagnostics[0].Title)
+	require.Equal(t, "This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed.", interceptor.Diagnostics[0].Detail)
 }
 
 func TestWithEmptyManfiest(t *testing.T) {

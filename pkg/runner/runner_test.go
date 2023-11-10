@@ -20,11 +20,9 @@ var tests = []struct {
 		"missing plugin.json",
 		"missing module.js",
 		"missing README.md",
-		"unsigned plugin",
 		"LICENSE file not found",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
-		"empty manifest",
 		"README.md is empty", "plugin.json: should include screenshots for the Plugin catalog",
 		"plugin.json: (root): type is required",
 		"plugin.json: (root): name is required",
