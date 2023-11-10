@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -212,7 +211,6 @@ func TestDependencyReturnsNil(t *testing.T) {
 	parent := &analysis.Analyzer{
 		Name: "parent",
 		Run: func(pass *analysis.Pass) (interface{}, error) {
-			fmt.Println("parent run")
 			res["parent"] = nil
 			return nil, nil
 		},
@@ -221,7 +219,6 @@ func TestDependencyReturnsNil(t *testing.T) {
 		Name:     "firstChild",
 		Requires: []*analysis.Analyzer{parent},
 		Run: func(pass *analysis.Pass) (interface{}, error) {
-			fmt.Println("firstChild run")
 			res["firstChild"] = true
 			return true, nil
 		},
