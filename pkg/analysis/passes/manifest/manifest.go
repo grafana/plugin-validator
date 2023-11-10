@@ -11,6 +11,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 
 	// even though deprecated this is what grafana is using at the moment
 	// https://github.com/grafana/grafana/blob/main/pkg/plugins/manager/signature/manifest.go
@@ -28,7 +29,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "manifest",
-	Requires: []*analysis.Analyzer{archive.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{unsignedPlugin, undeclaredFiles, emptyManifest, wrongManifest, invalidShaSum},
 }
@@ -39,11 +40,22 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	publishStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	isPublished := false
+	if ok && publishStatus.Status != "unknown" {
+		isPublished = true
+	}
+
 	b, err := os.ReadFile(filepath.Join(archiveDir, "MANIFEST.txt"))
 	if err != nil {
 		if os.IsNotExist(err) {
 
-			pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/")
+			detail := "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/"
+			if !isPublished {
+				detail = "This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed."
+			}
+
+			pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", detail)
 			return nil, nil
 		}
 		return nil, err
