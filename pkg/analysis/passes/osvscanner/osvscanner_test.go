@@ -38,9 +38,90 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
+	actualFunction := do_scan_internal
+
+	// some of these will get filtered, expect 2 to not be filtered out of results
+	do_scan_internal = func(lockPath string) (models.VulnerabilityResults, error) {
+		group := models.GroupInfo{
+			IDs: []string{
+				"CVE-2020-1234",
+				"CVE-2021-1234",
+				"CVE-2022-1234",
+				"CVE-2023-1234",
+			},
+		}
+		pkg := models.PackageVulns{
+			Package: models.PackageInfo{Name: "fake-package"},
+			Groups:  []models.GroupInfo{group},
+			Vulnerabilities: []models.Vulnerability{
+				{
+					ID: "CVE-2020-1234",
+					Severity: []models.Severity{
+						{
+							Type:  models.SeverityType("critical"),
+							Score: "1",
+						},
+					},
+					DatabaseSpecific: map[string]interface{}{
+						"severity": SeverityCritical,
+					},
+				},
+				{
+					ID: "CVE-2021-1234",
+					Severity: []models.Severity{
+						{
+							Type:  models.SeverityType("high"),
+							Score: "1",
+						},
+					},
+					DatabaseSpecific: map[string]interface{}{
+						"severity": SeverityHigh,
+					},
+				},
+				{
+					ID: "CVE-2022-1234",
+					Severity: []models.Severity{
+						{
+							Type:  models.SeverityType("moderate"),
+							Score: "1",
+						},
+					},
+					DatabaseSpecific: map[string]interface{}{
+						"severity": SeverityModerate,
+					},
+				},
+				{
+					ID: "CVE-2023-1234",
+					Severity: []models.Severity{
+						{
+							Type:  models.SeverityType("low"),
+							Score: "1",
+						},
+					},
+					DatabaseSpecific: map[string]interface{}{
+						"severity": SeverityLow,
+					},
+				},
+			},
+		}
+		source := models.PackageSource{
+			Source: models.SourceInfo{
+				Path: filepath.Join("testdata", "node", "critical-yarn", "yarn.lock"),
+				Type: "lockfile",
+			},
+			Packages: []models.PackageVulns{pkg},
+		}
+		vulns := models.VulnerabilityResults{Results: []models.PackageSource{source}}
+		//
+		// restore default
+		do_scan_internal = actualFunction
+
+		return vulns, nil
+	}
+
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
+	require.Len(t, interceptor.Diagnostics, 2)
 
 	// this results in no issues since they are filtered out
 	// will need to add a new lock file that is not filtered to make this a more thorough test
@@ -76,7 +157,14 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 	actualFunction := do_scan_internal
 
 	do_scan_internal = func(lockPath string) (models.VulnerabilityResults, error) {
-		group := models.GroupInfo{IDs: []string{"CVE-2021-1234"}}
+		group := models.GroupInfo{
+			IDs: []string{
+				"CVE-2020-1234",
+				"CVE-2021-1234",
+				"CVE-2022-1234",
+				"CVE-2023-1234",
+			},
+		}
 		pkg := models.PackageVulns{
 			Package: models.PackageInfo{Name: "fake-package"},
 			Groups:  []models.GroupInfo{group},
