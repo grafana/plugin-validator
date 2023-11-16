@@ -73,7 +73,7 @@ func TestOSVScannerAsLibraryReportAll(t *testing.T) {
 		undoReportAll(Analyzer)
 	})
 
-	actualFunction := osvscanner.do_scan_internal
+	actualFunction := do_scan_internal
 
 	do_scan_internal = func(lockPath string) (models.VulnerabilityResults, error) {
 		group := models.GroupInfo{IDs: []string{"CVE-2021-1234"}}
