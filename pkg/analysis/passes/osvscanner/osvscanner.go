@@ -62,7 +62,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if _, err := os.Stat(lockFile); err == nil {
 			// perform scan
 			scanningPerformed = true
-			data, err := do_scan_internal(lockFile)
+			data, err := doScanInternal(lockFile)
 			if err != nil {
 				if scanningFailure.ReportAll {
 					pass.ReportResult(
@@ -201,7 +201,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
-var do_scan_internal = func(lockPath string) (models.VulnerabilityResults, error) {
+var doScanInternal = func(lockPath string) (models.VulnerabilityResults, error) {
 	flagged := []string{
 		lockPath,
 	} // your real code
