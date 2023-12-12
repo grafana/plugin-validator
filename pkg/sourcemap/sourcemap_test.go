@@ -84,6 +84,39 @@ func TestParseSourceMapFromBytes(t *testing.T) {
 				},
 			},
 		},
+		{
+			desc: "valid",
+			json: `{
+				"version": 3,
+				"sources": [
+					"components/test.tsx",
+					"external abc",
+					"webpack/abc",
+					"../node_modules/abc",
+					"./node_modules/abc",
+					"components/test2.tsx",
+					"./test.svg",
+					"./img/ sync ^\\.\/.*\\.svg$"
+				],
+				"sourcesContent": [
+					"abc",
+					"",
+					"",
+					"",
+					"",
+					"def",
+					"",
+					""
+				]
+			}`,
+			expectedSourceMap: &SourceMap{
+				Version: 3,
+				Sources: map[string]string{
+					"components/test.tsx":  "abc",
+					"components/test2.tsx": "def",
+				},
+			},
+		},
 	}
 
 	for _, tc := range tcs {

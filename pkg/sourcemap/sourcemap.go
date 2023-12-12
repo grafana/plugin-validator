@@ -116,7 +116,8 @@ func isIgnoredFile(sourceName string) bool {
 	if strings.Contains(sourceName, "/node_modules/.pnpm/") {
 		return true
 	}
-	var ignoredExtensions = []string{".css", ".scss", ".sass", ".less", ".svg", ".json"}
+
+	var ignoredExtensions = []string{".css", ".scss", ".sass", ".less", ".svg", ".svg$", ".json"}
 	for _, ext := range ignoredExtensions {
 		if strings.HasSuffix(sourceName, ext) {
 			return true
