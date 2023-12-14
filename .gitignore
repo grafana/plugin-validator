@@ -5,3 +5,4 @@ node_modules/
 unpacked_bin/
 __debug_bin
 config/custom.yaml
+.idea

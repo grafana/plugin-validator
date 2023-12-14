@@ -33,10 +33,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	metadataBody := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	if !ok {
+		return nil, nil
+	}
 
-	var metadata metadata.Metadata
-	if err := json.Unmarshal(metadataBody, &metadata); err != nil {
+	var md metadata.Metadata
+	if err := json.Unmarshal(metadataBody, &md); err != nil {
 		return nil, err
 	}
 
@@ -53,11 +56,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	if parsedPackageJson.Version != metadata.Info.Version {
+	if parsedPackageJson.Version != md.Info.Version {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			packageCodeVersionMisMatch,
-			fmt.Sprintf("The version in package.json (%s) doesn't match the version in plugin.json (%s)", parsedPackageJson.Version, metadata.Info.Version),
+			fmt.Sprintf("The version in package.json (%s) doesn't match the version in plugin.json (%s)", parsedPackageJson.Version, md.Info.Version),
 			"The version in the source code package.json must match the version in plugin.json",
 		)
 		return nil, nil
