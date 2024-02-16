@@ -19,6 +19,7 @@ type Pass struct {
 	AnalyzerName  string
 	RootDir       string
 	SourceCodeDir string
+	Checksum      string
 	ResultOf      map[*Analyzer]interface{}
 	Report        func(string, Diagnostic)
 }

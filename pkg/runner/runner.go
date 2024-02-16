@@ -32,10 +32,16 @@ type RuleConfig struct {
 	Severity *analysis.Severity `yaml:"severity"`
 }
 
+type CheckParams struct {
+	ArchiveDir    string
+	SourceCodeDir string
+	Checksum      string
+}
+
 var defaultSeverity = analysis.Warning
 
-func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg Config) (map[string][]analysis.Diagnostic, error) {
-	pluginId, err := utils.GetPluginId(dir)
+func Check(analyzers []*analysis.Analyzer, params *CheckParams, cfg Config) (map[string][]analysis.Diagnostic, error) {
+	pluginId, err := utils.GetPluginId(params.ArchiveDir)
 	if err != nil {
 		// we only need the pluginId to check for exceptions
 		// it might not be available at all
@@ -46,8 +52,9 @@ func Check(analyzers []*analysis.Analyzer, dir string, sourceCodeDir string, cfg
 	diagnostics := make(map[string][]analysis.Diagnostic)
 
 	pass := &analysis.Pass{
-		RootDir:       dir,
-		SourceCodeDir: sourceCodeDir,
+		RootDir:       params.ArchiveDir,
+		SourceCodeDir: params.SourceCodeDir,
+		Checksum:      params.Checksum,
 		ResultOf:      make(map[*analysis.Analyzer]interface{}),
 		Report: func(name string, d analysis.Diagnostic) {
 			// Collect all diagnostics for presenting at the end.
