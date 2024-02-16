@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
+	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -73,6 +75,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	md5hasher := md5.New()
+	sha1hasher := sha1.New()
+
+	md5hash := md5hasher.Sum(b)
+	sha1hash := sha1hasher.Sum(b)
+
+	logme.Infoln(fmt.Sprintf("ArchiveCalculatedMD5: %x", md5hash))
+	logme.Infoln(fmt.Sprintf("ArchiveCalculatedSHA1: %x", sha1hash))
+
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, archiveCleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
@@ -92,10 +103,12 @@ func main() {
 
 	diags, err := runner.Check(
 		passes.Analyzers,
-		&runner.CheckParams{
-			ArchiveDir:    archiveDir,
-			SourceCodeDir: sourceCodeDir,
-			Checksum:      *checksum,
+		&analysis.CheckParams{
+			ArchiveDir:            archiveDir,
+			SourceCodeDir:         sourceCodeDir,
+			Checksum:              *checksum,
+			ArchiveCalculatedMD5:  fmt.Sprintf("%x", md5hash),
+			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
 		},
 		cfg,
 	)

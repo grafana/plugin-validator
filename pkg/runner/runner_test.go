@@ -60,7 +60,7 @@ func TestRunner(t *testing.T) {
 			archiveDir := filepath.Join("testdata", tt.Dir)
 
 			ds, err := Check(passes.Analyzers,
-				&CheckParams{
+				&analysis.CheckParams{
 					ArchiveDir:    archiveDir,
 					SourceCodeDir: "",
 					Checksum:      "",
@@ -138,7 +138,7 @@ func TestLinearDependencies(t *testing.T) {
 
 	_, _ = Check(
 		[]*analysis.Analyzer{fourth},
-		&CheckParams{
+		&analysis.CheckParams{
 			ArchiveDir:    "",
 			SourceCodeDir: "",
 			Checksum:      "",
@@ -180,7 +180,7 @@ func TestSharedParent(t *testing.T) {
 
 	_, _ = Check(
 		[]*analysis.Analyzer{firstChild, secondChild},
-		&CheckParams{
+		&analysis.CheckParams{
 			ArchiveDir:    "",
 			SourceCodeDir: "",
 			Checksum:      "",
@@ -222,7 +222,7 @@ func TestCachedRun(t *testing.T) {
 
 	_, _ = Check(
 		[]*analysis.Analyzer{parent, firstChild, secondChild, firstChild, secondChild, parent},
-		&CheckParams{
+		&analysis.CheckParams{
 			ArchiveDir:    "",
 			SourceCodeDir: "",
 			Checksum:      "",
@@ -255,7 +255,7 @@ func TestDependencyReturnsNil(t *testing.T) {
 	}
 	_, _ = Check(
 		[]*analysis.Analyzer{firstChild},
-		&CheckParams{
+		&analysis.CheckParams{
 			ArchiveDir:    "",
 			SourceCodeDir: "",
 			Checksum:      "",

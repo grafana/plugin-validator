@@ -24,8 +24,10 @@ func TestVersionSourceCodeMatch(t *testing.T) {
 	}`)
 
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "version-match"),
+		RootDir: filepath.Join("./"),
+		CheckParams: &analysis.CheckParams{
+			SourceCodeDir: filepath.Join("testdata", "version-match"),
+		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer:   pluginJsonContent,
 			sourcecode.Analyzer: "./testdata/version-match/",
@@ -50,8 +52,10 @@ func TestNoPackageJson(t *testing.T) {
 	}`)
 
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "no-package-json"),
+		RootDir: filepath.Join("./"),
+		CheckParams: &analysis.CheckParams{
+			SourceCodeDir: filepath.Join("testdata", "no-package-json"),
+		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer:   pluginJsonContent,
 			sourcecode.Analyzer: "./testdata/no-package-json/",
@@ -63,7 +67,11 @@ func TestNoPackageJson(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Could not find or parse package.json from ./testdata/no-package-json/", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"Could not find or parse package.json from ./testdata/no-package-json/",
+		interceptor.Diagnostics[0].Title,
+	)
 }
 
 func TestInvalidPackageJson(t *testing.T) {
@@ -77,8 +85,10 @@ func TestInvalidPackageJson(t *testing.T) {
 	}`)
 
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "invalid-package-json"),
+		RootDir: filepath.Join("./"),
+		CheckParams: &analysis.CheckParams{
+			SourceCodeDir: filepath.Join("testdata", "invalid-package-json"),
+		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer:   pluginJsonContent,
 			sourcecode.Analyzer: "./testdata/invalid-package-json/",
@@ -90,7 +100,11 @@ func TestInvalidPackageJson(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Could not find or parse package.json from ./testdata/invalid-package-json/", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"Could not find or parse package.json from ./testdata/invalid-package-json/",
+		interceptor.Diagnostics[0].Title,
+	)
 }
 
 // package.json in source code sometimes use a "human json" format that allows
@@ -107,8 +121,10 @@ func TestAllowHumanJson(t *testing.T) {
 	}`)
 
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "human-package-json"),
+		RootDir: filepath.Join("./"),
+		CheckParams: &analysis.CheckParams{
+			SourceCodeDir: filepath.Join("testdata", "human-package-json"),
+		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer:   pluginJsonContent,
 			sourcecode.Analyzer: "./testdata/human-package-json/",
@@ -135,8 +151,10 @@ func TestVersionMisMatch(t *testing.T) {
 	}`)
 
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: filepath.Join("testdata", "version-mismatch"),
+		RootDir: filepath.Join("./"),
+		CheckParams: &analysis.CheckParams{
+			SourceCodeDir: filepath.Join("testdata", "version-mismatch"),
+		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer:   pluginJsonContent,
 			sourcecode.Analyzer: "./testdata/version-mismatch/",
@@ -148,5 +166,9 @@ func TestVersionMisMatch(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "The version in package.json (2.1.2) doesn't match the version in plugin.json (2.1.5)", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"The version in package.json (2.1.2) doesn't match the version in plugin.json (2.1.5)",
+		interceptor.Diagnostics[0].Title,
+	)
 }
