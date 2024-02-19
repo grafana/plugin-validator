@@ -34,8 +34,8 @@ func TestSourceCodeNotProvided(t *testing.T) {
 		}
 	}`)
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: "",
+		RootDir:     filepath.Join("./"),
+		CheckParams: analysis.CheckParams{SourceCodeDir: ""},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -59,8 +59,8 @@ func TestSourceCodeNotProvidedReportAll(t *testing.T) {
 		}
 	}`)
 	pass := &analysis.Pass{
-		RootDir:       filepath.Join("./"),
-		SourceCodeDir: "",
+		RootDir:     filepath.Join("./"),
+		CheckParams: analysis.CheckParams{SourceCodeDir: ""},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -77,6 +77,10 @@ func TestSourceCodeNotProvidedReportAll(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "Source code not provided or the provided URL  does not point to a valid source code repository", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"Source code not provided or the provided URL  does not point to a valid source code repository",
+		interceptor.Diagnostics[0].Title,
+	)
 	require.Equal(t, nil, sourceCodeDir)
 }

@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
+	"crypto/sha1"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -28,17 +30,32 @@ type FormattedOutput struct {
 
 func main() {
 	var (
-		strictFlag    = flag.Bool("strict", false, "If set, plugincheck returns non-zero exit code for warnings")
+		strictFlag = flag.Bool(
+			"strict",
+			false,
+			"If set, plugincheck returns non-zero exit code for warnings",
+		)
 		configFlag    = flag.String("config", "", "Path to configuration file")
-		sourceCodeUri = flag.String("sourceCodeUri", "", "URL to the source code of the plugin. If set, the source code will be downloaded and analyzed. This can be a ZIP file or an URL to git repository")
+		sourceCodeUri = flag.String(
+			"sourceCodeUri",
+			"",
+			"URL to the source code of the plugin. If set, the source code will be downloaded and analyzed. This can be a ZIP file or an URL to git repository",
+		)
+		checksum = flag.String(
+			"checksum",
+			"",
+			"checksum of the plugin archive. MD5, SHA1 or a string with the the hash or an url to a file with the hash",
+		)
 	)
 
 	flag.Parse()
 
+	logme.Debugln("Initializing...")
 	logme.Debugln("strict mode: ", *strictFlag)
 	logme.Debugln("config file: ", *configFlag)
 	logme.Debugln("source code: ", *sourceCodeUri)
 	logme.Debugln("archive file: ", flag.Arg(0))
+	logme.Debugln("checksum: ", *checksum)
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
@@ -59,6 +76,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	md5hasher := md5.New()
+	md5hasher.Write(b)
+	md5hash := md5hasher.Sum(nil)
+
+	sha1hasher := sha1.New()
+	sha1hasher.Write(b)
+	sha1hash := sha1hasher.Sum(nil)
+
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedMD5: %x", md5hash))
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedSHA1: %x", sha1hash))
+
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, archiveCleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
 	if err != nil {
@@ -76,7 +104,17 @@ func main() {
 		defer sourceCodeDirCleanup()
 	}
 
-	diags, err := runner.Check(passes.Analyzers, archiveDir, sourceCodeDir, cfg)
+	diags, err := runner.Check(
+		passes.Analyzers,
+		analysis.CheckParams{
+			ArchiveDir:            archiveDir,
+			SourceCodeDir:         sourceCodeDir,
+			Checksum:              *checksum,
+			ArchiveCalculatedMD5:  fmt.Sprintf("%x", md5hash),
+			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
+		},
+		cfg,
+	)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("check failed: %w", err))
 		os.Exit(1)
@@ -194,7 +232,11 @@ func getSourceCodeDirSubDir(sourceCodePath string) string {
 	if len(possiblePath) == 0 {
 		return sourceCodePath
 	}
-	logme.DebugFln("Detected sourcecode inside a subdir: %v. Returning %s", possiblePath, filepath.Dir(possiblePath[0]))
+	logme.DebugFln(
+		"Detected sourcecode inside a subdir: %v. Returning %s",
+		possiblePath,
+		filepath.Dir(possiblePath[0]),
+	)
 	// possiblePath points to a file, return the dir
 	return filepath.Dir(possiblePath[0])
 }
@@ -226,7 +268,11 @@ func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
 	// assume is an archive url
 	extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(sourceCodeUri)
 	if err != nil {
-		return "", sourceCodeCleanUp, fmt.Errorf("couldn't extract source code archive: %s. %w", sourceCodeUri, err)
+		return "", sourceCodeCleanUp, fmt.Errorf(
+			"couldn't extract source code archive: %s. %w",
+			sourceCodeUri,
+			err,
+		)
 	}
 	// some submissions from zip have their source code in a subdirectory
 	// of the extracted archive

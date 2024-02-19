@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/backenddebug"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
@@ -24,9 +25,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
-	tzapgpt "github.com/grafana/plugin-validator/pkg/analysis/passes/tzap-gpt"
-
-	// "github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/pluginname"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
@@ -37,6 +35,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
+	tzapgpt "github.com/grafana/plugin-validator/pkg/analysis/passes/tzap-gpt"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
 )
@@ -46,6 +45,7 @@ var Analyzers = []*analysis.Analyzer{
 	archivename.Analyzer,
 	brokenlinks.Analyzer,
 	binarypermissions.Analyzer,
+	checksum.Analyzer,
 	coderules.Analyzer,
 	gosec.Analyzer,
 	gomanifest.Analyzer,

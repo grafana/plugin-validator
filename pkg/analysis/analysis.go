@@ -16,11 +16,19 @@ var (
 )
 
 type Pass struct {
-	AnalyzerName  string
-	RootDir       string
-	SourceCodeDir string
-	ResultOf      map[*Analyzer]interface{}
-	Report        func(string, Diagnostic)
+	AnalyzerName string
+	RootDir      string
+	CheckParams  CheckParams
+	ResultOf     map[*Analyzer]interface{}
+	Report       func(string, Diagnostic)
+}
+
+type CheckParams struct {
+	ArchiveDir            string
+	SourceCodeDir         string
+	Checksum              string
+	ArchiveCalculatedMD5  string
+	ArchiveCalculatedSHA1 string
 }
 
 func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, detail string) {
