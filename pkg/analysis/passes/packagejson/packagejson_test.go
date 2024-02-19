@@ -25,7 +25,7 @@ func TestVersionSourceCodeMatch(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			SourceCodeDir: filepath.Join("testdata", "version-match"),
 		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
@@ -53,7 +53,7 @@ func TestNoPackageJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			SourceCodeDir: filepath.Join("testdata", "no-package-json"),
 		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
@@ -86,7 +86,7 @@ func TestInvalidPackageJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			SourceCodeDir: filepath.Join("testdata", "invalid-package-json"),
 		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
@@ -122,7 +122,7 @@ func TestAllowHumanJson(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			SourceCodeDir: filepath.Join("testdata", "human-package-json"),
 		},
 		ResultOf: map[*analysis.Analyzer]interface{}{
@@ -152,7 +152,7 @@ func TestVersionMisMatch(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			SourceCodeDir: filepath.Join("testdata", "version-mismatch"),
 		},
 		ResultOf: map[*analysis.Analyzer]interface{}{

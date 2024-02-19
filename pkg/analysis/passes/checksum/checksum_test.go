@@ -15,7 +15,7 @@ func TestValidMD5Checksum(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "",
@@ -34,7 +34,7 @@ func TestCheckSumWithSpaceAndFileName(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "f9b1c42c45cbf4953d7da5c31b3d73d9 the-archive-name.zip",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -52,7 +52,7 @@ func TestValidSHA1Checksum(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "187cd80948f240957bf8399745335b89f005c5f0",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -70,7 +70,7 @@ func TestInvalidMD5Checksum(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d4",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -96,7 +96,7 @@ func TestInvalidSHA1Checksum(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "187cd80948f240957bf8399745335b89f005c5f0",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f1",
@@ -121,7 +121,7 @@ func TestSkipsCheckSumWhenNoProvided(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "", // no checksum
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -141,7 +141,7 @@ func TestValidMD5ChecksumFromUrl(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "https://example.com/checksum",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -166,7 +166,7 @@ func TestValidMD5ChecksumFromUrlWithSpaces(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "https://example.com/checksum",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -191,7 +191,7 @@ func TestInvalidMD5ChecksumFromUrl(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "https://example.com/checksum",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -221,7 +221,7 @@ func TestWrongUrl404(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "https://example.com/checksum",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",
@@ -251,7 +251,7 @@ func TestUrlWithInvalidContent(t *testing.T) {
 
 	pass := &analysis.Pass{
 		ResultOf: map[*analysis.Analyzer]interface{}{},
-		CheckParams: &analysis.CheckParams{
+		CheckParams: analysis.CheckParams{
 			Checksum:              "https://example.com/checksum",
 			ArchiveCalculatedMD5:  "f9b1c42c45cbf4953d7da5c31b3d73d9",
 			ArchiveCalculatedSHA1: "187cd80948f240957bf8399745335b89f005c5f0",

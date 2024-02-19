@@ -18,7 +18,7 @@ var (
 type Pass struct {
 	AnalyzerName string
 	RootDir      string
-	CheckParams  *CheckParams
+	CheckParams  CheckParams
 	ResultOf     map[*Analyzer]interface{}
 	Report       func(string, Diagnostic)
 }

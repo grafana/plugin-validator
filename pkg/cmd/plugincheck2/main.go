@@ -106,7 +106,7 @@ func main() {
 
 	diags, err := runner.Check(
 		passes.Analyzers,
-		&analysis.CheckParams{
+		analysis.CheckParams{
 			ArchiveDir:            archiveDir,
 			SourceCodeDir:         sourceCodeDir,
 			Checksum:              *checksum,

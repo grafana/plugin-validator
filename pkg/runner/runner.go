@@ -36,7 +36,7 @@ var defaultSeverity = analysis.Warning
 
 func Check(
 	analyzers []*analysis.Analyzer,
-	params *analysis.CheckParams,
+	params analysis.CheckParams,
 	cfg Config,
 ) (map[string][]analysis.Diagnostic, error) {
 	pluginId, err := utils.GetPluginId(params.ArchiveDir)

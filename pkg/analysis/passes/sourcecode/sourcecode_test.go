@@ -35,7 +35,7 @@ func TestSourceCodeNotProvided(t *testing.T) {
 	}`)
 	pass := &analysis.Pass{
 		RootDir:     filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{SourceCodeDir: ""},
+		CheckParams: analysis.CheckParams{SourceCodeDir: ""},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
@@ -60,7 +60,7 @@ func TestSourceCodeNotProvidedReportAll(t *testing.T) {
 	}`)
 	pass := &analysis.Pass{
 		RootDir:     filepath.Join("./"),
-		CheckParams: &analysis.CheckParams{SourceCodeDir: ""},
+		CheckParams: analysis.CheckParams{SourceCodeDir: ""},
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			metadata.Analyzer: pluginJsonContent,
 		},
