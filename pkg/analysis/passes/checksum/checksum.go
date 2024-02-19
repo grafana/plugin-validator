@@ -35,7 +35,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	checksum, err := resolveCheckSum(checksum)
+	checksum, err := resolveCheckSum(strings.TrimSpace(checksum))
 	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,
