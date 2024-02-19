@@ -44,7 +44,7 @@ func main() {
 		checksum = flag.String(
 			"checksum",
 			"",
-			"checksum of the plugin archive. MD5 or SHA1. A string with the hash or an url to a file with the hash",
+			"checksum of the plugin archive. MD5, SHA1 or a string with the the hash or an url to a file with the hash",
 		)
 	)
 
