@@ -50,6 +50,7 @@ func main() {
 
 	flag.Parse()
 
+	logme.Debugln("Initializing...")
 	logme.Debugln("strict mode: ", *strictFlag)
 	logme.Debugln("config file: ", *configFlag)
 	logme.Debugln("source code: ", *sourceCodeUri)
@@ -76,13 +77,15 @@ func main() {
 	}
 
 	md5hasher := md5.New()
+	md5hasher.Write(b)
+	md5hash := md5hasher.Sum(nil)
+
 	sha1hasher := sha1.New()
+	sha1hasher.Write(b)
+	sha1hash := sha1hasher.Sum(nil)
 
-	md5hash := md5hasher.Sum(b)
-	sha1hash := sha1hasher.Sum(b)
-
-	logme.Infoln(fmt.Sprintf("ArchiveCalculatedMD5: %x", md5hash))
-	logme.Infoln(fmt.Sprintf("ArchiveCalculatedSHA1: %x", sha1hash))
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedMD5: %x", md5hash))
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedSHA1: %x", sha1hash))
 
 	// Extract the ZIP archive in a temporary directory.
 	archiveDir, archiveCleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
