@@ -35,7 +35,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	checksum, err := resolveCheckSum(strings.TrimSpace(checksum))
+	checksum, err := resolveCheckSum(checksum)
 	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,
@@ -66,11 +66,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	switch checkSumType {
 	case "md5":
-		if checksum != pass.CheckParams.ArchiveCalculatedMD5 {
+		if checksum != strings.ToLower(pass.CheckParams.ArchiveCalculatedMD5) {
 			isError = true
 		}
 	case "sha1":
-		if checksum != pass.CheckParams.ArchiveCalculatedSHA1 {
+		if checksum != strings.ToLower(pass.CheckParams.ArchiveCalculatedSHA1) {
 			isError = true
 		}
 	}
@@ -94,11 +94,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 // 04b2f189616b65985d219ca094f3609b
 // we only care about the first part
 func sanitizeCheckSum(checksum string) string {
-	return strings.Split(checksum, " ")[0]
+	return strings.ToLower(strings.Fields(checksum)[0])
 }
 
 // checksum can be urls, we need to download
 func resolveCheckSum(checksum string) (string, error) {
+
+	checksum = strings.TrimSpace(checksum)
 
 	if strings.HasPrefix(checksum, "https://") || strings.HasPrefix(checksum, "http://") {
 		finalChecksum, err := getFirstLineFromURL(checksum)
@@ -125,25 +127,18 @@ func getFirstLineFromURL(url string) (string, error) {
 		logme.DebugFln("Error reading body: %s", err.Error())
 		return "", err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		return "", errors.New("checksum file not found")
 	}
-
-	defer resp.Body.Close()
 
 	if resp.ContentLength > maxSize {
 		return "", errors.New("checksum file is too large")
 	}
 
 	lr := &io.LimitedReader{R: resp.Body, N: maxSize}
-	body, err := io.ReadAll(lr)
-	if err != nil {
-		logme.DebugFln("Error reading body: %s", err.Error())
-		return "", err
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(string(body)))
+	scanner := bufio.NewScanner(lr)
 	scanner.Scan() // get the first line
 	line := scanner.Text()
 
