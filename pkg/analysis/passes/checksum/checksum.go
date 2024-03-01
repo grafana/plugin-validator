@@ -107,6 +107,11 @@ func resolveCheckSum(checksum string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if len(finalChecksum) == 0 {
+			return "", errors.New(
+				"Checksum URL is invalid. Please provide a URL with a direct download to the checksum.",
+			)
+		}
 		return sanitizeCheckSum(finalChecksum), nil
 	}
 	return sanitizeCheckSum(checksum), nil
