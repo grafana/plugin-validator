@@ -2,6 +2,9 @@ package legacyplatform
 
 import (
 	"bytes"
+	"encoding/json"
+	"io"
+	"net/http"
 	"regexp"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -47,17 +50,51 @@ func (d *regexDetector) Detect(moduleJs []byte) bool {
 }
 
 var legacyDetectors = []detector{
-	&containsBytesDetector{pattern: []byte("PanelCtrl")},
-	&containsBytesDetector{pattern: []byte("QueryCtrl")},
-	&containsBytesDetector{pattern: []byte("app/plugins/sdk")},
-	&containsBytesDetector{pattern: []byte("angular.isNumber(")},
-	&containsBytesDetector{pattern: []byte("editor.html")},
-	&containsBytesDetector{pattern: []byte("ctrl.annotation")},
 	&containsBytesDetector{pattern: []byte("System.register(")},
 
-	// &regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
+	&regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
 	&regexDetector{regex: regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`)},
 	&regexDetector{regex: regexp.MustCompile(`from\s+['"]grafana\/app\/`)},
+}
+
+type gcomPattern struct {
+	Name    string
+	Type    string
+	Pattern string
+}
+
+func fetchGcomDetectors() ([]detector, error) {
+
+	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var patterns []gcomPattern
+
+	err = json.Unmarshal(body, &patterns)
+	if err != nil {
+		return nil, err
+	}
+
+	detectors := make([]detector, len(patterns))
+
+	for i, p := range patterns {
+		if p.Type == "contains" {
+			detectors[i] = &containsBytesDetector{pattern: []byte(p.Pattern)}
+		}
+		if p.Type == "regex" {
+			detectors[i] = &regexDetector{regex: regexp.MustCompile(p.Pattern)}
+		}
+	}
+
+	return detectors, nil
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -80,11 +117,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	hasLegacyPlatform := false
 
+	gcomDetectors, err := fetchGcomDetectors()
+	if err != nil {
+		return nil, err
+	}
+
+	detectors := append(legacyDetectors, gcomDetectors...)
+
 	for _, content := range moduleJsMap {
 		if hasLegacyPlatform {
 			break
 		}
-		for _, detector := range legacyDetectors {
+		for _, detector := range detectors {
+			// for _, detector := range legacyDetectors {
 			if detector.Detect(content) {
 				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
 				hasLegacyPlatform = true
