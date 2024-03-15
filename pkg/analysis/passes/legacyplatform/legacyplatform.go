@@ -64,7 +64,6 @@ type gcomPattern struct {
 }
 
 func fetchGcomDetectors() ([]detector, error) {
-
 	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
 	if err != nil {
 		return nil, err
