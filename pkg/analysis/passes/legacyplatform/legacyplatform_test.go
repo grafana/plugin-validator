@@ -40,7 +40,6 @@ var legacyImportTests = []map[string][]byte{
 	{"module.js": []byte(`angular.isNumber(variable)`)},
 	{"module.js": []byte(`editor.html`)},
 	{"module.js": []byte(`ctrl.annotation`)},
-	{"module.js": []byte(`System.register(something)`)},
 }
 
 func TestLegacyPlatformUsesLegacy(t *testing.T) {

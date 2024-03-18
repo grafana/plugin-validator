@@ -3,7 +3,6 @@ package legacyplatform
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"net/http"
 	"regexp"
 
@@ -49,36 +48,21 @@ func (d *regexDetector) Detect(moduleJs []byte) bool {
 	return d.regex.Match(moduleJs)
 }
 
-var legacyDetectors = []detector{
-	&containsBytesDetector{pattern: []byte("System.register(")},
-
-	&regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
-	&regexDetector{regex: regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`)},
-	&regexDetector{regex: regexp.MustCompile(`from\s+['"]grafana\/app\/`)},
-}
-
 type gcomPattern struct {
 	Name    string
 	Type    string
 	Pattern string
 }
 
-func fetchGcomDetectors() ([]detector, error) {
+func fetchDetectors() ([]detector, error) {
 	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var patterns []gcomPattern
-
-	err = json.Unmarshal(body, &patterns)
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&patterns); err != nil {
 		return nil, err
 	}
 
@@ -116,18 +100,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	hasLegacyPlatform := false
 
-	gcomDetectors, err := fetchGcomDetectors()
+	legacyDetectors, err := fetchDetectors()
 	if err != nil {
 		return nil, err
 	}
-
-	detectors := append(legacyDetectors, gcomDetectors...)
 
 	for _, content := range moduleJsMap {
 		if hasLegacyPlatform {
 			break
 		}
-		for _, detector := range detectors {
+		for _, detector := range legacyDetectors {
 			// for _, detector := range legacyDetectors {
 			if detector.Detect(content) {
 				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
