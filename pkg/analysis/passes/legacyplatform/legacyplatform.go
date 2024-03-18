@@ -2,6 +2,8 @@ package legacyplatform
 
 import (
 	"bytes"
+	"encoding/json"
+	"net/http"
 	"regexp"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -46,18 +48,36 @@ func (d *regexDetector) Detect(moduleJs []byte) bool {
 	return d.regex.Match(moduleJs)
 }
 
-var legacyDetectors = []detector{
-	&containsBytesDetector{pattern: []byte("PanelCtrl")},
-	&containsBytesDetector{pattern: []byte("QueryCtrl")},
-	&containsBytesDetector{pattern: []byte("app/plugins/sdk")},
-	&containsBytesDetector{pattern: []byte("angular.isNumber(")},
-	&containsBytesDetector{pattern: []byte("editor.html")},
-	&containsBytesDetector{pattern: []byte("ctrl.annotation")},
-	&containsBytesDetector{pattern: []byte("System.register(")},
+type gcomPattern struct {
+	Name    string
+	Type    string
+	Pattern string
+}
 
-	// &regexDetector{regex: regexp.MustCompile(`['"](app/core/.*?)|(app/plugins/.*?)['"]`)},
-	&regexDetector{regex: regexp.MustCompile(`['"](app/core/utils/promiseToDigest)|(app/plugins/.*?)|(app/core/core_module)['"]`)},
-	&regexDetector{regex: regexp.MustCompile(`from\s+['"]grafana\/app\/`)},
+func fetchDetectors() ([]detector, error) {
+	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var patterns []gcomPattern
+	if err := json.NewDecoder(resp.Body).Decode(&patterns); err != nil {
+		return nil, err
+	}
+
+	detectors := make([]detector, len(patterns))
+
+	for i, p := range patterns {
+		if p.Type == "contains" {
+			detectors[i] = &containsBytesDetector{pattern: []byte(p.Pattern)}
+		}
+		if p.Type == "regex" {
+			detectors[i] = &regexDetector{regex: regexp.MustCompile(p.Pattern)}
+		}
+	}
+
+	return detectors, nil
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -79,6 +99,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	hasLegacyPlatform := false
+
+	legacyDetectors, err := fetchDetectors()
+	if err != nil {
+		return nil, err
+	}
 
 	for _, content := range moduleJsMap {
 		if hasLegacyPlatform {
