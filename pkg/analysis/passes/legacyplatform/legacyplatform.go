@@ -110,7 +110,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			break
 		}
 		for _, detector := range legacyDetectors {
-			// for _, detector := range legacyDetectors {
 			if detector.Detect(content) {
 				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
 				hasLegacyPlatform = true
