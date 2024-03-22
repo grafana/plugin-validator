@@ -15,6 +15,8 @@ type MetadataInfo struct {
 	Logos       MetadataLogos         `json:"logos"`
 	Links       []MetadataLink        `json:"links"`
 	Version     string                `json:"version"`
+	Keywords    []string              `json:"keywords"`
+	Description string                `json:"description"`
 }
 
 type MetadataAuthor struct {
