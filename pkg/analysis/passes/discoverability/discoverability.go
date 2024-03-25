@@ -14,7 +14,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "discoverability",
-	Requires: []*analysis.Analyzer{},
+	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{},
 }
