@@ -16,7 +16,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "discoverability",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{},
+	Rules:    []*analysis.Rule{emptyDescription, emptyKeywords},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
