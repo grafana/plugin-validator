@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
@@ -77,4 +78,5 @@ var Analyzers = []*analysis.Analyzer{
 	unsafesvg.Analyzer,
 	version.Analyzer,
 	backenddebug.Analyzer,
+	discoverability.Analyzer,
 }
