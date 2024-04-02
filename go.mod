@@ -14,7 +14,7 @@ require (
 	github.com/magefile/mage v1.15.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20220818153721-50706a0e22c3
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/tailscale/hujson v0.0.0-20221223112325-20486734a56a
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.20.0
