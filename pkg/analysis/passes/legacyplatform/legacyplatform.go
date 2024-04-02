@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"sync"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
@@ -54,7 +55,19 @@ type gcomPattern struct {
 	Pattern string
 }
 
+var (
+	cachedGcomDetectors    []detector
+	cachedGcomDetectorsMux sync.Mutex
+)
+
 func fetchDetectors() ([]detector, error) {
+	// Use cache to avoid hitting rate limits in GCOM
+	cachedGcomDetectorsMux.Lock()
+	defer cachedGcomDetectorsMux.Unlock()
+	if cachedGcomDetectors != nil {
+		return cachedGcomDetectors, nil
+	}
+
 	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
 	if err != nil {
 		return nil, err
@@ -77,6 +90,8 @@ func fetchDetectors() ([]detector, error) {
 		}
 	}
 
+	// Set cache for future calls
+	cachedGcomDetectors = detectors
 	return detectors, nil
 }
 
