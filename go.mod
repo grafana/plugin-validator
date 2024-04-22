@@ -1,6 +1,7 @@
 module github.com/grafana/plugin-validator
 
-go 1.21.5
+go 1.21.8
+
 toolchain go1.22.2
 
 require (
