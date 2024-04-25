@@ -23,7 +23,6 @@ var (
 	wrongManifest    = &analysis.Rule{Name: "wrong-manifest", Severity: analysis.Error}
 	invalidShaSum    = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
 	invalidSignature = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Error}
-	cantReadFile     = &analysis.Rule{Name: "cant-read-file", Severity: analysis.Error}
 	wrongPermissions = &analysis.Rule{Name: "wrong-permissions", Severity: analysis.Error}
 )
 
