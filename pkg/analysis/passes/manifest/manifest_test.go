@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -203,6 +204,9 @@ func TestWithWrongPermissions(t *testing.T) {
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
+	// due to CI running on linux, we need to re-create the correct permissions
+	testDataContainer := filepath.Join("testdata", "with-wrong-permissions")
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "module.js"), 0711))
 
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
