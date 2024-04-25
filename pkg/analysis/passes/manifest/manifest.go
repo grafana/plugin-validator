@@ -23,6 +23,8 @@ var (
 	wrongManifest    = &analysis.Rule{Name: "wrong-manifest", Severity: analysis.Error}
 	invalidShaSum    = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
 	invalidSignature = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Error}
+	cantReadFile     = &analysis.Rule{Name: "cant-read-file", Severity: analysis.Error}
+	wrongPermissions = &analysis.Rule{Name: "wrong-permissions", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -160,6 +162,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				invalidShaSum,
 				"invalid file checksum",
 				fmt.Sprintf("checksum for file %s is invalid", relativePath),
+			)
+			return nil
+		}
+
+		mode := file.Mode()
+
+		// owner, group and other must have read permissions
+		// note: bit operations. These are not the same as AND (&&)
+		if mode.Perm()&0400 == 0 || mode.Perm()&0040 == 0 || mode.Perm()&0004 == 0 {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				wrongPermissions,
+				fmt.Sprintf(
+
+					"File %s has wrong permissions and can't be read",
+					path,
+				),
+				"Ensure all files in your archive have at least 744. Binary executable files must have 755",
 			)
 			return nil
 		}
