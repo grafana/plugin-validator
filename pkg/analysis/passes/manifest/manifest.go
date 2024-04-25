@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	// even though deprecated this is what grafana is using at the moment
+	// https://github.com/grafana/grafana/blob/main/pkg/plugins/manager/signature/manifest.go
 	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
