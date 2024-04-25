@@ -1,14 +1,16 @@
 package manifest
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 )
 
 func TestWithNoManifest(t *testing.T) {
@@ -28,7 +30,11 @@ func TestWithNoManifest(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "unsigned plugin", interceptor.Diagnostics[0].Title)
-	require.Equal(t, "MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/", interceptor.Diagnostics[0].Detail)
+	require.Equal(
+		t,
+		"MANIFEST.txt file not found. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/",
+		interceptor.Diagnostics[0].Detail,
+	)
 }
 
 func TestWithNoManifestNewPlugin(t *testing.T) {
@@ -48,7 +54,11 @@ func TestWithNoManifestNewPlugin(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "unsigned plugin", interceptor.Diagnostics[0].Title)
-	require.Equal(t, "This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed.", interceptor.Diagnostics[0].Detail)
+	require.Equal(
+		t,
+		"This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed.",
+		interceptor.Diagnostics[0].Detail,
+	)
 }
 
 func TestWithEmptyManfiest(t *testing.T) {
@@ -173,6 +183,42 @@ func TestCommunityWithRootUrls(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "MANIFEST.txt: plugin signature contains rootUrls")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "The plugin is signed as community but contains rootUrls. Do not pass --rootUrls when signing this plugin as community type")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"MANIFEST.txt: plugin signature contains rootUrls",
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"The plugin is signed as community but contains rootUrls. Do not pass --rootUrls when signing this plugin as community type",
+	)
+}
+
+func TestWithWrongPermissions(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "with-wrong-permissions"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	// due to CI running on linux, we need to re-create the correct permissions
+	testDataContainer := filepath.Join("testdata", "with-wrong-permissions")
+	require.NoError(t, os.Chmod(filepath.Join(testDataContainer, "module.js"), 0711))
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"File testdata/with-wrong-permissions/module.js has wrong permissions and can't be read",
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Ensure all files in your archive have at least 744. Binary executable files must have 755",
+	)
 }

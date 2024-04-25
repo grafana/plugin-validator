@@ -9,13 +9,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
-
 	// even though deprecated this is what grafana is using at the moment
 	// https://github.com/grafana/grafana/blob/main/pkg/plugins/manager/signature/manifest.go
 	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
+
+	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 )
 
 var (
@@ -25,13 +25,20 @@ var (
 	wrongManifest    = &analysis.Rule{Name: "wrong-manifest", Severity: analysis.Error}
 	invalidShaSum    = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
 	invalidSignature = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Error}
+	wrongPermissions = &analysis.Rule{Name: "wrong-permissions", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "manifest",
 	Requires: []*analysis.Analyzer{archive.Analyzer, published.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{unsignedPlugin, undeclaredFiles, emptyManifest, wrongManifest, invalidShaSum},
+	Rules: []*analysis.Rule{
+		unsignedPlugin,
+		undeclaredFiles,
+		emptyManifest,
+		wrongManifest,
+		invalidShaSum,
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -62,24 +69,49 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(b) == 0 {
-		pass.ReportResult(pass.AnalyzerName, emptyManifest, "empty manifest", "MANIFEST.txt file is empty. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			emptyManifest,
+			"empty manifest",
+			"MANIFEST.txt file is empty. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/",
+		)
 		return nil, nil
 	}
 
 	manifest, err := parseManifestFile(b)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, wrongManifest, "could not parse MANIFEST.txt", "MANIFEST.txt file is not a valid manifest. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			wrongManifest,
+			"could not parse MANIFEST.txt",
+			"MANIFEST.txt file is not a valid manifest. Please refer to the documentation for how to sign a plugin. https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/",
+		)
 		return nil, nil
 	}
 
 	if (manifest.Files == nil) || (len(manifest.Files) == 0) {
-		pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "no files declared in MANIFEST.txt", "No files declared in MANIFEST.txt")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			undeclaredFiles,
+			"no files declared in MANIFEST.txt",
+			"No files declared in MANIFEST.txt",
+		)
 		return nil, nil
 	}
 
 	// a non private signature can't have rootUrls
-	if manifest.SignatureType != "private" && manifest.SignatureType != "private-glob" && len(manifest.RootUrls) > 0 {
-		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: plugin signature contains rootUrls", fmt.Sprintf("The plugin is signed as %s but contains rootUrls. Do not pass --rootUrls when signing this plugin as %s type", manifest.SignatureType, manifest.SignatureType))
+	if manifest.SignatureType != "private" && manifest.SignatureType != "private-glob" &&
+		len(manifest.RootUrls) > 0 {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidSignature,
+			"MANIFEST.txt: plugin signature contains rootUrls",
+			fmt.Sprintf(
+				"The plugin is signed as %s but contains rootUrls. Do not pass --rootUrls when signing this plugin as %s type",
+				manifest.SignatureType,
+				manifest.SignatureType,
+			),
+		)
 		return nil, nil
 	}
 
@@ -104,19 +136,52 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 		// check the file is declared
 		if _, ok := manifest.Files[relativePath]; !ok {
-			pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "undeclared files in MANIFEST", fmt.Sprintf("File %s is not declared in MANIFEST.txt", relativePath))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				undeclaredFiles,
+				"undeclared files in MANIFEST",
+				fmt.Sprintf("File %s is not declared in MANIFEST.txt", relativePath),
+			)
 			return nil
 		}
 
 		// check if the sha256sum is correct
 		sha256sum, err := calculateSha256sum(path)
 		if err != nil {
-			pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "could not calculate sha256sum", fmt.Sprintf("Could not calculate sha256sum for file %s", relativePath))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				undeclaredFiles,
+				"could not calculate sha256sum",
+				fmt.Sprintf("Could not calculate sha256sum for file %s", relativePath),
+			)
 			return nil
 		}
 
 		if sha256sum != strings.ToLower(manifest.Files[relativePath]) {
-			pass.ReportResult(pass.AnalyzerName, invalidShaSum, "invalid file checksum", fmt.Sprintf("checksum for file %s is invalid", relativePath))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				invalidShaSum,
+				"invalid file checksum",
+				fmt.Sprintf("checksum for file %s is invalid", relativePath),
+			)
+			return nil
+		}
+
+		mode := file.Mode()
+
+		// owner, group and other must have read permissions
+		// note: bit operations. These are not the same as AND (&&)
+		if mode.Perm()&0400 == 0 || mode.Perm()&0040 == 0 || mode.Perm()&0004 == 0 {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				wrongPermissions,
+				fmt.Sprintf(
+
+					"File %s has wrong permissions and can't be read",
+					path,
+				),
+				"Ensure all files in your archive have at least 744. Binary executable files must have 755",
+			)
 			return nil
 		}
 		return nil
@@ -129,7 +194,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// check if all declared files exist
 	for path := range manifest.Files {
 		if _, ok := filesFound[path]; !ok {
-			pass.ReportResult(pass.AnalyzerName, undeclaredFiles, "declared files in MANIFEST not present", fmt.Sprintf("File %s is declared in MANIFEST.txt but does not exist", path))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				undeclaredFiles,
+				"declared files in MANIFEST not present",
+				fmt.Sprintf("File %s is declared in MANIFEST.txt but does not exist", path),
+			)
 		}
 	}
 
