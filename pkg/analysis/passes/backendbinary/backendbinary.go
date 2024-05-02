@@ -75,7 +75,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			backendFoundButNotDeclared,
 			"Found executable in plugin.json but backend=false",
-			"You have marked your plugin with backend=false in your plugin.json but declared a backend executable. Please set backend=true in your plugin.json if your plugin has a bakend component or remove the executable from your plugin.json",
+			"You have marked your plugin with backend=false in your plugin.json but declared a backend executable. Please set backend=true in your plugin.json if your plugin has a backend component or remove the executable from your plugin.json",
 		)
 		return nil, nil
 	}
