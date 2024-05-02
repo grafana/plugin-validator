@@ -64,7 +64,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			alertingFoundButBackendFalse,
 			"Found alerting in plugin.json but backend=false",
-			"You have marked your plugin with backend=false in your plugin.json but declared an alerting=true Please set backend=true in your plugin.json if your plugin has an alerting component",
+			"You have marked your plugin with backend=false in your plugin.json but declared an alerting=true Please set backend=true in your plugin.json if your plugin has a backend component",
 		)
 		return nil, nil
 	}
