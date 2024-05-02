@@ -4,19 +4,14 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
-var binarySuffixes = []string{
-	"_linux_amd64",
-	"_linux_arm64",
-	"_darwin_amd64",
-	"_darwin_arm64",
-	"_windows_amd64.exe",
-}
 var (
 	backendBinaryMissing = &analysis.Rule{
 		Name:     "backend-binary-mission",
@@ -98,15 +93,29 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	executable := data.Executable
 	executableParentDir := filepath.Join(archiveDir, filepath.Dir(executable))
-	executableName := filepath.Base(executable)
 
 	var foundBinaries = []string{}
-	for _, suffix := range binarySuffixes {
-		binaryPath := filepath.Join(executableParentDir, executableName+suffix)
-		if _, err := os.Stat(binaryPath); err != nil {
-			continue
+
+	// walk all files in the executable executableParentDir
+	// find the ones starting with executable
+	err := filepath.Walk(executableParentDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
 		}
-		foundBinaries = append(foundBinaries, binaryPath)
+		if info.IsDir() {
+			return nil
+		}
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+		if strings.HasPrefix(filepath.Base(path), executable) {
+			foundBinaries = append(foundBinaries, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		logme.Debugln("Error walking", executableParentDir, err)
 	}
 
 	// backend true but no backend binaries found
