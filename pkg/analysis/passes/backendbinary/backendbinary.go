@@ -36,7 +36,11 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "backendbinary",
 	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{backendBinaryMissing},
+	Rules: []*analysis.Rule{
+		backendBinaryMissing,
+		backendFoundButNotDeclared,
+		alertingFoundButBackendFalse,
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
