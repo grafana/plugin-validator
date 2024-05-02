@@ -86,7 +86,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			backendBinaryMissing,
 			"Missing executable in plugin.json",
-			"You have marked backend=true in your plugin.json but have not added a backend executable. Please add a backend executable to your plugin.json if your plugin has a bakend component or set backend=false",
+			"You have marked backend=true in your plugin.json but have not added a backend executable. Please add a backend executable to your plugin.json if your plugin has a backend component or set backend=false",
 		)
 		return nil, nil
 	}
