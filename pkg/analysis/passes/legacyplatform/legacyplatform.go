@@ -28,7 +28,7 @@ var Analyzer = &analysis.Analyzer{
 type detector interface {
 	// Detect takes the content of a module.js file and returns true if the plugin is using a legacy platform (Angular).
 	Detect(moduleJs []byte) bool
-	GetPattern() string
+	Pattern() string
 }
 
 // containsBytesDetector is a detector that returns true if the file contains the "pattern" string.
@@ -41,7 +41,7 @@ func (d *containsBytesDetector) Detect(moduleJs []byte) bool {
 	return bytes.Contains(moduleJs, d.pattern)
 }
 
-func (d *containsBytesDetector) GetPattern() string {
+func (d *containsBytesDetector) Pattern() string {
 	return string(d.pattern)
 }
 
@@ -55,7 +55,7 @@ func (d *regexDetector) Detect(moduleJs []byte) bool {
 	return d.regex.Match(moduleJs)
 }
 
-func (d *regexDetector) GetPattern() string {
+func (d *regexDetector) Pattern() string {
 	return d.regex.String()
 }
 
@@ -136,7 +136,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		for _, detector := range legacyDetectors {
 			if detector.Detect(content) {
-				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: Uses the legacy AngularJS plugin platform", fmt.Sprintf("Detected usage of '%s'. Please migrate the plugin to use the new plugins platform.", detector.GetPattern()))
+				pass.ReportResult(
+					pass.AnalyzerName,
+					legacyPlatform,
+					"module.js: Uses the legacy AngularJS plugin platform",
+					fmt.Sprintf(
+						"Detected usage of '%s'. Please migrate the plugin to use the new plugins platform.",
+						detector.Pattern(),
+					),
+				)
 				hasLegacyPlatform = true
 				break
 			}
@@ -145,7 +153,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if legacyPlatform.ReportAll && !hasLegacyPlatform {
 		legacyPlatform.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses current plugin platform", "")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			legacyPlatform,
+			"module.js: uses current plugin platform",
+			"",
+		)
 	}
 
 	return nil, nil
