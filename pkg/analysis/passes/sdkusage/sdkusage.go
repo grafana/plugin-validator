@@ -17,7 +17,7 @@ var (
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "backenddebug",
+	Name:     "sdkusage",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{goSdkNotUsed, goModNotFound},
