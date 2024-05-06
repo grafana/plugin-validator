@@ -32,6 +32,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sdkusage"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
@@ -81,4 +82,5 @@ var Analyzers = []*analysis.Analyzer{
 	backenddebug.Analyzer,
 	discoverability.Analyzer,
 	backendbinary.Analyzer,
+	sdkusage.Analyzer,
 }
