@@ -88,7 +88,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			)
 			return nil, err
 		}
-		pluginJsonFiles[path] = metadata.Metadata{}
+		pluginJsonFiles[path] = data
 	}
 
 	return pluginJsonFiles, nil
