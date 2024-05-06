@@ -7,6 +7,7 @@ type Metadata struct {
 	Info       MetadataInfo `json:"info"`
 	Executable string       `json:"executable"`
 	Backend    bool         `json:"backend"`
+	Alerting   bool         `json:"alerting"`
 }
 
 type MetadataInfo struct {
