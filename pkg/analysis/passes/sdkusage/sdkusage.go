@@ -16,8 +16,6 @@ var (
 	goModNotFound = &analysis.Rule{Name: "go-mod-not-found", Severity: analysis.Error}
 )
 
-// Analyzer is an analyzer that checks if backend standalone debug files are included in the executable.
-// If so, it reports an error, as the plugin can't be used properly in non-debug mode.
 var Analyzer = &analysis.Analyzer{
 	Name:     "backenddebug",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, metadata.Analyzer},
