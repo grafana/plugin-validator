@@ -24,6 +24,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatapaths"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/org"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
@@ -83,4 +84,5 @@ var Analyzers = []*analysis.Analyzer{
 	discoverability.Analyzer,
 	backendbinary.Analyzer,
 	sdkusage.Analyzer,
+	nestedmetadata.Analyzer,
 }
