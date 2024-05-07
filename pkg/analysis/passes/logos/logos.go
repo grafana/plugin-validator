@@ -29,8 +29,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	reportCount := 0
 	for key, data := range metadatamap {
 		if strings.TrimSpace(data.Info.Logos.Small) == "" {
-			// fmt.Println(key)
-			// prettyprint.Print(data)
 			reportCount++
 			pass.ReportResult(
 				pass.AnalyzerName,
