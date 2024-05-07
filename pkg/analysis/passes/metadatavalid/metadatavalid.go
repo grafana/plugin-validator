@@ -69,7 +69,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case err != nil:
 		return nil, fmt.Errorf("%q stat: %w", metadataPath, err)
 	case err == nil:
-		break	
+		break
 	}
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)

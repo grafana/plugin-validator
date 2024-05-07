@@ -192,6 +192,7 @@ func (Build) CI(ctx context.Context) {
 		Test.Verbose,
 		Clean,
 		pluginCheck2CmdLinux,
+		Run.IntegrationTests,
 	)
 }
 
