@@ -96,7 +96,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if path == mainPluginJsonFile {
 			pluginJsonFiles[MainPluginJson] = data
 		} else {
-			pluginJsonFiles[path] = data
+			relativePath, err := filepath.Rel(archiveDir, path)
+			if err != nil {
+				return nil, err
+			}
+			pluginJsonFiles[relativePath] = data
 		}
 	}
 
