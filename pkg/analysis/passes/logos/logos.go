@@ -1,11 +1,11 @@
 package logos
 
 import (
-	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 )
 
 var (
@@ -14,36 +14,43 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "logos",
-	Requires: []*analysis.Analyzer{metadata.Analyzer},
+	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{logos},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+
+	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
 	if !ok {
 		return nil, nil
 	}
 
-	var data metadata.Metadata
-	if err := json.Unmarshal(metadataBody, &data); err != nil {
-		return nil, err
-	}
-
 	reportCount := 0
-	if strings.TrimSpace(data.Info.Logos.Small) == "" {
-		reportCount++
-		pass.ReportResult(pass.AnalyzerName, logos, "plugin.json: invalid empty small logo path", "Logo path cannot be empty")
+	for key, data := range metadatamap {
+		if strings.TrimSpace(data.Info.Logos.Small) == "" {
+			// fmt.Println(key)
+			// prettyprint.Print(data)
+			reportCount++
+			pass.ReportResult(
+				pass.AnalyzerName,
+				logos,
+				fmt.Sprintf("plugin.json: invalid empty small logo path for %s", key),
+				"Logo path cannot be empty",
+			)
+		}
+
+		if strings.TrimSpace(data.Info.Logos.Large) == "" {
+			reportCount++
+			pass.ReportResult(
+				pass.AnalyzerName,
+				logos,
+				fmt.Sprintf("plugin.json: invalid empty large logo path for %s", key),
+				"Logo path cannot be empty",
+			)
+		}
 	}
 
-	if strings.TrimSpace(data.Info.Logos.Large) == "" {
-		reportCount++
-		pass.ReportResult(pass.AnalyzerName, logos, "plugin.json: invalid empty large logo path", "Logo path cannot be empty")
-	}
+	return nil, nil
 
-	if reportCount > 0 {
-		return nil, nil
-	}
-
-	return data.Info.Logos, nil
 }
