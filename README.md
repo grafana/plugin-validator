@@ -15,6 +15,8 @@ You can _additionally_ provide a link to the source code for the project with `-
 
 ## Installation and usage
 
+Ensure that your version of Go matches the one specified in the `go.mod` file to avoid compatibility issues
+
 ### Docker (recommended)
 
 It is easiest to run the tool using the Docker image as it contains all the [security scanning tools](#security-tools) needed for the full set of analyzers - so you don't need to have these additional tools installed on your system.

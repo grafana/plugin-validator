@@ -3,8 +3,10 @@ package legacyplatform
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
+	"sync"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
@@ -26,6 +28,7 @@ var Analyzer = &analysis.Analyzer{
 type detector interface {
 	// Detect takes the content of a module.js file and returns true if the plugin is using a legacy platform (Angular).
 	Detect(moduleJs []byte) bool
+	Pattern() string
 }
 
 // containsBytesDetector is a detector that returns true if the file contains the "pattern" string.
@@ -38,6 +41,10 @@ func (d *containsBytesDetector) Detect(moduleJs []byte) bool {
 	return bytes.Contains(moduleJs, d.pattern)
 }
 
+func (d *containsBytesDetector) Pattern() string {
+	return string(d.pattern)
+}
+
 // regexDetector is a detector that returns true if the file content matches a regular expression.
 type regexDetector struct {
 	regex *regexp.Regexp
@@ -48,13 +55,29 @@ func (d *regexDetector) Detect(moduleJs []byte) bool {
 	return d.regex.Match(moduleJs)
 }
 
+func (d *regexDetector) Pattern() string {
+	return d.regex.String()
+}
+
 type gcomPattern struct {
 	Name    string
 	Type    string
 	Pattern string
 }
 
+var (
+	cachedGcomDetectors    []detector
+	cachedGcomDetectorsMux sync.Mutex
+)
+
 func fetchDetectors() ([]detector, error) {
+	// Use cache to avoid hitting rate limits in GCOM
+	cachedGcomDetectorsMux.Lock()
+	defer cachedGcomDetectorsMux.Unlock()
+	if cachedGcomDetectors != nil {
+		return cachedGcomDetectors, nil
+	}
+
 	resp, err := http.Get("https://grafana.com/api/plugins/angular_patterns")
 	if err != nil {
 		return nil, err
@@ -77,6 +100,8 @@ func fetchDetectors() ([]detector, error) {
 		}
 	}
 
+	// Set cache for future calls
+	cachedGcomDetectors = detectors
 	return detectors, nil
 }
 
@@ -111,7 +136,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		for _, detector := range legacyDetectors {
 			if detector.Detect(content) {
-				pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses legacy plugin platform", "The plugin uses the legacy plugin platform (AngularJS). Please migrate the plugin to use the new plugins platform.")
+				pass.ReportResult(
+					pass.AnalyzerName,
+					legacyPlatform,
+					"module.js: Uses the legacy AngularJS plugin platform",
+					fmt.Sprintf(
+						"Detected usage of '%s'. Please migrate the plugin to use the new plugins platform.",
+						detector.Pattern(),
+					),
+				)
 				hasLegacyPlatform = true
 				break
 			}
@@ -120,7 +153,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if legacyPlatform.ReportAll && !hasLegacyPlatform {
 		legacyPlatform.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, legacyPlatform, "module.js: uses current plugin platform", "")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			legacyPlatform,
+			"module.js: uses current plugin platform",
+			"",
+		)
 	}
 
 	return nil, nil

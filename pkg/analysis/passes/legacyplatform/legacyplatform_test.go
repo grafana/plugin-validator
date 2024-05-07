@@ -61,9 +61,31 @@ func TestLegacyPlatformUsesLegacy(t *testing.T) {
 		_, err := Analyzer.Run(pass)
 		require.NoError(t, err)
 		require.Len(t, interceptor.Diagnostics, 1)
-		require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: uses legacy plugin platform")
+		require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: Uses the legacy AngularJS plugin platform")
 		require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Error)
 	}
+}
+
+func TestShowPatternMatching(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			modulejs.Analyzer: map[string][]byte{"module.js": []byte(`import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';`)},
+			published.Analyzer: &published.PluginStatus{
+				Status: "unknown",
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: Uses the legacy AngularJS plugin platform")
+	require.Equal(t, interceptor.Diagnostics[0].Detail, "Detected usage of 'PanelCtrl'. Please migrate the plugin to use the new plugins platform.")
+
 }
 
 func TestOnlyWarnInPublishedPlugins(t *testing.T) {
@@ -86,6 +108,6 @@ func TestOnlyWarnInPublishedPlugins(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: uses legacy plugin platform")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: Uses the legacy AngularJS plugin platform")
 	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Warning)
 }

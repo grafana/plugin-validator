@@ -4,11 +4,13 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archivename"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/backendbinary"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/backenddebug"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
@@ -30,6 +32,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sdkusage"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
@@ -77,4 +80,7 @@ var Analyzers = []*analysis.Analyzer{
 	unsafesvg.Analyzer,
 	version.Analyzer,
 	backenddebug.Analyzer,
+	discoverability.Analyzer,
+	backendbinary.Analyzer,
+	sdkusage.Analyzer,
 }
