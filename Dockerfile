@@ -36,7 +36,7 @@ RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
 
 # install semgrep
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed
+RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
 WORKDIR /app
 COPY --from=builder /go/src/github.com/grafana/plugin-validator/bin bin
