@@ -64,12 +64,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err = os.Stat(metadataPath)
 	switch {
 	case os.IsNotExist(err):
-		pass.ReportResult(pass.AnalyzerName, metadataNotFound, "plugin.json not found", "plugin.json not found in the archive. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			metadataNotFound,
+			"plugin.json not found",
+			"plugin.json not found in the archive. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+		)
 		return nil, nil
 	case err != nil:
 		return nil, fmt.Errorf("%q stat: %w", metadataPath, err)
 	case err == nil:
-		break	
+		break
 	}
 
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
@@ -81,7 +86,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for _, desc := range result.Errors() {
-		pass.ReportResult(pass.AnalyzerName, invalidMetadata, fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()), "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidMetadata,
+			fmt.Sprintf("plugin.json: %s: %s", desc.Field(), desc.Description()),
+			"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+		)
 	}
 	if len(result.Errors()) == 0 && invalidMetadata.ReportAll {
 		invalidMetadata.Severity = analysis.OK
