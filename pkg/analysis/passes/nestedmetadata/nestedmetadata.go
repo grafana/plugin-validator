@@ -3,6 +3,7 @@ package nestedmetadata
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -56,6 +57,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 
+	mainPluginJsonFile := filepath.Join(archiveDir, "plugin.json")
+
 	pluginJsonFiles := make(Metadatamap)
 
 	for _, path := range pluginJsonPath {
@@ -88,7 +91,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			)
 			return nil, err
 		}
-		pluginJsonFiles[path] = data
+		if path == mainPluginJsonFile {
+			pluginJsonFiles["root"] = data
+		} else {
+			pluginJsonFiles[path] = data
+		}
 	}
 
 	return pluginJsonFiles, nil
