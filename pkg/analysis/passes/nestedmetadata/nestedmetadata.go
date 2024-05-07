@@ -24,6 +24,8 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{missingMetadata, errorReadingMetadata},
 }
 
+var MainPluginJson = "plugin.json"
+
 type Metadatamap map[string]metadata.Metadata
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -92,7 +94,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, err
 		}
 		if path == mainPluginJsonFile {
-			pluginJsonFiles["plugin.json"] = data
+			pluginJsonFiles[MainPluginJson] = data
 		} else {
 			pluginJsonFiles[path] = data
 		}
