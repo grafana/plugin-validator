@@ -92,7 +92,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, err
 		}
 		if path == mainPluginJsonFile {
-			pluginJsonFiles["root"] = data
+			pluginJsonFiles["plugin.json"] = data
 		} else {
 			pluginJsonFiles[path] = data
 		}
