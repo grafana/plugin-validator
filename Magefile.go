@@ -12,9 +12,9 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/grafana/plugin-validator/pkg/integrationtests"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	// mg contains helpful utility functions, like Deps
 )
 
 type Build mg.Namespace
@@ -52,7 +52,19 @@ var Default = Build.Local
 
 /* Docker */
 func buildDockerImage() error {
-	return sh.RunV("docker", "build", "--no-cache", "--pull", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
+	return sh.RunV(
+		"docker",
+		"build",
+		"--no-cache",
+		"--pull",
+		"-t",
+		imageName+":"+imageVersion,
+		"-t",
+		imageName+":latest",
+		"-f",
+		"Dockerfile",
+		".",
+	)
 }
 
 func pushDockerImage() error {
@@ -284,4 +296,10 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 
 	return sh.RunV(command[0], command[1:]...)
 
+}
+
+func (Run) IntegrationTests() error {
+	mg.Deps(Build.Local)
+	binary := "./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2"
+	return integrationtests.RunTests(binary)
 }
