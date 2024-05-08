@@ -10,6 +10,8 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/magefile/mage v1.15.0
+	github.com/r3labs/diff v1.1.0
+	github.com/r3labs/diff/v3 v3.0.1
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e
 	github.com/stretchr/testify v1.9.0
@@ -73,7 +75,6 @@ require (
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/r3labs/diff/v3 v3.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shogo82148/go-shuffle v1.0.1 // indirect

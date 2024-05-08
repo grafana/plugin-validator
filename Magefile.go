@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/grafana/plugin-validator/pkg/integrationtests"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 )
@@ -192,7 +191,6 @@ func (Build) CI(ctx context.Context) {
 		Test.Verbose,
 		Clean,
 		pluginCheck2CmdLinux,
-		Run.IntegrationTests,
 	)
 }
 
@@ -226,6 +224,12 @@ func (Test) Default() {
 	mg.Deps(
 		test,
 	)
+}
+
+// Integration runs the integration tests for the plugin validator
+func (Test) Integration() error {
+	mg.Deps(Build.Local)
+	return sh.RunV("go", "test", "-v", "./pkg/cmd/plugincheck2")
 }
 
 // Removes built files
@@ -297,10 +301,4 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 
 	return sh.RunV(command[0], command[1:]...)
 
-}
-
-func (Run) IntegrationTests() error {
-	mg.Deps(Build.Local)
-	binary := "./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2"
-	return integrationtests.RunTests(binary)
 }
