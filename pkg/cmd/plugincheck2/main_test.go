@@ -192,7 +192,6 @@ func TestIntegration(t *testing.T) {
 			// Allows the test case to run in parallel with other ones
 			t.Parallel()
 
-			// (use t.Log instead of fmt.Print)
 			t.Logf("Running %s", file)
 
 			command := fmt.Sprintf(
