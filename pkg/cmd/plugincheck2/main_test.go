@@ -220,6 +220,11 @@ func TestIntegration(t *testing.T) {
 			changelog, err := diff.Diff(files[file], report)
 			assert.NoError(t, err)
 
+			if len(changelog) > 0 {
+				fmt.Printf("Changes found: %d\n", len(changelog))
+				prettyJson, _ := json.MarshalIndent(changelog, "", "\t")
+				fmt.Println(string(prettyJson))
+			}
 			assert.Len(t, changelog, 0)
 		})
 	}
