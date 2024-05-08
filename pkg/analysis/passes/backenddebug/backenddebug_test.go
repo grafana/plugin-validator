@@ -1,14 +1,16 @@
 package backenddebug
 
 import (
-	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
+	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
+	"github.com/grafana/plugin-validator/pkg/utils"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -33,13 +35,18 @@ func TestBackendDebug_Correct(t *testing.T) {
 			pluginJSON: pluginJSONWithoutExecutable,
 		},
 	} {
+		meta, err := utils.JsonToMetadata(tc.pluginJSON)
+		require.NoError(t, err)
+
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
 			pass := &analysis.Pass{
 				RootDir: filepath.Join("testdata", tc.folder),
 				ResultOf: map[*analysis.Analyzer]interface{}{
-					archive.Analyzer:  filepath.Join("testdata", tc.folder),
-					metadata.Analyzer: tc.pluginJSON,
+					archive.Analyzer: filepath.Join("testdata", tc.folder),
+					nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+						"plugin.json": meta,
+					},
 				},
 				Report: interceptor.ReportInterceptor(),
 			}
@@ -78,15 +85,21 @@ func TestBackendDebug(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
+
+			meta, err := utils.JsonToMetadata(tc.pluginJSON)
+			require.NoError(t, err)
+
 			pass := &analysis.Pass{
 				RootDir: filepath.Join("testdata", tc.folder),
 				ResultOf: map[*analysis.Analyzer]interface{}{
-					archive.Analyzer:  filepath.Join("testdata", tc.folder),
-					metadata.Analyzer: tc.pluginJSON,
+					archive.Analyzer: filepath.Join("testdata", tc.folder),
+					nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+						"plugin.json": meta,
+					},
 				},
 				Report: interceptor.ReportInterceptor(),
 			}
-			_, err := Analyzer.Run(pass)
+			_, err = Analyzer.Run(pass)
 			require.NoError(t, err)
 
 			// Expect error

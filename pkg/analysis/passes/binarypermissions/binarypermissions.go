@@ -33,7 +33,11 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "binarypermissions",
 	Requires: []*analysis.Analyzer{archive.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{binaryExecutableFound, binaryExecutablePermissions},
+	Rules: []*analysis.Rule{
+		binaryExecutableFound,
+		binaryExecutablePermissions,
+		archiveFilesError,
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
