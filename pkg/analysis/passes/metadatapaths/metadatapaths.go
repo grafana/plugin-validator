@@ -144,13 +144,17 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 		_, err = os.Stat(fullPath)
 		if err != nil {
 			if os.IsNotExist(err) {
+				relPathToDir, err := filepath.Rel(archiveDir, fullPath)
+				if err != nil {
+					return nil, err
+				}
 				pass.ReportResult(
 					pass.AnalyzerName,
 					pathNotExists,
 					fmt.Sprintf(
 						"plugin.json: %s path doesn't exists: %s",
 						path.kind,
-						fullPath,
+						relPathToDir,
 					),
 					"Refer only existing files. Make sure the files referred in plugin.json are included in the archive.",
 				)
