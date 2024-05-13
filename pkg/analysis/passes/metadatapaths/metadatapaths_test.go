@@ -23,7 +23,7 @@ func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -54,7 +54,7 @@ func TestMetadatapathsWithWrongLogoPath(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -105,7 +105,7 @@ func TestMetadatapathsWithWrongScreenshotPath(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -147,7 +147,7 @@ func TestMeatadapathsWithCorrectNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -189,10 +189,10 @@ func TestMeatadapathsWithIncorrectNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	wrongMeta, err := utils.JsonToMetadata(nestedPluginJsonContent)
+	wrongMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor

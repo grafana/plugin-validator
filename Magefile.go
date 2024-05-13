@@ -14,7 +14,6 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	// mg contains helpful utility functions, like Deps
 )
 
 type Build mg.Namespace
@@ -52,7 +51,19 @@ var Default = Build.Local
 
 /* Docker */
 func buildDockerImage() error {
-	return sh.RunV("docker", "build", "--no-cache", "--pull", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
+	return sh.RunV(
+		"docker",
+		"build",
+		"--no-cache",
+		"--pull",
+		"-t",
+		imageName+":"+imageVersion,
+		"-t",
+		imageName+":latest",
+		"-f",
+		"Dockerfile",
+		".",
+	)
 }
 
 func pushDockerImage() error {
@@ -203,16 +214,24 @@ func (Build) Lint() error {
 
 // Run tests in verbose mode
 func (Test) Verbose() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		testVerbose,
 	)
 }
 
 // Run tests in normal mode
 func (Test) Default() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		test,
 	)
+}
+
+// Integration runs the integration tests for the plugin validator
+func (Test) Integration() error {
+	mg.Deps(Build.Local)
+	return sh.RunV("go", "test", "-v", "./pkg/cmd/plugincheck2")
 }
 
 // Removes built files

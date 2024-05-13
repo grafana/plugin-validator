@@ -25,7 +25,7 @@ func TestValidLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -55,7 +55,7 @@ func TestEmptyLargeLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -90,7 +90,7 @@ func TestEmptySmallLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -126,7 +126,7 @@ func TestValidNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -167,10 +167,10 @@ func TestNestedPluginJsonMissingSmallLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	wrongMeta, err := utils.JsonToMetadata(wrongPluginJsonContent)
+	wrongMeta, err := utils.JSONToMetadata(wrongPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

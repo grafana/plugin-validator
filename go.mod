@@ -10,6 +10,8 @@ require (
 	github.com/hashicorp/go-version v1.6.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/magefile/mage v1.15.0
+	github.com/r3labs/diff v1.1.0
+	github.com/r3labs/diff/v3 v3.0.1
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e
 	github.com/stretchr/testify v1.9.0
@@ -78,6 +80,8 @@ require (
 	github.com/shogo82148/go-shuffle v1.0.1 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
+	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
+	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
