@@ -95,6 +95,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				"error reading your archive files",
 				fmt.Sprintf("error reading your archive files: %s", err.Error()),
 			)
+			continue
 		}
 		if len(foundBinaries) == 0 {
 			pass.ReportResult(
@@ -108,7 +109,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					executable,
 				),
 			)
-			return nil, nil
+			continue
 		}
 
 		for _, binaryPath := range foundBinaries {
