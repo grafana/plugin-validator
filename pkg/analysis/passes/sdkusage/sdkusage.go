@@ -34,7 +34,13 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "sdkusage",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{goSdkNotUsed, goModNotFound},
+	Rules: []*analysis.Rule{
+		goSdkNotUsed,
+		goModNotFound,
+		goModError,
+		goSdkOlderThanTwoMonths,
+		goSdkOlderThanFiveMonths,
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
