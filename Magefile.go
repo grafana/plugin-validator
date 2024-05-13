@@ -214,14 +214,16 @@ func (Build) Lint() error {
 
 // Run tests in verbose mode
 func (Test) Verbose() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		testVerbose,
 	)
 }
 
 // Run tests in normal mode
 func (Test) Default() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		test,
 	)
 }

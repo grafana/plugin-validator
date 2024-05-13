@@ -185,7 +185,7 @@ func TestIntegration(t *testing.T) {
 
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
-	fmt.Printf("Running integration tests. Total: %d\n", len(files))
+	t.Logf("Running integration tests. Total: %d\n", len(files))
 	for currentFile := range files {
 		t.Run(currentFile, func(t *testing.T) {
 			file := currentFile
@@ -200,7 +200,7 @@ func TestIntegration(t *testing.T) {
 				configFile,
 				filepath.Join(basePath, file),
 			)
-			fmt.Printf("Running command: %s\n", command)
+			t.Logf("Running command: %s\n", command)
 			cmd := exec.Command("sh", "-c", command)
 			var outb, errb bytes.Buffer
 			cmd.Stdout = &outb
@@ -221,7 +221,7 @@ func TestIntegration(t *testing.T) {
 			assert.NoError(t, err)
 
 			if len(changelog) > 0 {
-				fmt.Printf("Changes found: %d\n", len(changelog))
+				t.Logf("Changes found: %d\n", len(changelog))
 				prettyJson, _ := json.MarshalIndent(changelog, "", "\t")
 				fmt.Println(string(prettyJson))
 			}
