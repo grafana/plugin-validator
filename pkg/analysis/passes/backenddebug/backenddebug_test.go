@@ -35,7 +35,7 @@ func TestBackendDebug_Correct(t *testing.T) {
 			pluginJSON: pluginJSONWithoutExecutable,
 		},
 	} {
-		meta, err := utils.JsonToMetadata(tc.pluginJSON)
+		meta, err := utils.JSONToMetadata(tc.pluginJSON)
 		require.NoError(t, err)
 
 		t.Run(tc.name, func(t *testing.T) {
@@ -86,7 +86,7 @@ func TestBackendDebug(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
 
-			meta, err := utils.JsonToMetadata(tc.pluginJSON)
+			meta, err := utils.JSONToMetadata(tc.pluginJSON)
 			require.NoError(t, err)
 
 			pass := &analysis.Pass{

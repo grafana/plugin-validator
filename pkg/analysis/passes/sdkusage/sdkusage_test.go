@@ -20,7 +20,7 @@ func TestGoModNotFound(t *testing.T) {
     "executable": "gx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -51,7 +51,7 @@ func TestGoModNotParseable(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -82,7 +82,7 @@ func TestValidGoMod(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -108,7 +108,7 @@ func TestValidGoModWithNoGrafanaSdk(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

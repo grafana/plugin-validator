@@ -19,7 +19,7 @@ func TestBackendFalseExecutableEmpty(t *testing.T) {
 		"type": "panel"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -45,7 +45,7 @@ func TestBackendFalseExecutableWithValue(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -76,7 +76,7 @@ func TestBackendTrueExecutableEmpty(t *testing.T) {
     "backend": true
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -107,7 +107,7 @@ func TestAlertingTrueBackendFalse(t *testing.T) {
     "alerting": true
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -139,7 +139,7 @@ func TestBackendTrueExecutableMissing(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -171,7 +171,7 @@ func TestBackendTrueExecutablesFound(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -203,10 +203,10 @@ func TestBackendTrueNested(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	nestedMeta, err := utils.JsonToMetadata(nestedPluginJsonContent)
+	nestedMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -237,10 +237,10 @@ func TestBackendTrueOnlyNestedBinary(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	nestedMeta, err := utils.JsonToMetadata(nestedPluginJsonContent)
+	nestedMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -273,10 +273,10 @@ func TestBackendMissingNestedDatasource(t *testing.T) {
     "executable": "gpx_plugin"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	nestedMeta, err := utils.JsonToMetadata(nestedPluginJsonContent)
+	nestedMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -310,10 +310,10 @@ func TestBackendFalseNested(t *testing.T) {
 	nestedPluginJsonContent := []byte(`{
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	nestedMeta, err := utils.JsonToMetadata(nestedPluginJsonContent)
+	nestedMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

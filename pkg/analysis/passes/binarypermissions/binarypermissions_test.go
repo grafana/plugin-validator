@@ -24,7 +24,7 @@ func TestBinaryFoundWithCorrectPermissions(t *testing.T) {
 		"executable": "test-plugin-panel"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	// due to CI running on linux, we need to re-create the correct permissions
@@ -62,7 +62,7 @@ func TestBinaryNotFound(t *testing.T) {
 		"type": "panel",
 		"executable": "test-plugin-panel"
 	}`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -95,7 +95,7 @@ func TestBinaryFoundNested(t *testing.T) {
 		"executable": "binaries/test-plugin-panel"
 	}`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	// due to CI running on linux, we need to re-create the correct permissions
@@ -133,7 +133,7 @@ func TestBinaryIncorrectPermissions(t *testing.T) {
 		"executable": "test-plugin-panel"
 	}`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	// due to CI running on linux, we need to re-create the correct permissions
@@ -183,7 +183,7 @@ func TestNestedBinaryFoundWithCorrectPermissions(t *testing.T) {
 		"executable": "test-plugin-app"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pluginJsonNestedContent := []byte(`{
@@ -191,7 +191,7 @@ func TestNestedBinaryFoundWithCorrectPermissions(t *testing.T) {
 		"type": "panel",
 		"executable": "test-plugin-datasource"
   }`)
-	nestedMeta, err := utils.JsonToMetadata(pluginJsonNestedContent)
+	nestedMeta, err := utils.JSONToMetadata(pluginJsonNestedContent)
 	require.NoError(t, err)
 
 	// due to CI running on linux, we need to re-create the correct permissions
@@ -235,7 +235,7 @@ func TestNestedBinaryFoundWithIncorrectPermissions(t *testing.T) {
 		"executable": "test-plugin-app"
   }`)
 
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pluginJsonNestedContent := []byte(`{
@@ -243,7 +243,7 @@ func TestNestedBinaryFoundWithIncorrectPermissions(t *testing.T) {
 		"type": "panel",
 		"executable": "test-plugin-datasource"
   }`)
-	nestedMeta, err := utils.JsonToMetadata(pluginJsonNestedContent)
+	nestedMeta, err := utils.JSONToMetadata(pluginJsonNestedContent)
 	require.NoError(t, err)
 
 	// due to CI running on linux, we need to re-create the correct permissions
