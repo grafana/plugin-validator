@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/grafana/plugin-validator/pkg/utils"
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -185,7 +186,7 @@ func TestTwoMonthsOldSdk(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -240,7 +241,7 @@ func TestFiveMonthsOld(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JsonToMetadata(pluginJsonContent)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
