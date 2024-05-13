@@ -5,29 +5,36 @@ import (
 	"testing"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
+	"github.com/grafana/plugin-validator/pkg/utils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGoModNotFound(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-	const pluginJsonContent = `{
+	pluginJsonContent := []byte(`{
     "name": "my plugin name",
     "backend": true,
     "executable": "gx_plugin"
-  }`
+  }`)
+
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer:   []byte(pluginJsonContent),
 			sourcecode.Analyzer: filepath.Join("testdata", "nogomod"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json": meta,
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
@@ -39,21 +46,26 @@ func TestGoModNotFound(t *testing.T) {
 
 func TestGoModNotParseable(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-	const pluginJsonContent = `{
+	pluginJsonContent := []byte(`{
     "name": "my plugin name",
     "backend": true,
     "executable": "gx_plugin"
-  }`
+  }`)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer:   []byte(pluginJsonContent),
 			sourcecode.Analyzer: filepath.Join("testdata", "gomodwrong"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json": meta,
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
@@ -65,42 +77,52 @@ func TestGoModNotParseable(t *testing.T) {
 
 func TestValidGoMod(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-	const pluginJsonContent = `{
+	pluginJsonContent := []byte(`{
     "name": "my plugin name",
     "backend": true,
     "executable": "gx_plugin"
-  }`
+  }`)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer:   []byte(pluginJsonContent),
 			sourcecode.Analyzer: filepath.Join("testdata", "validgomod"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json": meta,
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
 func TestValidGoModWithNoGrafanaSdk(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
-	const pluginJsonContent = `{
+	pluginJsonContent := []byte(`{
     "name": "my plugin name",
     "backend": true,
     "executable": "gx_plugin"
-  }`
+  }`)
+	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer:   []byte(pluginJsonContent),
 			sourcecode.Analyzer: filepath.Join("testdata", "nografanagosdk"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json": meta,
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(

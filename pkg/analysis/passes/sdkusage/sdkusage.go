@@ -1,12 +1,11 @@
 package sdkusage
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"golang.org/x/mod/modfile"
 )
@@ -18,7 +17,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "sdkusage",
-	Requires: []*analysis.Analyzer{sourcecode.Analyzer, metadata.Analyzer},
+	Requires: []*analysis.Analyzer{sourcecode.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{goSdkNotUsed, goModNotFound},
 }
@@ -30,18 +29,22 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// no source code found so we can't go.mod
 		return nil, nil
 	}
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+
+	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
 	if !ok {
 		return nil, nil
 	}
 
-	var data metadata.Metadata
-	if err := json.Unmarshal(metadataBody, &data); err != nil {
-		return nil, err
+	hasBackend := false
+	for _, data := range metadatamap {
+		if data.Backend {
+			hasBackend = true
+			break
+		}
 	}
 
-	if !data.Backend && data.Executable == "" {
-		// Do not perform check for plugins without a backend declared
+	// skip plugins with no backend
+	if !hasBackend {
 		return nil, nil
 	}
 
