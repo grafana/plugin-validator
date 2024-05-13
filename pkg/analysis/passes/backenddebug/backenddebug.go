@@ -15,6 +15,10 @@ var (
 		Name:     "backend-debug-file-present",
 		Severity: analysis.Error,
 	}
+	archiveFilesError = &analysis.Rule{
+		Name:     "archive-read-error",
+		Severity: analysis.Error,
+	}
 )
 
 // Analyzer is an analyzer that checks if backend standalone debug files are included in the executable.
@@ -52,7 +56,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	textFiles, err := doublestar.FilepathGlob(archiveDir + "/**/*.txt")
 	if err != nil {
-		return nil, fmt.Errorf("error reading archive files: %w", err)
+		pass.ReportResult(
+			pass.AnalyzerName,
+			archiveFilesError,
+			"error reading archive files",
+			fmt.Sprintf("error reading archive files: %s", err.Error()),
+		)
 	}
 
 	for _, file := range textFiles {
