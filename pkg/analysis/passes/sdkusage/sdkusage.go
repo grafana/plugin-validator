@@ -158,6 +158,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		// error calculating the days difference could be a problem in github date format
 		// ignoring it
+		logme.DebugFln("Error calculating days difference: %s", err.Error())
 		return nil, nil
 	}
 
