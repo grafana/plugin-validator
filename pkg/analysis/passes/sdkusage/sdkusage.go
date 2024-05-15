@@ -150,7 +150,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	pluginGoSdkRelease, err := githubutils.FetchGrafanaSdkReleaseByTag(pluginGoSdkVersion)
 	if err != nil {
 		// it is most likely this failed because of github auth or rate limits
-		logme.Debugln(err)
+		logme.DebugFln("Error fetching plugin go sdk release: %s", err.Error())
 		return nil, nil
 	}
 
