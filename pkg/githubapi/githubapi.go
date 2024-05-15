@@ -1,4 +1,4 @@
-package githubutils
+package githubapi
 
 import (
 	"encoding/json"

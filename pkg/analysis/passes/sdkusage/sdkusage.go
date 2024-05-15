@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
-	"github.com/grafana/plugin-validator/pkg/githubutils"
+	"github.com/grafana/plugin-validator/pkg/githubapi"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"golang.org/x/mod/modfile"
 )
@@ -135,7 +135,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	latestRelease, err := githubutils.FetchLatestGrafanaSdkRelease()
+	latestRelease, err := githubapi.FetchLatestGrafanaSdkRelease()
 	if err != nil {
 		// it is most likely this failed because of github auth or rate limits
 		logme.Debugln(err)

@@ -1,4 +1,4 @@
-package githubutils
+package githubapi
 
 type Author struct {
 	Login             string `json:"login"`
