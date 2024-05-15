@@ -160,6 +160,12 @@ func TestTwoMonthsOldSdk(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	origGetTime := GetNowInRFC3339
+	GetNowInRFC3339 = func() string {
+		return "2024-03-09T10:03:16Z"
+	}
+	defer func() { GetNowInRFC3339 = origGetTime }()
+
 	// mock latest request
 	httpmock.RegisterResponder(
 		"GET",
@@ -214,6 +220,12 @@ func TestTwoMonthsOldSdk(t *testing.T) {
 func TestFiveMonthsOld(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+
+	origGetTime := GetNowInRFC3339
+	GetNowInRFC3339 = func() string {
+		return "2023-11-09T10:03:16Z"
+	}
+	defer func() { GetNowInRFC3339 = origGetTime }()
 
 	// mock latest request
 	httpmock.RegisterResponder(

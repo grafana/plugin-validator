@@ -147,14 +147,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	pluginGoSdkRelease, err := githubutils.FetchGrafanaSdkReleaseByTag(pluginGoSdkVersion)
-	if err != nil {
-		// it is most likely this failed because of github auth or rate limits
-		logme.DebugFln("Error fetching plugin go sdk release: %s", err.Error())
-		return nil, nil
-	}
+	// today date in RFC3339 format
+	today := GetNowInRFC3339()
 
-	daysDiff, err := daysDifference(pluginGoSdkRelease.PublishedAt, latestRelease.PublishedAt)
+	daysDiff, err := daysDifference(today, latestRelease.PublishedAt)
 	if err != nil {
 		// error calculating the days difference could be a problem in github date format
 		// ignoring it
@@ -202,4 +198,9 @@ func daysDifference(date1 string, date2 string) (int, error) {
 	days := int(diff.Hours() / 24)
 
 	return days, nil
+}
+
+// mockable function for testing
+var GetNowInRFC3339 = func() string {
+	return time.Now().UTC().Format(time.RFC3339)
 }
