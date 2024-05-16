@@ -119,8 +119,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			goSdkNotUsed,
-			"Your plugin uses a backend (backend=true), but the Grafana go sdk is not used",
-			"If your plugin has a backend component you must use Grafana go sdk (github.com/grafana/grafana-plugin-sdk-go)",
+			"Your plugin uses a backend (backend=true), but the Grafana Go SDK is not used",
+			"If your plugin has a backend component you must use Grafana Go SDK (github.com/grafana/grafana-plugin-sdk-go)",
 		)
 		return nil, nil
 	}
@@ -162,8 +162,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			goSdkOlderThanFiveMonths,
-			"Your Grafana go sdk is older than 5 months",
-			"Your Grafana go sdk is older than 5 months. Please upgrade to the latest version",
+			"Your Grafana Go SDK is older than 5 months",
+			"Please upgrade your Grafana Go SDK to the latest version by running: \"go get -u github.com/grafana/grafana-plugin-sdk-go\"",
 		)
 		return nil, nil
 	}
@@ -172,8 +172,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			goSdkOlderThanTwoMonths,
-			"Your Grafana go sdk is older than 2 months",
-			"Your Grafana go sdk is older than 2 months. Please upgrade to the latest version",
+			"Your Grafana Go SDK is older than 2 months",
+			"Please upgrade your Grafana Go SDK to the latest version by running: \"go get -u github.com/grafana/grafana-plugin-sdk-go\"",
 		)
 		return nil, nil
 	}

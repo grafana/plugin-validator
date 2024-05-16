@@ -151,7 +151,7 @@ func TestValidGoModWithNoGrafanaSdk(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
 		t,
-		"Your plugin uses a backend (backend=true), but the Grafana go sdk is not used",
+		"Your plugin uses a backend (backend=true), but the Grafana Go SDK is not used",
 		interceptor.Diagnostics[0].Title,
 	)
 }
@@ -212,7 +212,7 @@ func TestTwoMonthsOldSdk(t *testing.T) {
 
 	require.Equal(
 		t,
-		"Your Grafana go sdk is older than 2 months",
+		"Your Grafana Go SDK is older than 2 months",
 		interceptor.Diagnostics[0].Title,
 	)
 }
@@ -273,7 +273,7 @@ func TestFiveMonthsOld(t *testing.T) {
 
 	require.Equal(
 		t,
-		"Your Grafana go sdk is older than 5 months",
+		"Your Grafana Go SDK is older than 5 months",
 		interceptor.Diagnostics[0].Title,
 	)
 }
