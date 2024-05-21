@@ -60,7 +60,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for i := 0; i < retry; i++ {
 		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions)
-		if err == nil {
+		if err != nil {
+			logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
+		} else {
 			break
 		}
 	}
