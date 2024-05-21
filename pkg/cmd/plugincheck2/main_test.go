@@ -41,6 +41,7 @@ func TestIntegration(t *testing.T) {
 	env := []string{
 		"DEBUG=0",
 		"OPENAI_API_KEY=",
+		"GEMINI_API_KEY=",
 	}
 	var files = map[string]JsonReport{
 		"grafana-clock-panel-2.1.5.any.zip": {

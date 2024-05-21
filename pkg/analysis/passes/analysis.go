@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacybuilder"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -39,7 +40,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
-	tzapgpt "github.com/grafana/plugin-validator/pkg/analysis/passes/tzap-gpt"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
 )
@@ -59,6 +59,7 @@ var Analyzers = []*analysis.Analyzer{
 	legacybuilder.Analyzer,
 	logos.Analyzer,
 	license.Analyzer,
+	llmreview.Analyzer,
 	manifest.Analyzer,
 	metadata.Analyzer,
 	metadatapaths.Analyzer,
@@ -77,7 +78,6 @@ var Analyzers = []*analysis.Analyzer{
 	templatereadme.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
-	tzapgpt.Analyzer,
 	unsafesvg.Analyzer,
 	version.Analyzer,
 	backenddebug.Analyzer,
