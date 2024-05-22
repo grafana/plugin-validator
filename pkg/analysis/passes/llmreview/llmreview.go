@@ -74,7 +74,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, answer := range answers {
 		shortAnswer := strings.TrimSpace(strings.ToLower(answer.ShortAnswer))
-		if shortAnswer == "yes" || shortAnswer == "na" {
+		if shortAnswer != "no" {
 
 			detail := fmt.Sprintf("Question: %s\n. Answer: %s. ", answer.Question, answer.Answer)
 

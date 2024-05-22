@@ -17,6 +17,8 @@ import (
 	"google.golang.org/api/option"
 )
 
+// these are not regular expressions
+// these are unix filename patterns
 var ignoreList = []string{
 	".**",
 	"node_modules/**",
@@ -33,7 +35,6 @@ var ignoreList = []string{
 	"playwright.config.*",
 	"vite.config.*",
 	"tsconfig.*",
-	"package-lock.json",
 	"Gruntfile.*",
 	"webpack.config.*",
 	"rollup.config.*",
@@ -42,7 +43,15 @@ var ignoreList = []string{
 	"test/**",
 }
 
-var allowExtensions = []string{".js", ".jsx", ".ts", ".tsx", ".cjs", ".mjs", ".go"}
+var allowExtensions = map[string]struct{}{
+	".js":  struct{},
+	".jsx": struct{},
+	".ts":  struct{},
+	".tsx": struct{},
+	".cjs": struct{},
+	".mjs": struct{},
+	".go":  struct{},
+}
 
 type LLMAnswer struct {
 	Question    string   `json:"question"`
@@ -223,12 +232,8 @@ func getPromptContentForCode(codePath string) ([]string, error) {
 }
 
 func isAllowedExtension(extension string) bool {
-	for _, ext := range allowExtensions {
-		if ext == extension {
-			return true
-		}
-	}
-	return false
+	_, ok := allowExtensions[extension]
+	return ok
 }
 
 func isIgnoredFile(file string) bool {
