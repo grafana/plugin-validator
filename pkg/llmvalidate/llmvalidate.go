@@ -298,10 +298,12 @@ func readFileContent(filePath string) (string, error) {
 	var content strings.Builder
 
 	for scanner.Scan() {
-		if !utf8.ValidString(string(scanner.Text())) {
+		text := scanner.Text()
+		if !utf8.ValidString(text) {
 			return "", fmt.Errorf("invalid UTF-8 in file %s", filePath)
 		}
-		content.WriteString(scanner.Text() + "\n")
+		content.WriteString(text)
+		content.WriteRune('\n')
 	}
 
 	if err := scanner.Err(); err != nil {
