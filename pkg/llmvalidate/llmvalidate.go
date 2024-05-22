@@ -44,13 +44,13 @@ var ignoreList = []string{
 }
 
 var allowExtensions = map[string]struct{}{
-	".js":  struct{},
-	".jsx": struct{},
-	".ts":  struct{},
-	".tsx": struct{},
-	".cjs": struct{},
-	".mjs": struct{},
-	".go":  struct{},
+	".js":  {},
+	".jsx": {},
+	".ts":  {},
+	".tsx": {},
+	".cjs": {},
+	".mjs": {},
+	".go":  {},
 }
 
 type LLMAnswer struct {
