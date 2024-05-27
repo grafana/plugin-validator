@@ -272,6 +272,11 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 		configFile = "config/custom.yaml"
 	}
 
+	if !strings.HasPrefix(sourceCodePath, "http://") &&
+		!strings.HasPrefix(sourceCodePath, "file://") {
+		sourceCodePath = "file://" + sourceCodePath
+	}
+
 	command := []string{
 		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
