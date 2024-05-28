@@ -273,6 +273,7 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 	}
 
 	if !strings.HasPrefix(sourceCodePath, "http://") &&
+		!strings.HasPrefix(sourceCodePath, "https://") &&
 		!strings.HasPrefix(sourceCodePath, "file://") {
 		sourceCodePath = "file://" + sourceCodePath
 	}

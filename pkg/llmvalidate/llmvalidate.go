@@ -22,6 +22,7 @@ import (
 var ignoreList = []string{
 	// hidden files
 	"**/.**",
+	".**",
 
 	//dependencies
 	"node_modules/**",
@@ -40,8 +41,12 @@ var ignoreList = []string{
 	"**/test-**",
 	"**/__mocks__/**",
 	"**/*.test.*",
+	"**/*.spec.*",
 	"**/*_test.go",
+	"tests/**",
+	"mocks/**",
 	"server-*",
+	"cypress/**",
 
 	// config
 	"jest.config.*",
@@ -51,7 +56,7 @@ var ignoreList = []string{
 	"vite.config.*",
 	"**/tsconfig.*",
 	"Gruntfile.*",
-	"**/webpack.config.*",
+	"webpack.config.*",
 	"rollup.config.*",
 }
 
@@ -273,6 +278,8 @@ func getPromptContentForFile(codePath, relFile string) string {
 	if isMinifiedJsFile(content) {
 		return ""
 	}
+
+	logme.DebugFln("llmvalidate: Including file %s", relFile)
 
 	if len(content) == 0 {
 		return ""
