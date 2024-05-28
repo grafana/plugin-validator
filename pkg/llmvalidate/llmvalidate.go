@@ -20,27 +20,39 @@ import (
 // these are not regular expressions
 // these are unix filename patterns
 var ignoreList = []string{
-	".**",
+	// hidden files
+	"**/.**",
+
+	//dependencies
 	"node_modules/**",
-	"dist/**",
 	"*.lock",
+
+	// dist files
+	"dist/**",
+
+	//external files
 	"**/external/**",
-	"tests/**",
+	"**/*.min.js",
+
+	// tests
+	"**/tests/**",
+	"**/test/**",
+	"**/test-**",
 	"**/__mocks__/**",
-	"**.test.*",
-	"test-**",
+	"**/*.test.*",
+	"**/*_test.go",
+	"server-*",
+
+	// config
 	"jest.config.*",
 	"babel.config.*",
 	"jest-setup.*",
 	"playwright.config.*",
 	"vite.config.*",
-	"tsconfig.*",
+	"**/tsconfig.*",
 	"Gruntfile.*",
-	"webpack.config.*",
+	"**/webpack.config.*",
 	"rollup.config.*",
-	"*.min.js",
-	"server-**",
-	"test/**",
 }
 
 var allowExtensions = map[string]struct{}{
