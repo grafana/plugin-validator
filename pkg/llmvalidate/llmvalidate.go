@@ -279,7 +279,7 @@ func getPromptContentForFile(codePath, relFile string) string {
 		return ""
 	}
 
-	logme.DebugFln("Including file %s", relFile)
+	logme.DebugFln("llmvalidate: Including file %s", relFile)
 
 	if len(content) == 0 {
 		return ""
