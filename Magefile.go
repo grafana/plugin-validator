@@ -295,7 +295,9 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
 
 	// if source doesn't start with http or file:// add file://
-	if !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "file://") {
+	if !strings.HasPrefix(source, "http://") &&
+		!strings.HasPrefix(source, "file://") &&
+		!strings.HasPrefix(source, "https://") {
 		source = "file://" + source
 	}
 
@@ -304,7 +306,7 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 		"-archiveUri", archive}
 
 	if source != "" {
-		command = append(command, "-sourceUri", source)
+		command = append(command, "-sourceCodeUri", source)
 	}
 
 	return sh.RunV(command[0], command[1:]...)
