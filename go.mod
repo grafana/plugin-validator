@@ -9,7 +9,7 @@ require (
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/google/generative-ai-go v0.12.0
 	github.com/google/osv-scanner v1.7.2
-	github.com/hashicorp/go-version v1.6.0
+	github.com/hashicorp/go-version v1.7.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/magefile/mage v1.15.0
 	github.com/r3labs/diff v1.1.0
