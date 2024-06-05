@@ -7,7 +7,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/fatih/color v1.17.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/google/generative-ai-go v0.12.0
+	github.com/google/generative-ai-go v0.13.0
 	github.com/google/osv-scanner v1.7.2
 	github.com/hashicorp/go-version v1.7.0
 	github.com/jarcoal/httpmock v1.3.1
@@ -112,6 +112,7 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.21.0 // indirect
 	gonum.org/v1/gonum v0.15.0 // indirect
+	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240506185236-b8a5c65736ae // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
 	google.golang.org/grpc v1.63.2 // indirect
