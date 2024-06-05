@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/google/generative-ai-go v0.13.0
-	github.com/google/osv-scanner v1.7.2
+	github.com/google/osv-scanner v1.7.4
 	github.com/hashicorp/go-version v1.7.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/magefile/mage v1.15.0
@@ -27,7 +27,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
-	github.com/BurntSushi/toml v1.3.2 // indirect
+	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.8.0 // indirect
 	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.5 // indirect
@@ -36,12 +36,12 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.5.9 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/owenrumney/go-sarif/v2 v2.3.1 // indirect
-	github.com/package-url/packageurl-go v0.1.2 // indirect
+	github.com/package-url/packageurl-go v0.1.3 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/smarty/assertions v1.15.1 // indirect
 	github.com/spdx/gordf v0.0.0-20221230105357-b735bd5aac89 // indirect
 	github.com/spdx/tools-golang v0.5.4 // indirect
-	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
+	golang.org/x/exp v0.0.0-20240525044651-4c93da0ed11d // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/vuln v1.1.0 // indirect
 )
@@ -53,7 +53,7 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.2 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/longrunning v0.5.7 // indirect
-	deps.dev/api/v3 v3.0.0-20240503042720-6166138ce783 // indirect
+	deps.dev/api/v3 v3.0.0-20240516073147-b352d7eeeae6 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/cloudflare/circl v1.3.8 // indirect
@@ -115,7 +115,7 @@ require (
 	google.golang.org/genproto v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240506185236-b8a5c65736ae // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240513163218-0867130af1f8 // indirect
-	google.golang.org/grpc v1.63.2 // indirect
+	google.golang.org/grpc v1.64.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
