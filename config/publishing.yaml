@@ -6,9 +6,7 @@ analyzers:
   htmlreadme:
     severity: warning
   legacyplatform:
-    severity: warning
-  jargon:
-    severity: warning
+    severity: warning  
   restrictivedep:
     severity: warning
   screenshots:
