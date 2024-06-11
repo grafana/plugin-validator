@@ -27,7 +27,6 @@ var Analyzer = &analysis.Analyzer{
 }
 
 var questions = []string{
-	"What is this code doing?",
 	"Does this code manipulate the file system? (explicit manipulation of the file system). Provide a code snippet if so.",
 	"Does this code allow the execution or arbitrary javascript code from user input?. Provide a code snippet if so",
 	"Does this code allow the execution or arbitrary code in go from user input?. Provide a code snippet if so.",
@@ -59,7 +58,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var answers []llmvalidate.LLMAnswer
 
 	for i := 0; i < retry; i++ {
-		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions)
+		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
 		if err != nil {
 			logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
 		} else {
