@@ -1,1 +1,3 @@
+package testpluginoutside
+
 //dummy content

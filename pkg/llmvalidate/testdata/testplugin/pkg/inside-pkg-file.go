@@ -1,1 +1,3 @@
+package testplugin
+
 //dummy content
