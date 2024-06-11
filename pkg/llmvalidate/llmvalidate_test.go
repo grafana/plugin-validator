@@ -34,3 +34,12 @@ func TestGetPromptsForCodepathWithNonExistingSubPaths(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, prompts, 1)
 }
+
+func TestGetPromptsForCodepathEmptySubPath(t *testing.T) {
+	codePath := filepath.Join("testdata", "testplugin")
+
+	prompts, err := getPromptContentForCode(codePath, []string{})
+
+	require.NoError(t, err)
+	require.Len(t, prompts, 4)
+}
