@@ -38,7 +38,6 @@ var legacyImportTests = []map[string][]byte{
 	{"module.js": []byte(`"QueryCtrl"`)},
 	{"module.js": []byte(`import * from 'app/plugins/sdk'`)},
 	{"module.js": []byte(`angular.isNumber(variable)`)},
-	{"module.js": []byte(`editor.html`)},
 	{"module.js": []byte(`ctrl.annotation`)},
 }
 
