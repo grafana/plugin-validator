@@ -111,6 +111,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*LLMValidateClie
 func (c *LLMValidateClient) AskLLMAboutCode(
 	codePath string,
 	questions []string,
+	subPathsOnly []string,
 ) ([]LLMAnswer, error) {
 
 	if len(questions) == 0 {
@@ -132,7 +133,7 @@ func (c *LLMValidateClient) AskLLMAboutCode(
 		return nil, err
 	}
 
-	codePrompt, err := getPromptContentForCode(absCodePath)
+	codePrompt, err := getPromptContentForCode(absCodePath, subPathsOnly)
 	if err != nil {
 		return nil, fmt.Errorf("Error walking files inside %s: %v", codePath, err)
 	}
@@ -190,6 +191,7 @@ Answer the following questions in the context of the code above. be brief in you
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal content: %v", err)
 	}
+	logme.Debugln("Got response from LLM with char length", len(answers))
 
 	return answers, nil
 
@@ -207,9 +209,35 @@ func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContent
 	return finalContent
 }
 
-func getPromptContentForCode(codePath string) ([]string, error) {
+func getPromptContentForCode(codePath string, subPathsOnly []string) ([]string, error) {
 	var prompts []string
 
+	if len(subPathsOnly) == 0 {
+		subPathsOnly = []string{"."}
+	}
+
+	for _, path := range subPathsOnly {
+		subCodePath := filepath.Join(codePath, path)
+
+		// skip if it doesn't exist
+		_, err := os.Stat(subCodePath)
+		if err != nil {
+			continue
+		}
+
+		subPrompts, err := walkAndGetPrompts(subCodePath)
+		if err != nil {
+			return nil, err
+		}
+		prompts = append(prompts, subPrompts...)
+	}
+
+	return prompts, nil
+
+}
+
+func walkAndGetPrompts(codePath string) ([]string, error) {
+	var prompts []string
 	err := filepath.Walk(codePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -279,7 +307,7 @@ func getPromptContentForFile(codePath, relFile string) string {
 		return ""
 	}
 
-	logme.DebugFln("llmvalidate: Including file %s", relFile)
+	logme.DebugFln("llmvalidate: Including file %s", path.Join(codePath, relFile))
 
 	if len(content) == 0 {
 		return ""
