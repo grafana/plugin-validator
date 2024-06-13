@@ -12,7 +12,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:  run,
 }
 
-const schemaURL = "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json"
+const schemaURL = "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json"
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	resp, err := http.Get(schemaURL)

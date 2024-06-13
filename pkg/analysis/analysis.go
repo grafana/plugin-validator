@@ -37,6 +37,10 @@ func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, det
 		return
 	}
 
+	if p.Report == nil {
+		panic("Report function is not set")
+	}
+
 	p.Report(analysisName, Diagnostic{
 		Name:     rule.Name,
 		Severity: rule.Severity,

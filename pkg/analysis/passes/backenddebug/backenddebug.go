@@ -1,24 +1,31 @@
 package backenddebug
 
 import (
-	"encoding/json"
 	"fmt"
+	"path/filepath"
+
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"os"
-	"path/filepath"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 )
 
 var (
-	backendDebugFilePresent = &analysis.Rule{Name: "backend-debug-file-present", Severity: analysis.Error}
+	backendDebugFilePresent = &analysis.Rule{
+		Name:     "backend-debug-file-present",
+		Severity: analysis.Error,
+	}
+	archiveFilesError = &analysis.Rule{
+		Name:     "archive-read-error",
+		Severity: analysis.Error,
+	}
 )
 
 // Analyzer is an analyzer that checks if backend standalone debug files are included in the executable.
 // If so, it reports an error, as the plugin can't be used properly in non-debug mode.
 var Analyzer = &analysis.Analyzer{
 	Name:     "backenddebug",
-	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{backendDebugFilePresent},
 }
@@ -28,35 +35,49 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if !ok {
 		return nil, nil
 	}
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+
+	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
 	if !ok {
 		return nil, nil
 	}
 
-	var data metadata.Metadata
-	if err := json.Unmarshal(metadataBody, &data); err != nil {
-		return nil, err
+	hasExecutable := false
+	for _, data := range metadatamap {
+		if data.Executable != "" {
+			hasExecutable = true
+			break
+		}
 	}
-	if data.Executable == "" {
-		// Do not perform check for plugins without a backend executable
+
+	// don't evaluate for plugins that don't have an executable
+	if !hasExecutable {
 		return nil, nil
 	}
 
-	for _, fn := range []string{"standalone.txt", "pid.txt"} {
-		if _, err := os.Stat(filepath.Join(archiveDir, fn)); err != nil {
-			if os.IsNotExist(err) {
-				// Banned file not found
-				continue
-			}
-			return nil, fmt.Errorf("stat %q: %w", fn, err)
-		}
-		// Found a banned file
+	textFiles, err := doublestar.FilepathGlob(archiveDir + "/**/*.txt")
+	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,
-			backendDebugFilePresent,
-			"found standalone backend file",
-			fmt.Sprintf("You have bundled %q, which will make the plugin unusable in production mode. Please remove it", fn),
+			archiveFilesError,
+			"error reading archive files",
+			fmt.Sprintf("error reading archive files: %s", err.Error()),
 		)
 	}
+
+	for _, file := range textFiles {
+		fileName := filepath.Base(file)
+		if fileName == "standalone.txt" || fileName == "pid.txt" {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				backendDebugFilePresent,
+				"found standalone backend file",
+				fmt.Sprintf(
+					"You have bundled %q, which will make the plugin unusable in production mode. Please remove it",
+					fileName,
+				),
+			)
+		}
+	}
+
 	return nil, nil
 }

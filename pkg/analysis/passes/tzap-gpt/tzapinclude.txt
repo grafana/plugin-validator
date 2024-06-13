@@ -1,4 +1,0 @@
-# common languages. example, remove .js if .js files are only compiled bundles.
-*.ts
-*.tsx
-*.go

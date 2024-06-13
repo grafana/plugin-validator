@@ -14,7 +14,6 @@ import (
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
-	// mg contains helpful utility functions, like Deps
 )
 
 type Build mg.Namespace
@@ -52,7 +51,19 @@ var Default = Build.Local
 
 /* Docker */
 func buildDockerImage() error {
-	return sh.RunV("docker", "build", "--no-cache", "--pull", "-t", imageName+":"+imageVersion, "-t", imageName+":latest", "-f", "Dockerfile", ".")
+	return sh.RunV(
+		"docker",
+		"build",
+		"--no-cache",
+		"--pull",
+		"-t",
+		imageName+":"+imageVersion,
+		"-t",
+		imageName+":latest",
+		"-f",
+		"Dockerfile",
+		".",
+	)
 }
 
 func pushDockerImage() error {
@@ -203,16 +214,24 @@ func (Build) Lint() error {
 
 // Run tests in verbose mode
 func (Test) Verbose() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		testVerbose,
 	)
 }
 
 // Run tests in normal mode
 func (Test) Default() {
-	mg.Deps(
+	mg.SerialDeps(
+		Build.Local,
 		test,
 	)
+}
+
+// Integration runs the integration tests for the plugin validator
+func (Test) Integration() error {
+	mg.Deps(Build.Local)
+	return sh.RunV("go", "test", "-v", "./pkg/cmd/plugincheck2")
 }
 
 // Removes built files
@@ -253,6 +272,12 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 		configFile = "config/custom.yaml"
 	}
 
+	if !strings.HasPrefix(sourceCodePath, "http://") &&
+		!strings.HasPrefix(sourceCodePath, "https://") &&
+		!strings.HasPrefix(sourceCodePath, "file://") {
+		sourceCodePath = "file://" + sourceCodePath
+	}
+
 	command := []string{
 		"./bin/" + runtime.GOOS + "_" + runtime.GOARCH + "/plugincheck2",
 		"-config",
@@ -270,7 +295,9 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 	buildCommand("sourcemapdiff", runtime.GOOS+"_"+runtime.GOARCH)
 
 	// if source doesn't start with http or file:// add file://
-	if !strings.HasPrefix(source, "http://") && !strings.HasPrefix(source, "file://") {
+	if !strings.HasPrefix(source, "http://") &&
+		!strings.HasPrefix(source, "file://") &&
+		!strings.HasPrefix(source, "https://") {
 		source = "file://" + source
 	}
 
@@ -279,7 +306,7 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 		"-archiveUri", archive}
 
 	if source != "" {
-		command = append(command, "-sourceUri", source)
+		command = append(command, "-sourceCodeUri", source)
 	}
 
 	return sh.RunV(command[0], command[1:]...)

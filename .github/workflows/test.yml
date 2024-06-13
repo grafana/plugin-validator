@@ -14,24 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "~1.21"
-          check-latest: true
-
-      - name: Install dependencies
-        run: go get .
-
-      - name: Install semgrep
-        run: python3 -m pip install semgrep
-
-      - name: Install gosec
-        run: wget -O - -q https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.19.0
-
-      - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.57.1
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
