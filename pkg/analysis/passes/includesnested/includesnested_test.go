@@ -264,3 +264,91 @@ func TestIncludedNestedTypeMissmatch(t *testing.T) {
 		interceptor.Diagnostics[0].Detail,
 	)
 }
+
+func TestNonAppPluginWithNested(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pluginJsonContent := []byte(`{
+		"id": "test-plugin-app",
+		"type": "panel",
+		"includes": [
+      {
+        "type": "datasource",
+        "name": "Nested data source",
+        "path": "nested-datasource/plugin.json"
+      }
+    ]
+  }`)
+
+	bundled1JsonContent := []byte(`{
+    "id": "test-plugin-datasource",
+    "type": "datasource",
+    "name": "nested datasource"
+  }`)
+
+	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
+	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	require.NoError(t, err)
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("./"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json":                   mainMeta,
+				"nested-datasource/plugin.json": bundle1Meta,
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err = Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"Nested plugins are not allowed on plugins type panel",
+		interceptor.Diagnostics[0].Title,
+	)
+}
+
+func TestNonAppPluginUndeclaredNested(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pluginJsonContent := []byte(`{
+		"id": "test-plugin-app",
+		"type": "panel"
+  }`)
+
+	bundled1JsonContent := []byte(`{
+    "id": "test-plugin-datasource",
+    "type": "datasource",
+    "name": "nested datasource"
+  }`)
+
+	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
+	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	require.NoError(t, err)
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"), ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("./"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json":                   mainMeta,
+				"nested-datasource/plugin.json": bundle1Meta,
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err = Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"Nested plugins are not allowed on plugins type panel",
+		interceptor.Diagnostics[0].Title,
+	)
+}

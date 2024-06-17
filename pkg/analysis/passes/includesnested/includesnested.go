@@ -21,6 +21,10 @@ var (
 		Name:     "nested-plugin-type-missmatch",
 		Severity: analysis.Error,
 	}
+	nestedPlugidInNonApp = &analysis.Rule{
+		Name:     "nested-plugin-id-in-non-app",
+		Severity: analysis.Error,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -31,6 +35,7 @@ var Analyzer = &analysis.Analyzer{
 		nestedPluginNotDeclared,
 		nestedPluginMissingType,
 		nestedPluginTypeMissmatch,
+		nestedPlugidInNonApp,
 	},
 }
 
@@ -50,6 +55,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// have catched it before. Adding it to be safe
 	if _, ok := metadatamap["plugin.json"]; !ok {
 		return nil, nil
+	}
+
+	if metadatamap["plugin.json"].Type != "app" && len(metadatamap) > 1 {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			nestedPlugidInNonApp,
+			fmt.Sprintf(
+				"Nested plugins are not allowed on plugins type %s",
+				metadatamap["plugin.json"].Type,
+			),
+			"A nested plugin was found in your archive but your plugin is not an app plugin",
+		)
+		return nil, nil
+
 	}
 
 	includes := metadatamap["plugin.json"].Includes
