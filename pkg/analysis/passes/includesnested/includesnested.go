@@ -105,7 +105,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					key,
 				),
 				fmt.Sprintf(
-					"Found a plugin %s nested inside your archive but not declared in plugin.json",
+					"Found a plugin %s nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
 					key,
 				),
 			)
