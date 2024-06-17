@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestValidCorrectIncludesDefinition(t *testing.T) {
+func TestValidIncludesDefinition(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pluginJsonContent := []byte(`{
 		"id": "test-plugin-app",
@@ -72,6 +72,7 @@ func TestValidCorrectIncludesDefinition(t *testing.T) {
 
 func TestMissingIncludeNested(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
+	// missing the nested datasource
 	pluginJsonContent := []byte(`{
 		"id": "test-plugin-app",
 		"type": "app",
@@ -129,6 +130,8 @@ func TestMissingIncludeNested(t *testing.T) {
 }
 
 func TestMissingIncludeTypeNested(t *testing.T) {
+
+	// missing the type of the nested panel
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pluginJsonContent := []byte(`{
 				"id": "test-plugin-app",
@@ -210,6 +213,8 @@ func TestIncludedNestedTypeMissmatch(t *testing.T) {
     ]
   }`)
 
+	// declared as datasource in the included
+	// but has panel type
 	bundled1JsonContent := []byte(`{
     "id": "test-plugin-datasource",
     "type": "panel",
