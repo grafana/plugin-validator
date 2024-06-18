@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/includesnested"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacybuilder"
@@ -47,24 +48,29 @@ import (
 var Analyzers = []*analysis.Analyzer{
 	archive.Analyzer,
 	archivename.Analyzer,
-	brokenlinks.Analyzer,
+	backendbinary.Analyzer,
+	backenddebug.Analyzer,
 	binarypermissions.Analyzer,
+	brokenlinks.Analyzer,
 	checksum.Analyzer,
 	coderules.Analyzer,
-	gosec.Analyzer,
+	discoverability.Analyzer,
 	gomanifest.Analyzer,
+	gosec.Analyzer,
+	includesnested.Analyzer,
 	jargon.Analyzer,
 	jssourcemap.Analyzer,
-	legacyplatform.Analyzer,
 	legacybuilder.Analyzer,
-	logos.Analyzer,
+	legacyplatform.Analyzer,
 	license.Analyzer,
 	llmreview.Analyzer,
+	logos.Analyzer,
 	manifest.Analyzer,
 	metadata.Analyzer,
 	metadatapaths.Analyzer,
 	metadatavalid.Analyzer,
 	modulejs.Analyzer,
+	nestedmetadata.Analyzer,
 	org.Analyzer,
 	osvscanner.Analyzer,
 	packagejson.Analyzer,
@@ -73,6 +79,7 @@ var Analyzers = []*analysis.Analyzer{
 	readme.Analyzer,
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
+	sdkusage.Analyzer,
 	signature.Analyzer,
 	sourcecode.Analyzer,
 	templatereadme.Analyzer,
@@ -80,9 +87,4 @@ var Analyzers = []*analysis.Analyzer{
 	typesuffix.Analyzer,
 	unsafesvg.Analyzer,
 	version.Analyzer,
-	backenddebug.Analyzer,
-	discoverability.Analyzer,
-	backendbinary.Analyzer,
-	sdkusage.Analyzer,
-	nestedmetadata.Analyzer,
 }
