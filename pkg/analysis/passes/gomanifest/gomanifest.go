@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -69,18 +68,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	logme.DebugFln("manifestFilePath: %s", manifestFilePath)
 	maniFestFiles, err := parseManifestFile(manifestFilePath)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, noGoManifest,
+		pass.ReportResult(
+			pass.AnalyzerName,
+			noGoManifest,
 			"Could not find or parse Go manifest file",
-			"Your source code contains Go files but there's no Go build manifest. Make sure you are using the latest version of the Go plugin SDK")
+			"Your source code contains Go files but there's no Go build manifest. Make sure you are using the latest version of the Go plugin SDK",
+		)
 		return nil, nil
 	}
 
 	err = verifyManifest(maniFestFiles, goFiles, sourceCodeDir)
 	if err != nil {
 		logme.DebugFln("verifyManifest error: %s", err)
-		pass.ReportResult(pass.AnalyzerName, invalidGoManifest,
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidGoManifest,
 			"The Go build manifest does not match the source code",
-			"The provided Go build manifest does not match the provided source code. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL and it includes all the Go files used to build the plugin binaries")
+			"The provided Go build manifest does not match the provided source code. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL and it includes all the Go files used to build the plugin binaries",
+		)
 		return nil, nil
 	}
 
@@ -141,7 +146,7 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 			return err
 		}
 		// calculate the sha256sum of the go file
-		sha256sum, err := hashFileContent(goFilePath)
+		sha256sum, windowsSha256Sum, err := hashFileContent(goFilePath)
 		if err != nil {
 			return err
 		}
@@ -149,10 +154,14 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 		manifestSha256sum, ok := manifest[goFileRelativePath]
 
 		if !ok {
-			return fmt.Errorf("could not find file %s with hash %s in manifest", goFileRelativePath, sha256sum)
+			return fmt.Errorf(
+				"could not find file %s with hash %s in manifest",
+				goFileRelativePath,
+				sha256sum,
+			)
 		}
 		// check if the sha256sum in the manifest matches the calculated sha256sum
-		if sha256sum != manifestSha256sum {
+		if sha256sum != manifestSha256sum && windowsSha256Sum != manifestSha256sum {
 			return fmt.Errorf("sha256sum of %s does not match manifest", goFilePath)
 		}
 	}
@@ -167,43 +176,23 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 	return nil
 }
 
-func hashFileContent(path string) (string, error) {
-	// Handle hashing big files.
-	// Source: https://stackoverflow.com/q/60328216/1722542
-
-	f, err := os.Open(path)
+// we hash the file content using the sha256 algorithm
+// a second hash is created using the line endings that windows uses
+// for plugins compiled with native windows that use windows line endings
+func hashFileContent(path string) (string, string, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	defer func() {
-		err = f.Close()
-		if err != nil {
-			fmt.Printf("error closing file for hashing: %v", err)
-		}
-	}()
+	// Calculate the original hash
+	hOrig := sha256.Sum256(data)
+	originalHash := hex.EncodeToString(hOrig[:])
 
-	buf := make([]byte, 1024*1024)
-	h := sha256.New()
+	// Normalize the data and calculate the hash
+	windowLineEndData := strings.ReplaceAll(string(data), "\n", "\r\n")
+	hNorm := sha256.Sum256([]byte(windowLineEndData))
+	windowsHash := hex.EncodeToString(hNorm[:])
 
-	for {
-		bytesRead, err := f.Read(buf)
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				return "", err
-			}
-			_, err = h.Write(buf[:bytesRead])
-			if err != nil {
-				return "", err
-			}
-			break
-		}
-		_, err = h.Write(buf[:bytesRead])
-		if err != nil {
-			return "", err
-		}
-	}
-
-	fileHash := hex.EncodeToString(h.Sum(nil))
-	return fileHash, nil
+	return originalHash, windowsHash, nil
 }
