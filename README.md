@@ -109,6 +109,8 @@ Usage plugincheck2:
         URI to the source code of the plugin. If set, the source code will be downloaded and analyzed. This can be a ZIP file URL, a URL to git repository or a local file (starting with `file://`)
   -strict (optional)
         If set, plugincheck returns non-zero exit code for warnings
+  -checksum string (optional)
+        If set, the checksum of the plugin archive will be checked against this value. MD5 and SHA256 are supported.
 
 ```
 
