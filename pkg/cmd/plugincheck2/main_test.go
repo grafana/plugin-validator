@@ -81,13 +81,13 @@ func TestIntegration(t *testing.T) {
 				"includesnested": {
 					{
 						Severity: "error",
-						Title:    "Nested plugin datasource/plugin.json is not declared in plugin main plugin.json",
+						Title:    "Nested plugin datasource/plugin.json is not declared parent plugin.json",
 						Detail:   "Found a plugin datasource/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
 						Name:     "nested-plugins-not-declared",
 					},
 					{
 						Severity: "error",
-						Title:    "Nested plugin panel-triggers/plugin.json is not declared in plugin main plugin.json",
+						Title:    "Nested plugin panel-triggers/plugin.json is not declared parent plugin.json",
 						Detail:   "Found a plugin panel-triggers/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
 						Name:     "nested-plugins-not-declared",
 					},
