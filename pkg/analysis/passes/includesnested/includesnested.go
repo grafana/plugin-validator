@@ -34,7 +34,7 @@ var Analyzer = &analysis.Analyzer{
 	Rules: []*analysis.Rule{
 		nestedPluginNotDeclared,
 		nestedPluginMissingType,
-		nestedPluginTypeMissmatch,
+		nestedPluginTypeMismatch,
 		nestedPlugidInNonApp,
 	},
 }
@@ -92,20 +92,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							key,
 						),
 						fmt.Sprintf(
-							"Found a plugin %s declared in your main plugin.json without a type",
+							"Found a plugin %s declared in parent plugin.json without a type",
 							key,
 						),
 					)
 				} else if include.Type != metadatamap[key].Type {
 					pass.ReportResult(
 						pass.AnalyzerName,
-						nestedPluginTypeMissmatch,
+						nestedPluginTypeMismatch,
 						fmt.Sprintf(
 							"Nested plugin %s has a type missmatch",
 							key,
 						),
 						fmt.Sprintf(
-							"Plugin %s declared in your main plugin.json as %s but as %s in your main plugin.json",
+							"Plugin %s declared as %s but as %s in parent plugin.json",
 							key,
 							include.Type,
 							metadatamap[key].Type,
@@ -120,7 +120,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				pass.AnalyzerName,
 				nestedPluginNotDeclared,
 				fmt.Sprintf(
-					"Nested plugin %s is not declared in plugin main plugin.json",
+					"Nested plugin %s is not declared parent plugin.json",
 					key,
 				),
 				fmt.Sprintf(

@@ -124,7 +124,7 @@ func TestMissingIncludeNested(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
 		t,
-		"Nested plugin nested-datasource/plugin.json is not declared in plugin main plugin.json",
+		"Nested plugin nested-datasource/plugin.json is not declared parent plugin.json",
 		interceptor.Diagnostics[0].Title,
 	)
 }
@@ -260,7 +260,7 @@ func TestIncludedNestedTypeMissmatch(t *testing.T) {
 
 	require.Equal(
 		t,
-		"Plugin nested-datasource/plugin.json declared in your main plugin.json as datasource but as panel in your main plugin.json",
+		"Plugin nested-datasource/plugin.json declared as datasource but as panel in parent plugin.json",
 		interceptor.Diagnostics[0].Detail,
 	)
 }
