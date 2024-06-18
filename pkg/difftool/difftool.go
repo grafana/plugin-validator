@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/sourcemap"
 	godiffpatch "github.com/sourcegraph/go-diff-patch"
@@ -32,7 +33,11 @@ It returns a diffReport that contains the differences between the source code ma
 sourceCodeMapFile is the path to the source code map file. (.js.map)
 sourceCodePath is the path to the source code directory. (the directory that contains the source code files)
 */
-func CompareSourceMapToSourceCode(pluginID string, sourceCodeMapFile string, sourceCodePath string) (diffReport, error) {
+func CompareSourceMapToSourceCode(
+	pluginID string,
+	sourceCodeMapFile string,
+	sourceCodePath string,
+) (diffReport, error) {
 	report := diffReport{
 		SourceCodeMapPath: sourceCodeMapFile,
 		SourceCodePath:    sourceCodePath,
@@ -65,7 +70,19 @@ func CompareSourceMapToSourceCode(pluginID string, sourceCodeMapFile string, sou
 			continue
 		}
 
-		delta := godiffpatch.GeneratePatch(sourceMapFileName, string(sourceCodeFileContent), sourceMapContent)
+		// Normalize line endings to Unix-style (LF) to ensure consistent comparison
+		cleanSourceCodeFileContent := strings.ReplaceAll(
+			string(sourceCodeFileContent),
+			"\r\n",
+			"\n",
+		)
+		sourceMapContent = strings.ReplaceAll(sourceMapContent, "\r\n", "\n")
+
+		delta := godiffpatch.GeneratePatch(
+			sourceMapFileName,
+			cleanSourceCodeFileContent,
+			sourceMapContent,
+		)
 		if len(delta) == 0 {
 			sourceDiffReport.Equal = true
 		} else {
@@ -81,7 +98,10 @@ func (r *diffReport) GeneratePrintableReport() string {
 	var report string
 
 	if r.TotalDifferences > 0 {
-		report += fmt.Sprintf("\nThe following %d file(s) differ when comparing source map with source code.\n", r.TotalDifferences)
+		report += fmt.Sprintf(
+			"\nThe following %d file(s) differ when comparing source map with source code.\n",
+			r.TotalDifferences,
+		)
 		for sourceMapFileName, source := range r.Sources {
 			if source.Equal {
 				continue
