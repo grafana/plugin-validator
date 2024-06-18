@@ -17,7 +17,7 @@ var (
 		Name:     "nested-plugin-missing-type",
 		Severity: analysis.Error,
 	}
-	nestedPluginTypeMissmatch = &analysis.Rule{
+	nestedPluginTypeMismatch = &analysis.Rule{
 		Name:     "nested-plugin-type-missmatch",
 		Severity: analysis.Error,
 	}
