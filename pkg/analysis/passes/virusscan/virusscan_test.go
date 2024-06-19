@@ -2,6 +2,7 @@ package virusscan
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -12,7 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func isClamAvInstalled() bool {
+	clamavBin, err := exec.LookPath("clamscan")
+	if err != nil {
+		return false
+	}
+	return clamavBin != ""
+}
 func TestValidArchiveAndSource(t *testing.T) {
+
+	if !isClamAvInstalled() {
+		t.Skip("clamav not installed, skipping test")
+		return
+	}
+
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -29,6 +43,11 @@ func TestValidArchiveAndSource(t *testing.T) {
 }
 
 func TestInvalidArchive(t *testing.T) {
+	if !isClamAvInstalled() {
+		t.Skip("clamav not installed, skipping test")
+		return
+	}
+
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	var invalidLocation = filepath.Join("testdata", "invalid")
@@ -60,6 +79,11 @@ func TestInvalidArchive(t *testing.T) {
 }
 
 func TestInvalidSource(t *testing.T) {
+	if !isClamAvInstalled() {
+		t.Skip("clamav not installed, skipping test")
+		return
+	}
+
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	var invalidLocation = filepath.Join("testdata", "invalid")
