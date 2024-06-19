@@ -43,6 +43,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/version"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
 )
 
 var Analyzers = []*analysis.Analyzer{
@@ -87,4 +88,5 @@ var Analyzers = []*analysis.Analyzer{
 	typesuffix.Analyzer,
 	unsafesvg.Analyzer,
 	version.Analyzer,
+	virusscan.Analyzer,
 }
