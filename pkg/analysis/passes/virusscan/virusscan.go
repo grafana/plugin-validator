@@ -53,6 +53,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	// scan the archive
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 
 	if !ok {
@@ -70,9 +71,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// scan the source code
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
 	if !ok {
-		// no source code found so we can't check the manifest
+		// no source code found so we can't scan
 		return nil, nil
 	}
+
+	logme.DebugFln("Will run clamav on %s", archiveDir)
 
 	err = runClamavScan(clamavBin, sourceCodeDir, "source code", pass)
 	if err != nil {
