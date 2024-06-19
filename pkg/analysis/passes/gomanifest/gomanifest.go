@@ -191,7 +191,7 @@ func hashFileContent(path string) (string, string, error) {
 	linuxHash := hex.EncodeToString(hLinux[:])
 
 	// Normalize data to Windows line endings and calculate the hash
-	windowsLineEndData := strings.ReplaceAll(string(data), "\n", "\r\n")
+	windowsLineEndData := strings.ReplaceAll(string(linuxLineEndData), "\n", "\r\n")
 	hWindows := sha256.Sum256([]byte(windowsLineEndData))
 	windowsHash := hex.EncodeToString(hWindows[:])
 
