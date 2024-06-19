@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
@@ -84,7 +85,11 @@ func TestIncorrectManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"The Go build manifest does not match the source code",
+	)
 }
 
 func TestMissingFileInManifest(t *testing.T) {
@@ -102,7 +107,11 @@ func TestMissingFileInManifest(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"The Go build manifest does not match the source code",
+	)
 }
 
 func TestMissingFileInSourceCode(t *testing.T) {
@@ -120,7 +129,11 @@ func TestMissingFileInSourceCode(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "The Go build manifest does not match the source code")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"The Go build manifest does not match the source code",
+	)
 }
 
 func TestNoBackend(t *testing.T) {
@@ -153,5 +166,22 @@ func TestWindowsManifest(t *testing.T) {
 	}
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestWindowsLineEndingsManifest(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "windows-line-endings", "dist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "windows-line-endings", "src"),
+			metadata.Analyzer:   pluginJSONWithBackend,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	prettyprint.Print(interceptor.Diagnostics)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
