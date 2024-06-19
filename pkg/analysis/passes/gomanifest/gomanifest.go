@@ -145,8 +145,8 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 		if err != nil {
 			return err
 		}
-		// calculate the sha256sum of the go file
-		sha256sum, windowsSha256Sum, err := hashFileContent(goFilePath)
+		// calculate the linuxSha256sum of the go file
+		linuxSha256sum, windowsSha256Sum, err := hashFileContent(goFilePath)
 		if err != nil {
 			return err
 		}
@@ -157,11 +157,11 @@ func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir 
 			return fmt.Errorf(
 				"could not find file %s with hash %s in manifest",
 				goFileRelativePath,
-				sha256sum,
+				linuxSha256sum,
 			)
 		}
 		// check if the sha256sum in the manifest matches the calculated sha256sum
-		if sha256sum != manifestSha256sum && windowsSha256Sum != manifestSha256sum {
+		if linuxSha256sum != manifestSha256sum && windowsSha256Sum != manifestSha256sum {
 			return fmt.Errorf("sha256sum of %s does not match manifest", goFilePath)
 		}
 	}
@@ -185,14 +185,15 @@ func hashFileContent(path string) (string, string, error) {
 		return "", "", err
 	}
 
-	// Calculate the original hash
-	hOrig := sha256.Sum256(data)
-	originalHash := hex.EncodeToString(hOrig[:])
+	// Normalize data to Linux line endings and calculate the hash
+	linuxLineEndData := strings.ReplaceAll(string(data), "\r\n", "\n")
+	hLinux := sha256.Sum256([]byte(linuxLineEndData))
+	linuxHash := hex.EncodeToString(hLinux[:])
 
-	// Normalize the data and calculate the hash
-	windowLineEndData := strings.ReplaceAll(string(data), "\n", "\r\n")
-	hNorm := sha256.Sum256([]byte(windowLineEndData))
-	windowsHash := hex.EncodeToString(hNorm[:])
+	// Normalize data to Windows line endings and calculate the hash
+	windowsLineEndData := strings.ReplaceAll(string(data), "\n", "\r\n")
+	hWindows := sha256.Sum256([]byte(windowsLineEndData))
+	windowsHash := hex.EncodeToString(hWindows[:])
 
-	return originalHash, windowsHash, nil
+	return linuxHash, windowsHash, nil
 }
