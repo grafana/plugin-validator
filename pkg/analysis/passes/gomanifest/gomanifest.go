@@ -34,7 +34,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "go-manifest",
 	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest},
+	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest, goManifestIssue},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -99,7 +99,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	for _, issue := range issues {
 		pass.ReportResult(
 			pass.AnalyzerName,
-			invalidGoManifest,
+			goManifestIssue,
 			fmt.Sprintf(
 				"Invalid Go manifest file: %s",
 				issue.file,
