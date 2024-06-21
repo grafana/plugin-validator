@@ -56,28 +56,12 @@ func TestIntegration(t *testing.T) {
 						Name:     "developer-jargon",
 					},
 				},
-				"metadatavalid": {
-					{
-						Severity: "warning",
-						Title:    "plugin.json: info.build: Additional property build is not allowed",
-						Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
-						Name:     "invalid-metadata",
-					},
-				},
 			},
 		},
 		"alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip": {
 			Id:      "alexanderzobnin-zabbix-app",
 			Version: "4.4.9",
 			PluginValidator: map[string][]Issue{
-				"metadatavalid": {
-					{
-						Severity: "warning",
-						Title:    "plugin.json: info.build: Additional property build is not allowed",
-						Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
-						Name:     "invalid-metadata",
-					},
-				},
 				"includesnested": {
 					{
 						Severity: "error",
@@ -95,18 +79,9 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		"yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip": {
-			Id:      "yesoreyeram-infinity-datasource",
-			Version: "2.6.3",
-			PluginValidator: map[string][]Issue{
-				"metadatavalid": {
-					{
-						Severity: "warning",
-						Title:    "plugin.json: info.build: Additional property build is not allowed",
-						Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
-						Name:     "invalid-metadata",
-					},
-				},
-			},
+			Id:              "yesoreyeram-infinity-datasource",
+			Version:         "2.6.3",
+			PluginValidator: map[string][]Issue{},
 		},
 		"invalid.zip": {
 			Id:      "invalid-panel",
