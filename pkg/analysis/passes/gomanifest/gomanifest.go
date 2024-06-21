@@ -20,15 +20,21 @@ import (
 )
 
 var (
-	noGoManifest      = &analysis.Rule{Name: "no-go-manifest", Severity: analysis.Warning}
-	invalidGoManifest = &analysis.Rule{Name: "invalid-go-manifest", Severity: analysis.Warning}
+	noGoManifest      = &analysis.Rule{Name: "no-go-manifest", Severity: analysis.Error}
+	invalidGoManifest = &analysis.Rule{Name: "invalid-go-manifest", Severity: analysis.Error}
+	goManifestIssue   = &analysis.Rule{Name: "go-manifest-issue", Severity: analysis.Error}
 )
+
+type ManifestIssue struct {
+	file string
+	err  error
+}
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "go-manifest",
 	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest},
+	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest, goManifestIssue},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -77,16 +83,29 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	err = verifyManifest(maniFestFiles, goFiles, sourceCodeDir)
+	issues, err := verifyManifest(maniFestFiles, goFiles, sourceCodeDir)
+	// this is a rare error. most likely related to errors in the file system or corrupted files
 	if err != nil {
 		logme.DebugFln("verifyManifest error: %s", err)
 		pass.ReportResult(
 			pass.AnalyzerName,
 			invalidGoManifest,
-			"The Go build manifest does not match the source code",
-			"The provided Go build manifest does not match the provided source code. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL and it includes all the Go files used to build the plugin binaries",
+			"Error reading your go manifest file",
+			"Your source code contains Go files but there's an issue with the go build manifest. Make sure you are using the latest version of the Go plugin SDK",
 		)
 		return nil, nil
+	}
+
+	for _, issue := range issues {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			goManifestIssue,
+			fmt.Sprintf(
+				"Invalid Go manifest file: %s",
+				issue.file,
+			),
+			issue.err.Error(),
+		)
 	}
 
 	return nil, nil
@@ -139,41 +158,61 @@ func normalizeFileName(fileName string) string {
 	return strings.Replace(fileName, "\\", "/", -1)
 }
 
-func verifyManifest(manifest map[string]string, goFiles []string, sourceCodeDir string) error {
+func verifyManifest(
+	manifest map[string]string,
+	goFiles []string,
+	sourceCodeDir string,
+) ([]ManifestIssue, error) {
+	manifestIssues := []ManifestIssue{}
+
 	for _, goFilePath := range goFiles {
 		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// calculate the linuxSha256sum of the go file
 		linuxSha256sum, windowsSha256Sum, err := hashFileContent(goFilePath)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		// check if the sha256sum is in the manifest
 		manifestSha256sum, ok := manifest[goFileRelativePath]
 
 		if !ok {
-			return fmt.Errorf(
-				"could not find file %s with hash %s in manifest",
-				goFileRelativePath,
-				linuxSha256sum,
-			)
+			manifestIssues = append(manifestIssues, ManifestIssue{
+				file: goFileRelativePath,
+				err: fmt.Errorf(
+					"file %s is in the source code but not in the manifest",
+					goFileRelativePath,
+				),
+			})
+			continue
 		}
 		// check if the sha256sum in the manifest matches the calculated sha256sum
 		if linuxSha256sum != manifestSha256sum && windowsSha256Sum != manifestSha256sum {
-			return fmt.Errorf("sha256sum of %s does not match manifest", goFilePath)
+			manifestIssues = append(manifestIssues, ManifestIssue{
+				file: goFileRelativePath,
+				err: fmt.Errorf(
+					"sha256sum of %s (%s) does not match manifest",
+					goFileRelativePath,
+					linuxSha256sum,
+				),
+			})
+			continue
 		}
 	}
 
 	// find files in manifest that are not in the source code
 	for fileName := range manifest {
 		if _, err := os.Stat(filepath.Join(sourceCodeDir, fileName)); err != nil {
-			return fmt.Errorf("could not find %s in source code", fileName)
+			manifestIssues = append(manifestIssues, ManifestIssue{
+				file: fileName,
+				err:  fmt.Errorf("%s is in the manifest but not in source code", fileName),
+			})
 		}
 	}
 
-	return nil
+	return manifestIssues, nil
 }
 
 // we hash the file content using the sha256 algorithm
