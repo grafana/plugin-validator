@@ -57,7 +57,11 @@ func TestNoLicenseFound(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Title, "LICENSE file not found")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.",
+	)
 }
 
 func TestValidMitLicense(t *testing.T) {
@@ -107,5 +111,31 @@ func TestInvalidUnilicenseLicense(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Title, "Valid license not found")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "The provided license is not compatible with Grafana plugins. Please refer to https://grafana.com/licensing/ for more information.")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"The provided license is not compatible with Grafana plugins. Please refer to https://grafana.com/licensing/ for more information.",
+	)
+}
+
+func TestInvalidGenericLicense(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "generic-text"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "License file contains generic text", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"Your current license file contains generic text from the license template. Please make sure to replace {name of copyright owner} and {yyyy} with the correct values in your LICENSE file.",
+		interceptor.Diagnostics[0].Detail,
+	)
 }
