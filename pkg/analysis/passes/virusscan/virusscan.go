@@ -3,6 +3,7 @@ package virusscan
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -44,6 +45,12 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+
+	skip := os.Getenv("SKIP_CLAMAV")
+	if skip != "" {
+		logme.Debugln("Skipping virus scan")
+		return nil, nil
+	}
 
 	// check if clamav is installed
 	clamavBin, err := exec.LookPath("clamscan")
