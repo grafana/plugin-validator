@@ -288,7 +288,9 @@ func (Run) V2Local(ctx context.Context, path string, sourceCodePath string) erro
 	}
 	command = append(command, path)
 
-	return sh.RunV(command[0], command[1:]...)
+	return sh.RunWithV(map[string]string{
+		"SKIP_CLAMAV": "1",
+	}, command[0], command[1:]...)
 }
 
 func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) error {
