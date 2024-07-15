@@ -76,6 +76,22 @@ func TestIntegration(t *testing.T) {
 						Name:     "nested-plugins-not-declared",
 					},
 				},
+				"manifest": {
+					{
+						Severity: "error",
+						Title:    "invalid file checksum",
+						Detail:   "checksum for file README.md is invalid",
+						Name:     "invalid-sha-sum",
+					},
+				},
+				"signature": {
+					{
+						Severity: "warning",
+						Title:    "MANIFEST.txt: plugin has been modified since it was signed",
+						Detail:   "The plugin might had been modified after it was signed.",
+						Name:     "modified-signature",
+					},
+				},
 			},
 		},
 		"yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip": {
