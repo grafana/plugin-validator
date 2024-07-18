@@ -144,4 +144,9 @@ func TestJSConsoleLog(t *testing.T) {
 		interceptor.Diagnostics[0].Detail,
 		"Code rule violation found in testdata/console-log/index.ts at line 2",
 	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Severity,
+		analysis.Warning,
+	)
 }
