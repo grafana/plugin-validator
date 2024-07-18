@@ -110,5 +110,38 @@ func TestUseSyscall(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "It is not permitted to use the syscall module. Using syscall.Getcwd is not permitted", interceptor.Diagnostics[0].Title)
+	require.Equal(
+		t,
+		"It is not permitted to use the syscall module. Using syscall.Getcwd is not permitted",
+		interceptor.Diagnostics[0].Title,
+	)
+}
+
+func TestJSConsoleLog(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "console-log"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"Console logging detected. Plugins should not log to the console.",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Code rule violation found in testdata/console-log/index.ts at line 2",
+	)
 }
