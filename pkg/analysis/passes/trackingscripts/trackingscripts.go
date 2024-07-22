@@ -1,9 +1,9 @@
 package trackingscripts
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -35,12 +35,26 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	hasTrackingScripts := false
 
+	urlRegex := regexp.MustCompile(`https?://[^\s]+`)
 	for _, content := range moduleJsMap {
-		for _, url := range servers {
-			if len(url) > 0 && bytes.Contains(content, []byte(url)) {
-				pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: should not include tracking scripts", fmt.Sprintf("Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code. Found: %s", url))
-				hasTrackingScripts = true
-				break
+		// get all urls in the file
+		matches := urlRegex.FindAll(content, -1)
+		for _, match := range matches {
+			url := string(match)
+			// check if the url is in the servers blocklist
+			for _, server := range servers {
+				if strings.Contains(url, server) {
+					pass.ReportResult(
+						pass.AnalyzerName,
+						trackingScripts,
+						"module.js: should not include tracking scripts",
+						fmt.Sprintf(
+							"Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code. Found: %s",
+							url,
+						),
+					)
+					hasTrackingScripts = true
+				}
 			}
 		}
 	}
@@ -48,7 +62,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if !hasTrackingScripts {
 		if trackingScripts.ReportAll {
 			trackingScripts.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, trackingScripts, "module.js: no tracking scripts detected", "")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				trackingScripts,
+				"module.js: no tracking scripts detected",
+				"",
+			)
 		}
 	}
 
