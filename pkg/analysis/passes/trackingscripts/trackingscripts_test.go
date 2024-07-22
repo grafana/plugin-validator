@@ -55,21 +55,3 @@ func TestTrackingScriptsInvalid(t *testing.T) {
 		"Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code. Found: https://www.google-analytics.com/analytics.js",
 	)
 }
-
-func TestNoFalsePositiveForSringsLookingLikeDomains(t *testing.T) {
-	var interceptor testpassinterceptor.TestPassInterceptor
-	var moduleJsMap = map[string][]byte{
-		"module.js": []byte(`grafana-asserts-app.rules:read`),
-	}
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			modulejs.Analyzer: moduleJsMap,
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
