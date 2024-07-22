@@ -54,15 +54,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						),
 					)
 					hasTrackingScripts = true
-					break
 				}
 			}
-			if hasTrackingScripts {
-				break
-			}
-		}
-		if hasTrackingScripts {
-			break
 		}
 	}
 
