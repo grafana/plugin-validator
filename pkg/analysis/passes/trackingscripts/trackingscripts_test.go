@@ -44,6 +44,14 @@ func TestTrackingScriptsInvalid(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "module.js: should not include tracking scripts")
-	require.Equal(t, interceptor.Diagnostics[0].Detail, "Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code. Found: google-analytics.com")
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Title,
+		"module.js: should not include tracking scripts",
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Tracking scripts are not allowed in Grafana plugins (e.g. google analytics). Please remove any usage of tracking code. Found: https://www.google-analytics.com/analytics.js",
+	)
 }
