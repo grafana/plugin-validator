@@ -110,3 +110,13 @@ rules:
     message: It is not permitted to use the syscall module. Using syscall.$F is not permitted
     languages: [go]
     severity: ERROR
+
+  - id: detect-console-logs
+    pattern-either:
+      - pattern: console.log(...)
+      - pattern: console.info(...)
+      - pattern: console.table(...)
+      - pattern: console.error(...)
+    message: "Console logging detected. Plugins should not log to the console."
+    languages: [javascript, typescript]
+    severity: WARNING
