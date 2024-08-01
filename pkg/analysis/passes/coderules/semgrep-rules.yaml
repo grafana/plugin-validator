@@ -117,6 +117,12 @@ rules:
       - pattern: console.info(...)
       - pattern: console.table(...)
       - pattern: console.error(...)
+    paths:
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
     message: "Console logging detected. Plugins should not log to the console."
     languages: [javascript, typescript]
     severity: WARNING
