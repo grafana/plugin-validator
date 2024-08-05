@@ -123,6 +123,7 @@ rules:
         - "*.spec.tsx"
         - "*.test.ts"
         - "*.test.tsx"
+        - "*.js"
     message: "Console logging detected. Plugins should not log to the console."
     languages: [javascript, typescript]
     severity: WARNING
