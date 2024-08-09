@@ -70,8 +70,10 @@ func promptToSeeDiff(pluginID, sourceCodeMapPath string, sourceCodePath string) 
 	fmt.Println("Be aware the original source code will contain more files than the source map such as images, readme files and typescript typefiles.")
 	fmt.Println("\n\nIt is recommended to install meld (https://meldmerge.org/) to see the differences.")
 	fmt.Print("Open diff tool? (y/n): ")
-	fmt.Scanln(&answer)
-
+	_, err := fmt.Scanln(&answer)
+	if err != nil {
+		color.Red(err.Error())
+	}
 	if answer == "y" || answer == "Y" {
 
 		systemDiffTool, err := getSystemDiffTool()
