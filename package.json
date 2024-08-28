@@ -7,6 +7,9 @@
     "type": "git",
     "url": "git+https://github.com/grafana/plugin-validator.git"
   },
+  "scripts": {
+    "postinstall": "node ./install.js"
+  },
   "keywords": [
     "Grafana",
     "plugins",
