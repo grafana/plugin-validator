@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/grafana/plugin-validator#readme",
   "files": [
-    "index.js",
+    "bin/index.js",
     "install.js"
   ],
   "bin": {
