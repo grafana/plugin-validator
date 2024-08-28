@@ -1,5 +1,3 @@
-bin
-
 dist/
 node_modules/
 unpacked_bin/

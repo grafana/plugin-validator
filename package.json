@@ -26,7 +26,7 @@
     "bin/install.js"
   ],
   "bin": {
-    "plugincheck2": "bin/index.js"
+    "plugincheck2": "./bin/index.js"
   },
   "binWrapper": {
     "name": "plugincheck2",
