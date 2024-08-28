@@ -4,7 +4,7 @@
   "description": "Grafana Plugin Validator",
   "main": "index.js",
   "scripts": {
-    "postinstall": "node ./install.js"
+    "postinstall": "node ./bin/install.js"
   },
   "repository": {
     "type": "git",
@@ -23,10 +23,10 @@
   "homepage": "https://github.com/grafana/plugin-validator#readme",
   "files": [
     "bin/index.js",
-    "install.js"
+    "bin/install.js"
   ],
   "bin": {
-    "plugincheck2": "index.js"
+    "plugincheck2": "bin/index.js"
   },
   "binWrapper": {
     "name": "plugincheck2",
