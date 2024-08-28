@@ -25,9 +25,7 @@
     "bin/index.js",
     "install.js"
   ],
-  "bin": {
-    "plugincheck2": "./bin/index.js"
-  },
+  "bin": "./bin/index.js",
   "binWrapper": {
     "name": "plugincheck2",
     "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
