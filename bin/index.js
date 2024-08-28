@@ -7,8 +7,7 @@ const tar = require("tar");
 const { spawn } = require("child_process");
 
 const packageJson = require("../package.json");
-// const version = packageJson.version;
-const version = "0.17.3";
+const version = packageJson.version;
 const urlTemplate = packageJson.binWrapper.urlTemplate;
 const binaryName =
   process.platform === "win32"
