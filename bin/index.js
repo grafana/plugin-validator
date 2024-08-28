@@ -4,7 +4,7 @@ const path = require("path");
 const zlib = require("zlib");
 const https = require("https");
 const tar = require("tar");
-const { spawnSync } = require("child_process");
+const { spawn } = require("child_process");
 
 const packageJson = require("../package.json");
 // const version = packageJson.version;
@@ -137,8 +137,11 @@ async function main() {
     await ensureBinary();
     // run the binary
     const args = process.argv.slice(2);
-    spawnSync(binaryPath, args, {
+    const child = spawn(binaryPath, args, {
       stdio: "inherit",
+    });
+    child.on("exit", (code) => {
+      process.exit(code);
     });
   } catch (e) {
     console.error(e);
