@@ -38,7 +38,7 @@ RUN freshclam
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
 
 # install semgrep
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
+RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
 
 
 WORKDIR /app
