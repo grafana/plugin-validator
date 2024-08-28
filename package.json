@@ -3,9 +3,6 @@
   "version": "0.17.11",
   "description": "Grafana Plugin Validator",
   "main": "index.js",
-  "scripts": {
-    "postinstall": "node install.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grafana/plugin-validator.git"
