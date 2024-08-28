@@ -26,7 +26,7 @@ const ARCH_MAPPING = {
 };
 
 function getPlatformSpecificDownloadUrl(platform, arch) {
-  let finalArch = ARCH_MAPPING[arch] ?? arch;
+  let finalArch = ARCH_MAPPING[arch] || arch;
 
   return urlTemplate
     .replaceAll("{{version}}", version)
@@ -103,7 +103,7 @@ async function ensureBinary() {
   );
 
   if (!fs.existsSync(downloadPath)) {
-    fs.mkdirSync(downloadPath);
+    fs.mkdirSync(downloadPath, { recursive: true });
   }
 
   let tarGzPath;
@@ -114,7 +114,6 @@ async function ensureBinary() {
     throw new Error(`Failed to download ${platformSpecificDownloadUrl}`);
   }
   try {
-    console.log(`Extracting ${tarGzPath} to ${downloadPath}`);
     await extractTarGz(tarGzPath, downloadPath);
   } catch (e) {
     console.error(e);
