@@ -6,7 +6,7 @@ const https = require("https");
 const tar = require("tar");
 const { spawnSync } = require("child_process");
 
-const packageJson = require("./package.json");
+const packageJson = require("../package.json");
 // const version = packageJson.version;
 const version = "0.17.3";
 const urlTemplate = packageJson.binWrapper.urlTemplate;
@@ -82,18 +82,14 @@ function downloadFile(fileUrl, outputFolder) {
   });
 }
 
-function extractTarGz(tarGzPath, outputDir) {
-  const tarGzStream = fs.createReadStream(tarGzPath);
-  const unzip = zlib.createGunzip();
-  const extract = tar.x({ cwd: outputDir });
-
-  tarGzStream
-    .pipe(unzip)
-    .pipe(extract)
-    .on("error", (err) => console.error("Extraction error:", err))
-    .on("finish", () => console.log("Extraction complete."));
-
-  return outputDir;
+function extractTarGz(filePath, outputDir) {
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(filePath)
+      .pipe(zlib.createGunzip())
+      .pipe(tar.extract({ cwd: outputDir }))
+      .on("error", reject)
+      .on("finish", resolve);
+  });
 }
 
 async function ensureBinary() {
@@ -110,8 +106,6 @@ async function ensureBinary() {
     fs.mkdirSync(downloadPath);
   }
 
-  console.log(`Downloading ${platformSpecificDownloadUrl}`);
-
   let tarGzPath;
   try {
     tarGzPath = await downloadFile(platformSpecificDownloadUrl, downloadPath);
@@ -121,7 +115,7 @@ async function ensureBinary() {
   }
   try {
     console.log(`Extracting ${tarGzPath} to ${downloadPath}`);
-    extractTarGz(tarGzPath, downloadPath);
+    await extractTarGz(tarGzPath, downloadPath);
   } catch (e) {
     console.error(e);
     throw new Error(`Failed to extract ${tarGzPath} to ${downloadPath}`);
@@ -136,21 +130,20 @@ async function ensureBinary() {
 
   // make the binary executable
   fs.chmodSync(path.join(downloadPath, binaryName), 0o755);
+}
 
-  async function main() {
-
-    try {
-      await ensureBinary();
-      // run the binary
-      const args = process.argv.slice(2);
-      spawnSync(downloadPath, args, {
-        stdio: "inherit",
-      });
-    } catch (e) {
-      console.error(e);
-      process.exit(1);
-    }
-
+async function main() {
+  try {
+    await ensureBinary();
+    // run the binary
+    const args = process.argv.slice(2);
+    spawnSync(binaryPath, args, {
+      stdio: "inherit",
+    });
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
   }
+}
 
-  main();
+main();
