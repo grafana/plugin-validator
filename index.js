@@ -1,23 +1,24 @@
-var binwrap = require("binwrap");
-var path = require("path");
+const fs = require("fs");
+const path = require("path");
+const { spawnSync } = require("child_process");
 
-var packageInfo = require(path.join(__dirname, "package.json"));
-var version = packageInfo.version;
-var root = `https://github.com/grafana/plugin-validator/releases/download/v${version}`;
+const packageJson = require("./package.json");
+const binaryName =
+  process.platform === "win32"
+    ? packageJson.bin.name + ".exe"
+    : packageJson.bin.name;
 
-module.exports = binwrap({
-  dirname: __dirname,
-  binaries: ["plugincheck2"],
-  urls: {
-    "darwin-x64":
-      root + "/plugin-validator_" + version + "_darwin_amd64.tar.gz",
-    "darwin-arm64":
-      root + "/plugin-validator_" + version + "_darwin_arm64.tar.gz",
-    "linux-x64": root + "/plugin-validator_" + version + "_linux_amd64.tar.gz",
-    "linux-arm64":
-      root + "/plugin-validator_" + version + "_linux_arm64.tar.gz",
-    "win32-x64": root + "/plugin-validator_" + version + "_windows_amd64.zip",
-    "win32-ia32": root + "/plugin-validator_" + version + "_windows_386.zip",
-    "win32-arm64": root + "/plugin-validator_" + version + "_windows_arm64.zip",
-  },
+const binaryPath = path.join(__dirname, ".bin", binaryName);
+
+// check if the binary exists
+if (!fs.existsSync(binaryPath)) {
+  throw new Error(
+    `Binary not found. There might be a problem with the release files.`,
+  );
+}
+
+// run the binary
+const args = process.argv.slice(2);
+const childProcess = spawnSync(binaryPath, args, {
+  stdio: "inherit",
 });

@@ -6,3 +6,5 @@ unpacked_bin/
 __debug_bin
 config/custom.yaml
 .idea
+.bin
+.npmrc

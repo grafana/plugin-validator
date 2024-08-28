@@ -4,10 +4,7 @@
   "description": "Grafana Plugin Validator",
   "main": "index.js",
   "scripts": {
-    "install": "binwrap-install",
-    "prepare": "binwrap-prepare",
-    "test": "binwrap-test",
-    "prepublish": "npm test"
+    "postinstall": "node ./install.js"
   },
   "repository": {
     "type": "git",
@@ -24,14 +21,12 @@
     "url": "https://github.com/grafana/plugin-validator/issues"
   },
   "homepage": "https://github.com/grafana/plugin-validator#readme",
-  "dependencies": {
-    "binwrap": "^0.2.3"
-  },
   "files": [
     "index.js",
-    "bin"
+    "install.js"
   ],
   "bin": {
-    "plugincheck2": "bin/plugincheck2"
+    "name": "plugincheck2",
+    "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
   }
 }
