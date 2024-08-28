@@ -5,8 +5,8 @@ const { spawnSync } = require("child_process");
 const packageJson = require("./package.json");
 const binaryName =
   process.platform === "win32"
-    ? packageJson.bin.name + ".exe"
-    : packageJson.bin.name;
+    ? packageJson.binWrapper.name + ".exe"
+    : packageJson.binWrapper.name;
 
 const binaryPath = path.join(__dirname, ".bin", binaryName);
 

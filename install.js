@@ -6,11 +6,11 @@ const tar = require("tar");
 
 const packageJson = require("./package.json");
 const version = packageJson.version;
-const urlTemplate = packageJson.bin.urlTemplate;
+const urlTemplate = packageJson.binWrapper.urlTemplate;
 const binaryName =
   process.platform === "win32"
-    ? packageJson.bin.name + ".exe"
-    : packageJson.bin.name;
+    ? packageJson.binWrapper.name + ".exe"
+    : packageJson.binWrapper.name;
 
 const binaryPath = path.join(__dirname, ".bin");
 
