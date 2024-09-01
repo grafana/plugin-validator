@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.17.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/google/generative-ai-go v0.17.0
-	github.com/google/osv-scanner v1.7.4
+	github.com/google/osv-scanner v1.8.4
 	github.com/hashicorp/go-version v1.7.0
 	github.com/jarcoal/httpmock v1.3.1
 	github.com/magefile/mage v1.15.0
@@ -54,6 +54,9 @@ require (
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/longrunning v0.5.11 // indirect
 	deps.dev/api/v3 v3.0.0-20240807013505-16da96fe8b66 // indirect
+	deps.dev/util/maven v0.0.0-20240730004939-e80e6658c33b // indirect
+	deps.dev/util/resolve v0.0.0-20240730004939-e80e6658c33b // indirect
+	deps.dev/util/semver v0.0.0-20240730004939-e80e6658c33b // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/cloudflare/circl v1.3.9 // indirect
@@ -95,6 +98,8 @@ require (
 	github.com/shogo82148/go-shuffle v1.0.1 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
 	github.com/tidwall/gjson v1.17.3 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/vbatts/tar-split v0.11.5 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
@@ -117,6 +122,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240805194559-2c9e96a0b5d4 // indirect
 	google.golang.org/grpc v1.65.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
