@@ -116,7 +116,18 @@ rules:
       - pattern: console.log(...)
       - pattern: console.info(...)
       - pattern: console.table(...)
-      - pattern: console.error(...)
+      - pattern: console.debug(...)
+      - pattern: console.clear(...)
+      - pattern: console.count(...)
+      - pattern: console.countReset(...)
+      - pattern: console.dir(...)
+      - pattern: console.dirxml(...)
+      - pattern: console.group(...)
+      - pattern: console.groupEnd(...)
+      - pattern: console.time(...)
+      - pattern: console.timeEnd(...)
+      - pattern: console.timeLog(...)
+      - pattern: console.trace(...)
     paths:
       exclude:
         - "*.spec.ts"
