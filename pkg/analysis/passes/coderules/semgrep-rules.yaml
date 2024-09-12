@@ -116,7 +116,6 @@ rules:
       - pattern: console.log(...)
       - pattern: console.info(...)
       - pattern: console.table(...)
-      - pattern: console.error(...)
     paths:
       exclude:
         - "*.spec.ts"
