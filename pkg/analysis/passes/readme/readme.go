@@ -33,16 +33,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			return nil, nil
 		}
 		return nil, err
-	} else {
-		if len(strings.TrimSpace(string(b))) == 0 {
-			pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md is empty", "A README.md file is required for plugins. The contents of the file will be displayed in the Plugin catalog.")
-			return nil, nil
-		}
-		if missingReadme.ReportAll {
-			missingReadme.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md: exists", "")
-		}
 	}
-
+	if len(strings.TrimSpace(string(b))) == 0 {
+		pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md is empty", "A README.md file is required for plugins. The contents of the file will be displayed in the Plugin catalog.")
+		return nil, nil
+	}
+	if missingReadme.ReportAll {
+		missingReadme.Severity = analysis.OK
+		pass.ReportResult(pass.AnalyzerName, missingReadme, "README.md: exists", "")
+	}
 	return b, nil
 }
