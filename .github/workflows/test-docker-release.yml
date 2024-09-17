@@ -1,9 +1,9 @@
 name: Create release and publish to npm and docker hub
 
 on:
-  pull_request:
+  push:
     branches:
-      - main
+      - academo/remove-drone-pipeline
 
 permissions:
   contents: read
