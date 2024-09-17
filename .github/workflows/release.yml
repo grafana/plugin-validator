@@ -1,4 +1,4 @@
-name: Create release and publish
+name: Create release and publish to github, npm and docker hub
 
 on:
   push:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  release-to-github:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,19 +20,25 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-      # More assembly might be required: Docker logins, GPG, etc. It all depends
-      # on your needs.
+
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PEM }}
+
       - uses: goreleaser/goreleaser-action@v6
         with:
-          # either 'goreleaser' (default) or 'goreleaser-pro':
           distribution: goreleaser
           version: latest
           args: release --clean
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  releaseToNpm:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+  release-to-npm:
     runs-on: ubuntu-latest
-    needs: goreleaser
+    needs: release-to-github
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,3 +49,26 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  release-to-dockerhub:
+    runs-on: ubuntu-latest
+    # this job doesn't really need the github release, but it is a fast
+    # way to prevent it from running if the release is bad
+    needs: release-to-github
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
+
+      - id: push-to-dockerhub
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        with:
+          repository: grafana/plugin-validator-cli
+          context: .
+          tags: |-
+            "v${{ steps.get_version.outputs.version }}"
+            "latest"
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

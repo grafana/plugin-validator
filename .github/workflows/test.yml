@@ -1,9 +1,6 @@
-name: Build and Test
+name: Build and Test on pull request
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
