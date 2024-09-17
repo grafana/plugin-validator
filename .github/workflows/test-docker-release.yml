@@ -1,0 +1,24 @@
+name: Create release and publish to npm and docker hub
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  releaseToNpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: push-to-dockerhub
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        with:
+          repository: grafana/plugin-validator-cli
+          context: .
+          tags: |-
+            "test-tag"
