@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
       - id: push-to-dockerhub
         uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
@@ -21,5 +25,8 @@ jobs:
           repository: grafana/plugin-validator-cli
           context: .
           tags: |-
-            "test-tag"
+            "v${{ steps.get_version.outputs.version }}"
+            "latest"
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
