@@ -6,7 +6,8 @@ on:
       - "*"
 
 permissions:
-  contents: write
+  contents: read
+  id-token: write
 
 jobs:
   release-to-github:
