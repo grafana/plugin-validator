@@ -58,7 +58,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 	if readmeComment.ReportAll {
 		readmeComment.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, readmeComment, "README.md contains no comment(s).", "")
+		pass.ReportResult(pass.AnalyzerName, readmeComment, "README.md does not contain any comments.", "")
 	}
 
 	return b, nil
