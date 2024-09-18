@@ -1,24 +1,23 @@
-name: Build and Test
+name: Build and Test on pull request
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
 
 jobs:
-  build:
+  test-docker-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and test Docker container
-        uses: docker/build-push-action@v6
+      - id: push-to-dockerhub
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
         with:
+          repository: grafana/plugin-validator-cli
           context: .
+          tags: |-
+            "test-pr"
           push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
