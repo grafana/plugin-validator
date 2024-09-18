@@ -56,3 +56,20 @@ func TestReadmeValid(t *testing.T) {
 
 	require.Len(t, interceptor.Diagnostics, 0)
 }
+
+func TestWithComment(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer: filepath.Join("testdata", "comment"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Warning)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "README.md contains comment(s).")
+}
