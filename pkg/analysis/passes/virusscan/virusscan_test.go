@@ -18,6 +18,9 @@ func isClamAvInstalled() bool {
 	if err != nil {
 		return false
 	}
+	if os.Getenv("SKIP_CLAMAV") != "" {
+		return false
+	}
 	return clamavBin != ""
 }
 func TestValidArchiveAndSource(t *testing.T) {

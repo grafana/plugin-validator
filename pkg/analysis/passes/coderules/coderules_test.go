@@ -13,6 +13,7 @@ import (
 
 func isSemgrepInstalled() bool {
 	semgrepPath, err := exec.LookPath("semgrep")
+
 	if err != nil {
 		return false
 	}
@@ -142,7 +143,7 @@ func TestJSConsoleLog(t *testing.T) {
 	require.Equal(
 		t,
 		interceptor.Diagnostics[0].Detail,
-		"Code rule violation found in testdata/console-log/index.ts at line 2",
+		"Code rule violation found in testdata/console-log/src/index.ts at line 2",
 	)
 	require.Equal(
 		t,
