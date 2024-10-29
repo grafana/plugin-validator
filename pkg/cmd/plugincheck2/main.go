@@ -46,6 +46,11 @@ func main() {
 			"",
 			"checksum of the plugin archive. MD5, SHA1 or a string with the the hash or an url to a file with the hash",
 		)
+		analyzer = flag.String(
+			"analyzer",
+			"",
+			"Run a specific analyzer",
+		)
 	)
 
 	flag.Parse()
@@ -56,6 +61,7 @@ func main() {
 	logme.Debugln("source code: ", *sourceCodeUri)
 	logme.Debugln("archive file: ", flag.Arg(0))
 	logme.Debugln("checksum: ", *checksum)
+	logme.Debugln("analyzer: ", *analyzer)
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
@@ -104,8 +110,19 @@ func main() {
 		defer sourceCodeDirCleanup()
 	}
 
+	analyzers := passes.Analyzers
+
+	if *analyzer != "" {
+		for _, a := range analyzers {
+			if a.Name == *analyzer {
+				analyzers = []*analysis.Analyzer{a}
+				break
+			}
+		}
+	}
+
 	diags, err := runner.Check(
-		passes.Analyzers,
+		analyzers,
 		analysis.CheckParams{
 			ArchiveDir:            archiveDir,
 			SourceCodeDir:         sourceCodeDir,
