@@ -5,7 +5,7 @@ go 1.22.6
 require (
 	github.com/bmatcuk/doublestar/v4 v4.7.1
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/google/generative-ai-go v0.18.0
 	github.com/google/osv-scanner v1.7.4
