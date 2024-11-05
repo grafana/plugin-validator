@@ -28,10 +28,10 @@ type JsonReport struct {
 	PluginValidator map[string][]Issue `json:"plugin-validator"`
 }
 
-type TC struct {
-	File       string
-	ExtraArgs  string
-	JsonReport JsonReport
+type tc struct {
+	file       string
+	extraArgs  string
+	jsonReport JsonReport
 }
 
 func TestIntegration(t *testing.T) {
@@ -49,11 +49,11 @@ func TestIntegration(t *testing.T) {
 		"OPENAI_API_KEY=",
 		"GEMINI_API_KEY=",
 	}
-	var TCs = []TC{
+	var tcs = []tc{
 		{
-			File:      "grafana-clock-panel-2.1.5.any.zip",
-			ExtraArgs: "",
-			JsonReport: JsonReport{
+			file:      "grafana-clock-panel-2.1.5.any.zip",
+			extraArgs: "",
+			jsonReport: JsonReport{
 				Id:      "grafana-clock-panel",
 				Version: "2.1.5",
 				PluginValidator: map[string][]Issue{
@@ -69,9 +69,9 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
-			File:      "alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip",
-			ExtraArgs: "",
-			JsonReport: JsonReport{
+			file:      "alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip",
+			extraArgs: "",
+			jsonReport: JsonReport{
 				Id:      "alexanderzobnin-zabbix-app",
 				Version: "4.4.9",
 				PluginValidator: map[string][]Issue{
@@ -109,18 +109,18 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
-			File:      "yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip",
-			ExtraArgs: "",
-			JsonReport: JsonReport{
+			file:      "yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip",
+			extraArgs: "",
+			jsonReport: JsonReport{
 				Id:              "yesoreyeram-infinity-datasource",
 				Version:         "2.6.3",
 				PluginValidator: map[string][]Issue{},
 			},
 		},
 		{
-			File:      "invalid.zip",
-			ExtraArgs: "",
-			JsonReport: JsonReport{
+			file:      "invalid.zip",
+			extraArgs: "",
+			jsonReport: JsonReport{
 				Id:      "invalid-panel",
 				Version: "1.0.0",
 				PluginValidator: map[string][]Issue{
@@ -142,9 +142,9 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
-			File:      "invalid2.zip",
-			ExtraArgs: "",
-			JsonReport: JsonReport{
+			file:      "invalid2.zip",
+			extraArgs: "",
+			jsonReport: JsonReport{
 				Id:      "invalid-panel",
 				Version: "1.0.0",
 				PluginValidator: map[string][]Issue{
@@ -214,9 +214,9 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
-			File:      "invalid2.zip",
-			ExtraArgs: "-analyzer=metadatavalid",
-			JsonReport: JsonReport{
+			file:      "invalid2.zip",
+			extraArgs: "-analyzer=metadatavalid",
+			jsonReport: JsonReport{
 				Id:      "invalid-panel",
 				Version: "1.0.0",
 				PluginValidator: map[string][]Issue{
@@ -234,9 +234,9 @@ func TestIntegration(t *testing.T) {
 	}
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
-	t.Logf("Running integration tests. Total: %d\n", len(TCs))
-	for _, tc := range TCs {
-		currentFile := tc.File
+	t.Logf("Running integration tests. Total: %d\n", len(tcs))
+	for _, tc := range tcs {
+		currentFile := tc.file
 		t.Run(currentFile, func(t *testing.T) {
 			file := currentFile
 			// Allows the test case to run in parallel with other ones
@@ -245,8 +245,8 @@ func TestIntegration(t *testing.T) {
 			t.Logf("Running %s", file)
 
 			extraArgs := ""
-			if tc.ExtraArgs != "" {
-				extraArgs = tc.ExtraArgs + " "
+			if tc.extraArgs != "" {
+				extraArgs = tc.extraArgs + " "
 			}
 
 			command := fmt.Sprintf(
@@ -272,7 +272,7 @@ func TestIntegration(t *testing.T) {
 			err = json.Unmarshal(outb.Bytes(), &report)
 			assert.NoError(t, err)
 
-			changelog, err := diff.Diff(tc.JsonReport, report)
+			changelog, err := diff.Diff(tc.jsonReport, report)
 			assert.NoError(t, err)
 
 			if len(changelog) > 0 {
