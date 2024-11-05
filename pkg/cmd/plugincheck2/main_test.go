@@ -28,6 +28,12 @@ type JsonReport struct {
 	PluginValidator map[string][]Issue `json:"plugin-validator"`
 }
 
+type TC struct {
+	File       string
+	ExtraArgs  string
+	JsonReport JsonReport
+}
+
 func TestIntegration(t *testing.T) {
 	basePath := "./testdata"
 	binary := filepath.Join(
@@ -43,156 +49,194 @@ func TestIntegration(t *testing.T) {
 		"OPENAI_API_KEY=",
 		"GEMINI_API_KEY=",
 	}
-	var files = map[string]JsonReport{
-		"grafana-clock-panel-2.1.5.any.zip": {
-			Id:      "grafana-clock-panel",
-			Version: "2.1.5",
-			PluginValidator: map[string][]Issue{
-				"jargon": {
-					{
-						Severity: "warning",
-						Title:    "README.md contains developer jargon: (yarn)",
-						Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
-						Name:     "developer-jargon",
+	var TCs = []TC{
+		{
+			File:      "grafana-clock-panel-2.1.5.any.zip",
+			ExtraArgs: "",
+			JsonReport: JsonReport{
+				Id:      "grafana-clock-panel",
+				Version: "2.1.5",
+				PluginValidator: map[string][]Issue{
+					"jargon": {
+						{
+							Severity: "warning",
+							Title:    "README.md contains developer jargon: (yarn)",
+							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
+							Name:     "developer-jargon",
+						},
 					},
 				},
 			},
 		},
-		"alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip": {
-			Id:      "alexanderzobnin-zabbix-app",
-			Version: "4.4.9",
-			PluginValidator: map[string][]Issue{
-				"includesnested": {
-					{
-						Severity: "error",
-						Title:    "Nested plugin datasource/plugin.json is not declared parent plugin.json",
-						Detail:   "Found a plugin datasource/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
-						Name:     "nested-plugins-not-declared",
+		{
+			File:      "alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip",
+			ExtraArgs: "",
+			JsonReport: JsonReport{
+				Id:      "alexanderzobnin-zabbix-app",
+				Version: "4.4.9",
+				PluginValidator: map[string][]Issue{
+					"includesnested": {
+						{
+							Severity: "error",
+							Title:    "Nested plugin datasource/plugin.json is not declared parent plugin.json",
+							Detail:   "Found a plugin datasource/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
+							Name:     "nested-plugins-not-declared",
+						},
+						{
+							Severity: "error",
+							Title:    "Nested plugin panel-triggers/plugin.json is not declared parent plugin.json",
+							Detail:   "Found a plugin panel-triggers/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
+							Name:     "nested-plugins-not-declared",
+						},
 					},
-					{
-						Severity: "error",
-						Title:    "Nested plugin panel-triggers/plugin.json is not declared parent plugin.json",
-						Detail:   "Found a plugin panel-triggers/plugin.json nested inside your archive but not declared in plugin.json. Make sure to declare the type and path of the nested plugin",
-						Name:     "nested-plugins-not-declared",
+					"manifest": {
+						{
+							Severity: "error",
+							Title:    "invalid file checksum",
+							Detail:   "checksum for file README.md is invalid",
+							Name:     "invalid-sha-sum",
+						},
 					},
-				},
-				"manifest": {
-					{
-						Severity: "error",
-						Title:    "invalid file checksum",
-						Detail:   "checksum for file README.md is invalid",
-						Name:     "invalid-sha-sum",
-					},
-				},
-				"signature": {
-					{
-						Severity: "warning",
-						Title:    "MANIFEST.txt: plugin has been modified since it was signed",
-						Detail:   "The plugin might had been modified after it was signed.",
-						Name:     "modified-signature",
-					},
-				},
-			},
-		},
-		"yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip": {
-			Id:              "yesoreyeram-infinity-datasource",
-			Version:         "2.6.3",
-			PluginValidator: map[string][]Issue{},
-		},
-		"invalid.zip": {
-			Id:      "invalid-panel",
-			Version: "1.0.0",
-			PluginValidator: map[string][]Issue{
-				"archive": {
-					{
-						Severity: "error",
-						Title:    "Archive contains more than one directory",
-						Detail:   "Archive should contain only one directory named after plugin id. Found 7 directories",
-						Name:     "more-than-one-dir",
-					},
-					{
-						Severity: "error",
-						Title:    "Plugin archive is improperly structured",
-						Detail:   "",
-						Name:     "zip-invalid",
+					"signature": {
+						{
+							Severity: "warning",
+							Title:    "MANIFEST.txt: plugin has been modified since it was signed",
+							Detail:   "The plugin might had been modified after it was signed.",
+							Name:     "modified-signature",
+						},
 					},
 				},
 			},
 		},
-		"invalid2.zip": {
-			Id:      "invalid-panel",
-			Version: "1.0.0",
-			PluginValidator: map[string][]Issue{
-				"archivename": {
-					{
-						Severity: "error",
-						Title:    "Archive should contain a directory named invalid-panel",
-						Detail:   "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.",
-						Name:     "no-ident-root-dir",
+		{
+			File:      "yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip",
+			ExtraArgs: "",
+			JsonReport: JsonReport{
+				Id:              "yesoreyeram-infinity-datasource",
+				Version:         "2.6.3",
+				PluginValidator: map[string][]Issue{},
+			},
+		},
+		{
+			File:      "invalid.zip",
+			ExtraArgs: "",
+			JsonReport: JsonReport{
+				Id:      "invalid-panel",
+				Version: "1.0.0",
+				PluginValidator: map[string][]Issue{
+					"archive": {
+						{
+							Severity: "error",
+							Title:    "Archive contains more than one directory",
+							Detail:   "Archive should contain only one directory named after plugin id. Found 7 directories",
+							Name:     "more-than-one-dir",
+						},
+						{
+							Severity: "error",
+							Title:    "Plugin archive is improperly structured",
+							Detail:   "",
+							Name:     "zip-invalid",
+						},
 					},
 				},
-				"license": {
-					{
-						Severity: "error",
-						Title:    "LICENSE file could not be parsed.",
-						Detail:   "Could not parse the license file inside the plugin archive. Please make sure to include a valid license in your LICENSE file in your archive.",
-						Name:     "license-not-provided",
+			},
+		},
+		{
+			File:      "invalid2.zip",
+			ExtraArgs: "",
+			JsonReport: JsonReport{
+				Id:      "invalid-panel",
+				Version: "1.0.0",
+				PluginValidator: map[string][]Issue{
+					"archivename": {
+						{
+							Severity: "error",
+							Title:    "Archive should contain a directory named invalid-panel",
+							Detail:   "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.",
+							Name:     "no-ident-root-dir",
+						},
+					},
+					"license": {
+						{
+							Severity: "error",
+							Title:    "LICENSE file could not be parsed.",
+							Detail:   "Could not parse the license file inside the plugin archive. Please make sure to include a valid license in your LICENSE file in your archive.",
+							Name:     "license-not-provided",
+						},
+					},
+					"manifest": {
+						{
+							Severity: "warning",
+							Title:    "unsigned plugin",
+							Detail:   "This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed.",
+							Name:     "unsigned-plugin",
+						},
+					},
+					"metadatapaths": {
+						{
+							Severity: "error",
+							Title:    "plugin.json: small logo path doesn't exists: img/logo.svg",
+							Detail:   "Refer only existing files. Make sure the files referred in plugin.json are included in the archive.",
+							Name:     "path-not-exists",
+						},
+						{
+							Severity: "error",
+							Title:    "plugin.json: large logo path doesn't exists: img/logo.svg",
+							Detail:   "Refer only existing files. Make sure the files referred in plugin.json are included in the archive.",
+							Name:     "path-not-exists",
+						},
+					},
+					"metadatavalid": {
+						{
+							Severity: "warning",
+							Title:    "plugin.json: dependencies: grafanaDependency is required",
+							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+							Name:     "invalid-metadata",
+						},
+					},
+					"readme": {
+						{
+							Severity: "error",
+							Title:    "README.md is empty",
+							Detail:   "A README.md file is required for plugins. The contents of the file will be displayed in the Plugin catalog.",
+							Name:     "missing-readme",
+						},
+					},
+					"screenshots": {
+						{
+							Severity: "warning",
+							Title:    "plugin.json: should include screenshots for the Plugin catalog",
+							Detail:   "Screenshots are displayed in the Plugin catalog. Please add at least one screenshot to your plugin.json.",
+							Name:     "screenshots",
+						},
 					},
 				},
-				"manifest": {
-					{
-						Severity: "warning",
-						Title:    "unsigned plugin",
-						Detail:   "This is a new (unpublished) plugin. This is expected during the initial review process. Please allow the review to continue, and a member of our team will inform you when your plugin can be signed.",
-						Name:     "unsigned-plugin",
-					},
-				},
-				"metadatapaths": {
-					{
-						Severity: "error",
-						Title:    "plugin.json: small logo path doesn't exists: img/logo.svg",
-						Detail:   "Refer only existing files. Make sure the files referred in plugin.json are included in the archive.",
-						Name:     "path-not-exists",
-					},
-					{
-						Severity: "error",
-						Title:    "plugin.json: large logo path doesn't exists: img/logo.svg",
-						Detail:   "Refer only existing files. Make sure the files referred in plugin.json are included in the archive.",
-						Name:     "path-not-exists",
-					},
-				},
-				"metadatavalid": {
-					{
-						Severity: "warning",
-						Title:    "plugin.json: dependencies: grafanaDependency is required",
-						Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
-						Name:     "invalid-metadata",
-					},
-				},
-				"readme": {
-					{
-						Severity: "error",
-						Title:    "README.md is empty",
-						Detail:   "A README.md file is required for plugins. The contents of the file will be displayed in the Plugin catalog.",
-						Name:     "missing-readme",
-					},
-				},
-				"screenshots": {
-					{
-						Severity: "warning",
-						Title:    "plugin.json: should include screenshots for the Plugin catalog",
-						Detail:   "Screenshots are displayed in the Plugin catalog. Please add at least one screenshot to your plugin.json.",
-						Name:     "screenshots",
+			},
+		},
+		{
+			File:      "invalid2.zip",
+			ExtraArgs: "-analyzer=metadatavalid",
+			JsonReport: JsonReport{
+				Id:      "invalid-panel",
+				Version: "1.0.0",
+				PluginValidator: map[string][]Issue{
+					"metadatavalid": {
+						{
+							Severity: "warning",
+							Title:    "plugin.json: dependencies: grafanaDependency is required",
+							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+							Name:     "invalid-metadata",
+						},
 					},
 				},
 			},
 		},
 	}
-
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
-	t.Logf("Running integration tests. Total: %d\n", len(files))
-	for currentFile := range files {
+	t.Logf("Running integration tests. Total: %d\n", len(TCs))
+	for _, tc := range TCs {
+		currentFile := tc.File
 		t.Run(currentFile, func(t *testing.T) {
 			file := currentFile
 			// Allows the test case to run in parallel with other ones
@@ -200,11 +244,16 @@ func TestIntegration(t *testing.T) {
 
 			t.Logf("Running %s", file)
 
+			extraArgs := ""
+			if tc.ExtraArgs != "" {
+				extraArgs = tc.ExtraArgs + " "
+			}
+
 			command := fmt.Sprintf(
 				"%s -config %s %s",
 				binary,
 				configFile,
-				filepath.Join(basePath, file),
+				extraArgs+filepath.Join(basePath, file),
 			)
 			t.Logf("Running command: %s\n", command)
 			cmd := exec.Command("sh", "-c", command)
@@ -223,7 +272,7 @@ func TestIntegration(t *testing.T) {
 			err = json.Unmarshal(outb.Bytes(), &report)
 			assert.NoError(t, err)
 
-			changelog, err := diff.Diff(files[file], report)
+			changelog, err := diff.Diff(tc.JsonReport, report)
 			assert.NoError(t, err)
 
 			if len(changelog) > 0 {
