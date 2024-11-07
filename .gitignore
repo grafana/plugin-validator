@@ -11,3 +11,10 @@ config/custom.yaml
 plugincheck
 plugincheck2
 sourcemapdiff
+
+# osv-scanner testdata. GoLand creates those but we don't need them
+pkg/analysis/passes/osvscanner/testdata/golang/critical/go.sum
+pkg/analysis/passes/osvscanner/testdata/golang/high/go.sum
+pkg/analysis/passes/osvscanner/testdata/golang/low/go.sum
+pkg/analysis/passes/osvscanner/testdata/golang/moderate/go.sum
+pkg/analysis/passes/osvscanner/testdata/golang/none/go.sum
