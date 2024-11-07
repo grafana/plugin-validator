@@ -114,7 +114,7 @@ Usage plugincheck2:
   -analyzer string (optional)
         If set, only an specific analyzer and it's dependencies will run.
   -severity string (optional)
-        If set, it will override the severity of the analyzer.
+        If used, it will set the severity of the analyzer (it has the highest priority).
 
 ```
 
