@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	invalidMetadata  = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Warning}
+	invalidMetadata  = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Error}
 	metadataNotFound = &analysis.Rule{Name: "metadata-not-found", Severity: analysis.Error}
 )
 
