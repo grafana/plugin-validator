@@ -24,6 +24,11 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{readme.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{checksumInvalid},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Checksum",
+		Description:  "Validates that the passed checksum (as a validator arg) is the one calculated from the archive file.",
+		Dependencies: "`checksum`",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

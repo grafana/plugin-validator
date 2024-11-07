@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/models"
 	"github.com/google/osv-scanner/pkg/osvscanner"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -34,7 +35,13 @@ var Analyzer = &analysis.Analyzer{
 		osvScannerLowSeverityDetected,
 		scanningFailure,
 		scanningParseFailure,
-		scanningSucceeded},
+		scanningSucceeded,
+	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Vulnerability Scanner",
+		Description:  "Detects critical vulnerabilities in Go modules and yarn lock files.",
+		Dependencies: "[osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri`",
+	},
 }
 
 var scannerTypes = [...]string{

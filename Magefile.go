@@ -20,6 +20,7 @@ type Build mg.Namespace
 type Test mg.Namespace
 type Docker mg.Namespace
 type Run mg.Namespace
+type Gen mg.Namespace
 
 const imageName = "grafana/plugin-validator-cli"
 const imageVersion = "v2"
@@ -313,4 +314,8 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 
 	return sh.RunV(command[0], command[1:]...)
 
+}
+
+func (Gen) Readme() error {
+	return sh.RunV("go", "run", "./pkg/cmd/genreadme/main.go")
 }

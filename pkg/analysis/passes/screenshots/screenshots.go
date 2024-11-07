@@ -18,6 +18,10 @@ var Analyzer = &analysis.Analyzer{
 	Run:      checkScreenshotsExist,
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Rules:    []*analysis.Rule{screenshots},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Screenshots",
+		Description: "Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog.",
+	},
 }
 
 func checkScreenshotsExist(pass *analysis.Pass) (interface{}, error) {

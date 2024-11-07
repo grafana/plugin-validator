@@ -25,6 +25,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer, readme.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{relativeLink, brokenLink},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Broken Links",
+		Description: "Detects if any URL doesn't resolve to a valid location.",
+	},
 }
 
 type contextURL struct {

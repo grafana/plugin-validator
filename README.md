@@ -213,44 +213,50 @@ If you run the validator locally or via NPX you can benefit from installing thes
 
 The tool runs a series of analyzers to ensure submitted plugins are following best practices, and speed up the process of approving a plugin for publishing, detailed in the table below. The _Analyzer_ column includes the name required for altering the behavior of a given check in a [configuration file](#using-a-configuration-file). The _Dependencies_ column specifies whether the analyzer requires the source code for the plugin to be provided with `sourceCodeUri` or for any additional [security scanning tools](#security-tools) to be present.
 
-| Analyzer                                          | Description                                                                                                                       | Dependencies                                                          |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Archive Structure / `archive`                     | Ensures the contents of the zip file have the expected layout.                                                                    | None                                                                  |
-| Archive Name / `archivename`                      | The name of the archive should be correctly formatted.                                                                            | None                                                                  |
-| Backend Binary / `backendbinary`                  | Validates the consistency between the existence of a binary file and plugin.json declarations for backend or alerting.            | None                                                                  |
-| Backend Debug / `backenddebug`                    | Checks that the standalone debug files for backend plugins are not present.                                                       | None                                                                  |
-| Binary Permissions / `binarypermissions`          | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system.                               | None                                                                  |
-| Broken Links / `brokenlinks`                      | Detects if any URL doesn't resolve to a valid location.                                                                           | None                                                                  |
-| Checksum / `checksum`                             | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file.                              | `checksum`                                                            |
-| Code Rules / `coderules`                          | Checks for forbidden access to environment variables, file system or use of `syscall` module.                                     | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri`   |
-| Discoverability / `discoverability`               | Warns about missing keywords and description that are used for plugin indexing in the catalog.                                    | None                                                                  |
-| Go Manifest / `gomanifest`                        | Validates the build manifest.                                                                                                     | `sourceCodeUri`                                                       |
-| Go Security Checker / `gosec`                     | Inspects source code for security problems by scanning the Go AST.                                                                | [gosec](https://github.com/securego/gosec), `sourceCodeUri`           |
-| Nested includes metadata / `includesnested`       | Validates that nested plugins have the correct metadata.                                                                          |                                                                       |
-| Developer Jargon / `jargon`                       | Generally discourages use of code jargon in the documentation.                                                                    | None                                                                  |
-| JS Source Map / `jssourcemap`                     | Checks for required `module.js.map` file(s) in archive.                                                                           | `sourceCodeUri`                                                       |
-| Legacy Grafana Toolkit usage / `legacybuilder`    | Detects the usage of the not longer supported Grafana Toolkit.                                                                    | None                                                                  |
-| Legacy Platform / `legacyplatform`                | Detects use of Angular which is deprecated.                                                                                       | None                                                                  |
-| License Type / `license`                          | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3.                                                  | None                                                                  |
-| Logos / `logos`                                   | Detects whether the plugin includes small and large logos to display in the plugin catalog.                                       | none                                                                  |
-| Manifest (Signing) / `manifest`                   | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file.                                                  | None                                                                  |
-| Metadata Paths / `metadatapaths`                  | Ensures all paths are valid and images referenced exist.                                                                          | None                                                                  |
-| Metadata Validity / `metadatavalid`               | Ensures metadata is valid and matches plugin schema.                                                                              | None                                                                  |
-| module.js (exists) / `modulejs`                   | All plugins require a `module.js` to be loaded.                                                                                   | None                                                                  |
-| Organization (exists) / `org`                     | Verifies the org specified in the plugin ID exists.                                                                               | None                                                                  |
-| Vulnerability Scanner / `osv-scanner`             | Detects critical vulnerabilities in Go modules and yarn lock files.                                                               | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |
-| Plugin Name formatting / `pluginname`             | Validates the plugin ID used conforms to our naming convention.                                                                   | None                                                                  |
-| Published / `published`                           | Detects whether any version of this plugin exists in the Grafana plugin catalog currently.                                        | None                                                                  |
-| Readme (exists) / `readme`                        | Ensures a `README.md` file exists within the zip file.                                                                            | None                                                                  |
-| Restrictive Dependency / `restrictivedep`         | Specifies a valid range of Grafana versions that work with this version of the plugin.                                            | None                                                                  |
-| Screenshots / `screenshots`                       | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog.                                       | None                                                                  |
-| Signature / `signature`                           | Ensures the plugin has a valid signature.                                                                                         | None                                                                  |
-| !Source Code / `sourcecode`                       | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it.     | `sourceCodeUri`                                                       |
-| Unique README.md / `templatereadme`               | Ensures the plugin doesn't re-use the template from the `create-plugin` tool.                                                     | None                                                                  |
-| No Tracking Scripts / `trackingscripts`           | Detects if there are any known tracking scripts, which are not allowed.                                                           | None                                                                  |
-| Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified.                                                                                    | None                                                                  |
-| Version / `version`                               | Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped. | None                                                                  |
-| Unsafe SVG / `unsafesvg`                          | Checks if any svg files are safe based on a whitelist of elements and attributes.                                                 | none                                                                  |
+<!-- analyzers-table-start -->
+<!--
+THE FOLLOWING SECTION IS GENERATED, DO NOT EDIT.
+Run "mage gen:readme" to regenerate this section.
+-->
+| Analyzer | Description | Dependencies |
+|----------|-------------|--------------|
+| Archive Name / `archivename` | The name of the archive should be correctly formatted. | None |
+| Archive Structure / `archive` | Ensures the contents of the zip file have the expected layout. | None |
+| Backend Binary / `backendbinary` | Validates the consistency between the existence of a binary file and plugin.json declarations for backend or alerting. | None |
+| Backend Debug / `backenddebug` | Checks that the standalone debug files for backend plugins are not present. | None |
+| Binary Permissions / `binarypermissions` | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system. | None |
+| Broken Links / `brokenlinks` | Detects if any URL doesn't resolve to a valid location. | None |
+| Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
+| Code Rules / `code-rules` | Checks for forbidden access to environment variables, file system or use of syscall module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
+| Developer Jargon / `jargon` | Generally discourages use of code jargon in the documentation. | None |
+| Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
+| Go Manifest / `go-manifest` | Validates the build manifest. | None |
+| Go Security Checker / `go-sec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
+| JS Source Map / `jsMap` | Checks for required `module.js.map` file(s) in archive. | `sourceCodeUri` |
+| Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
+| Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
+| License Type / `license` | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3. | None |
+| Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
+| Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |
+| Metadata Paths / `metadatapaths` | Ensures all paths are valid and images referenced exist. | None |
+| Metadata Validity / `metadatavalid` | Ensures metadata is valid and matches plugin schema. | None |
+| module.js (exists) / `modulejs` | All plugins require a `module.js` to be loaded. | None |
+| Nested includes metadata / `includesnested` | Validates that nested plugins have the correct metadata. | None |
+| No Tracking Scripts / `trackingscripts` | Detects if there are any known tracking scripts, which are not allowed. | None |
+| Organization (exists) / `org` | Verifies the org specified in the plugin ID exists. | None |
+| Plugin Name formatting / `pluginname` | Validates the plugin ID used conforms to our naming convention. | None |
+| Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
+| Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
+| Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
+| Screenshots / `screenshots` | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog. | None |
+| Signature / `signature` | Ensures the plugin has a valid signature. | None |
+| Source Code / `sourcecode` | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it. | `sourceCodeUri` |
+| Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified. | None |
+| Unique README.md / `templatereadme` | Ensures the plugin doesn't re-use the template from the `create-plugin` tool. | None |
+| Unsafe SVG / `manifest` | Checks if any svg files are safe based on a whitelist of elements and attributes. | None |
+| Version / `version` | Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped. | None |
+| Vulnerability Scanner / `osv-scanner` | Detects critical vulnerabilities in Go modules and yarn lock files. | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |
+<!-- analyzers-table-end -->
 
 ## Output
 

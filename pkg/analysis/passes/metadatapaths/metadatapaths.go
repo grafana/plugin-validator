@@ -39,6 +39,10 @@ var Analyzer = &analysis.Analyzer{
 		invalidRelativePath,
 		pathNotExists,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Metadata Paths",
+		Description: "Ensures all paths are valid and images referenced exist.",
+	},
 }
 
 type CheckPath struct {

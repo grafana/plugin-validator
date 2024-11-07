@@ -65,8 +65,15 @@ type Rule struct {
 }
 
 type Analyzer struct {
-	Name     string
-	Requires []*Analyzer
-	Run      func(pass *Pass) (interface{}, error)
-	Rules    []*Rule
+	Name       string
+	Requires   []*Analyzer
+	Run        func(pass *Pass) (interface{}, error)
+	Rules      []*Rule
+	ReadmeInfo ReadmeInfo
+}
+
+type ReadmeInfo struct {
+	Name         string
+	Description  string
+	Dependencies string
 }

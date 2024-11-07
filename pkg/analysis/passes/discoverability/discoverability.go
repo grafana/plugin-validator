@@ -17,6 +17,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{emptyDescription, emptyKeywords},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Discoverability",
+		Description: "Warns about missing keywords and description that are used for plugin indexing in the catalog.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

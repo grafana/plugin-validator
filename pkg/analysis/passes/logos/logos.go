@@ -17,6 +17,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{logos},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Logos",
+		Description: "Detects whether the plugin includes small and large logos to display in the plugin catalog.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
