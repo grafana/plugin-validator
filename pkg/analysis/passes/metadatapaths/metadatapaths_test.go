@@ -4,12 +4,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
-	"github.com/stretchr/testify/require"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
@@ -23,7 +24,7 @@ func TestMetadatapathsWithCorrectMetadata(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -54,7 +55,7 @@ func TestMetadatapathsWithWrongLogoPath(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -105,7 +106,7 @@ func TestMetadatapathsWithWrongScreenshotPath(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -147,7 +148,7 @@ func TestMeatadapathsWithCorrectNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -189,10 +190,10 @@ func TestMeatadapathsWithIncorrectNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	wrongMeta, err := utils.JSONToMetadata(nestedPluginJsonContent)
+	wrongMeta, err := testutils.JSONToMetadata(nestedPluginJsonContent)
 	require.NoError(t, err)
 
 	var interceptor testpassinterceptor.TestPassInterceptor

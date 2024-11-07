@@ -5,12 +5,13 @@ import (
 	"path/filepath"
 	"time"
 
+	"golang.org/x/mod/modfile"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/githubapi"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"golang.org/x/mod/modfile"
 )
 
 var (
@@ -201,6 +202,7 @@ func daysDifference(date1 string, date2 string) (int, error) {
 }
 
 // mockable function for testing
+
 var GetNowInRFC3339 = func() string {
 	return time.Now().UTC().Format(time.RFC3339)
 }

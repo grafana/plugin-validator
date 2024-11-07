@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/svgvalidate"

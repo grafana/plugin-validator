@@ -89,7 +89,7 @@ func GitUrlToLocalPath(url string) (string, func(), error) {
 // group 1: git clone url
 // group 3: ref (might be empty)
 // group 4: root dir (might be empty)
-var servicesRe []*regexp.Regexp = []*regexp.Regexp{
+var servicesRe = []*regexp.Regexp{
 	// bitbucket
 	regexp.MustCompile(`(?i)^(https:\/\/bitbucket\.org\/[^/]+\/[^/]+)(\/src\/([^/]*)\/?(.*)$)?`),
 	// gitlab

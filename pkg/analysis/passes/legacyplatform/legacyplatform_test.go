@@ -4,11 +4,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 )
 
 const pluginId = "test-plugin-panel" //nolint:golint,unused

@@ -4,12 +4,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
-	"github.com/stretchr/testify/require"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 func TestValidIncludesDefinition(t *testing.T) {
@@ -43,13 +44,13 @@ func TestValidIncludesDefinition(t *testing.T) {
     "name": "nested panel"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
-	bundle2Meta, err := utils.JSONToMetadata(bundled2JsonContent)
+	bundle2Meta, err := testutils.JSONToMetadata(bundled2JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -97,13 +98,13 @@ func TestMissingIncludeNested(t *testing.T) {
     "name": "nested panel"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
-	bundle2Meta, err := utils.JSONToMetadata(bundled2JsonContent)
+	bundle2Meta, err := testutils.JSONToMetadata(bundled2JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -162,13 +163,13 @@ func TestMissingIncludeTypeNested(t *testing.T) {
     "type": "panel"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
-	bundle2Meta, err := utils.JSONToMetadata(bundled2JsonContent)
+	bundle2Meta, err := testutils.JSONToMetadata(bundled2JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -227,13 +228,13 @@ func TestIncludedNestedTypeMissmatch(t *testing.T) {
     "name": "nested panel"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
-	bundle2Meta, err := utils.JSONToMetadata(bundled2JsonContent)
+	bundle2Meta, err := testutils.JSONToMetadata(bundled2JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -285,10 +286,10 @@ func TestNonAppPluginWithNested(t *testing.T) {
     "name": "nested datasource"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -326,10 +327,10 @@ func TestNonAppPluginUndeclaredNested(t *testing.T) {
     "name": "nested datasource"
   }`)
 
-	mainMeta, err := utils.JSONToMetadata(pluginJsonContent)
+	mainMeta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	bundle1Meta, err := utils.JSONToMetadata(bundled1JsonContent)
+	bundle1Meta, err := testutils.JSONToMetadata(bundled1JsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

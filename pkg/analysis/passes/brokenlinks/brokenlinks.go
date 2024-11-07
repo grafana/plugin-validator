@@ -38,7 +38,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	readme, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeResult, ok := pass.ResultOf[readme.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
 	}
@@ -64,7 +64,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		})
 	}
 
-	matches := mdLinks.FindAllSubmatch(readme, -1)
+	matches := mdLinks.FindAllSubmatch(readmeResult, -1)
 
 	for _, m := range matches {
 		path := string(m[1])

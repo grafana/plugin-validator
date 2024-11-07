@@ -4,11 +4,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 )
 
 func TestNoToolKitFound(t *testing.T) {

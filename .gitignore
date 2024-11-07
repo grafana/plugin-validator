@@ -6,3 +6,8 @@ config/custom.yaml
 .idea
 .bin
 .npmrc
+
+# binaries
+plugincheck
+plugincheck2
+sourcemapdiff

@@ -5,11 +5,11 @@ import (
 	"strings"
 
 	"github.com/google/osv-scanner/pkg/models"
+
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
-// FilterOSVResults
 func FilterOSVResults(source models.VulnerabilityResults, lockFile string) models.VulnerabilityResults {
 	// not filtering go.mod yet
 	if strings.HasSuffix(lockFile, "go.mod") {

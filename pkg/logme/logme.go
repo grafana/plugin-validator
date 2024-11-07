@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-var isDebugMode bool = os.Getenv("DEBUG") == "1"
+var isDebugMode = os.Getenv("DEBUG") == "1"
 
 func DebugFln(msg string, args ...interface{}) {
 	// check if ENV DEBUG is 1

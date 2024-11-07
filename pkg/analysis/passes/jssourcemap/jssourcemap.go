@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
@@ -45,7 +46,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	mapFiles := []string{}
+	var mapFiles []string
 	for _, file := range archiveModuleJs {
 		fileMapPath := filepath.Join(filepath.Dir(file), "module.js.map")
 		_, err := os.Stat(fileMapPath)

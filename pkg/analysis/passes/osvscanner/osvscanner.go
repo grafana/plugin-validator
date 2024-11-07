@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/osv-scanner/pkg/models"
 	"github.com/google/osv-scanner/pkg/osvscanner"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"

@@ -4,10 +4,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 )
 
 func TestTemplateReadme(t *testing.T) {
@@ -16,7 +17,7 @@ func TestTemplateReadme(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			readme.Analyzer: (readmeContent),
+			readme.Analyzer: readmeContent,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -33,7 +34,7 @@ func TestTemplateReadmeLowerCase(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			readme.Analyzer: (readmeContent),
+			readme.Analyzer: readmeContent,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}

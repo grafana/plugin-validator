@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-var svg_forbidden_elements = map[string]struct{}{
+var svgForbiddenElements = map[string]struct{}{
 	"annotation-xml": {},
 	"audio":          {},
 	"colgroup":       {},
@@ -33,7 +33,7 @@ var svg_forbidden_elements = map[string]struct{}{
 	"xmp":            {},
 }
 
-var svg_attributes = map[string]struct{}{
+var svgAttributes = map[string]struct{}{
 	"accent-height":               {},
 	"accumulate":                  {},
 	"additivive":                  {},
@@ -225,8 +225,8 @@ type Validator struct {
 
 func NewValidator() Validator {
 	vld := Validator{
-		allowedAttributes: svg_attributes,
-		forbiddenElements: svg_forbidden_elements,
+		allowedAttributes: svgAttributes,
+		forbiddenElements: svgForbiddenElements,
 	}
 	return vld
 }

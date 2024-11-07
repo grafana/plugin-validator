@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/jarcoal/httpmock"
-	"github.com/stretchr/testify/require"
 )
 
 const testPluginId = "test-plugin-panel"

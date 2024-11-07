@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/grafana/plugin-validator/pkg/sourcemap"
 	godiffpatch "github.com/sourcegraph/go-diff-patch"
+
+	"github.com/grafana/plugin-validator/pkg/sourcemap"
 )
 
-type diffReport struct {
+type DiffReport struct {
 	SourceCodeMapPath string
 	SourceCodePath    string
 	Sources           map[string]*sourceDiff
@@ -29,7 +30,7 @@ type sourceDiff struct {
 
 /*
 CompareSourceMapToSourceCode compares the source code map to the source code.
-It returns a diffReport that contains the differences between the source code map and the source code.
+It returns a DiffReport that contains the differences between the source code map and the source code.
 sourceCodeMapFile is the path to the source code map file. (.js.map)
 sourceCodePath is the path to the source code directory. (the directory that contains the source code files)
 */
@@ -37,8 +38,8 @@ func CompareSourceMapToSourceCode(
 	pluginID string,
 	sourceCodeMapFile string,
 	sourceCodePath string,
-) (diffReport, error) {
-	report := diffReport{
+) (DiffReport, error) {
+	report := DiffReport{
 		SourceCodeMapPath: sourceCodeMapFile,
 		SourceCodePath:    sourceCodePath,
 		Sources:           map[string]*sourceDiff{},
@@ -94,7 +95,7 @@ func CompareSourceMapToSourceCode(
 	return report, nil
 }
 
-func (r *diffReport) GeneratePrintableReport() string {
+func (r *DiffReport) GeneratePrintableReport() string {
 	var report string
 
 	if r.TotalDifferences > 0 {

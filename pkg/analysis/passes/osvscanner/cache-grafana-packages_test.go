@@ -4,8 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 )
 
 func TestCacheGrafanaPackages(t *testing.T) {

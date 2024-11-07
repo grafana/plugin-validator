@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
-	"github.com/stretchr/testify/assert"
 )
 
 var tests = []struct {

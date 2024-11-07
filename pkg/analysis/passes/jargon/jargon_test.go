@@ -3,9 +3,10 @@ package jargon
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
-	"github.com/stretchr/testify/assert"
 )
 
 var cleanReadme = []byte(`

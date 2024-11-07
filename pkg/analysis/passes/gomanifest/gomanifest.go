@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -163,7 +164,7 @@ func verifyManifest(
 	goFiles []string,
 	sourceCodeDir string,
 ) ([]ManifestIssue, error) {
-	manifestIssues := []ManifestIssue{}
+	var manifestIssues []ManifestIssue
 
 	for _, goFilePath := range goFiles {
 		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
@@ -230,7 +231,7 @@ func hashFileContent(path string) (string, string, error) {
 	linuxHash := hex.EncodeToString(hLinux[:])
 
 	// Normalize data to Windows line endings and calculate the hash
-	windowsLineEndData := strings.ReplaceAll(string(linuxLineEndData), "\n", "\r\n")
+	windowsLineEndData := strings.ReplaceAll(linuxLineEndData, "\n", "\r\n")
 	hWindows := sha256.Sum256([]byte(windowsLineEndData))
 	windowsHash := hex.EncodeToString(hWindows[:])
 

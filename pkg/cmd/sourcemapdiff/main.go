@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/fatih/color"
+
 	"github.com/grafana/plugin-validator/pkg/difftool"
 	"github.com/grafana/plugin-validator/pkg/sourcemap"
 	"github.com/grafana/plugin-validator/pkg/utils"

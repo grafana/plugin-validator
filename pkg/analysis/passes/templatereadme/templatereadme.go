@@ -19,14 +19,14 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	readme, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeResult, ok := pass.ResultOf[readme.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
 	}
 
 	re := regexp.MustCompile("(?i)Grafana (Panel|Data Source|Datasource|App|Data Source Backend) Plugin Template")
 
-	if m := re.Find(readme); m != nil {
+	if m := re.Find(readmeResult); m != nil {
 		pass.ReportResult(pass.AnalyzerName, templateReadme, "README.md: uses README from template", "The README.md file uses the README from the plugin template. Please update it to describe your plugin.")
 	} else {
 		if templateReadme.ReportAll {

@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/go-version"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
-	"github.com/hashicorp/go-version"
 )
 
 var (

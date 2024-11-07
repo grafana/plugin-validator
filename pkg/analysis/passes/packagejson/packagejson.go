@@ -6,10 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/tailscale/hujson"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
-	"github.com/tailscale/hujson"
 )
 
 var (
@@ -82,7 +83,7 @@ func parsePackageJson(packageJsonPath string) (*PackageJson, error) {
 		return &PackageJson{}, err
 	}
 
-	var packageJson PackageJson = PackageJson{}
+	var packageJson PackageJson
 
 	if err := json.Unmarshal(stdPackageJson, &packageJson); err != nil {
 		return &PackageJson{}, err

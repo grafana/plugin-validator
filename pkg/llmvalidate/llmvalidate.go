@@ -13,8 +13,9 @@ import (
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/google/generative-ai-go/genai"
-	"github.com/grafana/plugin-validator/pkg/logme"
 	"google.golang.org/api/option"
+
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 // these are not regular expressions
@@ -78,14 +79,14 @@ type LLMAnswer struct {
 	CodeSnippet string   `json:"code_snippet"`
 }
 
-type LLMValidateClient struct {
+type Client struct {
 	genaiClient *genai.Client
 	apiKey      string
 	modelName   string
 	ctx         context.Context
 }
 
-func New(ctx context.Context, apiKey string, modelName string) (*LLMValidateClient, error) {
+func New(ctx context.Context, apiKey string, modelName string) (*Client, error) {
 
 	if apiKey == "" {
 		return nil, fmt.Errorf("API key is required")
@@ -100,7 +101,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*LLMValidateClie
 		return nil, err
 	}
 
-	return &LLMValidateClient{
+	return &Client{
 		genaiClient: genaiClient,
 		modelName:   modelName,
 		apiKey:      apiKey,
@@ -108,7 +109,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*LLMValidateClie
 	}, nil
 }
 
-func (c *LLMValidateClient) AskLLMAboutCode(
+func (c *Client) AskLLMAboutCode(
 	codePath string,
 	questions []string,
 	subPathsOnly []string,
@@ -216,8 +217,8 @@ func getPromptContentForCode(codePath string, subPathsOnly []string) ([]string, 
 		subPathsOnly = []string{"."}
 	}
 
-	for _, path := range subPathsOnly {
-		subCodePath := filepath.Join(codePath, path)
+	for _, p := range subPathsOnly {
+		subCodePath := filepath.Join(codePath, p)
 
 		// skip if it doesn't exist
 		_, err := os.Stat(subCodePath)

@@ -14,7 +14,7 @@ var Analyzer = &analysis.Analyzer{
 
 const schemaURL = "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json"
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(_ *analysis.Pass) (interface{}, error) {
 	resp, err := http.Get(schemaURL)
 	if err != nil {
 		return nil, err

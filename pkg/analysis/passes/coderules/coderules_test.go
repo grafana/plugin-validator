@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/require"
 )
 
 func isSemgrepInstalled() bool {

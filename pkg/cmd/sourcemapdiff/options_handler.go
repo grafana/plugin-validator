@@ -34,7 +34,7 @@ func getLocalPathFromSourceCodeOption(sourceCodeUri string) (string, func(), err
 func sourceCodeUriToLocalPath(sourceCodeUri string) (string, func(), error) {
 	var (
 		sourceCodePath string
-		cleanup        func() = func() {}
+		cleanup        = func() {}
 		err            error
 	)
 
@@ -75,7 +75,7 @@ func getLocalPathFromArchiveOption(uri string) (string, func(), error) {
 	var (
 		archivePath string
 		// init a noop cleanup
-		archiveCleanup func() = func() {}
+		archiveCleanup = func() {}
 		err            error
 	)
 

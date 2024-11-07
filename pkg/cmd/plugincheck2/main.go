@@ -13,13 +13,14 @@ import (
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/fatih/color"
+	"gopkg.in/yaml.v2"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
-	yaml "gopkg.in/yaml.v2"
 )
 
 type FormattedOutput struct {
