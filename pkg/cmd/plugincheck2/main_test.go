@@ -188,7 +188,7 @@ func TestIntegration(t *testing.T) {
 					},
 					"metadatavalid": {
 						{
-							Severity: "warning",
+							Severity: "error",
 							Title:    "plugin.json: dependencies: grafanaDependency is required",
 							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 							Name:     "invalid-metadata",
@@ -222,7 +222,7 @@ func TestIntegration(t *testing.T) {
 				PluginValidator: map[string][]Issue{
 					"metadatavalid": {
 						{
-							Severity: "warning",
+							Severity: "error",
 							Title:    "plugin.json: dependencies: grafanaDependency is required",
 							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 							Name:     "invalid-metadata",
