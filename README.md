@@ -113,6 +113,8 @@ Usage plugincheck2:
         If set, the checksum of the plugin archive will be checked against this value. MD5 and SHA256 are supported.
   -analyzer string (optional)
         If set, only an specific analyzer and it's dependencies will run.
+  -severity string (optional)
+        If set, it will override the severity of the analyzer.
 
 ```
 

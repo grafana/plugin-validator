@@ -67,7 +67,9 @@ func TestRunner(t *testing.T) {
 					SourceCodeDir: "",
 					Checksum:      "",
 				},
-				Config{Global: GlobalConfig{Enabled: true}})
+				Config{Global: GlobalConfig{Enabled: true}},
+				analysis.Severity(""),
+			)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -146,6 +148,7 @@ func TestLinearDependencies(t *testing.T) {
 			Checksum:      "",
 		},
 		Config{Global: GlobalConfig{Enabled: true}},
+		analysis.Severity(""),
 	)
 
 	if len(res) != 4 {
@@ -188,6 +191,7 @@ func TestSharedParent(t *testing.T) {
 			Checksum:      "",
 		},
 		Config{Global: GlobalConfig{Enabled: true}},
+		analysis.Severity(""),
 	)
 
 	if len(res) != 3 {
@@ -230,6 +234,7 @@ func TestCachedRun(t *testing.T) {
 			Checksum:      "",
 		},
 		Config{Global: GlobalConfig{Enabled: true}},
+		analysis.Severity(""),
 	)
 
 	if len(res) != 3 {
@@ -263,6 +268,7 @@ func TestDependencyReturnsNil(t *testing.T) {
 			Checksum:      "",
 		},
 		Config{Global: GlobalConfig{Enabled: true}},
+		analysis.Severity(""),
 	)
 
 	assert.Len(t, res, 2)

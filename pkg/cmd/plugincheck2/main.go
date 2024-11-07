@@ -51,6 +51,11 @@ func main() {
 			"",
 			"Run a specific analyzer",
 		)
+		severity = flag.String(
+			"severity",
+			"",
+			"Set severity of the analyzer",
+		)
 	)
 
 	flag.Parse()
@@ -62,6 +67,7 @@ func main() {
 	logme.Debugln("archive file: ", flag.Arg(0))
 	logme.Debugln("checksum: ", *checksum)
 	logme.Debugln("analyzer: ", *analyzer)
+	logme.Debugln("severity: ", *severity)
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
@@ -131,6 +137,7 @@ func main() {
 			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
 		},
 		cfg,
+		analysis.Severity(*severity),
 	)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("check failed: %w", err))

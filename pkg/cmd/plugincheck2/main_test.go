@@ -29,6 +29,7 @@ type JsonReport struct {
 }
 
 type tc struct {
+	name       string
 	file       string
 	extraArgs  string
 	jsonReport JsonReport
@@ -214,6 +215,7 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
+			name:      "analyzer-flag-test",
 			file:      "invalid2.zip",
 			extraArgs: "-analyzer=metadatavalid",
 			jsonReport: JsonReport{
@@ -231,18 +233,41 @@ func TestIntegration(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:      "severity-flag-test",
+			file:      "invalid2.zip",
+			extraArgs: "-analyzer=metadatavalid -severity=warning",
+			jsonReport: JsonReport{
+				Id:      "invalid-panel",
+				Version: "1.0.0",
+				PluginValidator: map[string][]Issue{
+					"metadatavalid": {
+						{
+							Severity: "warning",
+							Title:    "plugin.json: dependencies: grafanaDependency is required",
+							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+							Name:     "invalid-metadata",
+						},
+					},
+				},
+			},
+		},
 	}
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
 	t.Logf("Running integration tests. Total: %d\n", len(tcs))
 	for _, tc := range tcs {
 		currentFile := tc.file
-		t.Run(currentFile, func(t *testing.T) {
+		tcName := tc.name
+		if tcName == "" {
+			tcName = currentFile
+		}
+		t.Run(tcName, func(t *testing.T) {
 			file := currentFile
 			// Allows the test case to run in parallel with other ones
 			t.Parallel()
 
-			t.Logf("Running %s", file)
+			t.Logf("Running %s", tcName)
 
 			extraArgs := ""
 			if tc.extraArgs != "" {
