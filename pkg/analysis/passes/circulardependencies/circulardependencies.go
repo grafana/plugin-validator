@@ -73,7 +73,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				if err != nil {
 					// Do not fail the analysis if we cannot get the dependencies from GCOM.
 					logme.ErrorF("Could not get plugin version dependency from gcom: id=%q version=%q: %v\n", dep.ID, version, err)
-					return nil, nil
+					
+					dependantDependencies = nil
+					continue
 				}
 			}
 
