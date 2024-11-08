@@ -29,6 +29,7 @@ type JsonReport struct {
 }
 
 type tc struct {
+	name       string
 	file       string
 	extraArgs  string
 	jsonReport JsonReport
@@ -214,6 +215,7 @@ func TestIntegration(t *testing.T) {
 			},
 		},
 		{
+			name:      "analyzer-flag-test",
 			file:      "invalid2.zip",
 			extraArgs: "-analyzer=metadatavalid",
 			jsonReport: JsonReport{
@@ -231,18 +233,60 @@ func TestIntegration(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:      "severity-flag-test",
+			file:      "invalid2.zip",
+			extraArgs: "-analyzer=metadatavalid -analyzerSeverity=warning",
+			jsonReport: JsonReport{
+				Id:      "invalid-panel",
+				Version: "1.0.0",
+				PluginValidator: map[string][]Issue{
+					"metadatavalid": {
+						{
+							Severity: "warning",
+							Title:    "plugin.json: dependencies: grafanaDependency is required",
+							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
+							Name:     "invalid-metadata",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:      "severity-flag-no-changes-when-analyzer-not-set",
+			file:      "grafana-clock-panel-2.1.5.any.zip",
+			extraArgs: "-analyzerSeverity=ok",
+			jsonReport: JsonReport{
+				Id:      "grafana-clock-panel",
+				Version: "2.1.5",
+				PluginValidator: map[string][]Issue{
+					"jargon": {
+						{
+							Severity: "warning",
+							Title:    "README.md contains developer jargon: (yarn)",
+							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
+							Name:     "developer-jargon",
+						},
+					},
+				},
+			},
+		},
 	}
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
 	t.Logf("Running integration tests. Total: %d\n", len(tcs))
 	for _, tc := range tcs {
 		currentFile := tc.file
-		t.Run(currentFile, func(t *testing.T) {
+		tcName := tc.name
+		if tcName == "" {
+			tcName = currentFile
+		}
+		t.Run(tcName, func(t *testing.T) {
 			file := currentFile
 			// Allows the test case to run in parallel with other ones
 			t.Parallel()
 
-			t.Logf("Running %s", file)
+			t.Logf("Running %s", tcName)
 
 			extraArgs := ""
 			if tc.extraArgs != "" {
