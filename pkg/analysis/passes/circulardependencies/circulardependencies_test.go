@@ -39,13 +39,14 @@ func TestCircularDependencies(t *testing.T) {
 		)
 	})
 
+	const (
+		gcomSpecificVersionURL = "https://grafana.com/api/plugins/grafana-external-panel/versions/2.1.2"
+		gcomLatestVersionURL   = "https://grafana.com/api/plugins/grafana-external-panel/versions/latest"
+	)
+
 	t.Run("with an external plugin", func(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		const (
-			gcomSpecificVersionURL = "https://grafana.com/api/plugins/grafana-external-panel/versions/2.1.2"
-			gcomLatestVersionURL   = "https://grafana.com/api/plugins/grafana-external-panel/versions/latest"
-		)
 		for _, u := range []string{gcomSpecificVersionURL, gcomLatestVersionURL} {
 			httpmock.RegisterResponder(http.MethodGet, u, httpmock.NewStringResponder(http.StatusOK, gcomAPIResponse))
 		}
@@ -81,6 +82,26 @@ func TestCircularDependencies(t *testing.T) {
 			// WHY
 			require.Equal(t, 1, info["GET "+gcomLatestVersionURL])
 		})
+	})
+
+	t.Run("gcom error should not return an error", func(t *testing.T) {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		for _, u := range []string{gcomSpecificVersionURL, gcomLatestVersionURL} {
+			httpmock.RegisterResponder(
+				http.MethodGet,
+				u,
+				httpmock.NewStringResponder(http.StatusInternalServerError, "not a json response"),
+			)
+		}
+
+		pass, interceptor := newTestPass(filepath.Join("testdata", "external-without-version"))
+		require.NoError(t, utils.RunDependencies(pass, Analyzer))
+		_, err := Analyzer.Run(pass)
+		require.NoError(t, err)
+		require.Len(t, interceptor.Diagnostics, 0)
+		info := httpmock.GetCallCountInfo()
+		require.Equal(t, 1, info["GET "+gcomLatestVersionURL])
 	})
 }
 

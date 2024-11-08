@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -70,7 +71,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				}
 				dependantDependencies, err = getGCOMPluginDependencies(ctx, dep.ID, version)
 				if err != nil {
-					return nil, fmt.Errorf("get plugin version dependency from gcom: id=%q version=%q: %w", dep.ID, version, err)
+					// Do not fail the analysis if we cannot get the dependencies from GCOM.
+					logme.ErrorF("Could not get plugin version dependency from gcom: id=%q version=%q: %v\n", dep.ID, version, err)
+					return nil, nil
 				}
 			}
 
