@@ -236,7 +236,7 @@ func TestIntegration(t *testing.T) {
 		{
 			name:      "severity-flag-test",
 			file:      "invalid2.zip",
-			extraArgs: "-analyzer=metadatavalid -severity=warning",
+			extraArgs: "-analyzer=metadatavalid -analyzerSeverity=warning",
 			jsonReport: JsonReport{
 				Id:      "invalid-panel",
 				Version: "1.0.0",
@@ -247,6 +247,25 @@ func TestIntegration(t *testing.T) {
 							Title:    "plugin.json: dependencies: grafanaDependency is required",
 							Detail:   "The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 							Name:     "invalid-metadata",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:      "severity-flag-no-changes-when-analyzer-not-set",
+			file:      "grafana-clock-panel-2.1.5.any.zip",
+			extraArgs: "-analyzerSeverity=ok",
+			jsonReport: JsonReport{
+				Id:      "grafana-clock-panel",
+				Version: "2.1.5",
+				PluginValidator: map[string][]Issue{
+					"jargon": {
+						{
+							Severity: "warning",
+							Title:    "README.md contains developer jargon: (yarn)",
+							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
+							Name:     "developer-jargon",
 						},
 					},
 				},
