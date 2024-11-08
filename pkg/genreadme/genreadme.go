@@ -25,7 +25,7 @@ Run "mage gen:readme" to regenerate this section.
 `
 )
 
-func Generate(readme io.Reader) (string, error) {
+func generate(readme io.Reader) (string, error) {
 	var tableBuilder strings.Builder
 	tableBuilder.WriteString(header)
 
