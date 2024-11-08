@@ -317,5 +317,5 @@ func (Run) SourceDiffLocal(ctx context.Context, archive string, source string) e
 }
 
 func (Gen) Readme() error {
-	return sh.RunV("go", "run", "./pkg/cmd/genreadme/main.go")
+	return sh.RunV("go", "test", "-v", "./pkg/genreadme", "-generate")
 }
