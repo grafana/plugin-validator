@@ -14,17 +14,17 @@ import (
 
 const readmeFileName = "README.md"
 
-var generate = flag.Bool("generate", false, "generate readme file")
+var flagGenerate = flag.Bool("generate", false, "generate readme file")
 
 func TestGenReadme(t *testing.T) {
 	t.Run("generate", func(t *testing.T) {
-		if !*generate {
+		if !*flagGenerate {
 			t.Skip("skipping generating readme file")
 			return
 		}
 		readmeFn, err := findReadme()
 		require.NoError(t, err)
-		require.NoError(t, gen(readmeFn))
+		require.NoError(t, generateToFile(readmeFn))
 	})
 
 	t.Run("check", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGenReadme(t *testing.T) {
 		})
 
 		// Re-generate the readme in memory
-		gen, err := Generate(readme)
+		gen, err := generate(readme)
 		require.NoError(t, err)
 		require.NotEmpty(t, gen)
 
@@ -58,7 +58,7 @@ func TestGenReadme(t *testing.T) {
 	})
 }
 
-func gen(fn string) error {
+func generateToFile(fn string) error {
 	// Read existing README
 	f, err := os.Open(fn)
 	if err != nil {
@@ -71,7 +71,7 @@ func gen(fn string) error {
 		}
 		_ = f.Close()
 	}()
-	generatedReadme, err := Generate(f)
+	generatedReadme, err := generate(f)
 	if err != nil {
 		return fmt.Errorf("generate new readme: %w", err)
 	}
