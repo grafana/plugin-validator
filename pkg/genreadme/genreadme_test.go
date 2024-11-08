@@ -11,9 +11,8 @@ import (
 
 const readmeFileName = "README.md"
 
+// TestGenReadme ensures that the README is up-to-date
 func TestGenReadme(t *testing.T) {
-	// Ensures that the README is up-to-date
-
 	// Open existing README
 	dir := "."
 	for {
@@ -32,12 +31,12 @@ func TestGenReadme(t *testing.T) {
 		require.NoError(t, readme.Close())
 	})
 
-	// Re-generate the readme
+	// Re-generate the readme in memory
 	gen, err := Generate(readme)
 	require.NoError(t, err)
 	require.NotEmpty(t, gen)
 
-	// Seek and read the existing readme again
+	// Seek and read the existing readme again (from disk)
 	_, err = readme.Seek(0, io.SeekStart)
 	require.NoError(t, err)
 	existingReadme, err := io.ReadAll(readme)
