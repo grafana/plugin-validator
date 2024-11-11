@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
@@ -28,6 +29,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{backendDebugFilePresent},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Backend Debug",
+		Description: "Checks that the standalone debug files for backend plugins are not present.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

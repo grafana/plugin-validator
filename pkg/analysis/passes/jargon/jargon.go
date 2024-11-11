@@ -18,6 +18,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{readme.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{developerJargon},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Developer Jargon",
+		Description: "Generally discourages use of code jargon in the documentation.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

@@ -19,6 +19,10 @@ var Analyzer = &analysis.Analyzer{
 	Name:  "archive",
 	Run:   run,
 	Rules: []*analysis.Rule{emptyArchive, moreThanOneDir, noRootDir, dist},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Archive Structure",
+		Description: "Ensures the contents of the zip file have the expected layout.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

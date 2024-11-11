@@ -29,6 +29,11 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{codeRulesViolationError, codeRulesViolationWarning, semgrepNotFound, semgrepRunningErr},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Code Rules",
+		Description:  "Checks for forbidden access to environment variables, file system or use of syscall module.",
+		Dependencies: "[semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri`",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

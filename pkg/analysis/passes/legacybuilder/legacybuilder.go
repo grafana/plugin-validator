@@ -18,6 +18,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{packagejson.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{legacyBuilder},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Legacy Grafana Toolkit usage",
+		Description: "Detects the usage of the not longer supported Grafana Toolkit.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

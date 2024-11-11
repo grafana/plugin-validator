@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
@@ -34,6 +35,10 @@ var Analyzer = &analysis.Analyzer{
 		backendBinaryMissing,
 		backendFoundButNotDeclared,
 		alertingFoundButBackendFalse,
+	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Backend Binary",
+		Description: "Validates the consistency between the existence of a binary file and plugin.json declarations for backend or alerting.",
 	},
 }
 

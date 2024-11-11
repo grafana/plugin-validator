@@ -12,12 +12,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"golang.org/x/crypto/openpgp"           //nolint:staticcheck
+	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
-	"golang.org/x/crypto/openpgp"           //nolint:staticcheck
-	"golang.org/x/crypto/openpgp/clearsign" //nolint:staticcheck
 )
 
 var (
@@ -32,6 +33,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{manifest.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{unsignedPlugin, modifiedSignature, invalidSignature, privateSignature},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Signature",
+		Description: "Ensures the plugin has a valid signature.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
