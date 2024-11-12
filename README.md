@@ -51,7 +51,7 @@ docker run --pull=always -v /path/to/plugin_archive.zip:/archive.zip grafana/plu
 #### Using a local archive file and local source code
 
 ```SHELL
-docker run --pull=always -v /path/to/plugin_archive.zip:/archive.zip -v /path/to/source_code:/source_code grafana/plugin-validator-cli -sourceCodeUri /source_code /archive.zip
+docker run --pull=always -v /path/to/plugin_archive.zip:/archive.zip -v /path/to/source_code:/source_code grafana/plugin-validator-cli -sourceCodeUri file:///source_code /archive.zip
 ```
 
 > [!NOTE]
