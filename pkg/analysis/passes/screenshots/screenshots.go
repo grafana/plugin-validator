@@ -1,6 +1,7 @@
 package screenshots
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -28,7 +30,9 @@ var Analyzer = &analysis.Analyzer{
 		Description: "Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog.",
 	},
 }
-var acceptedImageTypes = []string{"image/jpeg", "image/png", "image/svg+xml", "image/gif"}
+
+var svgImage = "image/svg+xml"
+var acceptedImageTypes = []string{"image/jpeg", "image/png", "image/gif", svgImage}
 
 func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
@@ -56,9 +60,10 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 		if strings.TrimSpace(screenshot.Path) == "" {
 			reportCount++
 			pass.ReportResult(pass.AnalyzerName, screenshots, fmt.Sprintf("plugin.json: invalid empty screenshot path: %q", screenshot.Name), "The screenshot path must not be empty.")
-		} else if !validImageType(filepath.Join(archiveDir, screenshot.Path)) {
+		} else if err := validateImage(filepath.Join(archiveDir, screenshot.Path)); err != nil {
 			reportCount++
-			pass.ReportResult(pass.AnalyzerName, screenshotsType, fmt.Sprintf("invalid screenshot image type: %q. Accepted image types: %q", screenshot.Path, acceptedImageTypes), "The screenshot image type invalid.")
+			logme.Debugln(err)
+			pass.ReportResult(pass.AnalyzerName, screenshotsType, err.Error(), "The screenshot image is of an unsupported format.")
 		}
 	}
 
@@ -79,29 +84,42 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 	return data.Info.Screenshots, nil
 }
 
-func validImageType(imgPath string) bool {
+// We can use mimetype but it does too much for our case
+// https://github.com/gabriel-vasile/mimetype/blob/master/internal/magic/text.go#L298
+func checkSVG(raw []byte) bool {
+	return bytes.Contains(raw, []byte("<svg"))
+}
+
+func validateImage(imgPath string) error {
 	file, err := os.Open(imgPath)
 	if err != nil {
-		fmt.Printf("cannot open file: %v\n", err)
-		return false
+		logme.DebugFln("cannot open file: %v", err)
+		return fmt.Errorf("invalid screenshot path: %q", imgPath)
 	}
 	defer file.Close()
 
 	// 512 is enough for getting the content type
 	// https://pkg.go.dev/net/http#DetectContentType
 	buffer := make([]byte, 512)
+	// files less than 512 it will read all the file
+	// won't throw errors
 	if _, err := file.Read(buffer); err != nil {
-		fmt.Printf("cannot read file: %v\n", err)
-		return false
+		logme.DebugFln("cannot read file: %v", err)
+		return fmt.Errorf("cannot read file: %v", err)
 	}
 
+	// returns text/plain or text/xml for svg files
 	mimeType := http.DetectContentType(buffer)
+	// logo.svg returns text/plain, valid.svg returns text/xml
+	if (strings.Contains(mimeType, "text/plain") || strings.Contains(mimeType, "text/xml")) && checkSVG(buffer) {
+		mimeType = svgImage
+	}
 
 	for _, accepted := range acceptedImageTypes {
 		if accepted == mimeType {
-			return true
+			return nil
 		}
 	}
 
-	return false
+	return fmt.Errorf("invalid screenshot image: %q. Accepted image types: %q", imgPath, acceptedImageTypes)
 }
