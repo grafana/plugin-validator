@@ -1,0 +1,61 @@
+{
+  "dependencies": {
+    "grafanaDependency": "\u003e=8.0.0",
+    "plugins": [
+      {
+        "id": "grafana-clock-panel",
+        "name": "Clock",
+        "type": "panel",
+        "version": "2.1.2"
+      }
+    ]
+  },
+  "id": "grafana-nested-panel",
+  "info": {
+    "author": {
+      "name": "Grafana Labs",
+      "url": "https://grafana.com"
+    },
+    "build": {
+      "time": 1672825174542,
+      "repo": "https://github.com/grafana/clock-panel",
+      "branch": "master",
+      "hash": "5a0962f98d3ff043bad0db32dc804999a669b161",
+      "build": 57
+    },
+    "description": "Clock panel for grafana",
+    "keywords": [
+      "clock",
+      "panel"
+    ],
+    "links": [
+      {
+        "name": "Project site",
+        "url": "https://github.com/grafana/clock-panel"
+      },
+      {
+        "name": "MIT License",
+        "url": "https://github.com/grafana/clock-panel/blob/master/LICENSE"
+      }
+    ],
+    "logos": {
+      "large": "img/clock.svg",
+      "small": "img/clock.svg"
+    },
+    "screenshots": [
+      {
+        "name": "Showcase",
+        "path": "img/screenshot-showcase.png"
+      },
+      {
+        "name": "Options",
+        "path": "img/screenshot-clock-options.png"
+      }
+    ],
+    "updated": "2023-01-04",
+    "version": "2.1.2"
+  },
+  "name": "Nested",
+  "skipDataQuery": true,
+  "type": "panel"
+}
