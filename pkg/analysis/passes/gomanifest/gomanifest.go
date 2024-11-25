@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -35,6 +36,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest, goManifestIssue},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Go Manifest",
+		Description: "Validates the build manifest.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

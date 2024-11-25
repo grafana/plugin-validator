@@ -38,6 +38,10 @@ var Analyzer = &analysis.Analyzer{
 		binaryExecutablePermissions,
 		archiveFilesError,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Binary Permissions",
+		Description: "For datasources and apps with binaries, this ensures the plugin can run when extracted on a system.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

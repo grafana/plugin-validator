@@ -16,6 +16,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{readme.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{templateReadme},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Unique README.md",
+		Description: "Ensures the plugin doesn't re-use the template from the `create-plugin` tool.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

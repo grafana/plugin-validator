@@ -37,6 +37,10 @@ var Analyzer = &analysis.Analyzer{
 		nestedPluginTypeMismatch,
 		nestedPlugidInNonApp,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Nested includes metadata",
+		Description: "Validates that nested plugins have the correct metadata.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

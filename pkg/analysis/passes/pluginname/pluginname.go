@@ -17,6 +17,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{humanFriendlyName},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Plugin Name formatting",
+		Description: "Validates the plugin ID used conforms to our naming convention.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

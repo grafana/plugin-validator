@@ -19,6 +19,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{noIdentRootDir},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Archive Name",
+		Description: "The name of the archive should be correctly formatted.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

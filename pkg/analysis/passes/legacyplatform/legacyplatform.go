@@ -22,6 +22,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{modulejs.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{legacyPlatform},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Legacy Platform",
+		Description: "Detects use of Angular which is deprecated.",
+	},
 }
 
 // detector implements a check to see if a plugin uses a legacy platform (Angular).

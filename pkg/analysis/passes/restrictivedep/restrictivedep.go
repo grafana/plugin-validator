@@ -20,6 +20,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{dependsOnPatchReleases, dependsOnSingleRelease},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Restrictive Dependency",
+		Description: "Specifies a valid range of Grafana versions that work with this version of the plugin.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

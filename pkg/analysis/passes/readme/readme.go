@@ -20,6 +20,10 @@ var Analyzer = &analysis.Analyzer{
 	Run:      run,
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Rules:    []*analysis.Rule{missingReadme},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Readme (exists)",
+		Description: "Ensures a `README.md` file exists within the zip file.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

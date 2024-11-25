@@ -31,6 +31,11 @@ var Analyzer = &analysis.Analyzer{
 		sourceCodeVersionMisMatch,
 		sourceCodeNotProvided,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Source Code",
+		Description:  "A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it.",
+		Dependencies: "`sourceCodeUri`",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
