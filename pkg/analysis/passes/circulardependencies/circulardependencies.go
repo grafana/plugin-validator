@@ -26,6 +26,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{circularDependency},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Circular Dependencies",
+		Description: "Ensures that there aren't any circular dependencies between plugins (`plugin.json`, `dependencies.plugins` field).",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -73,7 +77,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				if err != nil {
 					// Do not fail the analysis if we cannot get the dependencies from GCOM.
 					logme.ErrorF("Could not get plugin version dependency from gcom: id=%q version=%q: %v\n", dep.ID, version, err)
-					
+
 					dependantDependencies = nil
 					continue
 				}
