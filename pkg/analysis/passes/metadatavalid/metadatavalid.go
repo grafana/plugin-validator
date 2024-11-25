@@ -25,6 +25,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer, metadataschema.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{invalidMetadata, metadataNotFound},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Metadata Validity",
+		Description: "Ensures metadata is valid and matches plugin schema.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

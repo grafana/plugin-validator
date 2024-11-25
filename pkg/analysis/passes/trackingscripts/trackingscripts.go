@@ -22,6 +22,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{modulejs.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{trackingScripts},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "No Tracking Scripts",
+		Description: "Detects if there are any known tracking scripts, which are not allowed.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

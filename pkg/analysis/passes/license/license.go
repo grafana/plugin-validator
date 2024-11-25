@@ -28,6 +28,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{licenseNotProvided, licenseNotValid, licenseWithGenericText},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "License Type",
+		Description: "Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3.",
+	},
 }
 
 // note: these follow the SPDX license list: https://spdx.org/licenses/

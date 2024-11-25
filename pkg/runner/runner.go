@@ -38,6 +38,7 @@ func Check(
 	analyzers []*analysis.Analyzer,
 	params analysis.CheckParams,
 	cfg Config,
+	severityOverwrite analysis.Severity,
 ) (map[string][]analysis.Diagnostic, error) {
 	pluginId, err := utils.GetPluginId(params.ArchiveDir)
 	if err != nil {
@@ -46,7 +47,7 @@ func Check(
 		logme.Debugln("Error getting plugin id")
 	}
 
-	initAnalyzers(analyzers, &cfg, pluginId)
+	initAnalyzers(analyzers, &cfg, pluginId, severityOverwrite)
 	diagnostics := make(map[string][]analysis.Diagnostic)
 
 	pass := &analysis.Pass{
@@ -98,7 +99,7 @@ func Check(
 	return diagnostics, nil
 }
 
-func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string) {
+func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string, severityOverwrite analysis.Severity) {
 	for _, currentAnalyzer := range analyzers {
 		// Inherit global config file
 		analyzerEnabled := cfg.Global.Enabled
@@ -144,6 +145,10 @@ func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string)
 				if ruleConfig.Severity != nil {
 					ruleSeverity = *ruleConfig.Severity
 				}
+			}
+
+			if severityOverwrite != "" {
+				ruleSeverity = severityOverwrite
 			}
 
 			currentRule.Disabled = !ruleEnabled

@@ -52,6 +52,11 @@ func main() {
 			"",
 			"Run a specific analyzer",
 		)
+		analyzerSeverity = flag.String(
+			"analyzerSeverity",
+			"",
+			"Set severity of the analyzer. Only works in combination with -analyzer",
+		)
 	)
 
 	flag.Parse()
@@ -63,6 +68,7 @@ func main() {
 	logme.Debugln("archive file: ", flag.Arg(0))
 	logme.Debugln("checksum: ", *checksum)
 	logme.Debugln("analyzer: ", *analyzer)
+	logme.Debugln("analyzerSeverity: ", *analyzerSeverity)
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
@@ -112,13 +118,18 @@ func main() {
 	}
 
 	analyzers := passes.Analyzers
+	severity := analysis.Severity("")
 
 	if *analyzer != "" {
 		for _, a := range analyzers {
 			if a.Name == *analyzer {
 				analyzers = []*analysis.Analyzer{a}
+
 				break
 			}
+		}
+		if *analyzerSeverity != "" {
+			severity = analysis.Severity(*analyzerSeverity)
 		}
 	}
 
@@ -132,6 +143,7 @@ func main() {
 			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
 		},
 		cfg,
+		severity,
 	)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("check failed: %w", err))

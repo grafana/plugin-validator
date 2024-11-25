@@ -18,6 +18,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{pluginTypeSuffix},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Type Suffix (panel/app/datasource)",
+		Description: "Ensures the plugin has a valid type specified.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

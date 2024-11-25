@@ -39,6 +39,10 @@ var Analyzer = &analysis.Analyzer{
 		wrongManifest,
 		invalidShaSum,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Manifest (Signing)",
+		Description: "When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

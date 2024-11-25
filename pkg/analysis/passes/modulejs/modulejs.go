@@ -18,6 +18,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{missingModulejs},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "module.js (exists)",
+		Description: "All plugins require a `module.js` to be loaded.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

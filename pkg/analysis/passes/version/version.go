@@ -20,6 +20,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer, published.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{wrongPluginVersion},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Version",
+		Description: "Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

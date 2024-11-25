@@ -36,6 +36,10 @@ var Analyzer = &analysis.Analyzer{
 		backendFoundButNotDeclared,
 		alertingFoundButBackendFalse,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Backend Binary",
+		Description: "Validates the consistency between the existence of a binary file and plugin.json declarations for backend or alerting.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

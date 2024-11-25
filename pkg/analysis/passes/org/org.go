@@ -20,6 +20,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{missingGrafanaCloudAccount},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Organization (exists)",
+		Description: "Verifies the org specified in the plugin ID exists.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

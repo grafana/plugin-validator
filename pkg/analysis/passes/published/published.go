@@ -17,6 +17,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Published",
+		Description: "Detects whether any version of this plugin exists in the Grafana plugin catalog currently.",
+	},
 }
 
 type PluginStatus struct {

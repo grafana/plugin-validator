@@ -33,6 +33,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{manifest.Analyzer, metadata.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{unsignedPlugin, modifiedSignature, invalidSignature, privateSignature},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Signature",
+		Description: "Ensures the plugin has a valid signature.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

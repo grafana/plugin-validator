@@ -20,6 +20,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{unsafeSvgFile},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Unsafe SVG",
+		Description: "Checks if any svg files are safe based on a whitelist of elements and attributes.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

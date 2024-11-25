@@ -24,6 +24,11 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{goSecNotInstalled},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Go Security Checker",
+		Description:  "Inspects source code for security problems by scanning the Go AST.",
+		Dependencies: "[gosec](https://github.com/securego/gosec), `sourceCodeUri`",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

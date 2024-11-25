@@ -26,6 +26,11 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{jsMapNotFound},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "JS Source Map",
+		Description:  "Checks for required `module.js.map` file(s) in archive.",
+		Dependencies: "`sourceCodeUri`",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
