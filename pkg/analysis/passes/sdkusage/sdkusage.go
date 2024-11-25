@@ -42,6 +42,10 @@ var Analyzer = &analysis.Analyzer{
 		goSdkOlderThanTwoMonths,
 		goSdkOlderThanFiveMonths,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "SDK Usage",
+		Description: "Ensures that `grafana-plugin-sdk-go` is up-to-date.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

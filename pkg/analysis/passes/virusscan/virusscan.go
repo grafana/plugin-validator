@@ -42,6 +42,11 @@ var Analyzer = &analysis.Analyzer{
 	Rules: []*analysis.Rule{
 		virusScanFailed,
 	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Virus Scan",
+		Description:  "Runs a virus scan on the plugin archive and source code using `clamscan` (`clamav`).",
+		Dependencies: "clamscan",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

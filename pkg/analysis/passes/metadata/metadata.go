@@ -17,6 +17,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{missingMetadata},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "Metadata",
+		Description: "Checks that `plugin.json` exists and is valid.",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
