@@ -1,14 +1,15 @@
 package metadata
 
 type Metadata struct {
-	ID         string             `json:"id"`
-	Name       string             `json:"name"`
-	Type       string             `json:"type"`
-	Info       MetadataInfo       `json:"info"`
-	Includes   []MetatadaIncludes `json:"includes"`
-	Executable string             `json:"executable"`
-	Backend    bool               `json:"backend"`
-	Alerting   bool               `json:"alerting"`
+	ID           string               `json:"id"`
+	Name         string               `json:"name"`
+	Type         string               `json:"type"`
+	Info         MetadataInfo         `json:"info"`
+	Includes     []MetatadaIncludes   `json:"includes"`
+	Executable   string               `json:"executable"`
+	Backend      bool                 `json:"backend"`
+	Alerting     bool                 `json:"alerting"`
+	Dependencies MetadataDependencies `json:"dependencies"`
 }
 
 type MetadataInfo struct {
@@ -51,4 +52,16 @@ type MetatadaIncludes struct {
 	Role       string `json:"role"`
 	Type       string `json:"type"`
 	Uid        string `json:"uid"`
+}
+
+type MetadataDependencies struct {
+	GrafanaDependency string                     `json:"grafanaDependency"`
+	Plugins           []MetadataPluginDependency `json:"plugins"`
+}
+
+type MetadataPluginDependency struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+	Version string `json:"version"`
 }

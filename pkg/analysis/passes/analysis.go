@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/circulardependencies"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
@@ -89,4 +90,5 @@ var Analyzers = []*analysis.Analyzer{
 	unsafesvg.Analyzer,
 	version.Analyzer,
 	virusscan.Analyzer,
+	circulardependencies.Analyzer,
 }
