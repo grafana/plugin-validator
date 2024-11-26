@@ -80,13 +80,16 @@ func extractPnpmPackageNameAndVersion(dependencyPath string) (string, string) {
 	var name string
 
 	parts = parts[1:]
-
-	if strings.HasPrefix(parts[0], "@") {
-		name = strings.Join(parts[:2], "/")
-		parts = parts[2:]
+	if len(parts) > 0 {
+		if strings.HasPrefix(parts[0], "@") {
+			name = strings.Join(parts[:2], "/")
+			parts = parts[2:]
+		} else {
+			name = parts[0]
+			parts = parts[1:]
+		}
 	} else {
-		name = parts[0]
-		parts = parts[1:]
+		return "", ""
 	}
 
 	version := ""
