@@ -67,7 +67,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	state, err := getPluginSignatureState(data.ID, data.Info.Version, archiveDir, mf)
 	if err != nil {
-		return fmt.Errorf("failed to check plugin signature: %w", err), nil
+		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: failed to check plugin signature", err.Error())
+		return nil, nil
 	}
 
 	switch state {
