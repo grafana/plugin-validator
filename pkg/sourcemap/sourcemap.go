@@ -123,12 +123,11 @@ func isIgnoredFile(sourceName string) bool {
 			return true
 		}
 	}
-	// ignore external and webpack bootstrap iles
-	ignore := false
+	// ignore external and webpack bootstrap files
 	for _, ignoreStart := range ignoreStartingWith {
 		if len(sourceName) > len(ignoreStart) && sourceName[:len(ignoreStart)] == ignoreStart {
 			return true
 		}
 	}
-	return ignore
+	return false
 }

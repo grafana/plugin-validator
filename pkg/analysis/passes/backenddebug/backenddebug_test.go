@@ -5,12 +5,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
-	"github.com/stretchr/testify/require"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 var (
@@ -35,7 +36,7 @@ func TestBackendDebug_Correct(t *testing.T) {
 			pluginJSON: pluginJSONWithoutExecutable,
 		},
 	} {
-		meta, err := utils.JSONToMetadata(tc.pluginJSON)
+		meta, err := testutils.JSONToMetadata(tc.pluginJSON)
 		require.NoError(t, err)
 
 		t.Run(tc.name, func(t *testing.T) {
@@ -86,7 +87,7 @@ func TestBackendDebug(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
 
-			meta, err := utils.JSONToMetadata(tc.pluginJSON)
+			meta, err := testutils.JSONToMetadata(tc.pluginJSON)
 			require.NoError(t, err)
 
 			pass := &analysis.Pass{

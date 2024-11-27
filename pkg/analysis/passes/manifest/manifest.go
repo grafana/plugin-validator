@@ -215,11 +215,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return b, nil
 }
 
-// parseManifestFile parses the manifest file and returns a ManifestFile struct
+// parseManifestFile parses the manifest file and returns a File struct
 // it does not verify the signature only returns the content
-func parseManifestFile(b []byte) (ManifestFile, error) {
+func parseManifestFile(b []byte) (File, error) {
 	block, _ := clearsign.Decode(b)
-	manifestFile := ManifestFile{}
+	manifestFile := File{}
 	err := json.Unmarshal(block.Plaintext, &manifestFile)
 	if err != nil {
 		return manifestFile, err

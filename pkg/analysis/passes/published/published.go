@@ -40,9 +40,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// 15 seconds timeout to fetch data from grafana API
-	context, cancelContext := context.WithTimeout(context.Background(), time.Second*15)
-	defer cancelContext()
-	pluginStatus, err := getPluginDataFromGrafanaCom(context, data.ID)
+	ctx, canc := context.WithTimeout(context.Background(), time.Second*15)
+	defer canc()
+	pluginStatus, err := getPluginDataFromGrafanaCom(ctx, data.ID)
 	if err != nil {
 		// in case of any error getting the online status, skip this check
 		return &PluginStatus{

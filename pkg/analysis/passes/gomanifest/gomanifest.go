@@ -168,7 +168,7 @@ func verifyManifest(
 	goFiles []string,
 	sourceCodeDir string,
 ) ([]ManifestIssue, error) {
-	manifestIssues := []ManifestIssue{}
+	var manifestIssues []ManifestIssue
 
 	for _, goFilePath := range goFiles {
 		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
@@ -235,7 +235,7 @@ func hashFileContent(path string) (string, string, error) {
 	linuxHash := hex.EncodeToString(hLinux[:])
 
 	// Normalize data to Windows line endings and calculate the hash
-	windowsLineEndData := strings.ReplaceAll(string(linuxLineEndData), "\n", "\r\n")
+	windowsLineEndData := strings.ReplaceAll(linuxLineEndData, "\n", "\r\n")
 	hWindows := sha256.Sum256([]byte(windowsLineEndData))
 	windowsHash := hex.EncodeToString(hWindows[:])
 

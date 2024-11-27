@@ -45,12 +45,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	metadata, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	md, ok := pass.ResultOf[metadata.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
 	}
 
-	manifest, ok := pass.ResultOf[manifest.Analyzer].([]byte)
+	mf, ok := pass.ResultOf[manifest.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
 	}
@@ -61,11 +61,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			Version string `json:"version"`
 		} `json:"info"`
 	}
-	if err := json.Unmarshal(metadata, &data); err != nil {
+	if err := json.Unmarshal(md, &data); err != nil {
 		return nil, nil
 	}
 
-	state := getPluginSignatureState(data.ID, data.Info.Version, archiveDir, manifest)
+	state, err := getPluginSignatureState(data.ID, data.Info.Version, archiveDir, mf)
+	if err != nil {
+		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: failed to check plugin signature", err.Error())
+		return nil, nil
+	}
 
 	switch state {
 	case PluginSignatureUnsigned:
@@ -86,7 +90,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if state != PluginSignatureUnsigned {
-		m, err := readPluginManifest(manifest)
+		m, err := readPluginManifest(mf)
 		if err != nil {
 			return nil, err
 		}
@@ -119,43 +123,53 @@ type PluginBase struct {
 	Version   string
 }
 
-func getPluginSignatureState(pluginID, version, pluginDir string, byteValue []byte) PluginSignature {
+var errFileHashMismatch = errors.New("file hash mismatch")
+
+func checkFileSignature(fp string, expHash string) error {
+	f, err := os.Open(fp)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err = io.Copy(h, f); err != nil {
+		return err
+	}
+	sum := hex.EncodeToString(h.Sum(nil))
+	if sum != expHash {
+		return fmt.Errorf("%w: expected %q, got %q", errFileHashMismatch, expHash, sum)
+	}
+	return nil
+}
+
+func getPluginSignatureState(pluginID, version, pluginDir string, byteValue []byte) (PluginSignature, error) {
 	if len(byteValue) < 10 {
-		return PluginSignatureUnsigned
+		return PluginSignatureUnsigned, nil
 	}
 
-	manifest, err := readPluginManifest(byteValue)
+	m, err := readPluginManifest(byteValue)
 	if err != nil {
-		return PluginSignatureInvalid
+		return PluginSignatureInvalid, nil
 	}
 
 	// Make sure the versions all match
-	if manifest.Plugin != pluginID || manifest.Version != version {
-		return PluginSignatureModified
+	if m.Plugin != pluginID || m.Version != version {
+		return PluginSignatureModified, nil
 	}
 
 	// Verify the manifest contents
-	for p, hash := range manifest.Files {
-		// Open the file
-		fp := filepath.Join(pluginDir, p)
-		f, err := os.Open(fp)
+	for p, hash := range m.Files {
+		err = checkFileSignature(filepath.Join(pluginDir, p), hash)
+		if errors.Is(err, errFileHashMismatch) {
+			return PluginSignatureModified, nil
+		}
 		if err != nil {
-			return PluginSignatureModified
-		}
-		defer f.Close()
-
-		h := sha256.New()
-		if _, err := io.Copy(h, f); err != nil {
-			return PluginSignatureModified
-		}
-		sum := hex.EncodeToString(h.Sum(nil))
-		if sum != hash {
-			return PluginSignatureModified
+			return 0, err
 		}
 	}
-
 	// Everything OK
-	return PluginSignatureValid
+	return PluginSignatureValid, nil
 }
 
 // pluginManifest holds details for the file manifest
@@ -177,8 +191,8 @@ func readPluginManifest(body []byte) (*pluginManifest, error) {
 	}
 
 	// Convert to a well typed object
-	manifest := &pluginManifest{}
-	err := json.Unmarshal(block.Plaintext, &manifest)
+	m := &pluginManifest{}
+	err := json.Unmarshal(block.Plaintext, &m)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing manifest JSON: %w", err)
 	}
@@ -199,7 +213,7 @@ func readPluginManifest(body []byte) (*pluginManifest, error) {
 		return nil, fmt.Errorf("failed to check signature: %w", err)
 	}
 
-	return manifest, nil
+	return m, nil
 }
 
 func publicKey() (string, error) {

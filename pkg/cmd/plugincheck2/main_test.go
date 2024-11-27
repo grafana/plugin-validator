@@ -10,9 +10,10 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/r3labs/diff"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/grafana/plugin-validator/pkg/prettyprint"
 )
 
 type Issue struct {

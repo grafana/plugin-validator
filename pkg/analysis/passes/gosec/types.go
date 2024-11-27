@@ -17,7 +17,7 @@ type Stats struct {
 	Found int `json:"found"`
 }
 
-type GosecResult struct {
+type Result struct {
 	Issues []Issue `json:"Issues"`
 	Stats  Stats   `json:"Stats"`
 }

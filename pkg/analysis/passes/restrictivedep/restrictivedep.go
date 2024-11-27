@@ -27,7 +27,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadata, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	md, ok := pass.ResultOf[metadata.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
 	}
@@ -37,7 +37,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			GrafanaDependency string `json:"grafanaDependency"`
 		} `json:"dependencies"`
 	}
-	if err := json.Unmarshal(metadata, &data); err != nil {
+	if err := json.Unmarshal(md, &data); err != nil {
 		return nil, err
 	}
 

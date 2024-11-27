@@ -67,8 +67,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// validate that the LICENSE file is exists (filer lib method)
-	filer, err := filer.FromDirectory(archiveDir)
+	// validate that the LICENSE file exists (filer lib method)
+	f, err := filer.FromDirectory(archiveDir)
 	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,
@@ -80,7 +80,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// validate that the LICENSE file is parseable (go-license-detector lib method)
-	licenses, err := licensedb.Detect(filer)
+	licenses, err := licensedb.Detect(f)
 	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,

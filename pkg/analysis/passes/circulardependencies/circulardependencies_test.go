@@ -11,13 +11,13 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 func TestCircularDependencies(t *testing.T) {
 	t.Run("itself", func(t *testing.T) {
 		pass, interceptor := newTestPass(filepath.Join("testdata", "itself"))
-		require.NoError(t, utils.RunDependencies(pass, Analyzer))
+		require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
 		_, err := Analyzer.Run(pass)
 		require.NoError(t, err)
@@ -27,7 +27,7 @@ func TestCircularDependencies(t *testing.T) {
 
 	t.Run("with a nested plugin", func(t *testing.T) {
 		pass, interceptor := newTestPass(filepath.Join("testdata", "nested"))
-		require.NoError(t, utils.RunDependencies(pass, Analyzer))
+		require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
 		_, err := Analyzer.Run(pass)
 		require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestCircularDependencies(t *testing.T) {
 
 		t.Run("with a pinned version", func(t *testing.T) {
 			pass, interceptor := newTestPass(filepath.Join("testdata", "external-with-version"))
-			require.NoError(t, utils.RunDependencies(pass, Analyzer))
+			require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
 			_, err := Analyzer.Run(pass)
 			require.NoError(t, err)
@@ -69,7 +69,7 @@ func TestCircularDependencies(t *testing.T) {
 
 		t.Run("without a pinned version", func(t *testing.T) {
 			pass, interceptor := newTestPass(filepath.Join("testdata", "external-without-version"))
-			require.NoError(t, utils.RunDependencies(pass, Analyzer))
+			require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
 			_, err := Analyzer.Run(pass)
 			require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestCircularDependencies(t *testing.T) {
 		}
 
 		pass, interceptor := newTestPass(filepath.Join("testdata", "external-without-version"))
-		require.NoError(t, utils.RunDependencies(pass, Analyzer))
+		require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 		_, err := Analyzer.Run(pass)
 		require.NoError(t, err)
 		require.Len(t, interceptor.Diagnostics, 0)

@@ -4,11 +4,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
-	"github.com/stretchr/testify/require"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 const pluginId = "test-plugin-panel"
@@ -25,7 +26,7 @@ func TestValidLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -55,7 +56,7 @@ func TestEmptyLargeLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -90,7 +91,7 @@ func TestEmptySmallLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -126,7 +127,7 @@ func TestValidNestedLogos(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -167,10 +168,10 @@ func TestNestedPluginJsonMissingSmallLogo(t *testing.T) {
     }
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
-	wrongMeta, err := utils.JSONToMetadata(wrongPluginJsonContent)
+	wrongMeta, err := testutils.JSONToMetadata(wrongPluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

@@ -13,14 +13,14 @@ func (t *TestPassInterceptor) ReportInterceptor() func(string, analysis.Diagnost
 }
 
 func (t *TestPassInterceptor) GetTitles() []string {
-	titles := []string{}
+	var titles []string
 	for _, d := range t.Diagnostics {
 		titles = append(titles, d.Title)
 	}
 	return titles
 }
 func (t *TestPassInterceptor) GetDetails() []string {
-	details := []string{}
+	var details []string
 	for _, d := range t.Diagnostics {
 		details = append(details, d.Detail)
 	}

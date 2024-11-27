@@ -4,13 +4,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/grafana/plugin-validator/pkg/utils"
-	"github.com/jarcoal/httpmock"
-	"github.com/stretchr/testify/require"
+	"github.com/grafana/plugin-validator/pkg/testutils"
 )
 
 func TestGoModNotFound(t *testing.T) {
@@ -21,7 +22,7 @@ func TestGoModNotFound(t *testing.T) {
     "executable": "gx_plugin"
   }`)
 
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -52,7 +53,7 @@ func TestGoModNotParseable(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -106,7 +107,7 @@ func TestValidGoMod(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -132,7 +133,7 @@ func TestValidGoModWithNoGrafanaSdk(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -192,7 +193,7 @@ func TestTwoMonthsOldSdk(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{
@@ -253,7 +254,7 @@ func TestFiveMonthsOld(t *testing.T) {
     "backend": true,
     "executable": "gx_plugin"
   }`)
-	meta, err := utils.JSONToMetadata(pluginJsonContent)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
 	require.NoError(t, err)
 
 	pass := &analysis.Pass{

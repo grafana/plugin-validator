@@ -70,7 +70,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	var goSectResults GosecResult
+	var goSectResults Result
 	err = json.Unmarshal(goSecOutput, &goSectResults)
 	if err != nil {
 		fmt.Println("Error running gosec", err)

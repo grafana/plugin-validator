@@ -57,6 +57,7 @@ func TestExpandGrafanaPackagesFromNPM(t *testing.T) {
 	require.Len(t, expandedGrafanaData.Dependencies, 61)
 
 	expandedGrafanaToolkit, err := ExpandPackage("@grafana/toolkit", packages)
+	require.NotNil(t, err)
 	require.Equal(t, err.Error(), "package not found: @grafana/toolkit")
 	require.Nil(t, expandedGrafanaToolkit)
 
@@ -87,6 +88,7 @@ func TestExpandGrafanaPackagesFromPnpm(t *testing.T) {
 	require.Len(t, expandedGrafanaData.Dependencies, 64)
 
 	expandedGrafanaToolkit, err := ExpandPackage("@grafana/toolkit", packages)
+	require.NotNil(t, err)
 	require.Equal(t, err.Error(), "package not found: @grafana/toolkit")
 	require.Nil(t, expandedGrafanaToolkit)
 

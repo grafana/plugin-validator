@@ -4,44 +4,44 @@ type Metadata struct {
 	ID           string               `json:"id"`
 	Name         string               `json:"name"`
 	Type         string               `json:"type"`
-	Info         MetadataInfo         `json:"info"`
-	Includes     []MetatadaIncludes   `json:"includes"`
+	Info         Info                 `json:"info"`
+	Includes     []Includes           `json:"includes"`
 	Executable   string               `json:"executable"`
 	Backend      bool                 `json:"backend"`
 	Alerting     bool                 `json:"alerting"`
 	Dependencies MetadataDependencies `json:"dependencies"`
 }
 
-type MetadataInfo struct {
-	Author      MetadataAuthor        `json:"author"`
-	Screenshots []MetadataScreenshots `json:"screenshots"`
-	Logos       MetadataLogos         `json:"logos"`
-	Links       []MetadataLink        `json:"links"`
-	Version     string                `json:"version"`
-	Keywords    []string              `json:"keywords"`
-	Description string                `json:"description"`
+type Info struct {
+	Author      Author        `json:"author"`
+	Screenshots []Screenshots `json:"screenshots"`
+	Logos       Logos         `json:"logos"`
+	Links       []Link        `json:"links"`
+	Version     string        `json:"version"`
+	Keywords    []string      `json:"keywords"`
+	Description string        `json:"description"`
 }
 
-type MetadataAuthor struct {
+type Author struct {
 	URL string `json:"url"`
 }
 
-type MetadataScreenshots struct {
+type Screenshots struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 }
 
-type MetadataLogos struct {
+type Logos struct {
 	Small string `json:"small"`
 	Large string `json:"large"`
 }
 
-type MetadataLink struct {
+type Link struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
 }
 
-type MetatadaIncludes struct {
+type Includes struct {
 	Action     string `json:"action"`
 	AddToNav   bool   `json:"addToNav"`
 	Component  string `json:"component"`

@@ -2,6 +2,7 @@ package org
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -51,9 +52,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	_, err := client.FindOrgBySlug(username)
 	if err != nil {
-		if err == grafana.ErrOrganizationNotFound {
+		if errors.Is(err, grafana.ErrOrganizationNotFound) {
 			pass.ReportResult(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username), "The plugin's ID is prefixed with a Grafana Cloud account name, but that account does not exist. Please create the account or correct the name.")
-		} else if err == grafana.ErrPrivateOrganization {
+		} else if errors.Is(err, grafana.ErrPrivateOrganization) {
 			return nil, nil
 		}
 		return nil, err

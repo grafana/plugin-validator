@@ -74,7 +74,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		executableName := filepath.Base(executable)
 
 		// walk all files in executableParentDir
-		var foundBinaries = []string{}
+		var foundBinaries []string
 		err := filepath.WalkDir(
 			executableParentDir,
 			func(path string, d fs.DirEntry, err error) error {
