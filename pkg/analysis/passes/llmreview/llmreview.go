@@ -15,7 +15,6 @@ import (
 var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
-	llminiterror  = &analysis.Rule{Name: "llminit-error", Severity: analysis.Warning}
 	llmIssueFound = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
 )
 
@@ -23,7 +22,12 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "llmreview",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{llminiterror, llmIssueFound},
+	Rules:    []*analysis.Rule{llmIssueFound},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "LLM Review",
+		Description:  "Runs the code through Gemini LLM to check for security issues or disallowed usage.",
+		Dependencies: "Gemini API key",
+	},
 }
 
 var questions = []string{

@@ -23,6 +23,10 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer, sourcecode.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{packagejsonNotFound},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:        "package.json",
+		Description: "Ensures that package.json exists and the version matches the plugin.json",
+	},
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {

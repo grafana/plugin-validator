@@ -9,7 +9,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 )
 
 const readmeFileName = "README.md"
@@ -55,6 +58,16 @@ func TestGenReadme(t *testing.T) {
 			string(existingReadme), gen,
 			"README.md is not up-to-date. Run `mage gen:readme` to update it.",
 		)
+	})
+
+	t.Run("all analyzers must have readme data", func(t *testing.T) {
+		for _, analyzer := range passes.Analyzers {
+			assert.Falsef(
+				t,
+				analyzer.ReadmeInfo.Name == "" && analyzer.ReadmeInfo.Description == "",
+				"analyzer %q does not have README data", analyzer.Name,
+			)
+		}
 	})
 }
 

@@ -239,25 +239,31 @@ Run "mage gen:readme" to regenerate this section.
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
 | License Type / `license` | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3. | None |
+| LLM Review / `llmreview` | Runs the code through Gemini LLM to check for security issues or disallowed usage. | Gemini API key |
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
 | Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |
+| Metadata / `metadata` | Checks that `plugin.json` exists and is valid. | None |
 | Metadata Paths / `metadatapaths` | Ensures all paths are valid and images referenced exist. | None |
 | Metadata Validity / `metadatavalid` | Ensures metadata is valid and matches plugin schema. | None |
 | module.js (exists) / `modulejs` | All plugins require a `module.js` to be loaded. | None |
 | Nested includes metadata / `includesnested` | Validates that nested plugins have the correct metadata. | None |
+| Nested Metadata / `nestedmetadata` | Recursively checks that all `plugin.json` exist and are valid. | None |
 | No Tracking Scripts / `trackingscripts` | Detects if there are any known tracking scripts, which are not allowed. | None |
 | Organization (exists) / `org` | Verifies the org specified in the plugin ID exists. | None |
+| package.json / `packagejson` | Ensures that package.json exists and the version matches the plugin.json | None |
 | Plugin Name formatting / `pluginname` | Validates the plugin ID used conforms to our naming convention. | None |
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
 | Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
 | Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
 | Screenshots / `screenshots` | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog. | None |
+| SDK Usage / `sdkusage` | Ensures that `grafana-plugin-sdk-go` is up-to-date. | None |
 | Signature / `signature` | Ensures the plugin has a valid signature. | None |
 | Source Code / `sourcecode` | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it. | `sourceCodeUri` |
 | Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified. | None |
 | Unique README.md / `templatereadme` | Ensures the plugin doesn't re-use the template from the `create-plugin` tool. | None |
 | Unsafe SVG / `manifest` | Checks if any svg files are safe based on a whitelist of elements and attributes. | None |
 | Version / `version` | Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped. | None |
+| Virus Scan / `virusscan` | Runs a virus scan on the plugin archive and source code using `clamscan` (`clamav`). | clamscan |
 | Vulnerability Scanner / `osv-scanner` | Detects critical vulnerabilities in Go modules and yarn lock files. | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |
 <!-- analyzers-table-end -->
 

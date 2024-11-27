@@ -10,7 +10,6 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
-	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 const (
@@ -25,6 +24,9 @@ Run "mage gen:readme" to regenerate this section.
 `
 )
 
+// generate returns the new README content with the analyzers table updated.
+// The table's content is generated from `passes.Analyzers`.
+// The README must contain the magic tags, otherwise an error is returned.
 func generate(readme io.Reader) (string, error) {
 	var tableBuilder strings.Builder
 	tableBuilder.WriteString(header)
@@ -37,7 +39,6 @@ func generate(readme io.Reader) (string, error) {
 	// Generate table content
 	for _, analyzer := range passes.Analyzers {
 		if analyzer.ReadmeInfo.Name == "" && analyzer.ReadmeInfo.Description == "" {
-			logme.ErrorF("Warning: Analyzer %q does not have README data.\n", analyzer.Name)
 			continue
 		}
 		dependencies := analyzer.ReadmeInfo.Dependencies
