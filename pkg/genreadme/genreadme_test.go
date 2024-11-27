@@ -60,7 +60,7 @@ func TestGenReadme(t *testing.T) {
 		)
 	})
 
-	t.Run("all analyzers should have readme data", func(t *testing.T) {
+	t.Run("all analyzers must have readme data", func(t *testing.T) {
 		for _, analyzer := range passes.Analyzers {
 			assert.Falsef(
 				t,
