@@ -17,9 +17,10 @@ import (
 )
 
 var (
-	licenseNotProvided     = &analysis.Rule{Name: "license-not-provided", Severity: analysis.Error}
-	licenseNotValid        = &analysis.Rule{Name: "license-not-valid", Severity: analysis.Error}
-	licenseWithGenericText = &analysis.Rule{
+	licenseNotProvided      = &analysis.Rule{Name: "license-not-provided", Severity: analysis.Error}
+	licenseNotValid         = &analysis.Rule{Name: "license-not-valid", Severity: analysis.Error}
+	licenseDetectionTimeout = &analysis.Rule{Name: "license-detection-timeout", Severity: analysis.Error}
+	licenseWithGenericText  = &analysis.Rule{
 		Name:     "license-with-generic-text",
 		Severity: analysis.Warning,
 	}
@@ -134,7 +135,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case <-time.After(time.Second * 30):
 		pass.ReportResult(
 			pass.AnalyzerName,
-			licenseNotProvided,
+			licenseDetectionTimeout,
 			"LICENSE file detection timeout.",
 			"Could not detect the license file inside the plugin archive within 30s. Please make sure to include a valid license in your LICENSE file in your archive.",
 		)
