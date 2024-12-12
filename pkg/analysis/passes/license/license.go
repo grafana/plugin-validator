@@ -136,7 +136,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			licenseDetectionTimeout,
-			"LICENSE file detection timeout.",
+			"License file detection timeout.",
 			"Could not detect the license file inside the plugin archive within 30s. Please make sure to include a valid license in your LICENSE file in your archive.",
 		)
 		return nil, nil
