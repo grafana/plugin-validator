@@ -82,20 +82,32 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	ch := make(chan map[string]api.Match, 1)
-	defer close(ch)
+	resultCh := make(chan map[string]api.Match, 1)
+	errCh := make(chan error, 1)
 	go func() {
 		// validate that the LICENSE file is parseable (go-license-detector lib method)
 		licenses, err := licensedb.Detect(f)
 		if err != nil {
-			ch <- nil
+			errCh <- err
+			close(resultCh)
 			return
 		}
-		ch <- licenses
+		resultCh <- licenses
+		close(errCh)
 	}()
 
 	select {
-	case licenses := <-ch:
+	case err = <-errCh:
+		if err != nil {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				licenseNotProvided,
+				"LICENSE file could not be parsed.",
+				"Could not parse the license file inside the plugin archive. Please make sure to include a valid license in your LICENSE file in your archive.",
+			)
+			return nil, nil
+		}
+	case licenses := <-resultCh:
 		var foundLicense = false
 		for licenseName, licenseData := range licenses {
 			if licenseData.Confidence >= minRequiredConfidenceLevel && isValidLicense(licenseName) {
