@@ -1,7 +1,6 @@
 package license
 
 import (
-	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -73,13 +72,25 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// validate that the LICENSE file exists (filer lib method)
+	f, err := filer.FromDirectory(archiveDir)
+	if err != nil {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			licenseNotProvided,
+			"LICENSE file not found",
+			"Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.",
+		)
+		return nil, nil
+	}
+
+	// Filter out all non-text files, or the license detector may time out if, for some reason,
+	// it decides to scan backend executables.
+	f = newMimeTypeFiler(f, "text/")
+
 	resultCh := make(chan map[string]api.Match, 1)
 	errCh := make(chan error, 1)
 	go func() {
 		// validate that the LICENSE file is parseable (go-license-detector lib method)
-		// Filter out all non-text files, or the license detector may time out if, for some reason,
-		// it decides to scan backend executables.
-		f := newMimeTypeFiler(os.DirFS(archiveDir), "text/")
 		licenses, err := licensedb.Detect(f)
 		if err != nil {
 			errCh <- err
@@ -170,9 +181,9 @@ type mimeTypeFiler struct {
 }
 
 // newMimeTypeFiler creates a new mimeTypeFiler.
-func newMimeTypeFiler(osFs fs.FS, wantedMimeTypePrefix string) *mimeTypeFiler {
+func newMimeTypeFiler(f filer.Filer, wantedMimeTypePrefix string) *mimeTypeFiler {
 	return &mimeTypeFiler{
-		Filer:                filer.FromFS(osFs),
+		Filer:                f,
 		wantedMimeTypePrefix: wantedMimeTypePrefix,
 	}
 }
