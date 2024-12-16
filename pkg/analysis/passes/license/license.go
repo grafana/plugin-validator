@@ -1,6 +1,8 @@
 package license
 
 import (
+	"io/fs"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -71,21 +73,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// validate that the LICENSE file exists (filer lib method)
-	f, err := filer.FromDirectory(archiveDir)
-	if err != nil {
-		pass.ReportResult(
-			pass.AnalyzerName,
-			licenseNotProvided,
-			"LICENSE file not found",
-			"Could not find a license file inside the plugin archive. Please make sure to include a LICENSE file in your archive.",
-		)
-		return nil, nil
-	}
-
 	resultCh := make(chan map[string]api.Match, 1)
 	errCh := make(chan error, 1)
 	go func() {
 		// validate that the LICENSE file is parseable (go-license-detector lib method)
+		// Filter out all non-text files, or the license detector may time out if, for some reason,
+		// it decides to scan backend executables.
+		f := newMimeTypeFiler(os.DirFS(archiveDir), "text/")
 		licenses, err := licensedb.Detect(f)
 		if err != nil {
 			errCh <- err
@@ -164,4 +158,45 @@ func isValidLicense(licenseName string) bool {
 		}
 	}
 	return false
+}
+
+// mimeTypeFiler is a filer that filters files by their MIME type.
+// Only the files with the MIME type starting with wantedMimeTypePrefix are returned by ReadDir.
+type mimeTypeFiler struct {
+	filer.Filer
+
+	// wantedMimeTypePrefix is the prefix of the MIME type that the files must have to be returned by ReadDir.
+	wantedMimeTypePrefix string
+}
+
+// newMimeTypeFiler creates a new mimeTypeFiler.
+func newMimeTypeFiler(osFs fs.FS, wantedMimeTypePrefix string) *mimeTypeFiler {
+	return &mimeTypeFiler{
+		Filer:                filer.FromFS(osFs),
+		wantedMimeTypePrefix: wantedMimeTypePrefix,
+	}
+}
+
+// ReadDir reads the directory and returns only the files with the MIME type starting with wantedMimeTypePrefix.
+func (f *mimeTypeFiler) ReadDir(path string) ([]filer.File, error) {
+	originalFiles, err := f.Filer.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	filteredFiles := make([]filer.File, 0, len(originalFiles))
+	for _, ff := range originalFiles {
+		if ff.IsDir {
+			continue
+		}
+		content, err := f.ReadFile(ff.Name)
+		if err != nil {
+			return nil, err
+		}
+		mimeType := http.DetectContentType(content)
+		if !strings.HasPrefix(mimeType, f.wantedMimeTypePrefix) {
+			continue
+		}
+		filteredFiles = append(filteredFiles, ff)
+	}
+	return filteredFiles, nil
 }
