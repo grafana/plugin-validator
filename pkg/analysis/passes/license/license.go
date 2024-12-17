@@ -1,6 +1,7 @@
 package license
 
 import (
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -81,6 +82,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 		return nil, nil
 	}
+
+	// Filter out all non-text files, or the license detector may time out if, for some reason,
+	// it decides to scan backend executables.
+	f = newMimeTypeFiler(f, "text/")
 
 	resultCh := make(chan map[string]api.Match, 1)
 	errCh := make(chan error, 1)
@@ -164,4 +169,45 @@ func isValidLicense(licenseName string) bool {
 		}
 	}
 	return false
+}
+
+// mimeTypeFiler is a filer that filters files by their MIME type.
+// Only the files with the MIME type starting with wantedMimeTypePrefix are returned by ReadDir.
+type mimeTypeFiler struct {
+	filer.Filer
+
+	// wantedMimeTypePrefix is the prefix of the MIME type that the files must have to be returned by ReadDir.
+	wantedMimeTypePrefix string
+}
+
+// newMimeTypeFiler creates a new mimeTypeFiler.
+func newMimeTypeFiler(f filer.Filer, wantedMimeTypePrefix string) *mimeTypeFiler {
+	return &mimeTypeFiler{
+		Filer:                f,
+		wantedMimeTypePrefix: wantedMimeTypePrefix,
+	}
+}
+
+// ReadDir reads the directory and returns only the files with the MIME type starting with wantedMimeTypePrefix.
+func (f *mimeTypeFiler) ReadDir(path string) ([]filer.File, error) {
+	originalFiles, err := f.Filer.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	filteredFiles := make([]filer.File, 0, len(originalFiles))
+	for _, ff := range originalFiles {
+		if ff.IsDir {
+			continue
+		}
+		content, err := f.ReadFile(ff.Name)
+		if err != nil {
+			return nil, err
+		}
+		mimeType := http.DetectContentType(content)
+		if !strings.HasPrefix(mimeType, f.wantedMimeTypePrefix) {
+			continue
+		}
+		filteredFiles = append(filteredFiles, ff)
+	}
+	return filteredFiles, nil
 }
