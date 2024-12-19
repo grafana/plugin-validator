@@ -161,7 +161,7 @@ func main() {
 				Name:     "zip-invalid",
 				Severity: analysis.Error,
 				Title:    "Plugin archive is improperly structured",
-				Context:  "Could not find a plugin.json in the expected located. It is possible your plugin archive structure is incorrect.",
+				Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 			}
 			diags["archive"] = append(diags["archive"], archiveDiag)
 		}
