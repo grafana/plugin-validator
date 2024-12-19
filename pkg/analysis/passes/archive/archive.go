@@ -42,9 +42,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(fis) != 1 {
-		pass.ReportResult(pass.AnalyzerName, moreThanOneDir,
+		pass.ReportResult(
+			pass.AnalyzerName,
+			moreThanOneDir,
 			"Archive contains more than one directory",
-			fmt.Sprintf("Archive should contain only one directory named after plugin id. Found %d directories", len(fis)))
+			fmt.Sprintf(
+				"Archive should contain only one directory named after plugin id. Found %d directories. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+				len(fis),
+			),
+		)
 		return nil, nil
 	}
 	if moreThanOneDir.ReportAll {
@@ -53,7 +59,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if !fis[0].IsDir() {
-		pass.ReportResult(pass.AnalyzerName, noRootDir, "archive does not contain a root directory", "Archive should contain a single root directory. Found a file instead")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			noRootDir,
+			"archive does not contain a root directory",
+			"Archive should contain a single root directory. Found a file instead. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+		)
 		return nil, nil
 	}
 	if noRootDir.ReportAll {
@@ -76,7 +87,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	pass.ReportResult(pass.AnalyzerName, dist, "dist should be renamed to plugin id and moved to root", "")
+	pass.ReportResult(
+		pass.AnalyzerName,
+		dist,
+		"dist should be renamed to plugin id and moved to root. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+		"",
+	)
 
 	return legacyRoot, nil
 }

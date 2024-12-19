@@ -33,7 +33,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	b, err := os.ReadFile(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		if os.IsNotExist(err) {
-			pass.ReportResult(pass.AnalyzerName, missingMetadata, "missing plugin.json", "A plugin.json file is required to describe the plugin.")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				missingMetadata,
+				"missing plugin.json",
+				"A plugin.json file is required to describe the plugin. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+			)
 			return nil, nil
 		} else {
 			if missingMetadata.ReportAll {
