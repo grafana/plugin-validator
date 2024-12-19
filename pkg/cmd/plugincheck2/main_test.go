@@ -130,13 +130,13 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "error",
 							Title:    "Archive contains more than one directory",
-							Detail:   "Archive should contain only one directory named after plugin id. Found 7 directories",
+							Detail:   "Archive should contain only one directory named after plugin id. Found 7 directories. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 							Name:     "more-than-one-dir",
 						},
 						{
 							Severity: "error",
 							Title:    "Plugin archive is improperly structured",
-							Detail:   "",
+							Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 							Name:     "zip-invalid",
 						},
 					},
@@ -154,7 +154,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "error",
 							Title:    "Archive should contain a directory named invalid-panel",
-							Detail:   "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files.",
+							Detail:   "The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 							Name:     "no-ident-root-dir",
 						},
 					},
@@ -321,7 +321,7 @@ func TestIntegration(t *testing.T) {
 			assert.NoError(t, err)
 
 			if len(changelog) > 0 {
-				t.Logf("Changes found: %d\n", len(changelog))
+				t.Logf("Changes found: %d in %s\n", len(changelog), tcName)
 				prettyJson, _ := json.MarshalIndent(changelog, "", "\t")
 				fmt.Println(string(prettyJson))
 			}

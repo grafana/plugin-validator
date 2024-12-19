@@ -7,10 +7,7 @@ config/custom.yaml
 .bin
 .npmrc
 
-# binaries
-plugincheck
-plugincheck2
-sourcemapdiff
+bin/
 
 # osv-scanner and other testdata.
 # GoLand creates those but we don't need them.
