@@ -15,13 +15,34 @@ import (
 )
 
 var (
-	scanningFailure                    = &analysis.Rule{Name: "osv-scanner-failed", Severity: analysis.Warning}
-	scanningParseFailure               = &analysis.Rule{Name: "osv-scanner-parse-failed", Severity: analysis.Warning}
-	scanningSucceeded                  = &analysis.Rule{Name: "osv-scanner-succeeded", Severity: analysis.Warning}
-	osvScannerCriticalSeverityDetected = &analysis.Rule{Name: "osv-scanner-critical-severity-vulnerabilities-detected", Severity: analysis.Warning} // This will be set to Error once stable
-	osvScannerHighSeverityDetected     = &analysis.Rule{Name: "osv-scanner-high-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerModerateSeverityDetected = &analysis.Rule{Name: "osv-scanner-moderate-severity-vulnerabilities-detected", Severity: analysis.Warning}
-	osvScannerLowSeverityDetected      = &analysis.Rule{Name: "osv-scanner-low-severity-vulnerabilities-detected", Severity: analysis.Warning}
+	scanningFailure = &analysis.Rule{
+		Name:     "osv-scanner-failed",
+		Severity: analysis.Warning,
+	}
+	scanningParseFailure = &analysis.Rule{
+		Name:     "osv-scanner-parse-failed",
+		Severity: analysis.Warning,
+	}
+	scanningSucceeded = &analysis.Rule{
+		Name:     "osv-scanner-succeeded",
+		Severity: analysis.Warning,
+	}
+	osvScannerCriticalSeverityDetected = &analysis.Rule{
+		Name:     "osv-scanner-critical-severity-vulnerabilities-detected",
+		Severity: analysis.Error,
+	}
+	osvScannerHighSeverityDetected = &analysis.Rule{
+		Name:     "osv-scanner-high-severity-vulnerabilities-detected",
+		Severity: analysis.Error,
+	}
+	osvScannerModerateSeverityDetected = &analysis.Rule{
+		Name:     "osv-scanner-moderate-severity-vulnerabilities-detected",
+		Severity: analysis.Warning,
+	}
+	osvScannerLowSeverityDetected = &analysis.Rule{
+		Name:     "osv-scanner-low-severity-vulnerabilities-detected",
+		Severity: analysis.Warning,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -201,7 +222,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// nothing to do...
 		scanningSucceeded.Severity = analysis.OK
 		if scanningSucceeded.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, scanningSucceeded, "osv-scanner skipped", "Scanning skipped: No lock files detected")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				scanningSucceeded,
+				"osv-scanner skipped",
+				"Scanning skipped: No lock files detected",
+			)
 		}
 	}
 
