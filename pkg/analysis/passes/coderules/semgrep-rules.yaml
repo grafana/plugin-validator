@@ -156,5 +156,5 @@ rules:
         - "*.test.tsx"
         - "*.js"
     message: "The `topnav` toggle is deprecated and will be removed in a future version of Grafana. Plugins should default to using the code where the toggle is enabled."
-    languages: [javascript, typescript]
+    languages: [typescript]
     severity: WARNING
