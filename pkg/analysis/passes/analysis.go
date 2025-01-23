@@ -32,6 +32,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/packagejson"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/pluginname"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/provenance"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
@@ -77,6 +78,7 @@ var Analyzers = []*analysis.Analyzer{
 	osvscanner.Analyzer,
 	packagejson.Analyzer,
 	pluginname.Analyzer,
+	provenance.Analyzer,
 	published.Analyzer,
 	readme.Analyzer,
 	restrictivedep.Analyzer,

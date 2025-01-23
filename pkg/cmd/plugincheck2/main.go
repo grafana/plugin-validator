@@ -83,11 +83,27 @@ func main() {
 
 	pluginURL := flag.Args()[0]
 
+	// read archive file into bytes
 	b, err := archivetool.ReadArchive(pluginURL)
 	if err != nil {
 		logme.Errorln(fmt.Errorf("couldn't fetch plugin archive: %w", err))
 		os.Exit(1)
 	}
+
+	// write archive to a temp file
+	tmpZip, err := os.CreateTemp("", "plugin-archive")
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't create temporary file: %w", err))
+		os.Exit(1)
+	}
+	defer os.Remove(tmpZip.Name())
+
+	if _, err := tmpZip.Write(b); err != nil {
+		logme.Errorln(fmt.Errorf("couldn't write temporary file: %w", err))
+		os.Exit(1)
+	}
+
+	logme.Debugln(fmt.Sprintf("Archive copied to tmp file: %s", tmpZip.Name()))
 
 	md5hasher := md5.New()
 	md5hasher.Write(b)
@@ -136,8 +152,10 @@ func main() {
 	diags, err := runner.Check(
 		analyzers,
 		analysis.CheckParams{
+			ArchiveFile:           tmpZip.Name(),
 			ArchiveDir:            archiveDir,
 			SourceCodeDir:         sourceCodeDir,
+			SourceCodeReference:   *sourceCodeUri,
 			Checksum:              *checksum,
 			ArchiveCalculatedMD5:  fmt.Sprintf("%x", md5hash),
 			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
