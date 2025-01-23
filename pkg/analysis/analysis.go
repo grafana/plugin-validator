@@ -24,10 +24,19 @@ type Pass struct {
 }
 
 type CheckParams struct {
-	ArchiveDir            string
-	SourceCodeDir         string
-	Checksum              string
-	ArchiveCalculatedMD5  string
+	// contains the path passed to the validator. can be a file or a url
+	ArchiveFile string
+	// contains the path to the extracted files from the ArchiveFile
+	ArchiveDir string
+	// contains the path to the plugin source code
+	SourceCodeDir string
+	// contains the reference passed to the validator as source code, can be a folder or an url
+	SourceCodeReference string
+	// contains the checksum passed to the validator as an argument
+	Checksum string
+	// contains the md5 checksum calculated from the archive
+	ArchiveCalculatedMD5 string
+	// contains the sha1 checksum calculated from the archive
 	ArchiveCalculatedSHA1 string
 }
 

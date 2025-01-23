@@ -252,6 +252,7 @@ Run "mage gen:readme" to regenerate this section.
 | Organization (exists) / `org` | Verifies the org specified in the plugin ID exists. | None |
 | package.json / `packagejson` | Ensures that package.json exists and the version matches the plugin.json | None |
 | Plugin Name formatting / `pluginname` | Validates the plugin ID used conforms to our naming convention. | None |
+| Provenance attestation validation / `provenance` | Validates the provenance attestation if the plugin was built with a pipeline supporting provenance attestation (e.g Github Actions). | None |
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
 | Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
 | Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
