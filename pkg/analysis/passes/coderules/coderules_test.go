@@ -183,6 +183,6 @@ func TestTopnavToggle(t *testing.T) {
 	require.Equal(
 		t,
 		interceptor.Diagnostics[0].Severity,
-		analysis.Warning,
+		analysis.Error,
 	)
 }
