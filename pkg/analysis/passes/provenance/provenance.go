@@ -55,7 +55,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 		// add instructions if the source code reference is a github repo
 		if strings.Contains(pass.CheckParams.ArchiveFile, "github.com") {
-			detail = "Cannot verify plugin build. To enable verification, see the documentation on implementing build attestation: https://github.com/grafana/plugin-actions/tree/main/build-plugin#add-attestation-to-your-existing-workflow"
+			detail = "Cannot verify plugin build. To enable verification, see the documentation on implementing build attestation: https://grafana.com/developers/plugin-tools/publish-a-plugin/build-automation#enable-provenance-attestation"
 		}
 		pass.ReportResult(
 			pass.AnalyzerName,
@@ -78,7 +78,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			invalidProvenanceAttestation,
 			message,
-			"Please verify your workflow attestation settings. See the documentation on implementing build attestation: https://github.com/grafana/plugin-actions/tree/main/build-plugin#add-attestation-to-your-existing-workflow",
+			"Please verify your workflow attestation settings. See the documentation on implementing build attestation: https://grafana.com/developers/plugin-tools/publish-a-plugin/build-automation#enable-provenance-attestation",
 		)
 		return nil, nil
 	}
