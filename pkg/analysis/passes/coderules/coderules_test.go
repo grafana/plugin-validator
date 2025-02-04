@@ -152,3 +152,37 @@ func TestJSConsoleLog(t *testing.T) {
 		analysis.Warning,
 	)
 }
+
+func TestTopnavToggle(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "topnav-toggle"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"The `topnav` toggle is deprecated and will be removed in a future version of Grafana. Plugins should default to using the code where the toggle is enabled.",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Code rule violation found in testdata/topnav-toggle/src/index.ts at line 5",
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Severity,
+		analysis.Error,
+	)
+}
