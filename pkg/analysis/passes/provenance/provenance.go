@@ -1,11 +1,11 @@
 package provenance
 
 import (
-	"bytes"
-	"encoding/json"
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 
@@ -38,14 +38,13 @@ var Analyzer = &analysis.Analyzer{
 }
 
 var githubRe = regexp.MustCompile(`https://github\.com\/([^/]+)/([^/]+)`)
+var githubToken = os.Getenv("GITHUB_TOKEN")
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	_, err := getGithubCliPath()
-	if err != nil {
+	if githubToken == "" {
 		logme.Debugln(
-			"Skipping provenance attestation check because gh is not installed. Please install it and try again.",
-			err,
+			"Skipping provenance attestation check because GITHUB_TOKEN is not set",
 		)
 		return nil, nil
 	}
@@ -68,17 +67,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	owner := matches[1]
-	repo := matches[2]
 
-	attestationPipeline, err := getGithubProvenanceAttestationPipeline(
+	hasGithubProvenanceAttestationPipeline, err := hasGithubProvenanceAttestationPipeline(
 		pass.CheckParams.ArchiveFile,
-		fmt.Sprintf("%s/%s", owner, repo),
+		owner,
 	)
-	if err != nil || attestationPipeline == "" {
-		message := "Cannot verify plugin build."
-		if err != nil {
-			message = fmt.Sprintf("%s %s", message, err)
-		}
+	if err != nil || !hasGithubProvenanceAttestationPipeline {
+		message := "Cannot verify plugin build provenance attestation."
 		pass.ReportResult(
 			pass.AnalyzerName,
 			invalidProvenanceAttestation,
@@ -94,76 +89,85 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			noProvenanceAttestation,
 			"Provenance attestation found",
-			attestationPipeline,
+			"", // TODO add details
 		)
 	}
 
 	return nil, nil
 }
 
-func getGithubProvenanceAttestationPipeline(assetPath string, repo string) (string, error) {
-
-	ghCliBin, err := getGithubCliPath()
+func hasGithubProvenanceAttestationPipeline(assetPath string, owner string) (bool, error) {
+	sha256sum, err := getFileSha256(assetPath)
 	if err != nil {
-		return "", err
+		return false, err
 	}
 
-	ghCommand := fmt.Sprintf(
-		"%s attestation verify --format json --repo %s %s",
-		ghCliBin,
-		repo,
-		assetPath,
+	url := fmt.Sprintf("https://api.github.com/users/%s/attestations/sha256:%s", owner, sha256sum)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Accept", "application/vnd.github+json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", githubToken))
+	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, fmt.Errorf("failed to make request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// A 200 status code means attestations were found
+	if resp.StatusCode == http.StatusOK {
+		logme.Debugln("Provenance attestation found. Got a 200 status code")
+		return true, nil
+	}
+
+	// A 404 means no attestations were found
+	if resp.StatusCode == http.StatusNotFound {
+		logme.Debugln("Provenance attestation not found. Got a 404 status code")
+		return false, nil
+	}
+
+	// Any other status code is treated as an error
+	body, _ := io.ReadAll(resp.Body)
+	return false, fmt.Errorf(
+		"unexpected response from GitHub API (status %d): %s",
+		resp.StatusCode,
+		string(body),
 	)
-
-	//run ghCommand adding GH_TOKEN in a fresh ENV
-	cmd := exec.Command("sh", "-c", ghCommand)
-	cmd.Env = os.Environ()
-
-	cmd.Stderr = &bytes.Buffer{}
-	out, err := cmd.Output()
-	if err != nil {
-		errOut := ""
-		if stderr, ok := cmd.Stderr.(*bytes.Buffer); ok {
-			errOut = stderr.String()
-			if strings.Contains(strings.ToLower(errOut), "http 404") {
-				return "", fmt.Errorf("Attestation not found for asset %s", assetPath)
-			}
-		}
-		return "", fmt.Errorf("Error running gh command: %s\n%s", err, errOut)
-	}
-
-	parsedResponse := []AttestationResponse{}
-
-	err = json.Unmarshal(out, &parsedResponse)
-	if err != nil {
-		logme.Debugln("Error parsing gh command output: ", err)
-		return "", err
-	}
-
-	if len(parsedResponse) == 0 {
-		return "", fmt.Errorf("No provenance attestation returned by Github")
-	}
-
-	attestation := parsedResponse[0]
-
-	if attestation.VerificationResult.Statement.Predicate.RunDetails.Metadata.InvocationID == "" {
-		return "", fmt.Errorf("No provenance attestation InvocationID returned by Github")
-	}
-
-	return attestation.VerificationResult.Statement.Predicate.RunDetails.Metadata.InvocationID, nil
 }
 
-func getGithubCliPath() (string, error) {
-	// currently the validator can only validate github actions provenance attestations
-	if os.Getenv("GITHUB_TOKEN") == "" {
-		return "", fmt.Errorf("GITHUB_TOKEN is not set")
+func getFileSha256(assetPath string) (string, error) {
+	// Check if file exists and is a regular file
+	fileInfo, err := os.Stat(assetPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", fmt.Errorf("file does not exist: %s", assetPath)
+		}
+		return "", fmt.Errorf("error accessing file: %w", err)
 	}
 
-	var ghCliBin, err = exec.LookPath("gh")
-	if err != nil || ghCliBin == "" {
-		return "", fmt.Errorf("gh is not installed. Please install it and try again.")
+	if !fileInfo.Mode().IsRegular() {
+		return "", fmt.Errorf("file is not a regular file: %s", assetPath)
 	}
 
-	return ghCliBin, nil
+	// Open and read the file
+	file, err := os.Open(assetPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
 
+	// Calculate SHA256 hash
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", fmt.Errorf("failed to calculate hash: %w", err)
+	}
+
+	// Convert hash to hex string
+	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 }

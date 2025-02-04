@@ -1,47 +1,72 @@
 package provenance
 
-import "time"
-
-type AttestationResponse struct {
-	VerificationResult VerificationResult `json:"verificationResult"`
+type AttestationCollection struct {
+	Attestations []Attestation `json:"attestations"`
 }
 
-type VerificationResult struct {
-	MediaType          string              `json:"mediaType"`
-	Statement          Statement           `json:"statement"`
-	VerifiedTimestamps []VerifiedTimestamp `json:"verifiedTimestamps"`
+type Attestation struct {
+	Bundle       Bundle `json:"bundle"`
+	RepositoryID int64  `json:"repository_id"`
+	BundleURL    string `json:"bundle_url"`
 }
 
-type VerifiedTimestamp struct {
-	Type      string    `json:"type"`
-	URI       string    `json:"uri"`
-	Timestamp time.Time `json:"timestamp"`
+type Bundle struct {
+	MediaType            string               `json:"mediaType"`
+	DSSTEnvelope         DSSTEnvelope         `json:"dsseEnvelope"`
+	VerificationMaterial VerificationMaterial `json:"verificationMaterial"`
 }
 
-type Statement struct {
-	Type      string    `json:"type"`
-	Subject   []Subject `json:"subject"`
-	Predicate Predicate `json:"predicate"`
+type DSSTEnvelope struct {
+	Payload     string      `json:"payload"`
+	PayloadType string      `json:"payloadType"`
+	Signatures  []Signature `json:"signatures"`
 }
 
-type Subject struct {
-	Name   string            `json:"name"`
-	Digest map[string]string `json:"digest"`
+type Signature struct {
+	Sig string `json:"sig"`
 }
 
-type Predicate struct {
-	RunDetails RunDetails `json:"runDetails"`
+type VerificationMaterial struct {
+	TlogEntries               []TlogEntry            `json:"tlogEntries"`
+	TimestampVerificationData map[string]interface{} `json:"timestampVerificationData"`
+	Certificate               Certificate            `json:"certificate"`
 }
 
-type RunDetails struct {
-	Builder  Builder  `json:"builder"`
-	Metadata Metadata `json:"metadata"`
+type TlogEntry struct {
+	LogIndex          string           `json:"logIndex"`
+	LogID             LogID            `json:"logId"`
+	KindVersion       KindVersion      `json:"kindVersion"`
+	IntegratedTime    string           `json:"integratedTime"`
+	InclusionPromise  InclusionPromise `json:"inclusionPromise"`
+	InclusionProof    InclusionProof   `json:"inclusionProof"`
+	CanonicalizedBody string           `json:"canonicalizedBody"`
 }
 
-type Builder struct {
-	ID string `json:"id"`
+type LogID struct {
+	KeyID string `json:"keyId"`
 }
 
-type Metadata struct {
-	InvocationID string `json:"invocationId"`
+type KindVersion struct {
+	Kind    string `json:"kind"`
+	Version string `json:"version"`
+}
+
+type InclusionPromise struct {
+	SignedEntryTimestamp string `json:"signedEntryTimestamp"`
+}
+
+type InclusionProof struct {
+	LogIndex   string     `json:"logIndex"`
+	RootHash   string     `json:"rootHash"`
+	TreeSize   string     `json:"treeSize"`
+	Hashes     []string   `json:"hashes"`
+	Checkpoint Checkpoint `json:"checkpoint"`
+}
+
+type Checkpoint struct {
+	Envelope string `json:"envelope"`
+}
+
+type Certificate struct {
+	RawBytes string `json:"rawBytes"`
 }

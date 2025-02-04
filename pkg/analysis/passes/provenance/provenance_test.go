@@ -1,6 +1,7 @@
 package provenance
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,8 +11,7 @@ import (
 )
 
 func canRunProvenanceTest() bool {
-	githubCliBin, err := getGithubCliPath()
-	return err == nil && githubCliBin != ""
+	return os.Getenv("GITHUB_TOKEN") != ""
 }
 
 func TestNoGithubUrlForAsset(t *testing.T) {
@@ -36,13 +36,13 @@ func TestNoGithubUrlForAsset(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
 		t,
-		interceptor.Diagnostics[0].Title,
 		"No provenance attestation. This plugin was built without build verification",
+		interceptor.Diagnostics[0].Title,
 	)
 	require.Equal(
 		t,
-		interceptor.Diagnostics[0].Detail,
 		"Cannot verify plugin build. It is recommended to use a pipeline that supports provenance attestation, such as GitHub Actions. https://github.com/grafana/plugin-actions/tree/main/build-plugin",
+		interceptor.Diagnostics[0].Detail,
 	)
 
 }
@@ -99,12 +99,12 @@ func TestInvalidBuildProvenanceAttestion(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(
 		t,
+		"Cannot verify plugin build provenance attestation.",
 		interceptor.Diagnostics[0].Title,
-		"Cannot verify plugin build. Attestation not found for asset testdata/invalid/grafana-provenancetest-panel-1.0.8.zip",
 	)
 	require.Equal(
 		t,
-		interceptor.Diagnostics[0].Detail,
 		"Please verify your workflow attestation settings. See the documentation on implementing build attestation: https://github.com/grafana/plugin-actions/tree/main/build-plugin#add-attestation-to-your-existing-workflow",
+		interceptor.Diagnostics[0].Detail,
 	)
 }
