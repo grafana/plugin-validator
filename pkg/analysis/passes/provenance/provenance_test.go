@@ -18,7 +18,7 @@ func TestNoGithubUrlForAsset(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	if !canRunProvenanceTest() {
-		t.Skip("github cli not installed")
+		t.Skip("github token not set")
 	}
 
 	pass := &analysis.Pass{
@@ -51,7 +51,7 @@ func TestValidBuildProvenanceAttestion(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	if !canRunProvenanceTest() {
-		t.Skip("github cli not installed")
+		t.Skip("github token not set")
 	}
 
 	pass := &analysis.Pass{
@@ -77,7 +77,7 @@ func TestInvalidBuildProvenanceAttestion(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
 	if !canRunProvenanceTest() {
-		t.Skip("github cli not installed")
+		t.Skip("github token not set")
 	}
 
 	pass := &analysis.Pass{

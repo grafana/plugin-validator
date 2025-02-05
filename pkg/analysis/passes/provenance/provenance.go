@@ -1,6 +1,7 @@
 package provenance
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -67,8 +69,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	owner := matches[1]
+	ctx, canc := context.WithTimeout(context.Background(), time.Second*30)
+	defer canc()
 
 	hasGithubProvenanceAttestationPipeline, err := hasGithubProvenanceAttestationPipeline(
+		ctx,
 		pass.CheckParams.ArchiveFile,
 		owner,
 	)
@@ -89,14 +94,18 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			pass.AnalyzerName,
 			noProvenanceAttestation,
 			"Provenance attestation found",
-			"", // TODO add details
+			"Github replied with a confirmation that attestations were found",
 		)
 	}
 
 	return nil, nil
 }
 
-func hasGithubProvenanceAttestationPipeline(assetPath string, owner string) (bool, error) {
+func hasGithubProvenanceAttestationPipeline(
+	ctx context.Context,
+	assetPath string,
+	owner string,
+) (bool, error) {
 	sha256sum, err := getFileSha256(assetPath)
 	if err != nil {
 		return false, err
@@ -104,7 +113,7 @@ func hasGithubProvenanceAttestationPipeline(assetPath string, owner string) (boo
 
 	url := fmt.Sprintf("https://api.github.com/users/%s/attestations/sha256:%s", owner, sha256sum)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -113,8 +122,7 @@ func hasGithubProvenanceAttestationPipeline(assetPath string, owner string) (boo
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", githubToken))
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("failed to make request: %w", err)
 	}
