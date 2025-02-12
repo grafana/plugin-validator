@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/backenddebug"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/changelog"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/circulardependencies"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
@@ -55,6 +56,7 @@ var Analyzers = []*analysis.Analyzer{
 	backenddebug.Analyzer,
 	binarypermissions.Analyzer,
 	brokenlinks.Analyzer,
+	changelog.Analyzer,
 	checksum.Analyzer,
 	coderules.Analyzer,
 	discoverability.Analyzer,
