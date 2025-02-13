@@ -25,6 +25,7 @@ var tests = []struct {
 		"unsigned plugin",
 		"LICENSE file not found",
 		"plugin.json not found",
+		"missing CHANGELOG.md",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"empty manifest",
@@ -40,6 +41,7 @@ var tests = []struct {
 		"Plugin version \"\" is invalid.",
 		"plugin.json: description is empty",
 		"plugin.json: keywords are empty",
+		"CHANGELOG.md is empty",
 	}},
 }
 
