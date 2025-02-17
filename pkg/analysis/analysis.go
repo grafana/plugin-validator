@@ -13,6 +13,7 @@ var (
 	Warning          Severity = "warning"
 	OK               Severity = "ok"
 	SuspectedProblem Severity = "suspected"
+	Recommendation   Severity = "recommendation"
 )
 
 type Pass struct {
