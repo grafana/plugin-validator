@@ -218,6 +218,8 @@ func main() {
 				if *strictFlag {
 					exitCode = 1
 				}
+			case analysis.Recommendation:
+				buf.WriteString(color.CyanString("recommendation: "))
 			case analysis.OK:
 				buf.WriteString(color.GreenString("ok: "))
 			case analysis.SuspectedProblem:

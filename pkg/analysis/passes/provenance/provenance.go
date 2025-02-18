@@ -18,11 +18,11 @@ import (
 var (
 	noProvenanceAttestation = &analysis.Rule{
 		Name:     "no-provenance-attestation",
-		Severity: analysis.Warning,
+		Severity: analysis.Recommendation,
 	}
 	invalidProvenanceAttestation = &analysis.Rule{
 		Name:     "invalid-provenance-attestation",
-		Severity: analysis.Warning,
+		Severity: analysis.Recommendation,
 	}
 )
 
@@ -52,7 +52,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	matches := githubRe.FindStringSubmatch(pass.CheckParams.SourceCodeReference)
-	if matches == nil || len(matches) < 3 {
+	if len(matches) < 3 {
 		detail := "Cannot verify plugin build. It is recommended to use a pipeline that supports provenance attestation, such as GitHub Actions. https://github.com/grafana/plugin-actions/tree/main/build-plugin"
 
 		// add instructions if the source code reference is a github repo
