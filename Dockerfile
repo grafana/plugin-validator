@@ -1,8 +1,8 @@
-ARG GOLANGCI_LINT_VERSION=v1.59.1
-ARG GOSEC_VERSION=v2.20.0
+ARG GOLANGCI_LINT_VERSION=v1.64.7
+ARG GOSEC_VERSION=v2.22.2
 ARG SEMGREP_VERSION=1.84.1
 
-FROM golang:1.22-alpine3.19 AS builder
+FROM golang:1.24-alpine3.21 AS builder
 
 ARG GOLANGCI_LINT_VERSION
 ARG GOSEC_VERSION
@@ -26,7 +26,7 @@ RUN cd /go/src/github.com/grafana/plugin-validator && \
     mage -v build:ci && \
     ls -al bin
 
-FROM alpine:3.19
+FROM alpine:3.21
 
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION

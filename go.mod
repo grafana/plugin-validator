@@ -1,8 +1,6 @@
 module github.com/grafana/plugin-validator
 
-go 1.22.10
-
-toolchain go1.23.4
+go 1.24
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.8.1
