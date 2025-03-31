@@ -93,8 +93,9 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 	}
 
 	if modelName == "" {
-		modelName = "gemini-1.5-flash-latest"
+		modelName = "gemini-2.0-flash-lite"
 	}
+	logme.DebugFln("llmvalidate: Using model %s", modelName)
 
 	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -190,9 +191,11 @@ Answer the following questions in the context of the code above. be brief in you
 	var answers []LLMAnswer
 	err = json.Unmarshal([]byte(content), &answers)
 	if err != nil {
+		logme.DebugFln("Failed to unmarshal content: %v", content)
 		return nil, fmt.Errorf("failed to unmarshal content: %v", err)
 	}
-	logme.Debugln("Got response from LLM with char length", len(answers))
+	logme.DebugFln("Got answers from LLM: %v", answers)
+	logme.Debugln("Got response from LLM with char length", len(content))
 
 	return answers, nil
 
