@@ -280,8 +280,6 @@ func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContent
 	for _, part := range content.Parts {
 		finalContent += fmt.Sprint(part)
 	}
-	// replace any duplicated new lines with a single new line
-	finalContent = strings.ReplaceAll(finalContent, "\n\n", "\n")
 	return finalContent
 }
 
