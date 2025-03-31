@@ -200,6 +200,13 @@ func (c *Client) AskLLMAboutCode(
 		`The files in the repository are: %s `,
 		strings.Join(codePrompt, "\n"),
 	)
+
+	tokenCount, err := model.CountTokens(c.ctx, genai.Text(filesPrompt))
+	if err != nil {
+		logme.DebugFln("Error counting tokens: %v", err)
+	}
+	logme.DebugFln("llmvalidate: Token count for files prompt: %d", tokenCount)
+
 	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
 
 	for _, question := range questions {

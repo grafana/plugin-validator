@@ -32,8 +32,8 @@ var Analyzer = &analysis.Analyzer{
 
 var questions = []string{
 	"Does this code manipulate the file system? (explicit manipulation of the file system). Provide a code snippet if so.",
-	"Does this code allow the execution or arbitrary javascript code from user input?. Provide a code snippet if so",
-	"Does this code allow the execution or arbitrary code in go from user input?. Provide a code snippet if so.",
+	"Does this code allow the execution or arbitrary code from user input? (browser environment). Provide a code snippet if so",
+	"Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
 	"Does this code introduces analytics or tracking not part of Grafana APIs?. Provide a code snippet if so.",
 }
 
@@ -51,7 +51,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 	logme.Debugln("Starting to run Gemini Validations. This might take a while...")
 
-	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-2.0-flash")
+	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-2.0-flash-001")
 
 	if err != nil {
 		logme.DebugFln("Error initializing llm client: %v", err)
@@ -61,7 +61,7 @@ func run(pass *analysis.Pass) (any, error) {
 	retry := 3
 	var answers []llmvalidate.LLMAnswer
 
-	for i := 0; i < retry; i++ {
+	for range retry {
 		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
 		if err != nil {
 			logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
