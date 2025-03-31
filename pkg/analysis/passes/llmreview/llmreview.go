@@ -86,18 +86,8 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	retry := 3
 	var answers []llmvalidate.LLMAnswer
-
-	for range retry {
-		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
-		if err != nil {
-			logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
-		} else {
-			break
-		}
-	}
-
+	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
 	if err != nil {
 		logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
 		return nil, nil

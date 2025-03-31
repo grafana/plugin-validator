@@ -217,33 +217,58 @@ func (c *Client) AskLLMAboutCode(
 	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
 
 	for _, question := range questions {
-		questionPrompt := fmt.Sprintf(
-			"%s\n\n Answer this question based on the previous files: %s",
-			filesPrompt,
-			question.Question,
-		)
 		var answer LLMAnswer
-		modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
-		if err != nil {
-			return nil, err
+		var err error
+
+		for retries := 3; retries > 0; retries-- {
+			answer, err = c.askModelQuestion(model, filesPrompt, question)
+			if err == nil {
+				break
+			}
+			logme.DebugFln("Error generating answer: %v", err)
 		}
 
-		content := getTextContentFromModelContentResponse(modelResponse)
-		//unmarshall content into []LLMAnswer
-		err = json.Unmarshal([]byte(content), &answer)
 		if err != nil {
-			logme.DebugFln("Failed to unmarshal content: %v", content)
-			return nil, fmt.Errorf("failed to unmarshal content: %v", err)
+			return nil, fmt.Errorf("Failed to generate answer after 3 retries: %w", err)
 		}
-		// some models have a tendency to generate many extra newlines in the code snippet
-		answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
-		answer.ExpectedShortAnswer = question.ExpectedAnswer
-		logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
+
 		answers = append(answers, answer)
 	}
 
 	return answers, nil
 
+}
+
+func (c *Client) askModelQuestion(
+	model *genai.GenerativeModel,
+	filesPrompt string,
+	question LLMQuestion,
+) (LLMAnswer, error) {
+	questionPrompt := fmt.Sprintf(
+		"%s\n\n Answer this question based on the previous files: %s",
+		filesPrompt,
+		question.Question,
+	)
+	var answer LLMAnswer
+	modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
+	if err != nil {
+		logme.DebugFln("Error generating content: %v", err)
+		return answer, err
+	}
+
+	content := getTextContentFromModelContentResponse(modelResponse)
+	//unmarshall content into []LLMAnswer
+	err = json.Unmarshal([]byte(content), &answer)
+	if err != nil {
+		logme.DebugFln("Failed to unmarshal content: %v", content)
+		return answer, err
+	}
+	// some models have a tendency to generate many extra newlines in the code snippet
+	answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
+	answer.ExpectedShortAnswer = question.ExpectedAnswer
+	logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
+
+	return answer, nil
 }
 
 func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContentResponse) string {
