@@ -40,7 +40,7 @@ var questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
+		Question:       "Only for go/golang code: Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
 		ExpectedAnswer: false,
 	},
 	{
