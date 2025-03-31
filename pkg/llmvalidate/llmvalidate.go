@@ -71,6 +71,16 @@ var allowExtensions = map[string]struct{}{
 	".go":  {},
 }
 
+var extensionToFileType = map[string]string{
+	".js":  "javascript",
+	".jsx": "javascript",
+	".ts":  "typescript",
+	".tsx": "typescript",
+	".cjs": "javascript",
+	".mjs": "javascript",
+	".go":  "go",
+}
+
 type LLMAnswer struct {
 	Question    string   `json:"question"`
 	Answer      string   `json:"answer"`
@@ -161,41 +171,40 @@ The output should be a valid plain JSON array. Each element with an answer conta
 		},
 	}
 
-	formattedQuestions := ""
+	// formattedQuestions := ""
+	// for _, question := range questions {
+	// 	formattedQuestions += fmt.Sprintf("- %s\n", question)
+	// }
+
+	filesPrompt := fmt.Sprintf(
+		`The files in the repository are: %s `,
+		strings.Join(codePrompt, "\n"),
+	)
+	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
+
 	for _, question := range questions {
-		formattedQuestions += fmt.Sprintf("- %s\n", question)
+		questionPrompt := fmt.Sprintf(
+			"%s\n\n Answer the question based on the previous files: %s",
+			filesPrompt,
+			question,
+		)
+		var answer LLMAnswer
+		modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
+		if err != nil {
+			return nil, err
+		}
+
+		content := getTextContentFromModelContentResponse(modelResponse)
+		//unmarshall content into []LLMAnswer
+		err = json.Unmarshal([]byte(content), &answer)
+		if err != nil {
+			logme.DebugFln("Failed to unmarshal content: %v", content)
+			return nil, fmt.Errorf("failed to unmarshal content: %v", err)
+		}
+		logme.DebugFln("Got answer from LLM: %v", answer)
+		logme.Debugln("Got response from LLM with char length", len(content))
+		answers = append(answers, answer)
 	}
-
-	mainPrompt := fmt.Sprintf(`
-The files in the repository are:
-### START OF FILES ###
-
-%s
-
-### END OF FILES ###
-
-Answer the following questions in the context of the code above. be brief in your answers.
-
-%s
-
-`, strings.Join(codePrompt, "\n"), formattedQuestions)
-
-	modelResponse, err := model.GenerateContent(c.ctx, genai.Text(mainPrompt))
-	if err != nil {
-		return nil, err
-	}
-
-	content := getTextContentFromModelContentResponse(modelResponse)
-
-	//unmarshall content into []LLMAnswer
-	var answers []LLMAnswer
-	err = json.Unmarshal([]byte(content), &answers)
-	if err != nil {
-		logme.DebugFln("Failed to unmarshal content: %v", content)
-		return nil, fmt.Errorf("failed to unmarshal content: %v", err)
-	}
-	logme.DebugFln("Got answers from LLM: %v", answers)
-	logme.Debugln("Got response from LLM with char length", len(content))
 
 	return answers, nil
 
@@ -317,14 +326,18 @@ func getPromptContentForFile(codePath, relFile string) string {
 		return ""
 	}
 
-	promptContent := fmt.Sprintf(`
-----##----
-Source filename: %s
-Source Content:
-%s
-----##----
-`, relFile, content)
+	fileExt := filepath.Ext(relFile)
+	fileType, ok := extensionToFileType[fileExt]
+	if !ok {
+		fileType = fileExt
+	}
 
+	// this will format the content as:
+	// path/to/filename:
+	// ```filetype
+	// content
+	// ```
+	promptContent := fmt.Sprintf("%s:\n```%s\n%s\n```\n", relFile, fileType, content)
 	return promptContent
 }
 
