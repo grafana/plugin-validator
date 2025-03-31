@@ -13,9 +13,8 @@ import (
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/google/generative-ai-go/genai"
-	"google.golang.org/api/option"
-
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"google.golang.org/api/option"
 )
 
 // these are not regular expressions
@@ -81,19 +80,19 @@ var extensionToFileType = map[string]string{
 	".go":  "go",
 }
 
-type LLMAnswer struct {
-	Question    string   `json:"question"`
-	Answer      string   `json:"answer"`
-	Files       []string `json:"files"`
-	ShortAnswer string   `json:"short_answer"`
-	CodeSnippet string   `json:"code_snippet"`
-}
-
 type Client struct {
 	genaiClient *genai.Client
 	apiKey      string
 	modelName   string
 	ctx         context.Context
+}
+
+type LLMAnswer struct {
+	Question    string   `json:"question"`
+	Answer      string   `json:"answer"`
+	Files       []string `json:"files"`
+	ShortAnswer bool     `json:"short_answer"`
+	CodeSnippet string   `json:"code_snippet"`
 }
 
 func New(ctx context.Context, apiKey string, modelName string) (*Client, error) {
@@ -153,6 +152,34 @@ func (c *Client) AskLLMAboutCode(
 	model := c.genaiClient.GenerativeModel(c.modelName)
 	// ensure it outputs json
 	model.GenerationConfig.ResponseMIMEType = "application/json"
+	model.ResponseSchema = &genai.Schema{
+		Type: genai.TypeObject,
+		Properties: map[string]*genai.Schema{
+			"question": {
+				Type:        genai.TypeString,
+				Description: "The original question",
+			},
+			"answer": {
+				Type:        genai.TypeString,
+				Description: "The full answer to the question. Elaborate why yes or no",
+			},
+			"files": {
+				Type: genai.TypeArray,
+				Items: &genai.Schema{
+					Type: genai.TypeString,
+				},
+				Description: "An array of files related to the answer",
+			},
+			"short_answer": {
+				Type:        genai.TypeBoolean,
+				Description: "True or false",
+			},
+			"code_snippet": {
+				Type:        genai.TypeString,
+				Description: "Code snippet as context for the answer if applicable",
+			},
+		},
+	}
 
 	model.SystemInstruction = &genai.Content{
 		Parts: []genai.Part{
@@ -164,17 +191,12 @@ The output should be a valid plain JSON array. Each element with an answer conta
 * question: The original question
 * answer: The answer
 * files: An array of related files if applicable.
-* short_answer: Yes/No/NA
+* short_answer: True or false
 * code_snippet: The code snippet relevant to the question. Empty if not applicable
         `,
 			),
 		},
 	}
-
-	// formattedQuestions := ""
-	// for _, question := range questions {
-	// 	formattedQuestions += fmt.Sprintf("- %s\n", question)
-	// }
 
 	filesPrompt := fmt.Sprintf(
 		`The files in the repository are: %s `,
@@ -219,6 +241,8 @@ func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContent
 	for _, part := range content.Parts {
 		finalContent += fmt.Sprint(part)
 	}
+	// replace any duplicated new lines with a single new line
+	finalContent = strings.ReplaceAll(finalContent, "\n\n", "\n")
 	return finalContent
 }
 

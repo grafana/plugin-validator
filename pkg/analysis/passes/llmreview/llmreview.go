@@ -37,7 +37,7 @@ var questions = []string{
 	"Does this code introduces analytics or tracking not part of Grafana APIs?. Provide a code snippet if so.",
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	var err error
 	// only run if sourcecode.Analyzer succeeded
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
@@ -76,8 +76,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for _, answer := range answers {
-		shortAnswer := strings.TrimSpace(strings.ToLower(answer.ShortAnswer))
-		if shortAnswer != "no" {
+		if answer.ShortAnswer {
 
 			detail := fmt.Sprintf("Question: %s\n. Answer: %s. ", answer.Question, answer.Answer)
 
