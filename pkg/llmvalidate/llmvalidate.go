@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -88,12 +89,18 @@ type Client struct {
 	ctx         context.Context
 }
 
+type LLMQuestion struct {
+	Question       string
+	ExpectedAnswer bool
+}
+
 type LLMAnswer struct {
-	Question    string   `json:"question"`
-	Answer      string   `json:"answer"`
-	Files       []string `json:"files"`
-	ShortAnswer bool     `json:"short_answer"`
-	CodeSnippet string   `json:"code_snippet"`
+	Question            string   `json:"question"`
+	Answer              string   `json:"answer"`
+	Files               []string `json:"files"`
+	ShortAnswer         bool     `json:"short_answer"`
+	ExpectedShortAnswer bool
+	CodeSnippet         string `json:"code_snippet"`
 }
 
 func New(ctx context.Context, apiKey string, modelName string) (*Client, error) {
@@ -122,7 +129,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 
 func (c *Client) AskLLMAboutCode(
 	codePath string,
-	questions []string,
+	questions []LLMQuestion,
 	subPathsOnly []string,
 ) ([]LLMAnswer, error) {
 
@@ -213,7 +220,7 @@ func (c *Client) AskLLMAboutCode(
 		questionPrompt := fmt.Sprintf(
 			"%s\n\n Answer this question based on the previous files: %s",
 			filesPrompt,
-			question,
+			question.Question,
 		)
 		var answer LLMAnswer
 		modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
@@ -228,6 +235,9 @@ func (c *Client) AskLLMAboutCode(
 			logme.DebugFln("Failed to unmarshal content: %v", content)
 			return nil, fmt.Errorf("failed to unmarshal content: %v", err)
 		}
+		// some models have a tendency to generate many extra newlines in the code snippet
+		answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
+		answer.ExpectedShortAnswer = question.ExpectedAnswer
 		logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
 		answers = append(answers, answer)
 	}
@@ -403,4 +413,9 @@ func readFileContent(filePath string) (string, error) {
 	}
 
 	return content.String(), nil
+}
+
+func mergeNewlines(s string) string {
+	re := regexp.MustCompile(`\n+`)
+	return re.ReplaceAllString(s, "\n")
 }

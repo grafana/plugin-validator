@@ -30,11 +30,39 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-var questions = []string{
-	"Does this code manipulate the file system? (explicit manipulation of the file system). Provide a code snippet if so.",
-	"Does this code allow the execution or arbitrary code from user input? (browser environment). Provide a code snippet if so",
-	"Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
-	"Does this code introduces analytics or tracking not part of Grafana APIs?. Provide a code snippet if so.",
+var questions = []llmvalidate.LLMQuestion{
+	{
+		Question:       "Only for go/golang code: Does this code manipulate the file system? (explicit manipulation of the file system, other system calls are allowed). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code allow the execution or arbitrary code from user input? (browser environment). Provide a code snippet if so",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code introduces analytics or tracking not part of Grafana APIs? (reportInteraction from @grafana/runtime is allowed). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code modifies global variables in the window object? (browser environment). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code introduce global css? (emotion css is allowed). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code injects third party scripts outside of its own source? (browser environment). Provide a code snippet if so.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code open correctly closes open resources? (e.g. files, network connections). Provide a code snippet if so.",
+		ExpectedAnswer: true,
+	},
 }
 
 func run(pass *analysis.Pass) (any, error) {
@@ -76,7 +104,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	for _, answer := range answers {
-		if answer.ShortAnswer {
+		if answer.ShortAnswer != answer.ExpectedShortAnswer {
 
 			detail := fmt.Sprintf("Question: %s\n. Answer: %s. ", answer.Question, answer.Answer)
 
