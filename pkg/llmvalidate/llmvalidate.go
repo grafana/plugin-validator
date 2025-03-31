@@ -14,6 +14,7 @@ import (
 	"github.com/danwakefield/fnmatch"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"google.golang.org/api/option"
 )
 
@@ -153,30 +154,36 @@ func (c *Client) AskLLMAboutCode(
 	// ensure it outputs json
 	model.GenerationConfig.ResponseMIMEType = "application/json"
 	model.ResponseSchema = &genai.Schema{
-		Type: genai.TypeObject,
+		Type:     genai.TypeObject,
+		Required: []string{"question", "answer", "short_answer"},
 		Properties: map[string]*genai.Schema{
 			"question": {
 				Type:        genai.TypeString,
-				Description: "The original question",
+				Description: "The question to answer",
+				Nullable:    false,
 			},
 			"answer": {
 				Type:        genai.TypeString,
 				Description: "The full answer to the question. Elaborate why yes or no",
+				Nullable:    false,
 			},
 			"files": {
 				Type: genai.TypeArray,
 				Items: &genai.Schema{
 					Type: genai.TypeString,
 				},
+				Nullable:    true,
 				Description: "An array of files related to the answer",
 			},
 			"short_answer": {
 				Type:        genai.TypeBoolean,
 				Description: "True or false",
+				Nullable:    false,
 			},
 			"code_snippet": {
 				Type:        genai.TypeString,
 				Description: "Code snippet as context for the answer if applicable",
+				Nullable:    true,
 			},
 		},
 	}
@@ -184,16 +191,7 @@ func (c *Client) AskLLMAboutCode(
 	model.SystemInstruction = &genai.Content{
 		Parts: []genai.Part{
 			genai.Text(
-				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided
-
-The output should be a valid plain JSON array. Each element with an answer containing fields:
-
-* question: The original question
-* answer: The answer
-* files: An array of related files if applicable.
-* short_answer: True or false
-* code_snippet: The code snippet relevant to the question. Empty if not applicable
-        `,
+				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object`,
 			),
 		},
 	}
@@ -206,7 +204,7 @@ The output should be a valid plain JSON array. Each element with an answer conta
 
 	for _, question := range questions {
 		questionPrompt := fmt.Sprintf(
-			"%s\n\n Answer the question based on the previous files: %s",
+			"%s\n\n Answer this question based on the previous files: %s",
 			filesPrompt,
 			question,
 		)
@@ -223,8 +221,7 @@ The output should be a valid plain JSON array. Each element with an answer conta
 			logme.DebugFln("Failed to unmarshal content: %v", content)
 			return nil, fmt.Errorf("failed to unmarshal content: %v", err)
 		}
-		logme.DebugFln("Got answer from LLM: %v", answer)
-		logme.Debugln("Got response from LLM with char length", len(content))
+		logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
 		answers = append(answers, answer)
 	}
 
