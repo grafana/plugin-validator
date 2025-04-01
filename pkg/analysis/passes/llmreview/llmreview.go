@@ -60,7 +60,7 @@ var questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Are all opened resources properly closed? (Check that files, network connections, etc. are closed with defer, in finally blocks, or using 'with' statements). Identify any resources that aren't properly closed with a code snippet.",
+		Question:       "Only for go/golang code: Are all opened resources properly closed? (Check that files, network connections, etc. are closed with defer, in finally blocks, or using 'with' statements). Identify any resources that aren't properly closed with a code snippet. If there is no backend code reply positively",
 		ExpectedAnswer: true,
 	},
 	{
