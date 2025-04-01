@@ -30,14 +30,46 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-var questions = []string{
-	"Does this code manipulate the file system? (explicit manipulation of the file system). Provide a code snippet if so.",
-	"Does this code allow the execution or arbitrary javascript code from user input?. Provide a code snippet if so",
-	"Does this code allow the execution or arbitrary code in go from user input?. Provide a code snippet if so.",
-	"Does this code introduces analytics or tracking not part of Grafana APIs?. Provide a code snippet if so.",
+var questions = []llmvalidate.LLMQuestion{
+	{
+		Question:       "Only for go/golang code: Does this code directly read from or write to the file system? (Look for uses of os.Open, os.Create, ioutil.ReadFile, ioutil.WriteFile, etc.). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code execute user input as code in a browser environment? (Look for eval(), new Function(), document.write() with unescaped content, innerHTML with script tags, etc.). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code execute user input as commands or code in the backend? (Look for exec.Command, syscall.Exec, template.Execute with user data, etc.). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code introduce third-party analytics or tracking features? (Grafana's reportInteraction from @grafana/runtime is allowed, but external services like Google Analytics, Mixpanel, etc. are not). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code modify or create properties on the global window object? (Look for direct assignments like window.customVariable = x, window.functionName = function(){}, or adding undeclared variables in global scope). Exclude standard browser API usage. Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code introduce global CSS not scoped to components? (Emotion CSS and CSS modules are allowed, but look for direct style tags, global class definitions, or modification of document.styleSheets). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code dynamically inject external third-party scripts? (Look for createElement('script'), setting src attributes to external domains, document.write with script tags, or dynamic import() from external sources). Provide the specific code snippet with the external URL if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Are all opened resources properly closed? (Check that files, network connections, etc. are closed with defer, in finally blocks, or using 'with' statements). Identify any resources that aren't properly closed with a code snippet. If there is no backend code reply positively",
+		ExpectedAnswer: true,
+	},
+	{
+		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for direct usage of document.querySelector(), document.getElementById(), document.getElementsByClassName(), etc. that aren't scoped to specific components or that bypass React refs). Component-scoped element access like useRef() or this.elementRef is acceptable. Provide the specific code snippet showing the global access if found.",
+		ExpectedAnswer: false,
+	},
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	var err error
 	// only run if sourcecode.Analyzer succeeded
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
@@ -51,33 +83,22 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	logme.Debugln("Starting to run Gemini Validations. This might take a while...")
 
-	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-1.5-flash-latest")
+	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-2.0-flash-001")
 
 	if err != nil {
 		logme.DebugFln("Error initializing llm client: %v", err)
 		return nil, nil
 	}
 
-	retry := 3
 	var answers []llmvalidate.LLMAnswer
-
-	for i := 0; i < retry; i++ {
-		answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
-		if err != nil {
-			logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
-		} else {
-			break
-		}
-	}
-
+	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
 	if err != nil {
 		logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
 		return nil, nil
 	}
 
 	for _, answer := range answers {
-		shortAnswer := strings.TrimSpace(strings.ToLower(answer.ShortAnswer))
-		if shortAnswer != "no" {
+		if answer.ShortAnswer != answer.ExpectedShortAnswer {
 
 			detail := fmt.Sprintf("Question: %s\n. Answer: %s. ", answer.Question, answer.Answer)
 

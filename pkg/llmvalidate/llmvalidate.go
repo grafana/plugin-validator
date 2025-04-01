@@ -8,14 +8,15 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/google/generative-ai-go/genai"
-	"google.golang.org/api/option"
-
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/prettyprint"
+	"google.golang.org/api/option"
 )
 
 // these are not regular expressions
@@ -71,12 +72,14 @@ var allowExtensions = map[string]struct{}{
 	".go":  {},
 }
 
-type LLMAnswer struct {
-	Question    string   `json:"question"`
-	Answer      string   `json:"answer"`
-	Files       []string `json:"files"`
-	ShortAnswer string   `json:"short_answer"`
-	CodeSnippet string   `json:"code_snippet"`
+var extensionToFileType = map[string]string{
+	".js":  "javascript",
+	".jsx": "javascript",
+	".ts":  "typescript",
+	".tsx": "typescript",
+	".cjs": "javascript",
+	".mjs": "javascript",
+	".go":  "go",
 }
 
 type Client struct {
@@ -86,6 +89,20 @@ type Client struct {
 	ctx         context.Context
 }
 
+type LLMQuestion struct {
+	Question       string
+	ExpectedAnswer bool
+}
+
+type LLMAnswer struct {
+	Question            string   `json:"question"`
+	Answer              string   `json:"answer"`
+	Files               []string `json:"files"`
+	ShortAnswer         bool     `json:"short_answer"`
+	ExpectedShortAnswer bool
+	CodeSnippet         string `json:"code_snippet"`
+}
+
 func New(ctx context.Context, apiKey string, modelName string) (*Client, error) {
 
 	if apiKey == "" {
@@ -93,8 +110,9 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 	}
 
 	if modelName == "" {
-		modelName = "gemini-1.5-flash-latest"
+		return nil, fmt.Errorf("Model name is required")
 	}
+	logme.DebugFln("llmvalidate: Using model %s", modelName)
 
 	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
@@ -111,7 +129,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 
 func (c *Client) AskLLMAboutCode(
 	codePath string,
-	questions []string,
+	questions []LLMQuestion,
 	subPathsOnly []string,
 ) ([]LLMAnswer, error) {
 
@@ -142,60 +160,124 @@ func (c *Client) AskLLMAboutCode(
 	model := c.genaiClient.GenerativeModel(c.modelName)
 	// ensure it outputs json
 	model.GenerationConfig.ResponseMIMEType = "application/json"
+	model.ResponseSchema = &genai.Schema{
+		Type:     genai.TypeObject,
+		Required: []string{"question", "answer", "short_answer"},
+		Properties: map[string]*genai.Schema{
+			"question": {
+				Type:        genai.TypeString,
+				Description: "The question to answer",
+				Nullable:    false,
+			},
+			"answer": {
+				Type:        genai.TypeString,
+				Description: "The full answer to the question. Elaborate why yes or no",
+				Nullable:    false,
+			},
+			"files": {
+				Type: genai.TypeArray,
+				Items: &genai.Schema{
+					Type: genai.TypeString,
+				},
+				Nullable:    true,
+				Description: "An array of files related to the answer",
+			},
+			"short_answer": {
+				Type:        genai.TypeBoolean,
+				Description: "True or false",
+				Nullable:    false,
+			},
+			"code_snippet": {
+				Type:        genai.TypeString,
+				Description: "Code snippet as context for the answer if applicable",
+				Nullable:    true,
+			},
+		},
+	}
 
 	model.SystemInstruction = &genai.Content{
 		Parts: []genai.Part{
 			genai.Text(
-				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided
+				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object
 
-The output should be a valid plain JSON array. Each element with an answer containing fields:
+				REVIEWER NOTE: When reviewing, exempt code that is explicitly for testing or development purposes. This includes:
+					- Test files (*_test.go, *_spec.ts, etc.)
+					- Scripts dedicated  for development (e.g. test servers, seeding)
+					- Code that is clearly marked as development-only with comments
+					- Local development servers and database setup utilities
 
-* question: The original question
-* answer: The answer
-* files: An array of related files if applicable.
-* short_answer: Yes/No/NA
-* code_snippet: The code snippet relevant to the question. Empty if not applicable
-        `,
+				Focus your review on code that will run in production environments as part of a Grafana Plugin
+				`,
 			),
 		},
 	}
 
-	formattedQuestions := ""
+	filesPrompt := fmt.Sprintf(
+		`The files in the repository are: %s `,
+		strings.Join(codePrompt, "\n"),
+	)
+
+	tokenCount, err := model.CountTokens(c.ctx, genai.Text(filesPrompt))
+	if err != nil {
+		logme.DebugFln("Error counting tokens: %v", err)
+	}
+	logme.DebugFln("llmvalidate: Token count for files prompt: %d", tokenCount)
+
+	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
+
 	for _, question := range questions {
-		formattedQuestions += fmt.Sprintf("- %s\n", question)
+		var answer LLMAnswer
+		var err error
+
+		for retries := 3; retries > 0; retries-- {
+			answer, err = c.askModelQuestion(model, filesPrompt, question)
+			if err == nil {
+				break
+			}
+			logme.DebugFln("Error generating answer: %v", err)
+		}
+
+		if err != nil {
+			return nil, fmt.Errorf("Failed to generate answer after 3 retries: %w", err)
+		}
+
+		answers = append(answers, answer)
 	}
-
-	mainPrompt := fmt.Sprintf(`
-The files in the repository are:
-### START OF FILES ###
-
-%s
-
-### END OF FILES ###
-
-Answer the following questions in the context of the code above. be brief in your answers.
-
-%s
-
-`, strings.Join(codePrompt, "\n"), formattedQuestions)
-
-	modelResponse, err := model.GenerateContent(c.ctx, genai.Text(mainPrompt))
-	if err != nil {
-		return nil, err
-	}
-
-	content := getTextContentFromModelContentResponse(modelResponse)
-
-	//unmarshall content into []LLMAnswer
-	var answers []LLMAnswer
-	err = json.Unmarshal([]byte(content), &answers)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal content: %v", err)
-	}
-	logme.Debugln("Got response from LLM with char length", len(answers))
 
 	return answers, nil
 
+}
+
+func (c *Client) askModelQuestion(
+	model *genai.GenerativeModel,
+	filesPrompt string,
+	question LLMQuestion,
+) (LLMAnswer, error) {
+	questionPrompt := fmt.Sprintf(
+		"%s\n\n Answer this question based on the previous files: %s",
+		filesPrompt,
+		question.Question,
+	)
+	var answer LLMAnswer
+	modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
+	if err != nil {
+		logme.DebugFln("Error generating content: %v", err)
+		return answer, err
+	}
+
+	content := getTextContentFromModelContentResponse(modelResponse)
+	//unmarshall content into []LLMAnswer
+	err = json.Unmarshal([]byte(content), &answer)
+	if err != nil {
+		logme.DebugFln("Failed to unmarshal content: %v", content)
+		return answer, err
+	}
+	// some models have a tendency to generate many extra newlines in the code snippet
+	answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
+	answer.ExpectedShortAnswer = question.ExpectedAnswer
+	logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
+
+	return answer, nil
 }
 
 func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContentResponse) string {
@@ -314,14 +396,18 @@ func getPromptContentForFile(codePath, relFile string) string {
 		return ""
 	}
 
-	promptContent := fmt.Sprintf(`
-----##----
-Source filename: %s
-Source Content:
-%s
-----##----
-`, relFile, content)
+	fileExt := filepath.Ext(relFile)
+	fileType, ok := extensionToFileType[fileExt]
+	if !ok {
+		fileType = fileExt
+	}
 
+	// this will format the content as:
+	// path/to/filename:
+	// ```filetype
+	// content
+	// ```
+	promptContent := fmt.Sprintf("%s:\n```%s\n%s\n```\n", relFile, fileType, content)
 	return promptContent
 }
 
@@ -359,4 +445,9 @@ func readFileContent(filePath string) (string, error) {
 	}
 
 	return content.String(), nil
+}
+
+func mergeNewlines(s string) string {
+	re := regexp.MustCompile(`\n+`)
+	return re.ReplaceAllString(s, "\n")
 }
