@@ -110,7 +110,7 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 	}
 
 	if modelName == "" {
-		modelName = "gemini-2.0-flash-lite"
+		return nil, fmt.Errorf("Model name is required")
 	}
 	logme.DebugFln("llmvalidate: Using model %s", modelName)
 
