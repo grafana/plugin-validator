@@ -198,7 +198,16 @@ func (c *Client) AskLLMAboutCode(
 	model.SystemInstruction = &genai.Content{
 		Parts: []genai.Part{
 			genai.Text(
-				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object`,
+				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object
+
+				REVIEWER NOTE: When reviewing, exempt code that is explicitly for testing or development purposes. This includes:
+					- Test files (*_test.go, *_spec.ts, etc.)
+					- Scripts dedicated  for development (e.g. test servers, seeding)
+					- Code that is clearly marked as development-only with comments
+					- Local development servers and database setup utilities
+
+				Focus your review on code that will run in production environments as part of a Grafana Plugin
+				`,
 			),
 		},
 	}
