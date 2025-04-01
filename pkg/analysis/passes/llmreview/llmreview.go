@@ -32,36 +32,40 @@ var Analyzer = &analysis.Analyzer{
 
 var questions = []llmvalidate.LLMQuestion{
 	{
-		Question:       "Only for go/golang code: Does this code manipulate the file system? (explicit manipulation of the file system, other system calls are allowed). Provide a code snippet if so.",
+		Question:       "Only for go/golang code: Does this code directly read from or write to the file system? (Look for uses of os.Open, os.Create, ioutil.ReadFile, ioutil.WriteFile, etc.). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code allow the execution or arbitrary code from user input? (browser environment). Provide a code snippet if so",
+		Question:       "Does this code execute user input as code in a browser environment? (Look for eval(), new Function(), document.write() with unescaped content, innerHTML with script tags, etc.). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code allow the execution or arbitrary code from user input in the backend? (not browser environment, analyze back-end code). Provide a code snippet if so.",
+		Question:       "Only for go/golang code: Does this code execute user input as commands or code in the backend? (Look for exec.Command, syscall.Exec, template.Execute with user data, etc.). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code introduces analytics or tracking not part of Grafana APIs? (reportInteraction from @grafana/runtime is allowed). Provide a code snippet if so.",
+		Question:       "Does this code introduce third-party analytics or tracking features? (Grafana's reportInteraction from @grafana/runtime is allowed, but external services like Google Analytics, Mixpanel, etc. are not). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code modifies global variables in the window object? (browser environment). Provide a code snippet if so.",
+		Question:       "Does this code modify or create properties on the global window object? (Look for direct assignments like window.customVariable = x, window.functionName = function(){}, or adding undeclared variables in global scope). Exclude standard browser API usage. Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code introduce global css? (emotion css is allowed). Provide a code snippet if so.",
+		Question:       "Does this code introduce global CSS not scoped to components? (Emotion CSS and CSS modules are allowed, but look for direct style tags, global class definitions, or modification of document.styleSheets). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code injects third party scripts outside of its own source? (browser environment). Provide a code snippet if so.",
+		Question:       "Does this code dynamically inject external third-party scripts? (Look for createElement('script'), setting src attributes to external domains, document.write with script tags, or dynamic import() from external sources). Provide the specific code snippet with the external URL if found.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code open correctly closes open resources? (e.g. files, network connections). Provide a code snippet if so.",
+		Question:       "Only for go/golang code: Are all opened resources properly closed? (Check that files, network connections, etc. are closed with defer, in finally blocks, or using 'with' statements). Identify any resources that aren't properly closed with a code snippet.",
 		ExpectedAnswer: true,
+	},
+	{
+		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for direct usage of document.querySelector(), document.getElementById(), document.getElementsByClassName(), etc. that aren't scoped to specific components or that bypass React refs). Component-scoped element access like useRef() or this.elementRef is acceptable. Provide the specific code snippet showing the global access if found.",
+		ExpectedAnswer: false,
 	},
 }
 
