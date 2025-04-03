@@ -27,7 +27,7 @@ func TestGoModNotFound(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "nogomod"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -58,7 +58,7 @@ func TestGoModNotParseable(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "gomodwrong"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -112,7 +112,7 @@ func TestValidGoMod(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "validgomod"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -138,7 +138,7 @@ func TestValidGoModWithNoGrafanaSdk(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "nografanagosdk"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -198,7 +198,7 @@ func TestTwoMonthsOldSdk(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "sdk-2-months-old"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -259,7 +259,7 @@ func TestFiveMonthsOld(t *testing.T) {
 
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "sdk-5-months-old"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				"plugin.json": meta,
@@ -275,6 +275,50 @@ func TestFiveMonthsOld(t *testing.T) {
 	require.Equal(
 		t,
 		"Your Grafana Go SDK is older than 5 months",
+		interceptor.Diagnostics[0].Title,
+	)
+}
+
+func TestReplacedSdk(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// mock latest request
+	httpmock.RegisterResponder(
+		"GET",
+		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/latest",
+		httpmock.NewStringResponder(
+			200,
+			`{ "tag_name": "v0.230.0", "published_at": "2024-05-09T10:03:16Z" }`,
+		),
+	)
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pluginJsonContent := []byte(`{
+    "name": "my plugin name",
+    "backend": true,
+    "executable": "gx_plugin"
+  }`)
+	meta, err := testutils.JSONToMetadata(pluginJsonContent)
+	require.NoError(t, err)
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "replaced-sdk"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				"plugin.json": meta,
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err = Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"Your plugin is using a custom or forked version of the Grafana Go SDK",
 		interceptor.Diagnostics[0].Title,
 	)
 }

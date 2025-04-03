@@ -72,6 +72,8 @@ func Check(
 
 		seen[currentAnalyzer] = true
 
+		logme.DebugFln("Running analyzer %s", currentAnalyzer.Name)
+
 		// run all the dependencies of the analyzer
 		for _, dep := range currentAnalyzer.Requires {
 			// if dependency returned error. This analyzer should return error too
@@ -99,7 +101,12 @@ func Check(
 	return diagnostics, nil
 }
 
-func initAnalyzers(analyzers []*analysis.Analyzer, cfg *Config, pluginId string, severityOverwrite analysis.Severity) {
+func initAnalyzers(
+	analyzers []*analysis.Analyzer,
+	cfg *Config,
+	pluginId string,
+	severityOverwrite analysis.Severity,
+) {
 	for _, currentAnalyzer := range analyzers {
 		// Inherit global config file
 		analyzerEnabled := cfg.Global.Enabled

@@ -73,6 +73,10 @@ var scannerTypes = [...]string{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	if os.Getenv("SKIP_OSV_SCANNER") != "" {
+		return nil, nil
+	}
+
 	archiveFilesPath, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok || archiveFilesPath == "" {
 		return nil, nil
