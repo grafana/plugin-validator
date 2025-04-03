@@ -18,6 +18,7 @@ var (
 	goSdkNotUsed            = &analysis.Rule{Name: "go-sdk-not-used", Severity: analysis.Error}
 	goModNotFound           = &analysis.Rule{Name: "go-mod-not-found", Severity: analysis.Error}
 	goModError              = &analysis.Rule{Name: "go-mod-error", Severity: analysis.Error}
+	goSdkReplaced           = &analysis.Rule{Name: "go-sdk-replaced", Severity: analysis.Error}
 	goSdkOlderThanTwoMonths = &analysis.Rule{
 		Name:     "go-sdk-older-than-2-months",
 		Severity: analysis.Warning,
@@ -39,6 +40,7 @@ var Analyzer = &analysis.Analyzer{
 		goSdkNotUsed,
 		goModNotFound,
 		goModError,
+		goSdkReplaced,
 		goSdkOlderThanTwoMonths,
 		goSdkOlderThanFiveMonths,
 	},
@@ -181,6 +183,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			"Please upgrade your Grafana Go SDK to the latest version by running: \"go get -u github.com/grafana/grafana-plugin-sdk-go\"",
 		)
 		return nil, nil
+	}
+
+	// check if go sdk was replaced
+	for _, req := range goModParsed.Replace {
+		if req.Old.Path == "github.com/grafana/grafana-plugin-sdk-go" &&
+			req.New.Path != "github.com/grafana/grafana-plugin-sdk-go" {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				goSdkNotUsed,
+				"Your plugin is using a custom or forked version of the Grafana Go SDK",
+				"Custom or forked version of Grafana Go SDK are not supported. Please use the latest Grafana Go SDK (github.com/grafana/grafana-plugin-sdk-go)",
+			)
+			return nil, nil
+		}
 	}
 
 	return nil, nil
