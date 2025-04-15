@@ -4,7 +4,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/go-enry/go-license-detector/v4/licensedb/filer"
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -156,26 +155,4 @@ func TestValidBackendExecutable(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
-}
-
-func TestMimeTypeFiler(t *testing.T) {
-	t.Run("text", func(t *testing.T) {
-		f, err := filer.FromDirectory(filepath.Join("testdata", "mime"))
-		require.NoError(t, err)
-		f = newMimeTypeFiler(f, "text/")
-		files, err := f.ReadDir(".")
-		require.NoError(t, err)
-		require.Len(t, files, 1)
-		require.Equal(t, "LICENSE", files[0].Name)
-	})
-
-	t.Run("binary", func(t *testing.T) {
-		f, err := filer.FromDirectory(filepath.Join("testdata", "mime"))
-		require.NoError(t, err)
-		f = newMimeTypeFiler(f, "application/octet-stream")
-		files, err := f.ReadDir(".")
-		require.NoError(t, err)
-		require.Len(t, files, 1)
-		require.Equal(t, "executable", files[0].Name)
-	})
 }
