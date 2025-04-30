@@ -8,11 +8,15 @@ on:
 jobs:
   test-docker-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@main
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@a30107276148b4f29eaeaef05a3f9173d1aa0ad9
         with:
           repository: grafana/plugin-validator-cli
           context: .
