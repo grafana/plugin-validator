@@ -48,6 +48,7 @@ jobs:
         run: npm version ${INPUT_VERSION}
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Push latest version
         run: git push origin main
