@@ -15,18 +15,29 @@ on:
 jobs:
   bump-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
+      - id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@28361cdb22223e5f1e34358c86c20908e7248760 # get-vault-secrets-v1.1.0
+        with:
+          repo_secrets: |
+            GITHUB_APP_ID=plugins-platform-bot-app:app_id
+            GITHUB_APP_PRIVATE_KEY=plugins-platform-bot-app:app_pem
+
       - name: Generate token
         id: generate_token
-        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a
+        uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5 # v2.0.2
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.APP_PEM }}
+          app-id: ${{ env.GITHUB_APP_ID }}
+          private-key: ${{ env.GITHUB_APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           token: ${{ steps.generate_token.outputs.token }}
+          persist-credentials: false
 
       - name: Setup Git
         run: |
@@ -34,7 +45,10 @@ jobs:
           git config user.email '132647405+grafana-delivery-bot[bot]@users.noreply.github.com'
 
       - name: bump version
-        run: npm version ${{ github.event.inputs.version }}
+        run: npm version ${INPUT_VERSION}
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Push latest version
         run: git push origin main
