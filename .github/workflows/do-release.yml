@@ -41,8 +41,8 @@ jobs:
 
       - name: Setup Git
         run: |
-          git config user.name 'grafana-delivery-bot[bot]'
-          git config user.email '132647405+grafana-delivery-bot[bot]@users.noreply.github.com'
+          git config user.name 'grafana-plugins-platform-bot[bot]'
+          git config user.email '144369747+grafana-plugins-platform-bot[bot]@users.noreply.github.com'
 
       - name: bump version
         run: npm version ${INPUT_VERSION}
