@@ -5,12 +5,12 @@ on: # zizmor: ignore[cache-poisoning]
     tags:
       - "*"
 
-permissions:
-  contents: read
-
 jobs:
   release-to-github:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
