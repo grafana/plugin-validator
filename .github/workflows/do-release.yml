@@ -51,7 +51,12 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: Push latest version
-        run: git push origin main
+        run: |
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY} origin HEAD --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          REPOSITORY: ${{ github.repository }}
+
 
       - name: Push tags
         run: git push origin --tags
