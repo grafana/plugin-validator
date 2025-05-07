@@ -261,6 +261,7 @@ Run "mage gen:readme" to regenerate this section.
 | SDK Usage / `sdkusage` | Ensures that `grafana-plugin-sdk-go` is up-to-date. | None |
 | Signature / `signature` | Ensures the plugin has a valid signature. | None |
 | Source Code / `sourcecode` | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it. | `sourceCodeUri` |
+| Sponsorship Link / `sponsorshiplink` | Checks if a sponsorship link is specified in `plugin.json` that will be shown in the Grafana plugin catalog for users to support the plugin developer.|
 | Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified. | None |
 | Unique README.md / `templatereadme` | Ensures the plugin doesn't re-use the template from the `create-plugin` tool. | None |
 | Unsafe SVG / `manifest` | Checks if any svg files are safe based on a whitelist of elements and attributes. | None |
