@@ -66,7 +66,7 @@ func TestNoSponsorshipLink(t *testing.T) {
 
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Recommendation)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: You can include a sponsorship link if you want users to support your work")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "You can include a sponsorship link if you want users to support your work")
 }
 
 func TestEmptyLinks(t *testing.T) {
@@ -91,5 +91,5 @@ func TestEmptyLinks(t *testing.T) {
 
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Recommendation)
-	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: You can include a sponsorship link if you want users to support your work")
+	require.Equal(t, interceptor.Diagnostics[0].Title, "You can include a sponsorship link if you want users to support your work")
 }

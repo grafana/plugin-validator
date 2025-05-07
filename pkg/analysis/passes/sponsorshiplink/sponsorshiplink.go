@@ -11,6 +11,8 @@ import (
 
 var (
 	sponsorshiplink = &analysis.Rule{Name: "sponsorshiplink", Severity: analysis.Recommendation}
+	explanation     = "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish."
+	recommendation  = "You can include a sponsorship link if you want users to support your work"
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -36,18 +38,17 @@ func checkSponsorshiplink(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(data.Info.Links) == 0 {
-		explanation := "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish."
-		pass.ReportResult(pass.AnalyzerName, sponsorshiplink, "plugin.json: You can include a sponsorship link if you want users to support your work", explanation)
+		pass.ReportResult(pass.AnalyzerName, sponsorshiplink, recommendation, explanation)
 		return nil, nil
 	}
 
 	for _, link := range data.Info.Links {
 		name := strings.ToLower(link.Name)
-		if strings.Contains(name, "sponsor") || strings.Contains(name, "sponsorship") {
+		if !strings.Contains(name, "sponsor") && !strings.Contains(name, "sponsorship") {
+			pass.ReportResult(pass.AnalyzerName, sponsorshiplink, recommendation, explanation)
 			return nil, nil
 		}
 	}
-	explanation := "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish."
-	pass.ReportResult(pass.AnalyzerName, sponsorshiplink, "plugin.json: You can include a sponsorship link if you want users to support your work", explanation)
+
 	return nil, nil
 }
