@@ -186,3 +186,45 @@ func TestTopnavToggle(t *testing.T) {
 		analysis.Error,
 	)
 }
+
+func TestWindowAccessWindowObjects(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: "./",
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "access-window"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 4)
+	// Define expected diagnostics
+	expectedDiagnostics := []struct {
+		title  string
+		detail string
+	}{
+		{
+			"Detected access to restricted window property: window.grafanaBootData. Accessing window.grafanaBootData is not permitted.",
+			"Code rule violation found in testdata/access-window/src/index.ts at line 2",
+		},
+		{
+			"Detected access to restricted window property: window.grafanaBootData. Accessing window.grafanaBootData is not permitted.",
+			"Code rule violation found in testdata/access-window/src/index.ts at line 3",
+		},
+		{
+			"Detected access to restricted window property: window.grafanaRuntime. Accessing window.grafanaRuntime is not permitted.",
+			"Code rule violation found in testdata/access-window/src/index.ts at line 4",
+		},
+		{
+			"Detected access to restricted window property: window.__grafanaSceneContext. Accessing window.__grafanaSceneContext is not permitted.",
+			"Code rule violation found in testdata/access-window/src/index.ts at line 5",
+		},
+	}
+
+	// Test all expectations in a loop
+	for index, tc := range expectedDiagnostics {
+		require.Equal(t, tc.title, interceptor.Diagnostics[index].Title)
+		require.Equal(t, tc.detail, interceptor.Diagnostics[index].Detail)
+	}
+}
