@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
 
+	"github.com/jarcoal/httpmock"
 	"github.com/r3labs/diff"
 	"github.com/stretchr/testify/assert"
 
@@ -37,6 +39,16 @@ type tc struct {
 }
 
 func TestIntegration(t *testing.T) {
+	// Set up HTTP mocking
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	// Mock the GitHub URLs that are returning 429 errors
+	httpmock.RegisterResponder("GET", "https://github.com/grafana/clock-panel/blob/master/LICENSE",
+		httpmock.NewStringResponder(http.StatusOK, "Mock license content"))
+	httpmock.RegisterResponder("GET", "https://github.com/grafana/grafana-zabbix/blob/main/LICENSE",
+		httpmock.NewStringResponder(http.StatusOK, "Mock license content"))
+
 	basePath := "./testdata"
 	binary := filepath.Join(
 		"..",
@@ -65,6 +77,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "README.md contains developer jargon: (yarn)",
 							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
 							Name:     "developer-jargon",
+						},
+					},
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
 						},
 					},
 				},
@@ -107,6 +127,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "modified-signature",
 						},
 					},
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
+						},
+					},
 				},
 			},
 		},
@@ -116,7 +144,16 @@ func TestIntegration(t *testing.T) {
 			jsonReport: JsonReport{
 				Id:              "yesoreyeram-infinity-datasource",
 				Version:         "2.6.3",
-				PluginValidator: map[string][]Issue{},
+				PluginValidator: map[string][]Issue{
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
+						},
+					},
+				},
 			},
 		},
 		{
@@ -212,6 +249,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "screenshots",
 						},
 					},
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
+						},
+					},
 				},
 			},
 		},
@@ -267,6 +312,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "README.md contains developer jargon: (yarn)",
 							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
 							Name:     "developer-jargon",
+						},
+					},
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
 						},
 					},
 				},

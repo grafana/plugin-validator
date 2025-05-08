@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
@@ -18,7 +17,7 @@ var (
 var Analyzer = &analysis.Analyzer{
 	Name:     "sponsorshiplink",
 	Run:      checkSponsorshiplink,
-	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer},
+	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Rules:    []*analysis.Rule{sponsorshiplink},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Sponsorship Link",
