@@ -10,7 +10,7 @@ require (
 	github.com/google/generative-ai-go v0.19.0
 	github.com/google/osv-scanner v1.9.2
 	github.com/hashicorp/go-version v1.7.0
-	github.com/jarcoal/httpmock v1.3.1
+	github.com/jarcoal/httpmock v1.4.0
 	github.com/magefile/mage v1.15.0
 	github.com/r3labs/diff v1.1.0
 	github.com/smartystreets/goconvey v1.8.1
