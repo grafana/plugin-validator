@@ -16,7 +16,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "sponsorshiplink",
-	Run:      checkSponsorshiplink,
+	Run:      run,
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Rules:    []*analysis.Rule{sponsorshiplink},
 	ReadmeInfo: analysis.ReadmeInfo{
@@ -25,7 +25,7 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-func checkSponsorshiplink(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (interface{}, error) {
 	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
 	if !ok {
 		return nil, nil

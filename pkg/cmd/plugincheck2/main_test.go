@@ -142,8 +142,8 @@ func TestIntegration(t *testing.T) {
 			file:      "yesoreyeram-infinity-datasource-2.6.3.linux_amd64.zip",
 			extraArgs: "",
 			jsonReport: JsonReport{
-				Id:              "yesoreyeram-infinity-datasource",
-				Version:         "2.6.3",
+				Id:      "yesoreyeram-infinity-datasource",
+				Version: "2.6.3",
 				PluginValidator: map[string][]Issue{
 					"sponsorshiplink": {
 						{
