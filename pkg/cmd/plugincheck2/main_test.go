@@ -83,7 +83,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "recommendation",
 							Title:    "You can include a sponsorship link if you want users to support your work",
-							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
 						},
 					},
@@ -131,7 +131,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "recommendation",
 							Title:    "You can include a sponsorship link if you want users to support your work",
-							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
 						},
 					},
@@ -149,7 +149,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "recommendation",
 							Title:    "You can include a sponsorship link if you want users to support your work",
-							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
 						},
 					},
@@ -253,7 +253,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "recommendation",
 							Title:    "You can include a sponsorship link if you want users to support your work",
-							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
 						},
 					},
@@ -318,7 +318,7 @@ func TestIntegration(t *testing.T) {
 						{
 							Severity: "recommendation",
 							Title:    "You can include a sponsorship link if you want users to support your work",
-							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
 						},
 					},
