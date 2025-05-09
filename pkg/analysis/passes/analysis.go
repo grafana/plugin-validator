@@ -41,6 +41,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sdkusage"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sponsorshiplink"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
@@ -57,6 +58,7 @@ var Analyzers = []*analysis.Analyzer{
 	binarypermissions.Analyzer,
 	brokenlinks.Analyzer,
 	changelog.Analyzer,
+	sponsorshiplink.Analyzer,
 	checksum.Analyzer,
 	coderules.Analyzer,
 	discoverability.Analyzer,

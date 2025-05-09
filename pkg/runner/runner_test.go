@@ -42,6 +42,7 @@ var tests = []struct {
 		"plugin.json: description is empty",
 		"plugin.json: keywords are empty",
 		"CHANGELOG.md is empty",
+		"You can include a sponsorship link if you want users to support your work",
 	}},
 }
 
