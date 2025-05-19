@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
 
-	"github.com/jarcoal/httpmock"
 	"github.com/r3labs/diff"
 	"github.com/stretchr/testify/assert"
 
@@ -39,15 +37,6 @@ type tc struct {
 }
 
 func TestIntegration(t *testing.T) {
-	// Set up HTTP mocking
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
-	// Mock the GitHub URLs that are returning 429 errors
-	httpmock.RegisterResponder("GET", "https://github.com/grafana/clock-panel/blob/master/LICENSE",
-		httpmock.NewStringResponder(http.StatusOK, "Mock license content"))
-	httpmock.RegisterResponder("GET", "https://github.com/grafana/grafana-zabbix/blob/main/LICENSE",
-		httpmock.NewStringResponder(http.StatusOK, "Mock license content"))
 
 	basePath := "./testdata"
 	binary := filepath.Join(
