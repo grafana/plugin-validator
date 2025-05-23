@@ -240,6 +240,7 @@ Run "mage gen:readme" to regenerate this section.
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
 | License Type / `license` | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3. | None |
+| Safe Links / `safelinks` | Checks that links from `plugin.json` are safe. | Webrisk API key |
 | LLM Review / `llmreview` | Runs the code through Gemini LLM to check for security issues or disallowed usage. | Gemini API key |
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
 | Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |

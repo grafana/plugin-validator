@@ -37,6 +37,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/safelinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sdkusage"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
@@ -70,6 +71,7 @@ var Analyzers = []*analysis.Analyzer{
 	legacybuilder.Analyzer,
 	legacyplatform.Analyzer,
 	license.Analyzer,
+	safelinks.Analyzer,
 	llmreview.Analyzer,
 	logos.Analyzer,
 	manifest.Analyzer,
