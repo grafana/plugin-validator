@@ -53,6 +53,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	if webriskApiKey == "" {
+		return nil, nil
+	}
+
 	ctx := context.Background()
 
 	client, err := webrisk.NewClient(ctx, option.WithAPIKey(webriskApiKey))
