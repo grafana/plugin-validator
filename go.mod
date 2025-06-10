@@ -59,7 +59,7 @@ require (
 	deps.dev/util/semver v0.0.0-20250310223405-f4cf91c9e684 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
-	github.com/cloudflare/circl v1.6.0 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.16.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dghubble/trie v0.1.0 // indirect
