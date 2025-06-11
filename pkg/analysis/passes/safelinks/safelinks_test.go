@@ -1,156 +1,246 @@
 package safelinks
 
 import (
-	"context"
-	"net"
+	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
-	webrisk "cloud.google.com/go/webrisk/apiv1"
-	"cloud.google.com/go/webrisk/apiv1/webriskpb"
+	"github.com/jarcoal/httpmock"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"google.golang.org/api/option"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
-type MockWebRiskServer struct {
-	webriskpb.UnimplementedWebRiskServiceServer
-	responses map[string]*webriskpb.SearchUrisResponse
-	errors    map[string]error
-}
+const pluginId = "test-plugin-panel"
 
-func (f *MockWebRiskServer) SearchUris(ctx context.Context, req *webriskpb.SearchUrisRequest) (*webriskpb.SearchUrisResponse, error) {
-	if err, exists := f.errors[req.Uri]; exists {
-		return nil, err
-	}
-
-	if resp, exists := f.responses[req.Uri]; exists {
-		return resp, nil
-	}
-	return &webriskpb.SearchUrisResponse{}, nil
-}
-
-func setupMockWebRiskServer(t *testing.T, mockServer *MockWebRiskServer) (*webrisk.Client, func()) {
-
-	lis, err := net.Listen("tcp", "localhost:0")
-	require.NoError(t, err)
-
-	s := grpc.NewServer()
-	webriskpb.RegisterWebRiskServiceServer(s, mockServer)
-
-	go func() {
-		if err := s.Serve(lis); err != nil {
-			t.Logf("Server exited with error: %v", err)
+func TestNoAPIKey(t *testing.T) {
+	// Temporarily unset the API key
+	originalKey := os.Getenv("WEBRISK_API_KEY")
+	os.Unsetenv("WEBRISK_API_KEY")
+	defer func() {
+		if originalKey != "" {
+			os.Setenv("WEBRISK_API_KEY", originalKey)
 		}
 	}()
 
-	conn, err := grpc.NewClient(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err)
-
-	client, err := webrisk.NewClient(
-		context.Background(),
-		option.WithGRPCConn(conn),
-	)
-	require.NoError(t, err)
-	cleanup := func() {
-		client.Close()
-		s.Stop()
-		lis.Close()
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(
+				`{"ID": "` + pluginId + `", "info": {"links": [{"name": "Test Link", "url": "https://example.com"}]}}`,
+			),
+		},
+		Report: interceptor.ReportInterceptor(),
 	}
 
-	return client, cleanup
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Empty(t, interceptor.Diagnostics)
 }
 
-func TestRun_NoAPIKeyEnvironmentVariable(t *testing.T) {
-	originalAPIKey := webriskApiKey
-	defer func() {
-		webriskApiKey = originalAPIKey
-	}()
+func TestSafeLink(t *testing.T) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
+	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
 
-	webriskApiKey = ""
+	httpmock.ActivateNonDefault(httpClient)
+	defer httpmock.DeactivateAndReset()
+
+	safeURL := "https://example.com/safe-link"
+
+	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
+		func(req *http.Request) (*http.Response, error) {
+			uri := req.URL.Query().Get("uri")
+			require.Equal(t, safeURL, uri)
+			return httpmock.NewStringResponder(200, `{}`)(req)
+		})
 
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
-		RootDir: "./",
+		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(`{
-				"id": "test-plugin-panel",
-				"info": {
-					"links": [
-						{
-							"name": "Test Link",
-							"url": "https://example.com"
-						}
-					]
+			metadata.Analyzer: []byte(
+				`{"ID": "` + pluginId + `", "info": {"links": [{"name": "Safe Link", "url": "` + safeURL + `"}]}}`,
+			),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Empty(t, interceptor.Diagnostics)
+}
+
+func TestMalwareLink(t *testing.T) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
+	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+
+	httpmock.ActivateNonDefault(httpClient)
+	defer httpmock.DeactivateAndReset()
+
+	malwareURL := "https://testsafebrowsing.appspot.com/s/malware_in_iframe.html"
+
+	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
+		func(req *http.Request) (*http.Response, error) {
+			return httpmock.NewStringResponder(200, `{
+				"threat": {
+					"threatTypes": ["MALWARE"]
 				}
-			}`),
+			}`)(req)
+		})
+
+	metadataJSON := `{"ID": "` + pluginId + `", "info": {"links": [{"name": "Malware Link", "url": "` + malwareURL + `"}]}}`
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(metadataJSON),
 		},
 		Report:       interceptor.ReportInterceptor(),
-		AnalyzerName: "links",
+		AnalyzerName: "safelinks",
 	}
 
-	result, err := Analyzer.Run(pass)
-
+	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
-	require.Nil(t, result)
-	require.Len(t, interceptor.Diagnostics, 0)
+
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "Webrisk flagged link", interceptor.Diagnostics[0].Title)
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "Malware Link")
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "MALWARE")
 }
 
-func TestCheckURLs_WithFakeServer_SafeLinks(t *testing.T) {
-	mockServer := &MockWebRiskServer{
-		responses: map[string]*webriskpb.SearchUrisResponse{
-			"https://example.com": {},
-			"https://google.com":  {},
+func TestSocialEngineeringLink(t *testing.T) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
+	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+
+	httpmock.ActivateNonDefault(httpClient)
+	defer httpmock.DeactivateAndReset()
+
+	phishingURL := "https://testsafebrowsing.appspot.com/s/bad_login.html"
+
+	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
+		func(req *http.Request) (*http.Response, error) {
+			uri := req.URL.Query().Get("uri")
+			require.Equal(t, phishingURL, uri)
+
+			return httpmock.NewStringResponder(200, `{
+				"threat": {
+					"threatTypes": ["SOCIAL_ENGINEERING"]
+				}
+			}`)(req)
+		})
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(
+				`{"ID": "` + pluginId + `", "info": {"links": [{"name": "Phishing Link", "url": "` + phishingURL + `"}]}}`,
+			),
 		},
+		Report: interceptor.ReportInterceptor(),
 	}
 
-	client, cleanup := setupMockWebRiskServer(t, mockServer)
-	defer cleanup()
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
 
-	links := []metadata.Link{
-		{Name: "Safe Link 1", URL: "https://example.com"},
-		{Name: "Safe Link 2", URL: "https://google.com"},
-	}
-
-	ctx := context.Background()
-	results := CheckURLs(ctx, client, links)
-
-	require.Len(t, results, 2)
-
-	for _, result := range results {
-		assert.NoError(t, result.Error)
-		assert.Empty(t, result.Threats)
-	}
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "Webrisk flagged link", interceptor.Diagnostics[0].Title)
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "Phishing Link")
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "SOCIAL_ENGINEERING")
 }
 
-func TestCheckURLs_WithFakeServer_MalwareLink(t *testing.T) {
-	mockServer := &MockWebRiskServer{
-		responses: map[string]*webriskpb.SearchUrisResponse{
-			"https://malware.example.com": {
-				Threat: &webriskpb.SearchUrisResponse_ThreatUri{
-					ThreatTypes: []webriskpb.ThreatType{
-						webriskpb.ThreatType_MALWARE,
-					},
-				},
-			},
+func TestMultipleThreatTypes(t *testing.T) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
+	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+
+	httpmock.ActivateNonDefault(httpClient)
+	defer httpmock.DeactivateAndReset()
+
+	dangerousURL := "https://example.com/very-dangerous-link"
+
+	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
+		func(req *http.Request) (*http.Response, error) {
+			uri := req.URL.Query().Get("uri")
+			require.Equal(t, dangerousURL, uri)
+
+			return httpmock.NewStringResponder(200, `{
+				"threat": {
+					"threatTypes": ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"]
+				}
+			}`)(req)
+		})
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(
+				`{"ID": "` + pluginId + `", "info": {"links": [{"name": "Dangerous Link", "url": "` + dangerousURL + `"}]}}`,
+			),
 		},
+		Report: interceptor.ReportInterceptor(),
 	}
 
-	client, cleanup := setupMockWebRiskServer(t, mockServer)
-	defer cleanup()
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
 
-	links := []metadata.Link{
-		{Name: "Malware Link", URL: "https://malware.example.com"},
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "Webrisk flagged link", interceptor.Diagnostics[0].Title)
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "Dangerous Link")
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "MALWARE, SOCIAL_ENGINEERING, UNWANTED_SOFTWARE")
+}
+
+func TestMultipleLinks(t *testing.T) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
+	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+
+	httpmock.ActivateNonDefault(httpClient)
+	defer httpmock.DeactivateAndReset()
+
+	safeURL := "https://example.com/safe"
+	malwareURL := "https://example.com/malware"
+
+	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
+		func(req *http.Request) (*http.Response, error) {
+			uri := req.URL.Query().Get("uri")
+
+			if uri == safeURL {
+				return httpmock.NewStringResponder(200, `{}`)(req)
+			} else if uri == malwareURL {
+				return httpmock.NewStringResponder(200, `{
+					"threat": {
+						"threatTypes": ["MALWARE"]
+					}
+				}`)(req)
+			}
+
+			return httpmock.NewStringResponder(200, `{}`)(req)
+		})
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(
+				`{"ID": "` + pluginId + `", "info": {"links": [
+					{"name": "Safe Link", "url": "` + safeURL + `"},
+					{"name": "Malware Link", "url": "` + malwareURL + `"}
+				]}}`,
+			),
+		},
+		Report: interceptor.ReportInterceptor(),
 	}
 
-	ctx := context.Background()
-	results := CheckURLs(ctx, client, links)
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
 
-	require.Len(t, results, 1)
-	assert.NoError(t, results[0].Error)
-	assert.Contains(t, results[0].Threats, webriskpb.ThreatType_MALWARE)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, "Webrisk flagged link", interceptor.Diagnostics[0].Title)
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "Malware Link")
 }
