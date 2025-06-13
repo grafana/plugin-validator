@@ -22,7 +22,7 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
-      
+
       - id: get-secrets
         uses: grafana/shared-workflows/actions/get-vault-secrets@28361cdb22223e5f1e34358c86c20908e7248760 # get-vault-secrets-v1.1.0
         with:
@@ -36,6 +36,7 @@ jobs:
         with:
           app-id: ${{ env.GITHUB_APP_ID }}
           private-key: ${{ env.GITHUB_APP_PRIVATE_KEY }}
+          permission-contents: write
 
       - uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
