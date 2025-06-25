@@ -44,7 +44,10 @@ func TestNoAPIKey(t *testing.T) {
 
 func TestSafeLink(t *testing.T) {
 	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+	if webriskApiKey == "" {
+		t.Skip("API key not set, skipping test")
+		return
+	}
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -77,7 +80,10 @@ func TestSafeLink(t *testing.T) {
 
 func TestMalwareLink(t *testing.T) {
 	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+	if webriskApiKey == "" {
+		t.Skip("API key not set, skipping test")
+		return
+	}
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -116,8 +122,10 @@ func TestMalwareLink(t *testing.T) {
 
 func TestSocialEngineeringLink(t *testing.T) {
 	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
-
+	if webriskApiKey == "" {
+		t.Skip("API key not set, skipping test")
+		return
+	}
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
 
@@ -157,7 +165,10 @@ func TestSocialEngineeringLink(t *testing.T) {
 
 func TestMultipleThreatTypes(t *testing.T) {
 	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+	if webriskApiKey == "" {
+		t.Skip("API key not set, skipping test")
+		return
+	}
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -198,7 +209,10 @@ func TestMultipleThreatTypes(t *testing.T) {
 
 func TestMultipleLinks(t *testing.T) {
 	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	require.NotEmpty(t, webriskApiKey, "API key should not be empty")
+	if webriskApiKey == "" {
+		t.Skip("API key not set, skipping test")
+		return
+	}
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()

@@ -14,25 +14,26 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
-type LinkResult struct {
-	Link    metadata.Link
-	Threats []ThreatType
-	Error   error
+type linkResult struct {
+	link    metadata.Link
+	threats threatTypes
+	err     error
 }
+type threatTypes []threatType
 
-type WebRiskResponse struct {
+type webRiskResponse struct {
 	Threat *struct {
-		ThreatTypes []string `json:"threatTypes"`
+		ThreatTypes []threatType `json:"threatTypes"`
 	} `json:"threat,omitempty"`
 }
 
-type ThreatType string
+type threatType string
 
 const (
-	ThreatTypeMalware                           ThreatType = "MALWARE"
-	ThreatTypeSocialEngineering                 ThreatType = "SOCIAL_ENGINEERING"
-	ThreatTypeUnwantedSoftware                  ThreatType = "UNWANTED_SOFTWARE"
-	ThreatTypeSocialEngineeringExtendedCoverage ThreatType = "SOCIAL_ENGINEERING_EXTENDED_COVERAGE"
+	threatTypeMalware                           threatType = "MALWARE"
+	threatTypeSocialEngineering                 threatType = "SOCIAL_ENGINEERING"
+	threatTypeUnwantedSoftware                  threatType = "UNWANTED_SOFTWARE"
+	threatTypeSocialEngineeringExtendedCoverage threatType = "SOCIAL_ENGINEERING_EXTENDED_COVERAGE"
 )
 
 var webriskApiKey = os.Getenv("WEBRISK_API_KEY")
@@ -76,88 +77,85 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	ctx := context.Background()
 
-	results := CheckURLs(ctx, data.Info.Links)
+	results := checkURLs(ctx, data.Info.Links)
 
 	for _, result := range results {
-		if result.Error != nil || len(result.Threats) > 0 {
+		if result.err != nil || len(result.threats) > 0 {
+			fmt.Errorf("failed to check link %s: %w", result.link.Name, result.err)
 			pass.ReportResult(pass.AnalyzerName, webriskFlagged,
 				"Webrisk flagged link",
-				fmt.Sprintf("Link with name %s is not safe: can be a %s", result.Link.Name, getThreatTypeString(result.Threats)))
+				fmt.Sprintf("Link with name %s is not safe: can be a %s", result.link.Name, result.threats))
 		}
 	}
 	return nil, nil
 }
 
-func CheckURLs(ctx context.Context, links []metadata.Link) []LinkResult {
-	results := make([]LinkResult, len(links))
+func checkURLs(ctx context.Context, links []metadata.Link) []linkResult {
+	results := []linkResult{}
 
-	for i, link := range links {
-		result := LinkResult{Link: link}
+	for _, link := range links {
+		result := linkResult{link: link}
 
 		if link.URL == "" {
-			results[i] = result
 			continue
 		}
 
 		params := url.Values{}
 		params.Set("uri", link.URL)
-		params.Set("key", webriskApiKey)
-		params.Add("threatTypes", string(ThreatTypeMalware))
-		params.Add("threatTypes", string(ThreatTypeSocialEngineering))
-		params.Add("threatTypes", string(ThreatTypeUnwantedSoftware))
-		params.Add("threatTypes", string(ThreatTypeSocialEngineeringExtendedCoverage))
+		params.Add("threatTypes", string(threatTypeMalware))
+		params.Add("threatTypes", string(threatTypeSocialEngineering))
+		params.Add("threatTypes", string(threatTypeUnwantedSoftware))
+		params.Add("threatTypes", string(threatTypeSocialEngineeringExtendedCoverage))
 
 		apiURL := fmt.Sprintf("%s?%s", webRiskAPIBaseURL, params.Encode())
 
 		reqCtx, cancel := context.WithTimeout(ctx, requestTimeout)
-		req, err := http.NewRequestWithContext(reqCtx, "GET", apiURL, nil)
+		defer cancel()
+
+		req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, apiURL, nil)
 		if err != nil {
-			cancel()
-			result.Error = fmt.Errorf("failed to create request: %w", err)
-			results[i] = result
+			result.err = fmt.Errorf("failed to create request: %w", err)
+			results = append(results, result)
 			continue
 		}
 
+		req.Header.Set("X-goog-api-key", webriskApiKey)
+
 		resp, err := httpClient.Do(req)
-		cancel()
 
 		if err != nil {
-			result.Error = fmt.Errorf("API call failed: %w", err)
-			results[i] = result
+			result.err = fmt.Errorf("API call failed: %w", err)
+			results = append(results, result)
 			continue
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			result.Error = fmt.Errorf("API returned status %d", resp.StatusCode)
-			results[i] = result
+			result.err = fmt.Errorf("API returned status %d", resp.StatusCode)
+			results = append(results, result)
 			continue
 		}
 
-		// Parse response
-		var webRiskResp WebRiskResponse
+		var webRiskResp webRiskResponse
 		if err := json.NewDecoder(resp.Body).Decode(&webRiskResp); err != nil {
-			result.Error = fmt.Errorf("failed to decode response: %w", err)
-			results[i] = result
+			result.err = fmt.Errorf("failed to decode response: %w", err)
+			results = append(results, result)
 			continue
 		}
 
 		if webRiskResp.Threat != nil && len(webRiskResp.Threat.ThreatTypes) > 0 {
-			result.Threats = make([]ThreatType, len(webRiskResp.Threat.ThreatTypes))
-			for j, threatStr := range webRiskResp.Threat.ThreatTypes {
-				result.Threats[j] = ThreatType(threatStr)
-			}
+			result.threats = webRiskResp.Threat.ThreatTypes
 		}
 
-		results[i] = result
+		results = append(results, result)
 	}
 
 	return results
 }
 
-func getThreatTypeString(threatTypes []ThreatType) string {
-	threatTypeStrings := make([]string, len(threatTypes))
-	for i, threatType := range threatTypes {
+func (t threatTypes) String() string {
+	threatTypeStrings := make([]string, len(t))
+	for i, threatType := range t {
 		threatTypeStrings[i] = string(threatType)
 	}
 	return strings.Join(threatTypeStrings, ", ")
