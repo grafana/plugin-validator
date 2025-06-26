@@ -81,10 +81,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, result := range results {
 		if result.err != nil || len(result.threats) > 0 {
-			fmt.Errorf("failed to check link %s: %w", result.link.Name, result.err)
+			result.err = fmt.Errorf("failed to check link %s: %w", result.link.Name, result.err)
 			pass.ReportResult(pass.AnalyzerName, webriskFlagged,
 				"Webrisk flagged link",
-				fmt.Sprintf("Link with name %s is not safe: can be a %s", result.link.Name, result.threats))
+				fmt.Sprintf("Link with name %s is not safe: can be a %s", result.link.Name, result.threats.String()))
 		}
 	}
 	return nil, nil
