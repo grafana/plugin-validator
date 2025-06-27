@@ -16,15 +16,16 @@ import (
 )
 
 var (
-	screenshots     = &analysis.Rule{Name: "screenshots", Severity: analysis.Warning}
-	screenshotsType = &analysis.Rule{Name: "screenshots-image-type", Severity: analysis.Error}
+	screenshots       = &analysis.Rule{Name: "screenshots", Severity: analysis.Warning}
+	screenshotsType   = &analysis.Rule{Name: "screenshots-image-type", Severity: analysis.Error}
+	screenshotsFormat = &analysis.Rule{Name: "screenshots-format", Severity: analysis.Error}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "screenshots",
 	Run:      checkScreenshots,
 	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer},
-	Rules:    []*analysis.Rule{screenshots, screenshotsType},
+	Rules:    []*analysis.Rule{screenshots, screenshotsType, screenshotsFormat},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Screenshots",
 		Description: "Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog.",
@@ -46,6 +47,13 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
+		// Check if the error is related to screenshots field format
+		if strings.Contains(err.Error(), "cannot unmarshal") && strings.Contains(err.Error(), "screenshots") {
+			pass.ReportResult(pass.AnalyzerName, screenshotsFormat,
+				"plugin.json: invalid screenshots format",
+				"The screenshots field must be an array of objects with 'name' and 'path' properties, not an array of strings. Example: [{\"name\": \"Screenshot 1\", \"path\": \"img/screenshot.png\"}]")
+			return nil, nil
+		}
 		return nil, err
 	}
 

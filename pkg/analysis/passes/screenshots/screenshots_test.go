@@ -298,3 +298,27 @@ func TestScreenshotImageTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestMalformedScreenshotsFormat(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	const pluginJsonContent = `{
+		"name": "my plugin name",
+		"info": {
+		"screenshots": ["https://example.com/screenshot.jpg"]
+		}
+	}`
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(pluginJsonContent),
+			archive.Analyzer:  filepath.Join("."),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: invalid screenshots format")
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "must be an array of objects with 'name' and 'path' properties")
+}
