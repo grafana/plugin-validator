@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
@@ -23,7 +24,7 @@ var (
 var Analyzer = &analysis.Analyzer{
 	Name:     "screenshots",
 	Run:      checkScreenshots,
-	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer},
+	Requires: []*analysis.Analyzer{metadata.Analyzer, archive.Analyzer, metadatavalid.Analyzer},
 	Rules:    []*analysis.Rule{screenshots, screenshotsType},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Screenshots",
@@ -44,9 +45,17 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	// Ensure metadatavalid.Analyzer ran (it returns nil but we need it as dependency)
+	_, ok = pass.ResultOf[metadatavalid.Analyzer]
+	if !ok {
+		return nil, nil
+	}
+
 	var data metadata.Metadata
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
-		return nil, err
+		// If JSON unmarshaling fails, metadatavalid.Analyzer has already caught and reported
+		// the schema validation error. We can gracefully skip screenshots validation.
+		return nil, nil
 	}
 
 	if len(data.Info.Screenshots) == 0 {
