@@ -12,6 +12,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 type linkResult struct {
@@ -20,6 +21,14 @@ type linkResult struct {
 	err     error
 }
 type threatTypes []threatType
+
+func (t threatTypes) String() string {
+	threatTypeStrings := make([]string, len(t))
+	for i, threatType := range t {
+		threatTypeStrings[i] = string(threatType)
+	}
+	return strings.Join(threatTypeStrings, ", ")
+}
 
 type webRiskResponse struct {
 	Threat *struct {
@@ -35,6 +44,13 @@ const (
 	threatTypeUnwantedSoftware                  threatType = "UNWANTED_SOFTWARE"
 	threatTypeSocialEngineeringExtendedCoverage threatType = "SOCIAL_ENGINEERING_EXTENDED_COVERAGE"
 )
+
+var allThreatTypes = []threatType{
+	threatTypeMalware,
+	threatTypeSocialEngineering,
+	threatTypeUnwantedSoftware,
+	threatTypeSocialEngineeringExtendedCoverage,
+}
 
 var webriskApiKey = os.Getenv("WEBRISK_API_KEY")
 
@@ -80,8 +96,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	results := checkURLs(ctx, data.Info.Links)
 
 	for _, result := range results {
-		if result.err != nil || len(result.threats) > 0 {
-			result.err = fmt.Errorf("failed to check link %s: %w", result.link.Name, result.err)
+		if result.err != nil {
+			logme.DebugFln("Failed to check link via webrisk API: %q -> %v", result.link.Name, result.err)
+			continue
+		}
+		if len(result.threats) > 0 {
 			pass.ReportResult(pass.AnalyzerName, webriskFlagged,
 				"Webrisk flagged link",
 				fmt.Sprintf("Link with name %s is not safe: can be a %s", result.link.Name, result.threats.String()))
@@ -102,10 +121,9 @@ func checkURLs(ctx context.Context, links []metadata.Link) []linkResult {
 
 		params := url.Values{}
 		params.Set("uri", link.URL)
-		params.Add("threatTypes", string(threatTypeMalware))
-		params.Add("threatTypes", string(threatTypeSocialEngineering))
-		params.Add("threatTypes", string(threatTypeUnwantedSoftware))
-		params.Add("threatTypes", string(threatTypeSocialEngineeringExtendedCoverage))
+		for _, tt := range allThreatTypes {
+			params.Add("threatTypes", string(tt))
+		}
 
 		apiURL := fmt.Sprintf("%s?%s", webRiskAPIBaseURL, params.Encode())
 
@@ -151,12 +169,4 @@ func checkURLs(ctx context.Context, links []metadata.Link) []linkResult {
 	}
 
 	return results
-}
-
-func (t threatTypes) String() string {
-	threatTypeStrings := make([]string, len(t))
-	for i, threatType := range t {
-		threatTypeStrings[i] = string(threatType)
-	}
-	return strings.Join(threatTypeStrings, ", ")
 }
