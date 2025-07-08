@@ -52,8 +52,6 @@ var allThreatTypes = []threatType{
 	threatTypeSocialEngineeringExtendedCoverage,
 }
 
-var webriskApiKey = os.Getenv("WEBRISK_API_KEY")
-
 var (
 	webriskFlagged    = &analysis.Rule{Name: "webrisk-flagged", Severity: analysis.Error}
 	webRiskAPIBaseURL = "https://webrisk.googleapis.com/v1/uris:search"
@@ -73,6 +71,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
 	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
 	if !ok {
 		return nil, nil
@@ -93,7 +92,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	ctx := context.Background()
 
-	results := checkURLs(ctx, data.Info.Links)
+	results := checkURLs(ctx, webriskApiKey, data.Info.Links)
 
 	for _, result := range results {
 		if result.err != nil {
@@ -109,7 +108,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
-func checkURLs(ctx context.Context, links []metadata.Link) []linkResult {
+func checkURLs(ctx context.Context, apiKey string, links []metadata.Link) []linkResult {
 	results := []linkResult{}
 
 	for _, link := range links {
@@ -137,7 +136,7 @@ func checkURLs(ctx context.Context, links []metadata.Link) []linkResult {
 			continue
 		}
 
-		req.Header.Set("X-goog-api-key", webriskApiKey)
+		req.Header.Set("X-goog-api-key", apiKey)
 
 		resp, err := httpClient.Do(req)
 

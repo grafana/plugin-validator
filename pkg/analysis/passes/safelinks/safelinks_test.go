@@ -14,17 +14,32 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
-const pluginId = "test-plugin-panel"
+const (
+	pluginId = "test-plugin-panel"
+	envName  = "WEBRISK_API_KEY"
+)
+
+func setAPIKey(t *testing.T) {
+	old := os.Getenv(envName)
+	err := os.Setenv(envName, "test-api-key")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		err := os.Setenv(envName, old)
+		require.NoError(t, err)
+	})
+}
 
 func TestNoAPIKey(t *testing.T) {
 	// Temporarily unset the API key
-	originalKey := os.Getenv("WEBRISK_API_KEY")
-	os.Unsetenv("WEBRISK_API_KEY")
-	defer func() {
+	originalKey := os.Getenv(envName)
+	err := os.Unsetenv(envName)
+	require.NoError(t, err)
+	t.Cleanup(func() {
 		if originalKey != "" {
-			os.Setenv("WEBRISK_API_KEY", originalKey)
+			err := os.Setenv(envName, originalKey)
+			require.NoError(t, err)
 		}
-	}()
+	})
 
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
@@ -37,17 +52,13 @@ func TestNoAPIKey(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	_, err := Analyzer.Run(pass)
+	_, err = Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Empty(t, interceptor.Diagnostics)
 }
 
 func TestSafeLink(t *testing.T) {
-	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	if webriskApiKey == "" {
-		t.Skip("API key not set, skipping test")
-		return
-	}
+	setAPIKey(t)
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -57,6 +68,9 @@ func TestSafeLink(t *testing.T) {
 	httpmock.RegisterResponder("GET", "https://webrisk.googleapis.com/v1/uris:search",
 		func(req *http.Request) (*http.Response, error) {
 			uri := req.URL.Query().Get("uri")
+			apiKey := os.Getenv(envName)
+			require.NotEmpty(t, apiKey)
+			require.Equal(t, apiKey, req.Header.Get("X-goog-api-key"))
 			require.Equal(t, safeURL, uri)
 			return httpmock.NewStringResponder(200, `{}`)(req)
 		})
@@ -79,11 +93,7 @@ func TestSafeLink(t *testing.T) {
 }
 
 func TestMalwareLink(t *testing.T) {
-	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	if webriskApiKey == "" {
-		t.Skip("API key not set, skipping test")
-		return
-	}
+	setAPIKey(t)
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -121,11 +131,8 @@ func TestMalwareLink(t *testing.T) {
 }
 
 func TestSocialEngineeringLink(t *testing.T) {
-	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	if webriskApiKey == "" {
-		t.Skip("API key not set, skipping test")
-		return
-	}
+	setAPIKey(t)
+
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
 
@@ -164,11 +171,7 @@ func TestSocialEngineeringLink(t *testing.T) {
 }
 
 func TestMultipleThreatTypes(t *testing.T) {
-	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	if webriskApiKey == "" {
-		t.Skip("API key not set, skipping test")
-		return
-	}
+	setAPIKey(t)
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
@@ -208,11 +211,7 @@ func TestMultipleThreatTypes(t *testing.T) {
 }
 
 func TestMultipleLinks(t *testing.T) {
-	webriskApiKey := os.Getenv("WEBRISK_API_KEY")
-	if webriskApiKey == "" {
-		t.Skip("API key not set, skipping test")
-		return
-	}
+	setAPIKey(t)
 
 	httpmock.ActivateNonDefault(httpClient)
 	defer httpmock.DeactivateAndReset()
