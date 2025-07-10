@@ -257,6 +257,7 @@ Run "mage gen:readme" to regenerate this section.
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
 | Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
 | Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
+| Safe Links / `safelinks` | Checks that links from `plugin.json` are safe. | None |
 | Screenshots / `screenshots` | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog. | None |
 | SDK Usage / `sdkusage` | Ensures that `grafana-plugin-sdk-go` is up-to-date. | None |
 | Signature / `signature` | Ensures the plugin has a valid signature. | None |
