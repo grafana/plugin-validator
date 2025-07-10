@@ -96,7 +96,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, result := range results {
 		if result.err != nil {
-			logme.DebugFln("Failed to check link via webrisk API: %q -> %v", result.link.Name, result.err)
+			logme.ErrorF("Failed to check link via webrisk API: %q -> %v\n", result.link.Name, result.err)
 			continue
 		}
 		if len(result.threats) > 0 {
