@@ -22,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "nestedmetadata",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{missingMetadata, errorReadingMetadata},
+	Rules:    []*analysis.Rule{missingMetadata, errorReadingMetadata, invalidMetadata},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Nested Metadata",
 		Description: "Recursively checks that all `plugin.json` exist and are valid.",
@@ -85,7 +85,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					pass.ReportResult(pass.AnalyzerName, missingMetadata, "plugin.json exists", "")
 				}
 			}
-			return nil, err
+			return nil, nil
 		}
 
 		var data metadata.Metadata
@@ -96,14 +96,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				"Invalid plugin.json in your archive.",
 				"The plugin.json file is not valid and can't be parsed. Please refer to the documentation for more information. https://grafana.com/developers/plugin-tools/reference/plugin-json",
 			)
-			return nil, err
+			return nil, nil
 		}
 		if path == mainPluginJsonFile {
 			pluginJsonFiles[MainPluginJson] = data
 		} else {
 			relativePath, err := filepath.Rel(archiveDir, path)
 			if err != nil {
-				return nil, err
+				return nil, nil
 			}
 			pluginJsonFiles[relativePath] = data
 		}

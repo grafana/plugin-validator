@@ -188,6 +188,10 @@ func TestTopnavToggle(t *testing.T) {
 }
 
 func TestWindowAccessWindowObjects(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: "./",

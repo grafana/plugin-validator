@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
@@ -29,8 +30,9 @@ func TestValidScreenshots(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -51,8 +53,9 @@ func TestNoScreenshots(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -78,8 +81,9 @@ func TestEmptyInvalidScreenshotPath(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -104,8 +108,9 @@ func TestInvalidScreenshotPath(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -131,8 +136,9 @@ func TestTextfileScreenshotImage(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -283,8 +289,9 @@ func TestScreenshotImageTypes(t *testing.T) {
 			pass := &analysis.Pass{
 				RootDir: filepath.Join("./"),
 				ResultOf: map[*analysis.Analyzer]interface{}{
-					metadata.Analyzer: []byte(testcase.pluginJsonContent),
-					archive.Analyzer:  filepath.Join("."),
+					metadata.Analyzer:      []byte(testcase.pluginJsonContent),
+					archive.Analyzer:       filepath.Join("."),
+					metadatavalid.Analyzer: nil,
 				},
 				Report: interceptor.ReportInterceptor(),
 			}
@@ -297,4 +304,92 @@ func TestScreenshotImageTypes(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMalformedScreenshotsArrayOfStrings(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	const pluginJsonContent = `{
+		"type": "panel",
+		"name": "Test Plugin",
+		"id": "test-plugin-panel",
+		"info": {
+			"description": "Test plugin with malformed screenshots",
+			"author": {
+				"name": "Test Author"
+			},
+			"version": "1.0.0",
+			"keywords": ["test"],
+			"logos": {
+				"small": "img/logo.svg",
+				"large": "img/logo.svg"
+			},
+			"screenshots": ["https://www.example.com/screenshot.jpg"],
+			"updated": "2024-01-01"
+		},
+		"dependencies": {
+			"grafanaDependency": ">=8.0.0",
+			"plugins": []
+		}
+	}`
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil, // metadatavalid would normally catch the schema error
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	// Now run the screenshots analyzer
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	// Since metadatavalid.Analyzer didn't actually run to catch the schema error,
+	// screenshots analyzer should gracefully handle the JSON unmarshaling failure
+	// and not crash
+	require.Len(t, interceptor.Diagnostics, 0, "Should gracefully handle malformed JSON without crashing")
+}
+
+func TestInvalidScreenshotsPropertyName(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	const pluginJsonContent = `{
+		"type": "panel",
+		"name": "Test Plugin",
+		"id": "test-plugin-panel",
+		"info": {
+			"description": "Test plugin with malformed screenshots",
+			"author": {
+				"name": "Test Author"
+			},
+			"version": "1.0.0",
+			"keywords": ["test"],
+			"logos": {
+				"small": "img/logo.svg",
+				"large": "img/logo.svg"
+			},
+			"screenshotz": ["https://www.example.com/screenshot.jpg"],
+			"updated": "2024-01-01"
+		},
+		"dependencies": {
+			"grafanaDependency": ">=8.0.0",
+			"plugins": []
+		}
+	}`
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil, // metadatavalid would normally catch the schema error
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	// Now run the screenshots analyzer
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1, "plugin.json: should include screenshots for the Plugin catalog")
 }

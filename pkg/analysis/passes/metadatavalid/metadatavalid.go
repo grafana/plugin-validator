@@ -61,6 +61,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	// Using the path here rather than the result of metadata.Analyzer since
 	// gojsonschema needs an actual file.
+	// we don't use the result of metadata.Analyzer because that validator can fail
+	// if the metadata is incorrect
 	metadataPath, err := filepath.Abs(filepath.Join(archiveDir, "plugin.json"))
 	if err != nil {
 		return nil, err
@@ -81,7 +83,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case err == nil:
 		break
 	}
-
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
 	documentLoader := gojsonschema.NewReferenceLoader("file:///" + metadataPath)
 
