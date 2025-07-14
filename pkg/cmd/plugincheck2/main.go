@@ -164,8 +164,8 @@ func main() {
 		severity,
 	)
 	if err != nil {
-		logme.Errorln(fmt.Errorf("check failed: %w", err))
-		os.Exit(1)
+		// we don't exit on error. we want to still report the diagnostics
+		logme.DebugFln("check failed: %v", err)
 	}
 
 	var exitCode int
