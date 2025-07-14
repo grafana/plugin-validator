@@ -94,7 +94,8 @@ func Check(
 
 	for _, a := range analyzers {
 		if err := runFn(a); err != nil {
-			return nil, fmt.Errorf("%s: %w", a.Name, err)
+			// on an error we still return the diagnostics we have so far
+			return diagnostics, err
 		}
 	}
 

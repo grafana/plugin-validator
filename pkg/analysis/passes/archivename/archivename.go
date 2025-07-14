@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "archivename",
-	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer, metadatavalid.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{noIdentRootDir},
 	ReadmeInfo: analysis.ReadmeInfo{
