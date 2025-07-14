@@ -22,7 +22,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "nestedmetadata",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{missingMetadata, errorReadingMetadata},
+	Rules:    []*analysis.Rule{missingMetadata, errorReadingMetadata, invalidMetadata},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Nested Metadata",
 		Description: "Recursively checks that all `plugin.json` exist and are valid.",
