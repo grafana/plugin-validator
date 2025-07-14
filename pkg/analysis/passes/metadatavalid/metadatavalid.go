@@ -102,7 +102,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if len(result.Errors()) == 0 && invalidMetadata.ReportAll {
 		invalidMetadata.Severity = analysis.OK
 		pass.ReportResult(pass.AnalyzerName, invalidMetadata, "plugin.json: metadata is valid", "")
-		return nil, nil
 	}
 
 	return nil, nil
