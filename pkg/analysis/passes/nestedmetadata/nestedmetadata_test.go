@@ -77,11 +77,10 @@ func TestNestedMetadataWithNestedPluginJsonBadFormat(t *testing.T) {
 
 	result, err := Analyzer.Run(pass)
 
-	_, ok := result.(Metadatamap)
-	// should not be able to cast it
-	require.False(t, ok)
-
-	require.Error(t, err)
+	// With the new behavior, the analyzer should continue execution and report errors
+	// instead of returning them, so result should be nil but no error should be returned
+	require.Nil(t, result)
+	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 1)
 	require.Equal(t, "Invalid plugin.json in your archive.", interceptor.Diagnostics[0].Title)
 }

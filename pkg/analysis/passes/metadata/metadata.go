@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 
@@ -47,6 +48,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			}
 		}
 		return nil, err
+	}
+	var data Metadata
+	if err := json.Unmarshal(b, &data); err != nil {
+		// if we fail to unmarshall it means the schema is incorrect
+		// we will let the metadatavaid validator handle it
+		return nil, nil
 	}
 
 	return b, nil
