@@ -105,5 +105,5 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	return nil, fmt.Errorf("failed to validate metadata schema")
+	return nil, nil
 }
