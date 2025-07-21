@@ -40,13 +40,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		pass.ReportResult(pass.AnalyzerName, sponsorshiplink, recommendation, explanation)
 		return nil, nil
 	}
-
+	hasSponsorLink := false
 	for _, link := range data.Info.Links {
 		name := strings.ToLower(link.Name)
-		if !strings.Contains(name, "sponsor") && !strings.Contains(name, "sponsorship") {
-			pass.ReportResult(pass.AnalyzerName, sponsorshiplink, recommendation, explanation)
-			return nil, nil
+		if strings.Contains(name, "sponsor") || strings.Contains(name, "sponsorship") {
+			hasSponsorLink = true
 		}
+	}
+	if !hasSponsorLink {
+		pass.ReportResult(pass.AnalyzerName, sponsorshiplink, recommendation, explanation)
 	}
 
 	return nil, nil
