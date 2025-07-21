@@ -13,30 +13,47 @@ import (
 )
 
 func TestValidSponsorshipLink(t *testing.T) {
-	var interceptor testpassinterceptor.TestPassInterceptor
-	const pluginJsonContent = `{
-		"name": "my plugin name",
-		"info": {
-		"links": [
-			{
-			"url": "https://example.com/sponsorMe",
-			"name": "sponsorship"
-			}
-		]
-		}
-	}`
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(pluginJsonContent),
-			archive.Analyzer:  filepath.Join("."),
-		},
-		Report: interceptor.ReportInterceptor(),
+	testCases := []struct {
+		name     string
+		linkName string
+		url      string
+	}{
+		{"sponsorship as name", "sponsorship", "https://example.com/sponsorMe"},
+		{"sponsor as name", "Sponsor", "https://example.com/becomeSponsor"},
 	}
 
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pluginJsonContent := `{
+				"name": "my plugin name",
+				"info": {
+				"links": [
+				{
+					"url": "https://example.com/website",
+					"name": "Website"
+				},	
+				{
+					"url": "` + tc.url + `",
+					"name": "` + tc.linkName + `"
+				}
+			]
+			}
+			}`
+			pass := &analysis.Pass{
+				RootDir: filepath.Join("./"),
+				ResultOf: map[*analysis.Analyzer]interface{}{
+					metadata.Analyzer: []byte(pluginJsonContent),
+					archive.Analyzer:  filepath.Join("."),
+				},
+				Report: interceptor.ReportInterceptor(),
+			}
+
+			_, err := Analyzer.Run(pass)
+			require.NoError(t, err)
+			require.Len(t, interceptor.Diagnostics, 0)
+		})
+	}
 }
 
 func TestNoSponsorshipLink(t *testing.T) {
