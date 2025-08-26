@@ -129,6 +129,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				brokenCh <- urlstatus{url: url.url, status: err.Error(), context: url.context}
 				return
 			}
+			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
 				brokenCh <- urlstatus{url: url.url, status: resp.Status, context: url.context}

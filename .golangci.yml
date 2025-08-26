@@ -1,0 +1,16 @@
+version: "2"
+linters:
+  enable:
+    - bodyclose
+    - contextcheck
+  disable:
+    - errcheck
+    - staticcheck
+
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
