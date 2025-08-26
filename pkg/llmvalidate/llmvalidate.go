@@ -47,7 +47,6 @@ var ignoreList = []string{
 	"**/*_test.go",
 	"tests/**",
 	"mocks/**",
-	"server-*",
 	"cypress/**",
 
 	// config
@@ -180,7 +179,7 @@ func (c *Client) AskLLMAboutCode(
 					Type: genai.TypeString,
 				},
 				Nullable:    true,
-				Description: "An array of files related to the answer",
+				Description: "An array of files related to the answer. Only if applicable. i.e. where the code snippet comes from. If not applicable, leave empty",
 			},
 			"short_answer": {
 				Type:        genai.TypeBoolean,
@@ -189,7 +188,7 @@ func (c *Client) AskLLMAboutCode(
 			},
 			"code_snippet": {
 				Type:        genai.TypeString,
-				Description: "Code snippet as context for the answer if applicable",
+				Description: "Code snippet as context for the answer. Only if application. i.e. the code you found is relevant to the answer. If not applicable, leave empty",
 				Nullable:    true,
 			},
 		},
@@ -200,13 +199,17 @@ func (c *Client) AskLLMAboutCode(
 			genai.Text(
 				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object
 
-				REVIEWER NOTE: When reviewing, exempt code that is explicitly for testing or development purposes. This includes:
+				REVIEWER NOTE: Ignore code that exists only for testing or to setup development:
 					- Test files (*_test.go, *_spec.ts, etc.)
 					- Scripts dedicated  for development (e.g. test servers, seeding)
 					- Code that is clearly marked as development-only with comments
 					- Local development servers and database setup utilities
+					- dockerfiles
+					- make files, bash scripts, etc.
+					- files clearly not part of the plugin and intended for development
 
 				Focus your review on code that will run in production environments as part of a Grafana Plugin
+
 				`,
 			),
 		},
