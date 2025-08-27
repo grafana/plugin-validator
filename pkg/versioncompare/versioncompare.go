@@ -2,6 +2,7 @@ package versioncompare
 
 import (
 	"fmt"
+	"os/exec"
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -52,6 +53,17 @@ func (vc *VersionComparer) CompareVersions(
 		repoInfo.Repo,
 		repoInfo.Branch,
 	)
+
+	if repoInfo.Branch != "" {
+		logme.DebugFln("Checking out to ref: %s", repoInfo.Branch)
+		cmd := exec.Command("git", "checkout", repoInfo.Branch)
+		cmd.Dir = archivePath
+		if err := cmd.Run(); err != nil {
+			logme.DebugFln("Failed to checkout to ref %s: %v", repoInfo.Branch, err)
+			return nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Branch, err)
+		}
+		logme.DebugFln("Successfully checked out to ref: %s", repoInfo.Branch)
+	}
 
 	var currentGrafanaVersion *VersionInfo = nil
 	grafanaVersions, err := vc.grafanaClient.FindPluginVersions(pluginID)

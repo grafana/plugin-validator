@@ -8,7 +8,7 @@ import (
 
 func TestVersionComparisonIntegration(t *testing.T) {
 	// Hardcoded test values
-	githubURL := "https://github.com/taosdata/grafanaplugin/"
+	githubURL := "https://github.com/taosdata/grafanaplugin/tree/v3.7.3"
 	archivePath := "/home/academo/repos/random-plugins/tdengine-datasource/"
 
 	fmt.Printf("Testing version comparison with:\n")
