@@ -53,35 +53,43 @@ func (vc *VersionComparer) CompareVersions(
 		repoInfo.Branch,
 	)
 
-	// get current grafana version (if any)
 	var currentGrafanaVersion *VersionInfo = nil
 	grafanaVersions, err := vc.grafanaClient.FindPluginVersions(pluginID)
 	if err == nil && len(grafanaVersions) >= 1 {
-		currentGrafanaVersion = FromGrafanaPluginVersion(grafanaVersions[0])
-		logme.DebugFln(
-			"Found Grafana version: %s",
-			currentGrafanaVersion.Version,
-		)
+		grafanaAPIVersion := grafanaVersions[0]
+		logme.DebugFln("Found Grafana API version: %s", grafanaAPIVersion.Version)
+
+		currentGrafanaVersion, err = findReleaseByVersion(repoInfo, grafanaAPIVersion.Version)
+		if err != nil {
+			logme.DebugFln(
+				"Could not find Grafana version %s in GitHub: %v",
+				grafanaAPIVersion.Version,
+				err,
+			)
+			currentGrafanaVersion = FromGrafanaPluginVersion(grafanaAPIVersion)
+		} else {
+			logme.DebugFln("Found Grafana version %s in GitHub with commit: %s",
+				currentGrafanaVersion.Version, currentGrafanaVersion.CommitSHA)
+		}
 	}
 	if currentGrafanaVersion == nil {
 		logme.Debugln("No current Grafana version found")
 	}
 
-	// Step 4: Find GitHub version matching the plugin.json version
-	logme.DebugFln("Step 4: Finding GitHub version matching plugin version: %s", pluginVersion)
+	logme.DebugFln("Finding GitHub version matching plugin version: %s", pluginVersion)
 	matchingGitHubVersion, err := findReleaseByVersion(repoInfo, pluginVersion)
 	if err != nil {
-		logme.DebugFln("❌ Failed to find matching GitHub version: %v", err)
+		logme.DebugFln("Failed to find matching GitHub version: %v", err)
 		return nil, fmt.Errorf("failed to find GitHub version matching %s: %w", pluginVersion, err)
 	}
 	logme.DebugFln(
-		"✅ Found matching GitHub version: %s (source: %s, commit: %s)",
+		"Found matching GitHub version: %s (source: %s, commit: %s)",
 		matchingGitHubVersion.Version,
 		matchingGitHubVersion.Source,
 		matchingGitHubVersion.CommitSHA,
 	)
 
-	logme.Debugln("✅ Version comparison completed successfully")
+	logme.Debugln("Version comparison completed successfully")
 
 	return &VersionComparison{
 		PluginID:               pluginID,

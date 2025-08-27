@@ -28,7 +28,7 @@ func TestVersionComparisonIntegration(t *testing.T) {
 
 	// Pretty print the result
 	resultJSON, _ := json.MarshalIndent(result, "", "  ")
-	fmt.Printf("✅ Comparison result:\n%s\n", string(resultJSON))
+	fmt.Printf("Comparison result:\n%s\n", string(resultJSON))
 }
 
 func min(a, b int) int {
@@ -37,4 +37,3 @@ func min(a, b int) int {
 	}
 	return b
 }
-

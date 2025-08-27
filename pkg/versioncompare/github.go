@@ -139,12 +139,10 @@ func parseGitUrlInternal(url string) (gitUrlInternal, error) {
 func getLatestGitHubVersion(repo *RepoInfo) (*VersionInfo, error) {
 	logme.DebugFln("Fetching latest version for %s/%s", repo.Owner, repo.Repo)
 	
-	// First try to get releases
 	logme.Debugln("Trying to fetch GitHub releases")
 	releases, err := fetchGitHubReleases(repo.Owner, repo.Repo)
 	if err == nil && len(releases) > 0 {
 		logme.DebugFln("Found %d releases", len(releases))
-		// Filter out pre-releases and drafts, get the latest
 		for _, release := range releases {
 			if !release.Draft && !release.Prerelease {
 				logme.DebugFln("Using release: %s (target: %s)", release.TagName, release.TargetCommitish)
@@ -156,7 +154,6 @@ func getLatestGitHubVersion(repo *RepoInfo) (*VersionInfo, error) {
 		logme.DebugFln("No releases found or error: %v", err)
 	}
 
-	// Fallback to tags if no releases or only pre-releases/drafts
 	logme.Debugln("Trying to fetch GitHub tags")
 	tags, err := fetchGitHubTags(repo.Owner, repo.Repo)
 	if err != nil {
@@ -170,7 +167,6 @@ func getLatestGitHubVersion(repo *RepoInfo) (*VersionInfo, error) {
 	}
 
 	logme.DebugFln("Found %d tags, using latest: %s (commit: %s)", len(tags), tags[0].Name, tags[0].Commit.SHA)
-	// Return the first (latest) tag
 	tagURL := fmt.Sprintf("https://github.com/%s/%s/tree/%s", repo.Owner, repo.Repo, tags[0].Name)
 	return FromGitHubTag(tags[0], tagURL), nil
 }
