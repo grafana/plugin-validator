@@ -3,6 +3,7 @@ package versioncompare
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -71,7 +72,11 @@ func (vc *VersionComparer) CompareVersions(
 		grafanaAPIVersion := grafanaVersions[0]
 		logme.DebugFln("Found Grafana API version: %s", grafanaAPIVersion.Version)
 
-		currentGrafanaVersion, err = findReleaseByVersion(repoInfo, grafanaAPIVersion.Version)
+		currentGrafanaVersion, err = findReleaseByVersion(
+			repoInfo,
+			grafanaAPIVersion.Version,
+			archivePath,
+		)
 		if err != nil {
 			logme.DebugFln(
 				"Could not find Grafana version %s in GitHub: %v",
@@ -88,25 +93,39 @@ func (vc *VersionComparer) CompareVersions(
 		logme.Debugln("No current Grafana version found")
 	}
 
-	logme.DebugFln("Finding GitHub version matching plugin version: %s", pluginVersion)
-	matchingGitHubVersion, err := findReleaseByVersion(repoInfo, pluginVersion)
+	// Get current commit SHA for the submitted version
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	cmd.Dir = archivePath
+	commitOutput, err := cmd.Output()
 	if err != nil {
-		logme.DebugFln("Failed to find matching GitHub version: %v", err)
-		return nil, fmt.Errorf("failed to find GitHub version matching %s: %w", pluginVersion, err)
+		logme.DebugFln("Failed to get current commit SHA: %v", err)
+		return nil, fmt.Errorf("failed to get current commit SHA: %w", err)
 	}
+	currentCommitSHA := strings.TrimSpace(string(commitOutput))
 	logme.DebugFln(
-		"Found matching GitHub version: %s (source: %s, commit: %s)",
-		matchingGitHubVersion.Version,
-		matchingGitHubVersion.Source,
-		matchingGitHubVersion.CommitSHA,
+		"Current commit SHA for submitted version %s: %s",
+		pluginVersion,
+		currentCommitSHA,
 	)
+
+	submittedGitHubVersion := &VersionInfo{
+		Version:   pluginVersion,
+		CommitSHA: currentCommitSHA,
+		URL: fmt.Sprintf(
+			"https://github.com/%s/%s/commit/%s",
+			repoInfo.Owner,
+			repoInfo.Repo,
+			currentCommitSHA,
+		),
+		Source: "current-archive",
+	}
 
 	logme.Debugln("Version comparison completed successfully")
 
 	return &VersionComparison{
 		PluginID:               pluginID,
 		CurrentGrafanaVersion:  currentGrafanaVersion,
-		SubmittedGitHubVersion: matchingGitHubVersion,
+		SubmittedGitHubVersion: submittedGitHubVersion,
 		Repository:             repoInfo,
 	}, nil
 }
@@ -118,7 +137,7 @@ func (vc *VersionComparer) FindVersionByTag(githubURL, tag string) (*VersionInfo
 		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
 	}
 
-	return findReleaseByVersion(repoInfo, tag)
+	return findReleaseByVersion(repoInfo, tag, "")
 }
 
 // GetLatestGitHubVersion gets the latest release/tag from a GitHub repository

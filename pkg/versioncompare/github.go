@@ -138,14 +138,18 @@ func parseGitUrlInternal(url string) (gitUrlInternal, error) {
 // getLatestGitHubVersion gets the latest version from GitHub, trying releases first, then tags
 func getLatestGitHubVersion(repo *RepoInfo) (*VersionInfo, error) {
 	logme.DebugFln("Fetching latest version for %s/%s", repo.Owner, repo.Repo)
-	
+
 	logme.Debugln("Trying to fetch GitHub releases")
 	releases, err := fetchGitHubReleases(repo.Owner, repo.Repo)
 	if err == nil && len(releases) > 0 {
 		logme.DebugFln("Found %d releases", len(releases))
 		for _, release := range releases {
 			if !release.Draft && !release.Prerelease {
-				logme.DebugFln("Using release: %s (target: %s)", release.TagName, release.TargetCommitish)
+				logme.DebugFln(
+					"Using release: %s (target: %s)",
+					release.TagName,
+					release.TargetCommitish,
+				)
 				return FromGitHubRelease(release), nil
 			}
 		}
@@ -166,13 +170,22 @@ func getLatestGitHubVersion(repo *RepoInfo) (*VersionInfo, error) {
 		return nil, fmt.Errorf("no releases or tags found in repository")
 	}
 
-	logme.DebugFln("Found %d tags, using latest: %s (commit: %s)", len(tags), tags[0].Name, tags[0].Commit.SHA)
+	logme.DebugFln(
+		"Found %d tags, using latest: %s (commit: %s)",
+		len(tags),
+		tags[0].Name,
+		tags[0].Commit.SHA,
+	)
 	tagURL := fmt.Sprintf("https://github.com/%s/%s/tree/%s", repo.Owner, repo.Repo, tags[0].Name)
 	return FromGitHubTag(tags[0], tagURL), nil
 }
 
-// findReleaseByVersion finds a specific release/tag by version string
-func findReleaseByVersion(repo *RepoInfo, version string) (*VersionInfo, error) {
+// findReleaseByVersion finds a specific release/tag by version string, with git history fallback
+func findReleaseByVersion(
+	repo *RepoInfo,
+	version string,
+	archivePath string,
+) (*VersionInfo, error) {
 	// Try to find in releases first
 	releases, err := fetchGitHubReleases(repo.Owner, repo.Repo)
 	if err == nil {
@@ -187,24 +200,24 @@ func findReleaseByVersion(repo *RepoInfo, version string) (*VersionInfo, error) 
 
 	// Fallback to tags
 	tags, err := fetchGitHubTags(repo.Owner, repo.Repo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find version %s in releases and tags: %w", version, err)
-	}
-
-	for _, tag := range tags {
-		if strings.EqualFold(tag.Name, version) ||
-			strings.EqualFold(tag.Name, "v"+version) ||
-			strings.EqualFold(strings.TrimPrefix(tag.Name, "v"), version) {
-			tagURL := fmt.Sprintf(
-				"https://github.com/%s/%s/tree/%s",
-				repo.Owner,
-				repo.Repo,
-				tag.Name,
-			)
-			return FromGitHubTag(tag, tagURL), nil
+	if err == nil {
+		for _, tag := range tags {
+			if strings.EqualFold(tag.Name, version) ||
+				strings.EqualFold(tag.Name, "v"+version) ||
+				strings.EqualFold(strings.TrimPrefix(tag.Name, "v"), version) {
+				tagURL := fmt.Sprintf(
+					"https://github.com/%s/%s/tree/%s",
+					repo.Owner,
+					repo.Repo,
+					tag.Name,
+				)
+				return FromGitHubTag(tag, tagURL), nil
+			}
 		}
 	}
-
-	return nil, fmt.Errorf("version %s not found in repository", version)
+	return &VersionInfo{
+		Version:   version,
+		CommitSHA: "",
+		URL:       "",
+	}, nil
 }
-
