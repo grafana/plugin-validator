@@ -7,8 +7,17 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/utils"
 )
+
+// VersionComparison represents the result of comparing versions between Grafana.com and GitHub
+type VersionComparison struct {
+	PluginID               string                `json:"pluginId"`
+	CurrentGrafanaVersion  *repotool.VersionInfo `json:"currentGrafanaVersion"`
+	SubmittedGitHubVersion *repotool.VersionInfo `json:"submittedGitHubVersion"`
+	Repository             *repotool.RepoInfo    `json:"repository"`
+}
 
 // VersionComparer handles version comparison between Grafana.com and GitHub
 type VersionComparer struct {
@@ -43,7 +52,7 @@ func (vc *VersionComparer) CompareVersions(
 	pluginVersion := pluginMetadata.Info.Version
 	logme.DebugFln("Found plugin ID: %s, version: %s", pluginID, pluginVersion)
 
-	repoInfo, err := parseRepoFromGitURL(githubURL)
+	repoInfo, err := repotool.ParseRepoFromGitURL(githubURL)
 	if err != nil {
 		logme.DebugFln("Failed to parse GitHub URL: %v", err)
 		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
@@ -52,30 +61,42 @@ func (vc *VersionComparer) CompareVersions(
 		"Parsed repo: owner: %s repo: %s (branch/tag: %s)",
 		repoInfo.Owner,
 		repoInfo.Repo,
-		repoInfo.Branch,
+		repoInfo.Ref,
 	)
 
-	if repoInfo.Branch != "" {
-		logme.DebugFln("Checking out to ref: %s", repoInfo.Branch)
-		cmd := exec.Command("git", "checkout", repoInfo.Branch)
+	if repoInfo.Ref != "" {
+		logme.DebugFln("Checking out to ref: %s", repoInfo.Ref)
+		cmd := exec.Command("git", "checkout", repoInfo.Ref)
 		cmd.Dir = archivePath
 		if err := cmd.Run(); err != nil {
-			logme.DebugFln("Failed to checkout to ref %s: %v", repoInfo.Branch, err)
-			return nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Branch, err)
+			logme.DebugFln("Failed to checkout to ref %s: %v", repoInfo.Ref, err)
+			return nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Ref, err)
 		}
-		logme.DebugFln("Successfully checked out to ref: %s", repoInfo.Branch)
+		logme.DebugFln("Successfully checked out to ref: %s", repoInfo.Ref)
+	} else {
+		// make sure to checkout to main or master
+		cmd := exec.Command("git", "checkout", "main")
+		cmd.Dir = archivePath
+		if err := cmd.Run(); err != nil {
+			cmd = exec.Command("git", "checkout", "master")
+			cmd.Dir = archivePath
+			if err := cmd.Run(); err != nil {
+				logme.DebugFln("Failed to checkout to main or master: %v", err)
+				return nil, fmt.Errorf("failed to checkout to main or master: %w", err)
+			}
+		}
+		logme.DebugFln("Successfully checked out to main or master")
 	}
 
-	var currentGrafanaVersion *VersionInfo = nil
+	var currentGrafanaVersion *repotool.VersionInfo = nil
 	grafanaVersions, err := vc.grafanaClient.FindPluginVersions(pluginID)
 	if err == nil && len(grafanaVersions) >= 1 {
 		grafanaAPIVersion := grafanaVersions[0]
 		logme.DebugFln("Found Grafana API version: %s", grafanaAPIVersion.Version)
 
-		currentGrafanaVersion, err = findReleaseByVersion(
+		currentGrafanaVersion, err = repotool.FindReleaseByVersion(
 			repoInfo,
 			grafanaAPIVersion.Version,
-			archivePath,
 		)
 		if err != nil {
 			logme.DebugFln(
@@ -83,7 +104,13 @@ func (vc *VersionComparer) CompareVersions(
 				grafanaAPIVersion.Version,
 				err,
 			)
-			currentGrafanaVersion = FromGrafanaPluginVersion(grafanaAPIVersion)
+			currentGrafanaVersion = &repotool.VersionInfo{
+				Version:   grafanaAPIVersion.Version,
+				CommitSHA: grafanaAPIVersion.Commit,
+				Source:    "grafana",
+				CreatedAt: grafanaAPIVersion.CreatedAt,
+				URL:       grafanaAPIVersion.URL,
+			}
 		} else {
 			logme.DebugFln("Found Grafana version %s in GitHub with commit: %s",
 				currentGrafanaVersion.Version, currentGrafanaVersion.CommitSHA)
@@ -108,7 +135,7 @@ func (vc *VersionComparer) CompareVersions(
 		currentCommitSHA,
 	)
 
-	submittedGitHubVersion := &VersionInfo{
+	submittedGitHubVersion := &repotool.VersionInfo{
 		Version:   pluginVersion,
 		CommitSHA: currentCommitSHA,
 		URL: fmt.Sprintf(
@@ -128,39 +155,4 @@ func (vc *VersionComparer) CompareVersions(
 		SubmittedGitHubVersion: submittedGitHubVersion,
 		Repository:             repoInfo,
 	}, nil
-}
-
-// FindVersionByTag finds a specific version in the GitHub repository by tag/release
-func (vc *VersionComparer) FindVersionByTag(githubURL, tag string) (*VersionInfo, error) {
-	repoInfo, err := parseRepoFromGitURL(githubURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
-	}
-
-	return findReleaseByVersion(repoInfo, tag, "")
-}
-
-// GetLatestGitHubVersion gets the latest release/tag from a GitHub repository
-func (vc *VersionComparer) GetLatestGitHubVersion(githubURL string) (*VersionInfo, error) {
-	repoInfo, err := parseRepoFromGitURL(githubURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
-	}
-
-	return getLatestGitHubVersion(repoInfo)
-}
-
-// GetCurrentGrafanaVersion gets the current published version from Grafana.com
-func (vc *VersionComparer) GetCurrentGrafanaVersion(pluginID string) (*VersionInfo, error) {
-	versions, err := vc.grafanaClient.FindPluginVersions(pluginID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get Grafana plugin versions: %w", err)
-	}
-
-	if len(versions) == 0 {
-		return nil, fmt.Errorf("no versions found for plugin %s on Grafana.com", pluginID)
-	}
-
-	// Return the latest (first) version
-	return FromGrafanaPluginVersion(versions[0]), nil
 }

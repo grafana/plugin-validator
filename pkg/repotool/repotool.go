@@ -52,16 +52,11 @@ func CloneToTempDir(uri string, ref string) (string, func(), error) {
 		os.RemoveAll(tmpDir)
 	}
 
-	if err != nil {
-		cleanup()
-		return "", nil, err
-	}
-
 	return tmpDir, cleanup, nil
 }
 
 func GitUrlToLocalPath(url string) (string, func(), error) {
-	parsedGitUrl, err := parseGitUrl(url)
+	parsedGitUrl, err := ParseGitUrl(url)
 	if err != nil {
 		return "", nil, err
 	}
@@ -79,7 +74,10 @@ func GitUrlToLocalPath(url string) (string, func(), error) {
 
 	// check if rootDir exists
 	if _, err := os.Stat(rootDir); err != nil {
-		return tmpDir, cleanup, fmt.Errorf("Couldn't find root dir: %s. The sourcecode was cloned but the passed sub-directory was not found.", parsedGitUrl.RootDir)
+		return tmpDir, cleanup, fmt.Errorf(
+			"Couldn't find root dir: %s. The sourcecode was cloned but the passed sub-directory was not found.",
+			parsedGitUrl.RootDir,
+		)
 	}
 	return rootDir, cleanup, nil
 
@@ -98,7 +96,7 @@ var servicesRe = []*regexp.Regexp{
 	regexp.MustCompile(`(?i)^(https:\/\/github\.com\/[^/]+\/[^/]+)(\/tree\/([^/]*)\/?(.*)$)?`),
 }
 
-func parseGitUrl(url string) (GitUrl, error) {
+func ParseGitUrl(url string) (GitUrl, error) {
 	var match []string
 
 	for _, re := range servicesRe {
@@ -120,18 +118,23 @@ func parseGitUrl(url string) (GitUrl, error) {
 		return parsedUrl, nil
 	}
 
-	return GitUrl{}, fmt.Errorf("couldn't parse git url: %s. This git service is not supported.", url)
+	return GitUrl{}, fmt.Errorf(
+		"couldn't parse git url: %s. This git service is not supported.",
+		url,
+	)
 }
 
 func IsSupportedGitUrl(url string) bool {
-	_, err := parseGitUrl(url)
+	_, err := ParseGitUrl(url)
 	return err == nil
 }
 
 func checkDependencies() error {
 	// check that git command exists
 	if _, err := exec.LookPath("git"); err != nil {
-		return errors.New("git command not found. You need to install git to use the source code flag")
+		return errors.New(
+			"git command not found. You need to install git to use the source code flag",
+		)
 	}
 	return nil
 }
