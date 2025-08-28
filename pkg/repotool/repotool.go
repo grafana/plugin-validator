@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -15,6 +16,47 @@ type GitUrl struct {
 	BaseUrl string
 	Ref     string
 	RootDir string
+}
+
+func CloneToTempWithDepth(uri string, depth int) (string, func(), error) {
+	var err error
+	parsedUrl, err := ParseGitUrl(uri)
+	if err != nil {
+		return "", nil, err
+	}
+	uri = parsedUrl.BaseUrl
+
+	err = checkDependencies()
+	if err != nil {
+		return "", nil, err
+	}
+
+	// create a tmp dir
+	tmpDir, err := os.MkdirTemp("", "validator")
+	if err != nil {
+		return "", nil, err
+	}
+
+	cmd := []string{"git", "clone"}
+	if depth > 0 {
+		cmd = append(cmd, "--depth", strconv.Itoa(depth))
+	}
+	cmd = append(cmd, uri, tmpDir)
+
+	systemCommand := exec.Command(cmd[0], cmd[1:]...)
+	systemCommand.Stdout = os.Stdout
+	systemCommand.Stderr = os.Stderr
+
+	err = systemCommand.Run()
+	if err != nil {
+		return "", nil, fmt.Errorf("couldn't clone repo: %w", err)
+	}
+
+	cleanup := func() {
+		os.RemoveAll(tmpDir)
+	}
+
+	return tmpDir, cleanup, nil
 }
 
 func CloneToTempDir(uri string, ref string) (string, func(), error) {

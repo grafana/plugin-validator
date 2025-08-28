@@ -1,4 +1,4 @@
-package versioncompare
+package versioncommitfinder
 
 import (
 	"fmt"
@@ -24,24 +24,27 @@ type VersionComparer struct {
 	grafanaClient *grafana.Client
 }
 
-// New creates a new VersionComparer instance
-func New() *VersionComparer {
-	return &VersionComparer{
-		grafanaClient: grafana.NewClient(),
-	}
-}
-
-// CompareVersions compares versions between GitHub repository and Grafana.com
-// githubURL: GitHub repository URL (e.g., https://github.com/owner/repo or https://github.com/owner/repo/tree/branch)
-// archivePath: Local path to extracted plugin archive
-func (vc *VersionComparer) CompareVersions(
-	githubURL, archivePath string,
+func FindPluginVersionsRefs(
+	githubURL string,
+	// repoPath is often empty but you can pass it to speed up testing
+	repoPath string,
 ) (*VersionComparison, error) {
 	logme.DebugFln(
-		"Starting version comparison for GitHub URL: %s, Archive: %s",
+		"Starting version comparison for GitHub URL: %s",
 		githubURL,
-		archivePath,
 	)
+
+	archivePath := repoPath
+
+	if archivePath == "" {
+		clonedPath, cleanup, err := repotool.CloneToTempWithDepth(githubURL, 0)
+		if err != nil {
+			logme.DebugFln("Failed to clone repo: %v", err)
+			return nil, fmt.Errorf("failed to clone repo: %w", err)
+		}
+		archivePath = clonedPath
+		defer cleanup()
+	}
 
 	pluginMetadata, err := utils.GetPluginMetadata(archivePath)
 	if err != nil {
@@ -89,7 +92,10 @@ func (vc *VersionComparer) CompareVersions(
 	}
 
 	var currentGrafanaVersion *repotool.VersionInfo = nil
-	grafanaVersions, err := vc.grafanaClient.FindPluginVersions(pluginID)
+
+	grafanaClient := grafana.NewClient()
+	grafanaVersions, err := grafanaClient.FindPluginVersions(pluginID)
+
 	if err == nil && len(grafanaVersions) >= 1 {
 		grafanaAPIVersion := grafanaVersions[0]
 		logme.DebugFln("Found Grafana API version: %s", grafanaAPIVersion.Version)
