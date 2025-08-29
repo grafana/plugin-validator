@@ -8,8 +8,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 type GitUrl struct {
@@ -154,9 +152,6 @@ func ParseGitUrl(url string) (GitUrl, error) {
 			Ref:     strings.TrimSpace(match[3]),
 			RootDir: strings.TrimSpace(match[4]),
 		}
-		logme.DebugFln("Matched git url: %s", parsedUrl.BaseUrl)
-		logme.DebugFln("Matched git ref: %s", parsedUrl.Ref)
-		logme.DebugFln("Matched git root dir: %s", parsedUrl.RootDir)
 		return parsedUrl, nil
 	}
 

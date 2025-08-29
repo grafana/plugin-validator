@@ -1,14 +1,18 @@
 package versioncommitfinder
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/utils"
+	"github.com/tailscale/hujson"
 )
 
 // VersionComparison represents the result of comparing versions between Grafana.com and GitHub
@@ -22,6 +26,41 @@ type VersionComparison struct {
 // VersionComparer handles version comparison between Grafana.com and GitHub
 type VersionComparer struct {
 	grafanaClient *grafana.Client
+}
+
+// PackageJson represents the structure of a package.json file
+type PackageJson struct {
+	Version string `json:"version"`
+}
+
+// resolveVersion resolves the %VERSION% placeholder by reading package.json
+func resolveVersion(archivePath, pluginVersion string) (string, error) {
+	if pluginVersion != "%VERSION%" {
+		return pluginVersion, nil
+	}
+
+	packageJsonPath := filepath.Join(archivePath, "package.json")
+	rawPackageJson, err := os.ReadFile(packageJsonPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read package.json: %w", err)
+	}
+
+	// using hujson to allow tolerance in package.json (comments, trailing commas)
+	stdPackageJson, err := hujson.Standardize(rawPackageJson)
+	if err != nil {
+		return "", fmt.Errorf("failed to standardize package.json: %w", err)
+	}
+
+	var packageJson PackageJson
+	if err := json.Unmarshal(stdPackageJson, &packageJson); err != nil {
+		return "", fmt.Errorf("failed to parse package.json: %w", err)
+	}
+
+	if packageJson.Version == "" {
+		return "", fmt.Errorf("version not found in package.json")
+	}
+
+	return packageJson.Version, nil
 }
 
 func FindPluginVersionsRefs(
@@ -52,8 +91,14 @@ func FindPluginVersionsRefs(
 		return nil, fmt.Errorf("failed to extract plugin metadata from archive: %w", err)
 	}
 	pluginID := pluginMetadata.ID
-	pluginVersion := pluginMetadata.Info.Version
-	logme.DebugFln("Found plugin ID: %s, version: %s", pluginID, pluginVersion)
+	rawPluginVersion := pluginMetadata.Info.Version
+
+	// Resolve %VERSION% placeholder if present
+	pluginVersion, err := resolveVersion(archivePath, rawPluginVersion)
+	if err != nil {
+		logme.DebugFln("Failed to resolve plugin version: %v", err)
+		return nil, fmt.Errorf("failed to resolve plugin version: %w", err)
+	}
 
 	repoInfo, err := repotool.ParseRepoFromGitURL(githubURL)
 	if err != nil {
@@ -68,14 +113,12 @@ func FindPluginVersionsRefs(
 	)
 
 	if repoInfo.Ref != "" {
-		logme.DebugFln("Checking out to ref: %s", repoInfo.Ref)
 		cmd := exec.Command("git", "checkout", repoInfo.Ref)
 		cmd.Dir = archivePath
 		if err := cmd.Run(); err != nil {
 			logme.DebugFln("Failed to checkout to ref %s: %v", repoInfo.Ref, err)
 			return nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Ref, err)
 		}
-		logme.DebugFln("Successfully checked out to ref: %s", repoInfo.Ref)
 	} else {
 		// make sure to checkout to main or master
 		cmd := exec.Command("git", "checkout", "main")
@@ -88,7 +131,6 @@ func FindPluginVersionsRefs(
 				return nil, fmt.Errorf("failed to checkout to main or master: %w", err)
 			}
 		}
-		logme.DebugFln("Successfully checked out to main or master")
 	}
 
 	var currentGrafanaVersion *repotool.VersionInfo = nil
@@ -117,13 +159,7 @@ func FindPluginVersionsRefs(
 				CreatedAt: grafanaAPIVersion.CreatedAt,
 				URL:       grafanaAPIVersion.URL,
 			}
-		} else {
-			logme.DebugFln("Found Grafana version %s in GitHub with commit: %s",
-				currentGrafanaVersion.Version, currentGrafanaVersion.CommitSHA)
 		}
-	}
-	if currentGrafanaVersion == nil {
-		logme.Debugln("No current Grafana version found")
 	}
 
 	// Get current commit SHA for the submitted version
@@ -152,8 +188,6 @@ func FindPluginVersionsRefs(
 		),
 		Source: "current-archive",
 	}
-
-	logme.Debugln("Version comparison completed successfully")
 
 	return &VersionComparison{
 		PluginID:               pluginID,

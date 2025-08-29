@@ -104,13 +104,17 @@ func FindReleaseByVersion(
 	repo *RepoInfo,
 	version string,
 ) (*VersionInfo, error) {
+
 	// Try to find in releases first
 	releases, err := fetchGitHubReleases(repo.Owner, repo.Repo)
-	if err == nil {
+	if err != nil {
+	} else {
 		for _, release := range releases {
-			if strings.EqualFold(release.TagName, version) ||
-				strings.EqualFold(release.TagName, "v"+version) ||
-				strings.EqualFold(strings.TrimPrefix(release.TagName, "v"), version) {
+			// Normalize both the release tag and the version for comparison
+			releaseVersion := strings.TrimPrefix(release.TagName, "v")
+			searchVersion := strings.TrimPrefix(version, "v")
+
+			if strings.EqualFold(releaseVersion, searchVersion) {
 				createdAt, _ := time.Parse(time.RFC3339, release.CreatedAt)
 				return &VersionInfo{
 					Version:   release.TagName,
@@ -127,9 +131,11 @@ func FindReleaseByVersion(
 	tags, err := fetchGitHubTags(repo.Owner, repo.Repo)
 	if err == nil {
 		for _, tag := range tags {
-			if strings.EqualFold(tag.Name, version) ||
-				strings.EqualFold(tag.Name, "v"+version) ||
-				strings.EqualFold(strings.TrimPrefix(tag.Name, "v"), version) {
+			// Normalize both the tag name and the version for comparison
+			tagVersion := strings.TrimPrefix(tag.Name, "v")
+			searchVersion := strings.TrimPrefix(version, "v")
+
+			if strings.EqualFold(tagVersion, searchVersion) {
 				tagURL := fmt.Sprintf(
 					"https://github.com/%s/%s/tree/%s",
 					repo.Owner,
