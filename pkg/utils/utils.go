@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bmatcuk/doublestar/v4"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
 type BarebonePluginJson struct {
@@ -39,4 +40,28 @@ func GetPluginId(archiveDir string) (string, error) {
 		return "", err
 	}
 	return pluginJson.Id, nil
+}
+
+// GetPluginMetadata returns the full plugin metadata from the plugin.json file
+func GetPluginMetadata(archiveDir string) (*metadata.Metadata, error) {
+	if len(archiveDir) == 0 || archiveDir == "/" {
+		return nil, fmt.Errorf("archiveDir is empty")
+	}
+	pluginJsonPath, err := doublestar.FilepathGlob(archiveDir + "/**/plugin.json")
+	if err != nil || len(pluginJsonPath) == 0 {
+		return nil, fmt.Errorf("Error getting plugin.json path: %s", err)
+	}
+
+	pluginJsonContent, err := os.ReadFile(pluginJsonPath[0])
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal plugin.json
+	var pluginJson metadata.Metadata
+	err = json.Unmarshal(pluginJsonContent, &pluginJson)
+	if err != nil {
+		return nil, err
+	}
+	return &pluginJson, nil
 }

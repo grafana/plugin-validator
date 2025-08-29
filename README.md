@@ -231,6 +231,7 @@ Run "mage gen:readme" to regenerate this section.
 | Changelog (exists) / `changelog` | Ensures a `CHANGELOG.md` file exists within the zip file. | None |
 | Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
 | Circular Dependencies / `circulardependencies` | Ensures that there aren't any circular dependencies between plugins (`plugin.json`, `dependencies.plugins` field). | None |
+| Code Diff / `codediff` |  | Google API Key with Generative AI access |
 | Code Rules / `code-rules` | Checks for forbidden access to environment variables, file system or use of syscall module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
 | Developer Jargon / `jargon` | Generally discourages use of code jargon in the documentation. | None |
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
