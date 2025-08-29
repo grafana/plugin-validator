@@ -73,6 +73,89 @@ func fetchGitHubTags(owner, repo string) ([]GitHubTag, error) {
 	return tags, nil
 }
 
+func fetchTagCommitSHA(owner, repo, tagName string) (string, error) {
+	// First get the tag reference
+	refURL := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/git/refs/tags/%s",
+		owner,
+		repo,
+		tagName,
+	)
+
+	req, err := http.NewRequest("GET", refURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	token := os.Getenv("GITHUB_TOKEN")
+	if token != "" {
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var tagRef struct {
+		Object struct {
+			SHA  string `json:"sha"`
+			Type string `json:"type"`
+		} `json:"object"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&tagRef); err != nil {
+		return "", err
+	}
+
+	// If it's a tag object, we need to fetch the tag to get the commit SHA
+	if tagRef.Object.Type == "tag" {
+		tagURL := fmt.Sprintf(
+			"https://api.github.com/repos/%s/%s/git/tags/%s",
+			owner,
+			repo,
+			tagRef.Object.SHA,
+		)
+
+		req, err := http.NewRequest("GET", tagURL, nil)
+		if err != nil {
+			return "", err
+		}
+
+		if token != "" {
+			req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		}
+
+		var tag struct {
+			Object struct {
+				SHA string `json:"sha"`
+			} `json:"object"`
+		}
+		if err := json.NewDecoder(resp.Body).Decode(&tag); err != nil {
+			return "", err
+		}
+
+		return tag.Object.SHA, nil
+	}
+
+	// If it's a commit object, return the SHA directly
+	return tagRef.Object.SHA, nil
+}
+
 func ParseRepoFromGitURL(githubURL string) (*RepoInfo, error) {
 	if !IsSupportedGitUrl(githubURL) {
 		return nil, fmt.Errorf("unsupported or invalid GitHub URL: %s", githubURL)
@@ -116,9 +199,17 @@ func FindReleaseByVersion(
 
 			if strings.EqualFold(releaseVersion, searchVersion) {
 				createdAt, _ := time.Parse(time.RFC3339, release.CreatedAt)
+
+				// Get the actual commit SHA from the tag, not the target_commitish
+				// which often contains the branch name (e.g., "main")
+				commitSHA := release.TargetCommitish // fallback
+				if actualCommitSHA, err := fetchTagCommitSHA(repo.Owner, repo.Repo, release.TagName); err == nil {
+					commitSHA = actualCommitSHA
+				}
+
 				return &VersionInfo{
 					Version:   release.TagName,
-					CommitSHA: release.TargetCommitish,
+					CommitSHA: commitSHA,
 					Source:    "github_release",
 					CreatedAt: createdAt,
 					URL:       release.HTMLURL,
