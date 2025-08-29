@@ -25,7 +25,6 @@ type VersionComparison struct {
 
 // VersionComparer handles version comparison between Grafana.com and GitHub
 type VersionComparer struct {
-	grafanaClient *grafana.Client
 }
 
 // PackageJson represents the structure of a package.json file
