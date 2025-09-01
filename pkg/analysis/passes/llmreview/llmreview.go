@@ -70,6 +70,10 @@ var questions = []llmvalidate.LLMQuestion{
 }
 
 func run(pass *analysis.Pass) (any, error) {
+	if os.Getenv("SKIP_LLM_REVIEW") != "" {
+		return nil, nil
+	}
+
 	var err error
 	// only run if sourcecode.Analyzer succeeded
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)

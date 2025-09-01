@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/changelog"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/circulardependencies"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/codediff"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
@@ -99,4 +100,5 @@ var Analyzers = []*analysis.Analyzer{
 	version.Analyzer,
 	virusscan.Analyzer,
 	circulardependencies.Analyzer,
+	codediff.Analyzer,
 }
