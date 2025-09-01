@@ -71,6 +71,9 @@ func TestValidDiffUrlGenerated(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	// Set GEMINI_API_KEY for test
+	t.Setenv("GEMINI_API_KEY", "test-key")
+
 	// Set up mock LLM client for this test
 	mockClient := llmclient.NewMockLLMClient()
 	SetLLMClient(mockClient)
@@ -111,6 +114,9 @@ func TestValidDiffUrlGenerated(t *testing.T) {
 func TestLLMResponseFiltering_YesResponsesAreReported(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+
+	// Set GEMINI_API_KEY for test
+	t.Setenv("GEMINI_API_KEY", "test-key")
 
 	// Create mock responses with "yes" answers that should be reported
 	mockResponses := []llmclient.MockResponse{
@@ -183,6 +189,9 @@ func TestLLMResponseFiltering_YesResponsesAreReported(t *testing.T) {
 func TestLLMResponseFiltering_NoResponsesAreIgnored(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+
+	// Set GEMINI_API_KEY for test
+	t.Setenv("GEMINI_API_KEY", "test-key")
 
 	// Create mock responses with "no" answers that should NOT be reported
 	mockResponses := []llmclient.MockResponse{
