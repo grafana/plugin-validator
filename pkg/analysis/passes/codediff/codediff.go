@@ -77,7 +77,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 
 		logme.Debugln("Generated diff URL:", diffURL)
-		fmt.Println("Code diff URL:", diffURL)
 
 		// Report with clickable link
 		message := fmt.Sprintf(
