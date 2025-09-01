@@ -2,7 +2,7 @@ You will review the changes in this Grafana plugin. Use `git diff` see the diff 
 
 Make sure to analyze the file changes in the context of its original version to understand well what the changes do
 
-Analyze the changes introduced in between the versions, focus on go, ts and tsx files, ignore test files, dev files and hidden files. Analyze only on the changes introduced in between versions. if a change looks significant, make sure to analyze it in detail comparing full file versions if necessary.
+Analyze the changes introduced in between the versions, focus on go, ts and tsx files. Ignore test files, dev files and hidden files. Analyze only on the changes introduced in between versions. if a change looks significant, make sure to analyze it in detail comparing full file versions if necessary.
 
 Ignore changes in hidden files, specially the `.config` folder.
 
