@@ -16,9 +16,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
 )
 
@@ -46,7 +44,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "codediff",
-	Requires: []*analysis.Analyzer{readme.Analyzer},
+	Requires: []*analysis.Analyzer{llmreview.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{codeDiffAnalysis, codeDiffversions},
 	ReadmeInfo: analysis.ReadmeInfo{
@@ -55,6 +53,7 @@ var Analyzer = &analysis.Analyzer{
 		Dependencies: "Google API Key with Generative AI access",
 	},
 }
+var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 func isGitHubURL(url string) bool {
 	return strings.Contains(strings.ToLower(url), "github.com")
@@ -62,6 +61,10 @@ func isGitHubURL(url string) bool {
 
 func run(pass *analysis.Pass) (interface{}, error) {
 	if pass.CheckParams.SourceCodeReference == "" {
+		return nil, nil
+	}
+
+	if geminiKey == "" {
 		return nil, nil
 	}
 
@@ -83,8 +86,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 	defer cleanup()
-
-	prettyprint.Print(versions)
 
 	// Generate and report diff links if both versions have commit SHAs
 	if versions.CurrentGrafanaVersion != nil && versions.SubmittedGitHubVersion != nil &&
@@ -126,9 +127,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			logme.Debugln("Failed to run LLM analysis:", err)
 			return nil, nil
 		}
-
-		// Print responses for debugging
-		prettyprint.Print(responses)
 
 		// Report analysis results based on LLM responses
 		for _, response := range responses {
@@ -232,10 +230,9 @@ func callLLM(prompt, repositoryPath string) error {
 	if err := cmd.Run(); err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			logme.Debugln("Gemini CLI timed out after 5 minutes")
-			return errors.New("gemini CLI timed out after 5 minutes")
+		} else {
+			logme.Debugln("Gemini CLI failed:", err)
 		}
-		logme.Debugln("Failed to run gemini CLI:", err)
-		return fmt.Errorf("failed to run gemini CLI: %w", err)
 	}
 
 	return nil
@@ -256,6 +253,7 @@ func runLLMAnalysis(
 
 	// Call the LLM
 	if err := callLLM(prompt, repositoryPath); err != nil {
+		logme.Debugln("Failed to call LLM:", err)
 		return nil, err
 	}
 
