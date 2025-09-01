@@ -2,20 +2,18 @@ package codediff
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
+	"github.com/grafana/plugin-validator/pkg/llmclient"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
 )
@@ -53,13 +51,24 @@ var Analyzer = &analysis.Analyzer{
 		Dependencies: "Google API Key with Generative AI access",
 	},
 }
+
+var llmClient llmclient.LLMClient
+
+func SetLLMClient(client llmclient.LLMClient) {
+	llmClient = client
+}
+
+func init() {
+	llmClient = llmclient.NewGeminiClient()
+}
+
 var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 func isGitHubURL(url string) bool {
 	return strings.Contains(strings.ToLower(url), "github.com")
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	if pass.CheckParams.SourceCodeReference == "" {
 		return nil, nil
 	}
@@ -198,44 +207,6 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 	return buf.String(), nil
 }
 
-func callLLM(prompt, repositoryPath string) error {
-	// check if npx is available
-	_, err := exec.LookPath("npx")
-	if err != nil {
-		return errors.New("npx is not available in PATH")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	cmd := exec.CommandContext(
-		ctx,
-		"npx",
-		// do not confirm install
-		"-y",
-		"https://github.com/google-gemini/gemini-cli",
-		// gemini "YOLO" mode so it can use al the tools
-		"-y",
-	)
-	cmd.Dir = repositoryPath
-	cmd.Stdin = strings.NewReader(prompt)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	logme.Debugln("Running gemini CLI analysis in directory:", repositoryPath)
-
-	if err := cmd.Run(); err != nil {
-		if ctx.Err() == context.DeadlineExceeded {
-			logme.Debugln("Gemini CLI timed out after 5 minutes")
-		} else {
-			logme.Debugln("Gemini CLI failed:", err)
-		}
-	}
-
-	return nil
-
-}
-
 func runLLMAnalysis(
 	newVersion, newCommit, currentVersion, currentCommit, repositoryPath string,
 ) ([]LLMAnalysisResponse, error) {
@@ -258,7 +229,7 @@ func runLLMAnalysis(
 	}
 
 	// Call the LLM
-	if err := callLLM(prompt, repositoryPath); err != nil {
+	if err := llmClient.CallLLM(prompt, repositoryPath); err != nil {
 		logme.Debugln("Failed to call LLM:", err)
 		return nil, err
 	}
