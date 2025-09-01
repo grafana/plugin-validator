@@ -80,15 +80,6 @@ func FindPluginVersionsRefs(
 		cleanup = cleanupFn
 	}
 
-	// remove nvmrc if present
-	nvmrcPath := filepath.Join(archivePath, ".nvmrc")
-	if _, err := os.Stat(nvmrcPath); err == nil {
-		if err := os.Remove(nvmrcPath); err != nil {
-			logme.DebugFln("Failed to remove .nvmrc file: %v", err)
-			return nil, nil, fmt.Errorf("failed to remove .nvmrc file: %w", err)
-		}
-	}
-
 	pluginMetadata, err := utils.GetPluginMetadata(archivePath)
 	if err != nil {
 		logme.DebugFln("Failed to extract plugin metadata: %v", err)

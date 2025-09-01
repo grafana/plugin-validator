@@ -130,6 +130,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 		// Report analysis results based on LLM responses
 		for _, response := range responses {
+			logme.Debugln("LLM response:", response.Question, response.Answer)
 			if strings.ToLower(response.ShortAnswer) == "yes" {
 				pass.ReportResult(
 					pass.AnalyzerName,
@@ -249,7 +250,16 @@ func runLLMAnalysis(
 		return nil, err
 	}
 
-	logme.Debugln("Generated prompt:", prompt)
+	// clean up files from repositoryPath
+	cleanFiles := []string{"replies.json", ".nvmrc", "GEMINI.MD"}
+	for _, file := range cleanFiles {
+		filePath := filepath.Join(repositoryPath, file)
+		if _, err := os.Stat(filePath); err == nil {
+			if err := os.Remove(filePath); err != nil {
+				logme.Debugln("Failed to remove file:", err)
+			}
+		}
+	}
 
 	// Call the LLM
 	if err := callLLM(prompt, repositoryPath); err != nil {
