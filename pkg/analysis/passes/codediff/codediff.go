@@ -62,8 +62,6 @@ func init() {
 	llmClient = llmclient.NewGeminiClient()
 }
 
-var geminiKey = os.Getenv("GEMINI_API_KEY")
-
 func isGitHubURL(url string) bool {
 	return strings.Contains(strings.ToLower(url), "github.com")
 }
@@ -73,6 +71,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
+	geminiKey := os.Getenv("GEMINI_API_KEY")
 	if geminiKey == "" {
 		return nil, nil
 	}
