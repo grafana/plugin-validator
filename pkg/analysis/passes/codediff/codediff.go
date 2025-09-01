@@ -198,14 +198,10 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 	return buf.String(), nil
 }
 
-func isNpxAvailable() bool {
-	_, err := exec.LookPath("npx")
-	return err == nil
-}
-
 func callLLM(prompt, repositoryPath string) error {
-	if !isNpxAvailable() {
-		logme.Debugln("npx is not available in PATH")
+	// check if npx is available
+	_, err := exec.LookPath("npx")
+	if err != nil {
 		return errors.New("npx is not available in PATH")
 	}
 
