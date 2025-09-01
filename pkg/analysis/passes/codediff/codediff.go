@@ -1,6 +1,7 @@
 package codediff
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -10,9 +11,11 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/prettyprint"
@@ -130,7 +133,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// Report analysis results based on LLM responses
 		for _, response := range responses {
 			if strings.ToLower(response.ShortAnswer) == "yes" {
-				pass.ReportResult(pass.AnalyzerName, codeDiffAnalysis, response.Question, response.Answer)
+				pass.ReportResult(
+					pass.AnalyzerName,
+					codeDiffAnalysis,
+					response.Question,
+					response.Answer,
+				)
 			}
 		}
 
@@ -161,12 +169,34 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 		return "", errors.New("current commit is empty")
 	}
 
-	prompt := promptTemplate
-	prompt = strings.ReplaceAll(prompt, "3.4.0", newVersion)
-	prompt = strings.ReplaceAll(prompt, "bb1e03e2bd54d86c34d3b7eb9636423bbf24fbe7", newCommit)
-	prompt = strings.ReplaceAll(prompt, "3.3.0", currentVersion)
-	prompt = strings.ReplaceAll(prompt, "0fc1601b4f724cc510a7fcca1814e4dc3363d93b", currentCommit)
-	return prompt, nil
+	// Build questions section from llmreview questions
+	var questionsSection strings.Builder
+	for _, q := range llmreview.Questions {
+		questionsSection.WriteString("* ")
+		questionsSection.WriteString(q.Question)
+		questionsSection.WriteString("\n")
+	}
+
+	tmpl, err := template.New("prompt").Parse(promptTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse prompt template: %w", err)
+	}
+
+	data := map[string]any{
+		"NewVersion":     newVersion,
+		"NewCommit":      newCommit,
+		"CurrentVersion": currentVersion,
+		"CurrentCommit":  currentCommit,
+		"Questions":      strings.TrimSuffix(questionsSection.String(), "\n"),
+		"QuestionCount":  len(llmreview.Questions),
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to execute prompt template: %w", err)
+	}
+
+	return buf.String(), nil
 }
 
 func isNpxAvailable() bool {
@@ -183,12 +213,13 @@ func callLLM(prompt, repositoryPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// we are running gemini in "YOLO" mode so it can use the tools it needs
 	cmd := exec.CommandContext(
 		ctx,
 		"npx",
+		// do not confirm install
 		"-y",
 		"https://github.com/google-gemini/gemini-cli",
+		// gemini "YOLO" mode so it can use al the tools
 		"-y",
 	)
 	cmd.Dir = repositoryPath
