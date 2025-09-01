@@ -132,7 +132,7 @@ func FindPluginVersionsRefs(
 		}
 	}
 
-	var currentGrafanaVersion *repotool.VersionInfo = nil
+	var currentGrafanaVersion *repotool.VersionInfo
 
 	grafanaClient := grafana.NewClient()
 	grafanaVersions, err := grafanaClient.FindPluginVersions(pluginID)
