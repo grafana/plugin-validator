@@ -1,0 +1,32 @@
+You will review the changes in this Grafana plugin. Use `git diff` see the diff and `git show` to see full files in an specific commit. You should generally use the git tool as necessary. 
+
+Make sure to analyze the file changes in the context of its original version to understand well what the changes do
+
+Analyze the changes introduced in between the versions, focus on go, ts and tsx files, ignore test files, dev files and hidden files. Analyze only on the changes introduced in between versions. if a change looks significant, make sure to analyze it in detail comparing full file versions if necessary.
+
+Ignore changes in hidden files, specially the `.config` folder.
+
+Reply each of these questions, for each question provide which file and a code snippet are related whe relevant. Omit test files, readme files and test servers setup or dev environment-only files:
+
+* What are the changes generally doing
+* (backend code only) Are the new changes introducing access to the file system?
+* (frontend code only) Are the new changes introducing global CSS styles?
+* (frontend code only) Are the new changes introducing access to global DOM elements?
+* (frontend code only) Are the new changes modifying global objects in `window`? (regular web apis usage is acceptable)
+
+New version: 3.4.0 introduced in commit: bb1e03e2bd54d86c34d3b7eb9636423bbf24fbe7
+Current version: 3.3.0 introduced in commit: 0fc1601b4f724cc510a7fcca1814e4dc3363d93b
+
+
+Write the reply to these question in a json file "replies.json" as a json array with format:
+
+question: xx
+answer: xx
+related_files: [xx,xx]
+code_snippet: xxx
+short_answer: yes|no (reply no for what the changes are doing)
+
+Use jq to valiate replies.json is a valid json, fix any issues if necessary.
+
+Once you are finished with all this say "I finished the review process"
+

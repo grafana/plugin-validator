@@ -21,6 +21,7 @@ type VersionComparison struct {
 	CurrentGrafanaVersion  *repotool.VersionInfo `json:"currentGrafanaVersion"`
 	SubmittedGitHubVersion *repotool.VersionInfo `json:"submittedGitHubVersion"`
 	Repository             *repotool.RepoInfo    `json:"repository"`
+	RepositoryPath         string                `json:"repositoryPath"`
 }
 
 // VersionComparer handles version comparison between Grafana.com and GitHub
@@ -66,28 +67,38 @@ func FindPluginVersionsRefs(
 	githubURL string,
 	// repoPath is often empty but you can pass it to speed up testing
 	repoPath string,
-) (*VersionComparison, error) {
+) (*VersionComparison, func(), error) {
 	logme.DebugFln(
 		"Starting version comparison for GitHub URL: %s",
 		githubURL,
 	)
 
 	archivePath := repoPath
+	var cleanup func()
 
 	if archivePath == "" {
-		clonedPath, cleanup, err := repotool.CloneToTempWithDepth(githubURL, 0)
+		clonedPath, cleanupFn, err := repotool.CloneToTempWithDepth(githubURL, 100)
 		if err != nil {
 			logme.DebugFln("Failed to clone repo: %v", err)
-			return nil, fmt.Errorf("failed to clone repo: %w", err)
+			return nil, nil, fmt.Errorf("failed to clone repo: %w", err)
 		}
 		archivePath = clonedPath
-		defer cleanup()
+		cleanup = cleanupFn
+	}
+
+	// remove nvmrc if present
+	nvmrcPath := filepath.Join(archivePath, ".nvmrc")
+	if _, err := os.Stat(nvmrcPath); err == nil {
+		if err := os.Remove(nvmrcPath); err != nil {
+			logme.DebugFln("Failed to remove .nvmrc file: %v", err)
+			return nil, nil, fmt.Errorf("failed to remove .nvmrc file: %w", err)
+		}
 	}
 
 	pluginMetadata, err := utils.GetPluginMetadata(archivePath)
 	if err != nil {
 		logme.DebugFln("Failed to extract plugin metadata: %v", err)
-		return nil, fmt.Errorf("failed to extract plugin metadata from archive: %w", err)
+		return nil, nil, fmt.Errorf("failed to extract plugin metadata from archive: %w", err)
 	}
 	pluginID := pluginMetadata.ID
 	rawPluginVersion := pluginMetadata.Info.Version
@@ -96,13 +107,13 @@ func FindPluginVersionsRefs(
 	pluginVersion, err := resolveVersion(archivePath, rawPluginVersion)
 	if err != nil {
 		logme.DebugFln("Failed to resolve plugin version: %v", err)
-		return nil, fmt.Errorf("failed to resolve plugin version: %w", err)
+		return nil, nil, fmt.Errorf("failed to resolve plugin version: %w", err)
 	}
 
 	repoInfo, err := repotool.ParseRepoFromGitURL(githubURL)
 	if err != nil {
 		logme.DebugFln("Failed to parse GitHub URL: %v", err)
-		return nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse GitHub URL: %w", err)
 	}
 	logme.DebugFln(
 		"Parsed repo: owner: %s repo: %s (branch/tag: %s)",
@@ -116,7 +127,7 @@ func FindPluginVersionsRefs(
 		cmd.Dir = archivePath
 		if err := cmd.Run(); err != nil {
 			logme.DebugFln("Failed to checkout to ref %s: %v", repoInfo.Ref, err)
-			return nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Ref, err)
+			return nil, nil, fmt.Errorf("failed to checkout to ref %s: %w", repoInfo.Ref, err)
 		}
 	} else {
 		// make sure to checkout to main or master
@@ -127,7 +138,7 @@ func FindPluginVersionsRefs(
 			cmd.Dir = archivePath
 			if err := cmd.Run(); err != nil {
 				logme.DebugFln("Failed to checkout to main or master: %v", err)
-				return nil, fmt.Errorf("failed to checkout to main or master: %w", err)
+				return nil, nil, fmt.Errorf("failed to checkout to main or master: %w", err)
 			}
 		}
 	}
@@ -167,7 +178,7 @@ func FindPluginVersionsRefs(
 	commitOutput, err := cmd.Output()
 	if err != nil {
 		logme.DebugFln("Failed to get current commit SHA: %v", err)
-		return nil, fmt.Errorf("failed to get current commit SHA: %w", err)
+		return nil, nil, fmt.Errorf("failed to get current commit SHA: %w", err)
 	}
 	currentCommitSHA := strings.TrimSpace(string(commitOutput))
 	logme.DebugFln(
@@ -193,5 +204,6 @@ func FindPluginVersionsRefs(
 		CurrentGrafanaVersion:  currentGrafanaVersion,
 		SubmittedGitHubVersion: submittedGitHubVersion,
 		Repository:             repoInfo,
-	}, nil
+		RepositoryPath:         archivePath,
+	}, cleanup, nil
 }
