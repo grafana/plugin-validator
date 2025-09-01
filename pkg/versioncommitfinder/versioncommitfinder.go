@@ -15,7 +15,6 @@ import (
 	"github.com/tailscale/hujson"
 )
 
-// VersionComparison represents the result of comparing versions between Grafana.com and GitHub
 type VersionComparison struct {
 	PluginID               string                `json:"pluginId"`
 	CurrentGrafanaVersion  *repotool.VersionInfo `json:"currentGrafanaVersion"`
@@ -24,11 +23,6 @@ type VersionComparison struct {
 	RepositoryPath         string                `json:"repositoryPath"`
 }
 
-// VersionComparer handles version comparison between Grafana.com and GitHub
-type VersionComparer struct {
-}
-
-// PackageJson represents the structure of a package.json file
 type PackageJson struct {
 	Version string `json:"version"`
 }
