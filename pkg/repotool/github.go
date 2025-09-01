@@ -246,5 +246,5 @@ func FindReleaseByVersion(
 		Version:   version,
 		CommitSHA: "",
 		URL:       "",
-	}, nil
+	}, fmt.Errorf("release for version %s not found", version)
 }
