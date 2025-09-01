@@ -190,8 +190,7 @@ func FindReleaseByVersion(
 
 	// Try to find in releases first
 	releases, err := fetchGitHubReleases(repo.Owner, repo.Repo)
-	if err != nil {
-	} else {
+	if err == nil {
 		for _, release := range releases {
 			// Normalize both the release tag and the version for comparison
 			releaseVersion := strings.TrimPrefix(release.TagName, "v")
