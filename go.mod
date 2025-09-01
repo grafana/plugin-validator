@@ -15,7 +15,7 @@ require (
 	github.com/r3labs/diff v1.1.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/tailscale/hujson v0.0.0-20250226034555-ec1d1c113d33
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.40.0
