@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
 )
 
@@ -60,8 +59,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		logme.Debugln("Failed to find versions", err)
 		return nil, nil
 	}
-
-	prettyprint.Print(versions)
 
 	// Generate and report diff links if both versions have commit SHAs
 	if versions.CurrentGrafanaVersion != nil && versions.SubmittedGitHubVersion != nil &&
