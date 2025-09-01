@@ -39,8 +39,11 @@ func (g *GeminiClient) CallLLM(prompt, repositoryPath string) error {
 	)
 	cmd.Dir = repositoryPath
 	cmd.Stdin = strings.NewReader(prompt)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// we only want the output in debug mode
+	if os.Getenv("DEBUG") != "" {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	logme.Debugln("Running gemini CLI analysis in directory:", repositoryPath)
 
