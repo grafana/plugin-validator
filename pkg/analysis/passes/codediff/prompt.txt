@@ -21,7 +21,7 @@ question: xx
 answer: xx
 related_files: [xx,xx]
 code_snippet: xxx
-short_answer: yes|no (reply no for what the changes are doing)
+short_answer: yes|no (reply yes for what the changes are doing)
 
 {{.QuestionCount}} answers are expected, validate you answer them all
 Use jq to valiate replies.json is a valid json, fix any issues if necessary.
