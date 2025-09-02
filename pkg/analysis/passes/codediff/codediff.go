@@ -217,7 +217,7 @@ func runLLMAnalysis(
 	}
 
 	// clean up files from repositoryPath
-	cleanFiles := []string{"replies.json", ".nvmrc", "GEMINI.MD"}
+	cleanFiles := []string{"replies.json", ".nvmrc", "GEMINI.md"}
 	for _, file := range cleanFiles {
 		filePath := filepath.Join(repositoryPath, file)
 		if _, err := os.Stat(filePath); err == nil {
