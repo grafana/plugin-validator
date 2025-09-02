@@ -30,7 +30,7 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-var questions = []llmvalidate.LLMQuestion{
+var Questions = []llmvalidate.LLMQuestion{
 	{
 		Question:       "Only for go/golang code: Does this code directly read from or write to the file system? (Look for uses of os.Open, os.Create, ioutil.ReadFile, ioutil.WriteFile, etc.). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
@@ -60,8 +60,8 @@ var questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Are all opened resources properly closed? (Check that files, network connections, etc. are closed with defer, in finally blocks, or using 'with' statements). Identify any resources that aren't properly closed with a code snippet. If there is no backend code reply positively",
-		ExpectedAnswer: true,
+		Question:       "Only for go/golang code: Are there any opened resources that are NOT properly closed? (Check for files, network connections, etc. that lack proper closure with defer, in finally blocks, or using 'with' statements). Identify any improperly closed resources with a code snippet. If there is no backend code reply negatively",
+		ExpectedAnswer: false,
 	},
 	{
 		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for direct usage of document.querySelector(), document.getElementById(), document.getElementsByClassName(), etc. that aren't scoped to specific components or that bypass React refs). Component-scoped element access like useRef() or this.elementRef is acceptable. Provide the specific code snippet showing the global access if found.",
@@ -95,7 +95,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	var answers []llmvalidate.LLMAnswer
-	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, questions, []string{"src", "pkg"})
+	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
 	if err != nil {
 		logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
 		return nil, nil
