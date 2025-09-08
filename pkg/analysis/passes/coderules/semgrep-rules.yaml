@@ -163,7 +163,6 @@ rules:
     pattern-either:
       - pattern-regex: window\.(grafanaBootData)
       - pattern-regex: window\.(grafanaRuntime)
-      - pattern-regex: window\.(__grafanaSceneContext)
     paths:
       include:
         - "src/**/*.ts"

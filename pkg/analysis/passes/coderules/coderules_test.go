@@ -220,10 +220,6 @@ func TestWindowAccessWindowObjects(t *testing.T) {
 			"Detected access to restricted window property: window.grafanaRuntime. Accessing window.grafanaRuntime is not permitted.",
 			"Code rule violation found in testdata/access-window/src/index.ts at line 4",
 		},
-		{
-			"Detected access to restricted window property: window.__grafanaSceneContext. Accessing window.__grafanaSceneContext is not permitted.",
-			"Code rule violation found in testdata/access-window/src/index.ts at line 5",
-		},
 	}
 
 	// Test all expectations in a loop
