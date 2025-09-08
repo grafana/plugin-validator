@@ -57,6 +57,11 @@ func main() {
 			"",
 			"Set severity of the analyzer. Only works in combination with -analyzer",
 		)
+		outputToFile = flag.String(
+			"output-to-file",
+			"",
+			"Write JSON output to specified file",
+		)
 	)
 
 	flag.Parse()
@@ -69,6 +74,7 @@ func main() {
 	logme.Debugln("checksum: ", *checksum)
 	logme.Debugln("analyzer: ", *analyzer)
 	logme.Debugln("analyzerSeverity: ", *analyzerSeverity)
+	logme.Debugln("outputToFile: ", *outputToFile)
 
 	cfg, err := readConfigFile(*configFlag)
 	if err != nil {
@@ -169,9 +175,10 @@ func main() {
 	}
 
 	var exitCode int
+	var jsonOutput = ""
 
-	// JSON output
-	if cfg.Global.JSONOutput {
+	// calculate json for either json cli output or file json output
+	if *outputToFile != "" || cfg.Global.JSONOutput {
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 		if err != nil {
 			pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
@@ -188,8 +195,21 @@ func main() {
 			Version:     pluginVersion,
 			Diagnostics: diags,
 		}
-		output, _ := json.MarshalIndent(allData, "", "  ")
-		fmt.Fprintln(os.Stdout, string(output))
+		output, err := json.MarshalIndent(allData, "", "  ")
+		if err != nil {
+			logme.Errorln(fmt.Errorf("couldn't marshal output to json: %w", err))
+		}
+		jsonOutput = string(output)
+	}
+
+	if *outputToFile != "" {
+		if err := os.WriteFile(*outputToFile, []byte(jsonOutput), 0644); err != nil {
+			logme.Errorln(fmt.Errorf("couldn't write output to file: %w", err))
+		}
+	}
+
+	// JSON output
+	if cfg.Global.JSONOutput {
 		for name := range diags {
 			for _, d := range diags[name] {
 				switch d.Severity {
@@ -202,6 +222,7 @@ func main() {
 				}
 			}
 		}
+		fmt.Println(jsonOutput)
 		os.Exit(exitCode)
 	}
 
