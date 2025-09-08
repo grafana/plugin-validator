@@ -30,10 +30,11 @@ type JsonReport struct {
 }
 
 type tc struct {
-	name       string
-	file       string
-	extraArgs  string
-	jsonReport JsonReport
+	name         string
+	file         string
+	extraArgs    string
+	outputToFile string // if set, will add -output-to-file flag and verify file creation
+	jsonReport   JsonReport
 }
 
 func TestIntegration(t *testing.T) {
@@ -314,6 +315,33 @@ func TestIntegration(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:         "output-to-file-test",
+			file:         "grafana-clock-panel-2.1.5.any.zip",
+			outputToFile: "/tmp/test-output.json",
+			jsonReport: JsonReport{
+				Id:      "grafana-clock-panel",
+				Version: "2.1.5",
+				PluginValidator: map[string][]Issue{
+					"jargon": {
+						{
+							Severity: "warning",
+							Title:    "README.md contains developer jargon: (yarn)",
+							Detail:   "Move any developer and contributor documentation to a separate file and link to it from the README.md. For example, CONTRIBUTING.md, DEVELOPMENT.md, etc.",
+							Name:     "developer-jargon",
+						},
+					},
+					"sponsorshiplink": {
+						{
+							Severity: "recommendation",
+							Title:    "You can include a sponsorship link if you want users to support your work",
+							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
+							Name:     "sponsorshiplink",
+						},
+					},
+				},
+			},
+		},
 	}
 	configFile := filepath.Join(basePath, "integration-tests.yaml")
 
@@ -334,6 +362,9 @@ func TestIntegration(t *testing.T) {
 			extraArgs := ""
 			if tc.extraArgs != "" {
 				extraArgs = tc.extraArgs + " "
+			}
+			if tc.outputToFile != "" {
+				extraArgs += "-output-to-file " + tc.outputToFile + " "
 			}
 
 			command := fmt.Sprintf(
@@ -358,6 +389,23 @@ func TestIntegration(t *testing.T) {
 			var report JsonReport
 			err = json.Unmarshal(outb.Bytes(), &report)
 			assert.NoError(t, err)
+
+			// Check if output-to-file was used and verify the file was created
+			if tc.outputToFile != "" {
+				// Check that the file was created
+				fileContent, err := os.ReadFile(tc.outputToFile)
+				assert.NoError(t, err, "Output file should be created when -output-to-file is used")
+
+				// Check that the file contains valid JSON
+				var fileReport JsonReport
+				err = json.Unmarshal(fileContent, &fileReport)
+				assert.NoError(t, err, "Output file should contain valid JSON")
+
+				// Check that the file content matches stdout content
+				assert.Equal(t, report, fileReport, "File content should match stdout JSON")
+
+				t.Logf("Successfully verified output file: %s", tc.outputToFile)
+			}
 
 			changelog, err := diff.Diff(tc.jsonReport, report)
 			assert.NoError(t, err)
