@@ -62,11 +62,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			fmt.Sprintf("Archive should contain a directory named %s", data.ID),
 			"The plugin archive file should contain a directory named after the plugin ID. This directory should contain the plugin's dist files. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 		)
-	} else {
-		if noIdentRootDir.ReportAll {
-			noIdentRootDir.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, noIdentRootDir, fmt.Sprintf("Archive contains directory named %s", data.ID), "")
-		}
 	}
 
 	return nil, nil

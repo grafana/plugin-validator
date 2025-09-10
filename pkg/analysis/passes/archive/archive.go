@@ -36,11 +36,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	if emptyArchive.ReportAll {
-		emptyArchive.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, emptyArchive, "Archive is not empty", "")
-	}
-
 	if len(fis) != 1 {
 		pass.ReportResult(
 			pass.AnalyzerName,
@@ -53,10 +48,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 		return nil, nil
 	}
-	if moreThanOneDir.ReportAll {
-		moreThanOneDir.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, moreThanOneDir, "Archive has a single directory", "")
-	}
 
 	if !fis[0].IsDir() {
 		pass.ReportResult(
@@ -67,10 +58,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 		return nil, nil
 	}
-	if noRootDir.ReportAll {
-		noRootDir.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, noRootDir, "Archive contains a root directory", "")
-	}
 
 	rootDir := filepath.Join(pass.RootDir, fis[0].Name())
 	legacyRoot := filepath.Join(rootDir, "dist")
@@ -78,10 +65,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err = os.Stat(legacyRoot)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if dist.ReportAll {
-				dist.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, dist, "Archive has expected content", "")
-			}
 			return rootDir, nil
 		}
 		return nil, err
