@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	goSecNotInstalled = &analysis.Rule{Name: "go-sec-not-installed", Severity: analysis.Warning}
-	goSectIssueFound  = &analysis.Rule{Name: "go-sec-issue-found", Severity: analysis.Warning}
+	goSecNotInstalled   = &analysis.Rule{Name: "go-sec-not-installed", Severity: analysis.Warning}
+	goSectIssueFound    = &analysis.Rule{Name: "go-sec-issue-found", Severity: analysis.Warning}
+	goSectNoIssuesFound = &analysis.Rule{Name: "go-sec-no-issues-found", Severity: analysis.OK}
 )
 
 // could be low, medium, high (see gosec docs)
@@ -43,13 +44,26 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		if goSecNotInstalled.ReportAll {
 			logme.Debugln("gosec not installed, skipping gosec analysis")
-			pass.ReportResult(pass.AnalyzerName, goSecNotInstalled, "gosec not installed", "Skipping gosec analysis")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				goSecNotInstalled,
+				"gosec not installed",
+				"Skipping gosec analysis",
+			)
 		}
 		return nil, nil
 	}
 
 	// run gosec
-	goSecCommand := exec.Command(goSecBin, "-quiet", "-severity", targetSeverity, "-fmt", "json", "-r")
+	goSecCommand := exec.Command(
+		goSecBin,
+		"-quiet",
+		"-severity",
+		targetSeverity,
+		"-fmt",
+		"json",
+		"-r",
+	)
 	goSecCommand.Dir = sourceCodeDir
 	goSecOutput, err := goSecCommand.Output()
 	if err != nil {
@@ -63,10 +77,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	if len(goSecOutput) == 0 {
 		logme.Debugln("gosec output is empty, skipping gosec report")
-		if goSectIssueFound.ReportAll {
-			goSectIssueFound.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, goSectIssueFound, "gosec output is empty, skipping gosec report", "Skipping gosec report")
-		}
 		return nil, nil
 	}
 
@@ -84,15 +94,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	for _, issue := range goSectResults.Issues {
 		if strings.ToUpper(issue.Severity) == targetSeverity {
 			brokenRules = append(brokenRules, issue.RuleID)
-			if goSectIssueFound.ReportAll {
-				pass.ReportResult(pass.AnalyzerName, goSectIssueFound, fmt.Sprintf("Found %s severity issue with rule id %s", issue.Severity, issue.RuleID), issue.Details)
-			}
 			count++
 		}
 	}
 
 	if count > 0 {
-		pass.ReportResult(pass.AnalyzerName, goSectIssueFound, fmt.Sprintf("gosec analysis reports %d issues with %s severity", count, targetSeverity), fmt.Sprintf("Run gosec https://github.com/securego/gosec in your plugin code to see the issues. Found issues in rules: %s", strings.Join(brokenRules, ", ")))
+		pass.ReportResult(
+			pass.AnalyzerName,
+			goSectIssueFound,
+			fmt.Sprintf("gosec analysis reports %d issues with %s severity", count, targetSeverity),
+			fmt.Sprintf(
+				"Run gosec https://github.com/securego/gosec in your plugin code to see the issues. Found issues in rules: %s",
+				strings.Join(brokenRules, ", "),
+			),
+		)
+	} else if goSectNoIssuesFound.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			goSectNoIssuesFound,
+			"gosec analysis reports no issues",
+			"",
+		)
 	}
 
 	return nil, nil
