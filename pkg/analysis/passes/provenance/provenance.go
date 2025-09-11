@@ -32,6 +32,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:      run,
 	Rules: []*analysis.Rule{
 		noProvenanceAttestation,
+		invalidProvenanceAttestation,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Provenance attestation validation",

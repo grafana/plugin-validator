@@ -47,6 +47,7 @@ var Analyzer = &analysis.Analyzer{
 	Rules: []*analysis.Rule{
 		codeRulesViolationError,
 		codeRulesViolationWarning,
+		noCodeRulesViolations,
 		semgrepNotFound,
 		semgrepRunningErr,
 	},

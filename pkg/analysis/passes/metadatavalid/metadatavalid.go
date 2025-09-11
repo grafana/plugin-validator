@@ -18,13 +18,14 @@ import (
 var (
 	invalidMetadata  = &analysis.Rule{Name: "invalid-metadata", Severity: analysis.Error}
 	metadataNotFound = &analysis.Rule{Name: "metadata-not-found", Severity: analysis.Error}
+	validMetadata    = &analysis.Rule{Name: "valid-metadata", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "metadatavalid",
 	Requires: []*analysis.Analyzer{metadata.Analyzer, metadataschema.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{invalidMetadata, metadataNotFound},
+	Rules:    []*analysis.Rule{invalidMetadata, metadataNotFound, validMetadata},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Metadata Validity",
 		Description: "Ensures metadata is valid and matches plugin schema.",
@@ -99,9 +100,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 		)
 	}
-	if len(result.Errors()) == 0 && invalidMetadata.ReportAll {
-		invalidMetadata.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, invalidMetadata, "plugin.json: metadata is valid", "")
+	if len(result.Errors()) == 0 && validMetadata.ReportAll {
+		pass.ReportResult(pass.AnalyzerName, validMetadata, "plugin.json: metadata is valid", "")
 	}
 
 	return nil, nil

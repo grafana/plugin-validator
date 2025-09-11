@@ -24,7 +24,7 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok || archiveDir == "" {
 		// this should never happen
@@ -38,11 +38,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(moduleJsFiles) == 0 {
-		pass.ReportResult(pass.AnalyzerName, missingModulejs, "missing module.js", "Your plugin must have a module.js file to be loaded by Grafana.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			missingModulejs,
+			"missing module.js",
+			"Your plugin must have a module.js file to be loaded by Grafana.",
+		)
 		return nil, nil
-	} else if missingModulejs.ReportAll {
-		missingModulejs.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, missingModulejs, "module.js: exists", "")
 	}
 
 	moduleJsFilesContent := map[string][]byte{}

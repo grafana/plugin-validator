@@ -17,7 +17,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "discoverability",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{emptyDescription, emptyKeywords},
+	Rules:    []*analysis.Rule{emptyDescription, emptyKeywords, hasKeywords},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Discoverability",
 		Description: "Warns about missing keywords and description that are used for plugin indexing in the catalog.",

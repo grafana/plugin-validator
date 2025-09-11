@@ -19,7 +19,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "readme",
 	Run:      run,
 	Requires: []*analysis.Analyzer{archive.Analyzer},
-	Rules:    []*analysis.Rule{missingReadme},
+	Rules:    []*analysis.Rule{missingReadme, readmeComment},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Readme (exists)",
 		Description: "Ensures a `README.md` file exists within the zip file.",
