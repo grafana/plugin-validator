@@ -18,17 +18,38 @@ import (
 var semgrepRules string
 
 var (
-	codeRulesViolationError   = &analysis.Rule{Name: "code-rules-violation-error", Severity: analysis.Error}
-	codeRulesViolationWarning = &analysis.Rule{Name: "code-rules-violation-warning", Severity: analysis.Warning}
-	semgrepNotFound           = &analysis.Rule{Name: "semgrep-not-found", Severity: analysis.Warning}
-	semgrepRunningErr         = &analysis.Rule{Name: "semgrep-running-err", Severity: analysis.Warning}
+	codeRulesViolationError = &analysis.Rule{
+		Name:     "code-rules-violation-error",
+		Severity: analysis.Error,
+	}
+	codeRulesViolationWarning = &analysis.Rule{
+		Name:     "code-rules-violation-warning",
+		Severity: analysis.Warning,
+	}
+	noCodeRulesViolations = &analysis.Rule{
+		Name:     "no-code-rules-violations",
+		Severity: analysis.OK,
+	}
+	semgrepNotFound = &analysis.Rule{
+		Name:     "semgrep-not-found",
+		Severity: analysis.Warning,
+	}
+	semgrepRunningErr = &analysis.Rule{
+		Name:     "semgrep-running-err",
+		Severity: analysis.Warning,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "code-rules",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{codeRulesViolationError, codeRulesViolationWarning, semgrepNotFound, semgrepRunningErr},
+	Rules: []*analysis.Rule{
+		codeRulesViolationError,
+		codeRulesViolationWarning,
+		semgrepNotFound,
+		semgrepRunningErr,
+	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Code Rules",
 		Description:  "Checks for forbidden access to environment variables, file system or use of syscall module.",
@@ -55,10 +76,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	semgrepPath, err := getSemgrepPath()
 	if err != nil {
-		// can't run semgrep
-		if semgrepNotFound.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, semgrepNotFound, "semgrep not found in PATH", "")
-		}
 		return nil, nil
 	}
 
@@ -66,10 +83,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	semgrepRulesPath, cleanup, err := getSemgrepRulesPath()
 	if err != nil {
-		// can't run semgrep
-		if semgrepNotFound.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, semgrepNotFound, "semgrep rules not found. Bad binary compilation?", "")
-		}
 		return nil, nil
 	}
 	if cleanup != nil {
@@ -91,22 +104,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	cmd := exec.Command(semgrepPath, semGrepArgs...)
 	out, err := cmd.Output()
 	if err != nil {
-		// semgrep failed to run
-		if semgrepRunningErr.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, semgrepRunningErr, "semgrep failed to run", err.Error())
-		}
 		return nil, nil
 	}
 	// unmarshal semgrep output
 	var semgrepResults SemgrepResults
 	err = json.Unmarshal(out, &semgrepResults)
 	if err != nil {
-		// semgrep output is not valid json
-		if semgrepRunningErr.ReportAll {
-			pass.ReportResult(pass.AnalyzerName, semgrepRunningErr, "semgrep output is not valid json", err.Error())
-		}
 		return nil, nil
 	}
+
+	violations := 0
 
 	// report semgrep results
 	for _, result := range semgrepResults.Results {
@@ -114,12 +121,51 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		severity := strings.ToLower(result.Extra.Severity)
 		switch severity {
 		case "error":
-			pass.ReportResult(pass.AnalyzerName, codeRulesViolationError, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				codeRulesViolationError,
+				result.Extra.Message,
+				fmt.Sprintf(
+					"Code rule violation found in %s at line %d",
+					result.Path,
+					result.Start.Line,
+				),
+			)
+			violations++
 		case "warning":
-			pass.ReportResult(pass.AnalyzerName, codeRulesViolationWarning, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				codeRulesViolationWarning,
+				result.Extra.Message,
+				fmt.Sprintf(
+					"Code rule violation found in %s at line %d",
+					result.Path,
+					result.Start.Line,
+				),
+			)
+			violations++
 		default:
-			pass.ReportResult(pass.AnalyzerName, codeRulesViolationWarning, result.Extra.Message, fmt.Sprintf("Code rule violation found in %s at line %d", result.Path, result.Start.Line))
+			pass.ReportResult(
+				pass.AnalyzerName,
+				codeRulesViolationWarning,
+				result.Extra.Message,
+				fmt.Sprintf(
+					"Code rule violation found in %s at line %d",
+					result.Path,
+					result.Start.Line,
+				),
+			)
 		}
+	}
+
+	if violations == 0 && noCodeRulesViolations.ReportAll {
+		noCodeRulesViolations.Severity = analysis.OK
+		pass.ReportResult(
+			pass.AnalyzerName,
+			noCodeRulesViolations,
+			"no code rules violations found",
+			"semgrep didn't find any code rules violations",
+		)
 	}
 
 	// no need to return anything

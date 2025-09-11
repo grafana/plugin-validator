@@ -89,6 +89,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 
+	if checksumInvalid.ReportAll {
+		checksumInvalid.Severity = analysis.OK
+		pass.ReportResult(
+			pass.AnalyzerName,
+			checksumInvalid,
+			fmt.Sprintf("The provided checksum %s matches the plugin archive", checksum),
+			"The plugin archive matches the provided checksum in the submission form.",
+		)
+	}
+
 	return nil, nil
 }
 

@@ -93,10 +93,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				context: "README.md",
 				url:     path,
 			})
-			if relativeLink.ReportAll {
-				relativeLink.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, relativeLink, fmt.Sprintf("README.md: Link has absolute path: %s", path), "")
-			}
 		} else {
 			pass.ReportResult(pass.AnalyzerName, relativeLink, fmt.Sprintf("README.md: convert relative link to absolute: %s", path), "README.md contains relative links. These links will not work on the Grafana plugin's catalog. Convert them to absolute links. (starting with https://)")
 		}
@@ -122,7 +118,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				brokenCh <- urlstatus{url: url.url, status: err.Error(), context: url.context}
 				return
 			}
-			req.Header.Add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0")
+			req.Header.Add(
+				"User-Agent",
+				"Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0",
+			)
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {
@@ -145,7 +144,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	reportCount := 0
 	for link := range brokenCh {
 		brokenLink.Severity = analysis.Warning
-		pass.ReportResult(pass.AnalyzerName, brokenLink, fmt.Sprintf("%s: possible broken link: %s (%s)", link.context, link.url, link.status), "README.md might contain broken links. Check that all links are valid and publicly accessible.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			brokenLink,
+			fmt.Sprintf("%s: possible broken link: %s (%s)", link.context, link.url, link.status),
+			"README.md might contain broken links. Check that all links are valid and publicly accessible.",
+		)
 		reportCount++
 	}
 	if reportCount == 0 && brokenLink.ReportAll {

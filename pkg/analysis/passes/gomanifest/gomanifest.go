@@ -24,6 +24,7 @@ var (
 	noGoManifest      = &analysis.Rule{Name: "no-go-manifest", Severity: analysis.Error}
 	invalidGoManifest = &analysis.Rule{Name: "invalid-go-manifest", Severity: analysis.Error}
 	goManifestIssue   = &analysis.Rule{Name: "go-manifest-issue", Severity: analysis.Error}
+	hasGoManifest     = &analysis.Rule{Name: "has-go-manifest", Severity: analysis.OK}
 )
 
 type ManifestIssue struct {
@@ -70,6 +71,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err != nil {
 		return nil, nil
 	}
+
 	if len(goFiles) == 0 {
 		// no go files found so we can't check the manifest
 		return nil, nil
@@ -110,6 +112,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				issue.file,
 			),
 			issue.err.Error(),
+		)
+	}
+
+	if len(issues) == 0 && hasGoManifest.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			hasGoManifest,
+			"Go manifest file found",
+			"Plugin has a valid go files manifest signature",
 		)
 	}
 

@@ -10,6 +10,7 @@ import (
 var (
 	emptyDescription = &analysis.Rule{Name: "empty-description", Severity: analysis.Warning}
 	emptyKeywords    = &analysis.Rule{Name: "empty-keywords", Severity: analysis.Warning}
+	hasKeywords      = &analysis.Rule{Name: "has-keywords", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -35,11 +36,30 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if data.Info.Description == "" {
-		pass.ReportResult(pass.AnalyzerName, emptyDescription, "plugin.json: description is empty", "Consider providing a plugin description for better discoverability.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			emptyDescription,
+			"plugin.json: description is empty",
+			"Consider providing a plugin description for better discoverability.",
+		)
 	}
 
 	if len(data.Info.Keywords) == 0 {
-		pass.ReportResult(pass.AnalyzerName, emptyKeywords, "plugin.json: keywords are empty", "Consider providing plugin keywords for better discoverability.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			emptyKeywords,
+			"plugin.json: keywords are empty",
+			"Consider providing plugin keywords for better discoverability.",
+		)
+	}
+
+	if hasKeywords.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			hasKeywords,
+			"plugin.json: keywords and description are not empty",
+			"",
+		)
 	}
 
 	return nil, nil
