@@ -41,11 +41,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				"A plugin.json file is required to describe the plugin. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 			)
 			return nil, nil
-		} else {
-			if missingMetadata.ReportAll {
-				missingMetadata.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, missingMetadata, "plugin.json exists", "")
-			}
 		}
 		return nil, err
 	}
