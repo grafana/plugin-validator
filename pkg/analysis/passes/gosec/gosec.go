@@ -24,7 +24,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "go-sec",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{goSecNotInstalled},
+	Rules:    []*analysis.Rule{goSecNotInstalled, goSectIssueFound, goSectNoIssuesFound},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Go Security Checker",
 		Description:  "Inspects source code for security problems by scanning the Go AST.",

@@ -28,7 +28,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "backenddebug",
 	Requires: []*analysis.Analyzer{archive.Analyzer, nestedmetadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{backendDebugFilePresent},
+	Rules:    []*analysis.Rule{backendDebugFilePresent, archiveFilesError},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Backend Debug",
 		Description: "Checks that the standalone debug files for backend plugins are not present.",

@@ -38,6 +38,8 @@ var Analyzer = &analysis.Analyzer{
 		emptyManifest,
 		wrongManifest,
 		invalidShaSum,
+		invalidSignature,
+		wrongPermissions,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Manifest (Signing)",
