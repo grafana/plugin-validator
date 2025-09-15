@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -22,8 +23,12 @@ var (
 var mdLinks = regexp.MustCompile(`\[.+?\]\((.+?)\)`)
 
 // isGitHubURL checks if the URL is a GitHub URL
-func isGitHubURL(url string) bool {
-	return strings.Contains(url, "https://github.com")
+func isGitHubURL(urlStr string) bool {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+	return strings.ToLower(parsedURL.Hostname()) == "github.com"
 }
 
 var Analyzer = &analysis.Analyzer{
