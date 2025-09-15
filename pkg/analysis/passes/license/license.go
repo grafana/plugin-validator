@@ -19,13 +19,19 @@ var (
 		Name:     "license-with-generic-text",
 		Severity: analysis.Warning,
 	}
+	validLicenseProvided = &analysis.Rule{Name: "valid-license-provided", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "license",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{licenseNotProvided, licenseNotValid, licenseWithGenericText},
+	Rules: []*analysis.Rule{
+		licenseNotProvided,
+		licenseNotValid,
+		licenseWithGenericText,
+		validLicenseProvided,
+	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "License Type",
 		Description: "Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3.",
@@ -120,9 +126,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 		return nil, nil
 
-	} else if licenseNotProvided.ReportAll {
-		licenseNotProvided.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, licenseNotProvided, "License found", "Found a valid license file inside the plugin archive.")
 	}
 
 	licenseContentStr := string(licenseContents)
@@ -133,6 +136,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			licenseWithGenericText,
 			"License file contains generic text",
 			"Your current license file contains generic text from the license template. Please make sure to replace {name of copyright owner} and {yyyy} with the correct values in your LICENSE file.",
+		)
+		return nil, nil
+	}
+
+	if validLicenseProvided.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			validLicenseProvided,
+			"Valid license provided",
+			"The provided license is compatible",
 		)
 	}
 

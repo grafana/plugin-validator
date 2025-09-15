@@ -19,13 +19,14 @@ var (
 	jsMapNotFound = &analysis.Rule{Name: "js-map-not-found", Severity: analysis.Error}
 	jsMapInvalid  = &analysis.Rule{Name: "js-map-invalid", Severity: analysis.Error}
 	jsMapNoMatch  = &analysis.Rule{Name: "js-map-no-match", Severity: analysis.Error}
+	jsMapMatches  = &analysis.Rule{Name: "js-map-matches", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "jsMap",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer, archive.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{jsMapNotFound},
+	Rules:    []*analysis.Rule{jsMapNotFound, jsMapInvalid, jsMapNoMatch, jsMapMatches},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "JS Source Map",
 		Description:  "Checks for required `module.js.map` file(s) in archive.",
@@ -58,7 +59,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if err != nil {
 			if os.IsNotExist(err) {
 				fileMapRelPath, _ := filepath.Rel(archiveFilesPath, fileMapPath)
-				pass.ReportResult(pass.AnalyzerName, jsMapNotFound, fmt.Sprintf("missing %s in archive", fileMapRelPath), "You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin")
+				pass.ReportResult(
+					pass.AnalyzerName,
+					jsMapNotFound,
+					fmt.Sprintf("missing %s in archive", fileMapRelPath),
+					"You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin",
+				)
 			} else {
 				return nil, err
 			}
@@ -80,14 +86,24 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	// get the plugin id from the archive
 	pluginID, err := utils.GetPluginId(archiveFilesPath)
 	if err != nil || pluginID == "" {
-		pass.ReportResult(pass.AnalyzerName, jsMapInvalid, "plugin.json not found in src", "Required plugin.json must exist in src")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			jsMapInvalid,
+			"plugin.json not found in src",
+			"Required plugin.json must exist in src",
+		)
 		return nil, nil
 	}
 
 	for _, file := range mapFiles {
 		diffReport, err := difftool.CompareSourceMapToSourceCode(pluginID, file, sourceCodeDirSrc)
 		if err != nil {
-			pass.ReportResult(pass.AnalyzerName, jsMapInvalid, fmt.Sprintf("the sourcemap file %s could not be validated", file), "You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				jsMapInvalid,
+				fmt.Sprintf("the sourcemap file %s could not be validated", file),
+				"You must include generated source maps for your plugin in your archive file. If you have nested plugins, you must include the source maps for each plugin",
+			)
 			logme.DebugFln("could not extract source map: %s", err)
 			return nil, nil
 		}
@@ -99,11 +115,26 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			logme.Debugln("\n\n" + reportText)
 			logme.Debugln("---REPORT-END---")
 
-			pass.ReportResult(pass.AnalyzerName, jsMapNoMatch, "The provided javascript/typescript source code does not match your plugin archive assets.", "Verify the provided source code is the same as the one used to generate plugin archive. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL. \n "+reportText)
+			pass.ReportResult(
+				pass.AnalyzerName,
+				jsMapNoMatch,
+				"The provided javascript/typescript source code does not match your plugin archive assets.",
+				"Verify the provided source code is the same as the one used to generate plugin archive. If you are providing a git repository URL make sure to include the correct ref (branch or tag) in the URL. \n "+reportText,
+			)
 			return nil, nil
 		} else {
 			logme.DebugFln("source map matches source code")
 		}
+	}
+
+	if jsMapMatches.ReportAll {
+		jsMapMatches.Severity = analysis.OK
+		pass.ReportResult(
+			pass.AnalyzerName,
+			jsMapMatches,
+			"The provided typescript source code maps matches plugin archive assets.",
+			"",
+		)
 	}
 
 	return nil, nil

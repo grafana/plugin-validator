@@ -155,15 +155,5 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
-	if legacyPlatform.ReportAll && !hasLegacyPlatform {
-		legacyPlatform.Severity = analysis.OK
-		pass.ReportResult(
-			pass.AnalyzerName,
-			legacyPlatform,
-			"module.js: uses current plugin platform",
-			"",
-		)
-	}
-
 	return nil, nil
 }

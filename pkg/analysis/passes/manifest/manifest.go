@@ -26,6 +26,7 @@ var (
 	invalidShaSum    = &analysis.Rule{Name: "invalid-sha-sum", Severity: analysis.Error}
 	invalidSignature = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Error}
 	wrongPermissions = &analysis.Rule{Name: "wrong-permissions", Severity: analysis.Error}
+	validManifest    = &analysis.Rule{Name: "valid-manifest", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -38,6 +39,7 @@ var Analyzer = &analysis.Analyzer{
 		emptyManifest,
 		wrongManifest,
 		invalidShaSum,
+		validManifest,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Manifest (Signing)",
@@ -207,9 +209,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
-	if unsignedPlugin.ReportAll {
-		unsignedPlugin.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "MANIFEST.txt: plugin is signed", "")
+	if validManifest.ReportAll {
+		pass.ReportResult(pass.AnalyzerName, validManifest, "MANIFEST.txt: plugin is signed", "")
 	}
 
 	return b, nil

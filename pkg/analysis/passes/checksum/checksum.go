@@ -23,7 +23,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "checksum",
 	Requires: []*analysis.Analyzer{readme.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{checksumInvalid},
+	Rules:    []*analysis.Rule{checksumInvalid, checksumFormatError},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Checksum",
 		Description:  "Validates that the passed checksum (as a validator arg) is the one calculated from the archive file.",

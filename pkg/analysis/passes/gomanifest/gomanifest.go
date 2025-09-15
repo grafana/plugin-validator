@@ -36,7 +36,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "go-manifest",
 	Requires: []*analysis.Analyzer{archive.Analyzer, sourcecode.Analyzer, metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest, goManifestIssue},
+	Rules:    []*analysis.Rule{noGoManifest, invalidGoManifest, goManifestIssue, hasGoManifest},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Go Manifest",
 		Description: "Validates the build manifest.",

@@ -98,11 +98,6 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 				"The path doesn't exist",
 			)
 			continue
-		} else {
-			if invalidPath.ReportAll {
-				invalidPath.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, invalidPath, fmt.Sprintf("plugin.json: valid %s path: %s", path.kind, path.path), "")
-			}
 		}
 
 		if u.IsAbs() {
@@ -117,11 +112,6 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 				"Don't use absolute paths inside plugin.json",
 			)
 			continue
-		} else {
-			if pathRelativeToMetadata.ReportAll {
-				pathRelativeToMetadata.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, pathRelativeToMetadata, fmt.Sprintf("plugin.json: %s path is relative to plugin.json: %s", path.kind, path.path), "")
-			}
 		}
 
 		if strings.HasPrefix(path.path, ".") || strings.HasPrefix(path.path, "/") {
@@ -136,11 +126,6 @@ func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 				"Write relative paths without leading '.' or '/'. e.g. Instead of './img/file.png' use 'img/file.png'",
 			)
 			continue
-		} else {
-			if invalidRelativePath.ReportAll {
-				invalidRelativePath.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, invalidRelativePath, fmt.Sprintf("plugin.json: relative %s path does not start with '.' or '/': %s", path.kind, path.path), "")
-			}
 		}
 
 		// validate path exists
