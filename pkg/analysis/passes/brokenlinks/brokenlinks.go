@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -19,6 +21,15 @@ var (
 )
 
 var mdLinks = regexp.MustCompile(`\[.+?\]\((.+?)\)`)
+
+// isGitHubURL checks if the URL is a GitHub URL
+func isGitHubURL(urlStr string) bool {
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+	return strings.ToLower(parsedURL.Hostname()) == "github.com"
+}
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "brokenlinks",
@@ -122,6 +133,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				"User-Agent",
 				"Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0",
 			)
+
+			// Add GitHub token authentication for GitHub URLs to avoid rate limiting
+			if isGitHubURL(url.url) {
+				if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+					req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+				}
+			}
 
 			resp, err := http.DefaultClient.Do(req)
 			if err != nil {

@@ -100,3 +100,44 @@ func TestValidLink(t *testing.T) {
 
 	require.Empty(t, interceptor.Diagnostics)
 }
+
+func TestIsGitHubURL(t *testing.T) {
+	tests := []struct {
+		name     string
+		url      string
+		expected bool
+	}{
+		{
+			name:     "github.com URL",
+			url:      "https://github.com/grafana/grafana",
+			expected: true,
+		},
+		{
+			name:     "github.com URL with path",
+			url:      "https://github.com/grafana/grafana/blob/main/README.md",
+			expected: true,
+		},
+		{
+			name:     "raw.githubusercontent.com URL",
+			url:      "https://raw.githubusercontent.com/grafana/grafana/main/README.md",
+			expected: false,
+		},
+		{
+			name:     "non-GitHub URL",
+			url:      "https://grafana.com",
+			expected: false,
+		},
+		{
+			name:     "another non-GitHub URL",
+			url:      "https://google.com",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := isGitHubURL(tt.url)
+			require.Equal(t, tt.expected, result, "Expected isGitHubURL(%s) to be %v, got %v", tt.url, tt.expected, result)
+		})
+	}
+}
