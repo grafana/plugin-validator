@@ -12,7 +12,10 @@ import (
 )
 
 var (
-	missingGrafanaCloudAccount = &analysis.Rule{Name: "missing-grafanacloud-account", Severity: analysis.Warning}
+	missingGrafanaCloudAccount = &analysis.Rule{
+		Name:     "missing-grafanacloud-account",
+		Severity: analysis.Warning,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -53,16 +56,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	_, err := client.FindOrgBySlug(username)
 	if err != nil {
 		if errors.Is(err, grafana.ErrOrganizationNotFound) {
-			pass.ReportResult(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("unregistered Grafana Cloud account: %s", username), "The plugin's ID is prefixed with a Grafana Cloud account name, but that account does not exist. Please create the account or correct the name.")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				missingGrafanaCloudAccount,
+				fmt.Sprintf("unregistered Grafana Cloud account: %s", username),
+				"The plugin's ID is prefixed with a Grafana Cloud account name, but that account does not exist. Please create the account or correct the name.",
+			)
 		} else if errors.Is(err, grafana.ErrPrivateOrganization) {
 			return nil, nil
 		}
 		return nil, err
-	} else {
-		if missingGrafanaCloudAccount.ReportAll {
-			missingGrafanaCloudAccount.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, missingGrafanaCloudAccount, fmt.Sprintf("found Grafana Cloud account: %s", username), "")
-		}
 	}
 
 	return nil, nil

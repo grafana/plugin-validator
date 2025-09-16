@@ -79,11 +79,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					"A plugin.json file is required to describe the plugin. No plugin.json was found in your plugin archive.",
 				)
 				return nil, nil
-			} else {
-				if missingMetadata.ReportAll {
-					missingMetadata.Severity = analysis.OK
-					pass.ReportResult(pass.AnalyzerName, missingMetadata, "plugin.json exists", "")
-				}
 			}
 			return nil, nil
 		}

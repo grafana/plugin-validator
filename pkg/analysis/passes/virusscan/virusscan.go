@@ -19,6 +19,10 @@ var (
 		Name:     "virus-scan-failed",
 		Severity: analysis.Error,
 	}
+	virusScanPassed = &analysis.Rule{
+		Name:     "virus-scan-passed",
+		Severity: analysis.OK,
+	}
 )
 
 type ClamAvScanSummary struct {
@@ -41,6 +45,7 @@ var Analyzer = &analysis.Analyzer{
 	Run:      run,
 	Rules: []*analysis.Rule{
 		virusScanFailed,
+		virusScanPassed,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Virus Scan",
@@ -124,6 +129,15 @@ func runClamavScan(clamavBin string, path string, entityName string, pass *analy
 			),
 			fmt.Sprintf("Files found by ClamAV: %s", strings.Join(scanSummary.FoundFiles, ", ")),
 		)
+	} else {
+		if virusScanPassed.ReportAll {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				virusScanPassed,
+				"ClamAV found no infected files",
+				"",
+			)
+		}
 	}
 	return nil
 }

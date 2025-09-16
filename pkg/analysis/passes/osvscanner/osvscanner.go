@@ -103,15 +103,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						"osv-scanner failed to run",
 						fmt.Sprintf("osv-scanner failed to run: %s", err.Error()))
 				}
-			} else {
-				scanningFailure.Severity = analysis.OK
-				if scanningFailure.ReportAll {
-					pass.ReportResult(
-						pass.AnalyzerName,
-						scanningFailure,
-						"osv-scanner successfully ran",
-						"osv-scanner successfully ran")
-				}
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
@@ -161,31 +152,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 									message)
 								criticalSeverityCount++
 							case SeverityHigh:
-								if osvScannerHighSeverityDetected.ReportAll {
-									pass.ReportResult(
-										pass.AnalyzerName,
-										osvScannerHighSeverityDetected,
-										"osv-scanner detected a high severity issue",
-										message)
-								}
 								highSeverityCount++
 							case SeverityModerate:
-								if osvScannerModerateSeverityDetected.ReportAll {
-									pass.ReportResult(
-										pass.AnalyzerName,
-										osvScannerModerateSeverityDetected,
-										"osv-scanner detected a moderate severity issue",
-										message)
-								}
 								moderateSeverityCount++
 							case SeverityLow:
-								if osvScannerLowSeverityDetected.ReportAll {
-									pass.ReportResult(
-										pass.AnalyzerName,
-										osvScannerLowSeverityDetected,
-										"osv-scanner detected a low severity issue",
-										message)
-								}
 								lowSeverityCount++
 							}
 						}
