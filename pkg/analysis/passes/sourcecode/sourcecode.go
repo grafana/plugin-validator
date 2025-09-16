@@ -12,14 +12,6 @@ var (
 		Name:     "source-code-not-provided",
 		Severity: analysis.Warning,
 	}
-	sourceCodeNotFound = &analysis.Rule{
-		Name:     "source-code-not-found",
-		Severity: analysis.Error,
-	}
-	sourceCodeVersionMisMatch = &analysis.Rule{
-		Name:     "source-code-version-mismatch",
-		Severity: analysis.Error,
-	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -27,8 +19,6 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
-		sourceCodeNotFound,
-		sourceCodeVersionMisMatch,
 		sourceCodeNotProvided,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{

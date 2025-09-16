@@ -30,14 +30,6 @@ var (
 		Name:     "no-code-rules-violations",
 		Severity: analysis.OK,
 	}
-	semgrepNotFound = &analysis.Rule{
-		Name:     "semgrep-not-found",
-		Severity: analysis.Warning,
-	}
-	semgrepRunningErr = &analysis.Rule{
-		Name:     "semgrep-running-err",
-		Severity: analysis.Warning,
-	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -48,8 +40,6 @@ var Analyzer = &analysis.Analyzer{
 		codeRulesViolationError,
 		codeRulesViolationWarning,
 		noCodeRulesViolations,
-		semgrepNotFound,
-		semgrepRunningErr,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Code Rules",
@@ -58,7 +48,7 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
 	if !ok {
 		// no source code for the validator

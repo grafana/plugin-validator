@@ -26,7 +26,7 @@ var (
 	modifiedSignature = &analysis.Rule{Name: "modified-signature", Severity: analysis.Warning}
 	invalidSignature  = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Warning}
 	privateSignature  = &analysis.Rule{Name: "private-signature", Severity: analysis.Warning}
-	validSignature    = &analysis.Rule{Name: "invalid-signature", Severity: analysis.OK}
+	validSignature    = &analysis.Rule{Name: "valid-signature", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
