@@ -191,7 +191,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			req.New.Path != "github.com/grafana/grafana-plugin-sdk-go" {
 			pass.ReportResult(
 				pass.AnalyzerName,
-				goSdkNotUsed,
+				goSdkReplaced,
 				"Your plugin is using a custom or forked version of the Grafana Go SDK",
 				"Custom or forked version of Grafana Go SDK are not supported. Please use the latest Grafana Go SDK (github.com/grafana/grafana-plugin-sdk-go)",
 			)

@@ -26,13 +26,20 @@ var (
 	modifiedSignature = &analysis.Rule{Name: "modified-signature", Severity: analysis.Warning}
 	invalidSignature  = &analysis.Rule{Name: "invalid-signature", Severity: analysis.Warning}
 	privateSignature  = &analysis.Rule{Name: "private-signature", Severity: analysis.Warning}
+	validSignature    = &analysis.Rule{Name: "valid-signature", Severity: analysis.OK}
 )
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "signature",
 	Requires: []*analysis.Analyzer{manifest.Analyzer, metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{unsignedPlugin, modifiedSignature, invalidSignature, privateSignature},
+	Rules: []*analysis.Rule{
+		unsignedPlugin,
+		modifiedSignature,
+		invalidSignature,
+		privateSignature,
+		validSignature,
+	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Signature",
 		Description: "Ensures the plugin has a valid signature.",
@@ -67,7 +74,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	state, err := getPluginSignatureState(data.ID, data.Info.Version, archiveDir, mf)
 	if err != nil {
-		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: failed to check plugin signature", err.Error())
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidSignature,
+			"MANIFEST.txt: failed to check plugin signature",
+			err.Error(),
+		)
 		return nil, nil
 	}
 
@@ -75,17 +87,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case PluginSignatureUnsigned:
 		pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "unsigned plugin", "")
 	case PluginSignatureInvalid:
-		pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: invalid plugin signature", "The plugin might had been modified after it was signed.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidSignature,
+			"MANIFEST.txt: invalid plugin signature",
+			"The plugin might had been modified after it was signed.",
+		)
 	case PluginSignatureModified:
-		pass.ReportResult(pass.AnalyzerName, modifiedSignature, "MANIFEST.txt: plugin has been modified since it was signed", "The plugin might had been modified after it was signed.")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			modifiedSignature,
+			"MANIFEST.txt: plugin has been modified since it was signed",
+			"The plugin might had been modified after it was signed.",
+		)
 	default:
-		if unsignedPlugin.ReportAll {
-			unsignedPlugin.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, unsignedPlugin, "MANIFEST.txt: plugin is signed", "")
-			invalidSignature.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, invalidSignature, "MANIFEST.txt: valid plugin signature", "")
-			modifiedSignature.Severity = analysis.OK
-			pass.ReportResult(pass.AnalyzerName, modifiedSignature, "MANIFEST.txt: plugin has not been modified since it was signed", "")
+		if validSignature.ReportAll {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				validSignature,
+				"MANIFEST.txt: valid plugin signature",
+				"",
+			)
 		}
 	}
 
@@ -96,12 +118,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		if m.SignatureType == "private" {
-			pass.ReportResult(pass.AnalyzerName, privateSignature, "MANIFEST.txt: plugin must be signed under community or commercial signature level", "The plugin is signed under private signature level.")
-		} else {
-			if privateSignature.ReportAll {
-				privateSignature.Severity = analysis.OK
-				pass.ReportResult(pass.AnalyzerName, privateSignature, "MANIFEST.txt: plugin is signed under community or commercial signature level", "")
-			}
+			pass.ReportResult(
+				pass.AnalyzerName,
+				privateSignature,
+				"MANIFEST.txt: plugin must be signed under community or commercial signature level",
+				"The plugin is signed under private signature level.",
+			)
 		}
 	}
 
@@ -143,7 +165,10 @@ func checkFileSignature(fp string, expHash string) error {
 	return nil
 }
 
-func getPluginSignatureState(pluginID, version, pluginDir string, byteValue []byte) (PluginSignature, error) {
+func getPluginSignatureState(
+	pluginID, version, pluginDir string,
+	byteValue []byte,
+) (PluginSignature, error) {
 	if len(byteValue) < 10 {
 		return PluginSignatureUnsigned, nil
 	}

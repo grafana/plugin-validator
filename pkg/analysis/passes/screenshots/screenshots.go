@@ -60,7 +60,12 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 
 	if len(data.Info.Screenshots) == 0 {
 		explanation := "Screenshots are displayed in the Plugin catalog. Please add at least one screenshot to your plugin.json."
-		pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: should include screenshots for the Plugin catalog", explanation)
+		pass.ReportResult(
+			pass.AnalyzerName,
+			screenshots,
+			"plugin.json: should include screenshots for the Plugin catalog",
+			explanation,
+		)
 		return data.Info.Screenshots, nil
 	}
 
@@ -68,7 +73,12 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 	for _, screenshot := range data.Info.Screenshots {
 		if strings.TrimSpace(screenshot.Path) == "" {
 			reportCount++
-			pass.ReportResult(pass.AnalyzerName, screenshots, fmt.Sprintf("plugin.json: invalid empty screenshot path: %q", screenshot.Name), "The screenshot path must not be empty.")
+			pass.ReportResult(
+				pass.AnalyzerName,
+				screenshots,
+				fmt.Sprintf("plugin.json: invalid empty screenshot path: %q", screenshot.Name),
+				"The screenshot path must not be empty.",
+			)
 		} else if err := validateImage(filepath.Join(archiveDir, screenshot.Path)); err != nil {
 			reportCount++
 			logme.Debugln(err)
@@ -79,17 +89,6 @@ func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
 	if reportCount > 0 {
 		return nil, nil
 	}
-
-	if screenshots.ReportAll {
-		screenshots.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, screenshots, "plugin.json: includes screenshots for the Plugin catalog", "")
-	}
-
-	if screenshotsType.ReportAll {
-		screenshotsType.Severity = analysis.OK
-		pass.ReportResult(pass.AnalyzerName, screenshotsType, "screenshots are valid image type", "")
-	}
-
 	return data.Info.Screenshots, nil
 }
 
@@ -120,7 +119,8 @@ func validateImage(imgPath string) error {
 	// returns text/plain or text/xml for svg files
 	mimeType := http.DetectContentType(buffer)
 	// logo.svg returns text/plain, valid.svg returns text/xml
-	if (strings.Contains(mimeType, "text/plain") || strings.Contains(mimeType, "text/xml")) && checkSVG(buffer) {
+	if (strings.Contains(mimeType, "text/plain") || strings.Contains(mimeType, "text/xml")) &&
+		checkSVG(buffer) {
 		mimeType = svgImage
 	}
 
@@ -130,5 +130,9 @@ func validateImage(imgPath string) error {
 		}
 	}
 
-	return fmt.Errorf("invalid screenshot image: %q. Accepted image types: %q", imgPath, acceptedImageTypes)
+	return fmt.Errorf(
+		"invalid screenshot image: %q. Accepted image types: %q",
+		imgPath,
+		acceptedImageTypes,
+	)
 }

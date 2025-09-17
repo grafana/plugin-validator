@@ -15,17 +15,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
-func reportAll(a *analysis.Analyzer) {
-	for _, r := range a.Rules {
-		r.ReportAll = true
-	}
-}
-
-func undoReportAll(a *analysis.Analyzer) {
-	for _, r := range a.Rules {
-		r.ReportAll = false
-	}
-}
 
 var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, error) {
 	group := models.GroupInfo{
@@ -133,49 +122,6 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 	require.Subset(t, titles, messages)
 }
 
-// TestOSVScannerAsLibraryReportAll
-// This will perform a mocked scan that return expected results of each severity type
-func TestOSVScannerAsLibraryReportAll(t *testing.T) {
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "critical-yarn"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "critical-yarn"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	// Turn on ReportAll for all rules, then turn it back off at the end of the test
-	reportAll(Analyzer)
-	t.Cleanup(func() {
-		undoReportAll(Analyzer)
-	})
-
-	actualFunction := doScanInternal
-	doScanInternal = mockedDoScanInternal
-
-	_, err := Analyzer.Run(pass)
-	// restore default
-	doScanInternal = actualFunction
-
-	require.NoError(t, err)
-	require.GreaterOrEqual(t, len(interceptor.Diagnostics), 9)
-
-	messages := []string{
-		"osv-scanner detected a critical severity issue",
-		"osv-scanner detected critical severity issues",
-		"osv-scanner detected a high severity issue",
-		"osv-scanner detected high severity issues",
-		"osv-scanner detected a moderate severity issue",
-		"osv-scanner detected moderate severity issues",
-		"osv-scanner detected a low severity issue",
-		"osv-scanner detected low severity issues",
-	}
-	require.Subset(t, interceptor.GetTitles(), messages)
-	titles := interceptor.GetTitles()
-	require.Subset(t, titles, messages)
-}
 
 func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
