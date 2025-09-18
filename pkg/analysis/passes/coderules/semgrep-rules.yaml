@@ -177,3 +177,20 @@ rules:
     message: "Detected access to restricted window property: window.$1. Accessing window.$1 is not permitted."
     languages: [typescript]
     severity: ERROR
+
+  - id: detect-old-react-internals
+    pattern-either:
+      - pattern-regex: __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+        - "src/**/*.js"
+        - "src/**/*.jsx"
+        - "**/*.js"
+        - "**/*.ts"
+        - "**/*.tsx"
+        - "**/*.jsx"
+    message: "Detected usage of React internal API '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED'. This API is internal to React and should not be used directly as it may break in future React versions."
+    languages: [javascript, typescript]
+    severity: WARNING
