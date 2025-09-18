@@ -104,20 +104,24 @@ func run(pass *analysis.Pass) (any, error) {
 	for _, answer := range answers {
 		if answer.ShortAnswer != answer.ExpectedShortAnswer {
 
-			detail := fmt.Sprintf("Question: %s\n. Answer: %s. ", answer.Question, answer.Answer)
+			var detailParts []string
+
+			detailParts = append(detailParts, answer.Answer)
 
 			if answer.CodeSnippet != "" {
-				detail += fmt.Sprintf("Code Snippet:\n```\n%s\n```\n", answer.CodeSnippet)
+				detailParts = append(detailParts, fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet))
 			}
 
 			if len(answer.Files) > 0 {
-				detail += fmt.Sprintf(". Files: %s", strings.Join(answer.Files, ", "))
+				detailParts = append(detailParts, fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")))
 			}
+
+			detail := strings.Join(detailParts, "\n\n")
 
 			pass.ReportResult(
 				pass.AnalyzerName,
 				llmIssueFound,
-				fmt.Sprintf("LLM response: %s", answer.Answer),
+				fmt.Sprintf("LLM flagged: %s", answer.Question),
 				detail,
 			)
 		}
