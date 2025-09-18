@@ -117,7 +117,8 @@ func run(pass *analysis.Pass) (any, error) {
 			versions.SubmittedGitHubVersion.Version,
 		)
 		detail := fmt.Sprintf(
-			"View code differences: %s",
+			"View code differences: [%s](%s)",
+			diffURL,
 			diffURL,
 		)
 
