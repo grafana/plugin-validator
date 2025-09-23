@@ -141,11 +141,25 @@ func run(pass *analysis.Pass) (any, error) {
 		for _, response := range responses {
 			logme.Debugln("LLM response:", response.Question, response.Answer)
 			if strings.ToLower(response.ShortAnswer) == "yes" {
+				var detailParts []string
+
+				detailParts = append(detailParts, response.Answer)
+
+				if response.CodeSnippet != "" {
+					detailParts = append(detailParts, fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", response.CodeSnippet))
+				}
+
+				if len(response.RelatedFiles) > 0 {
+					detailParts = append(detailParts, fmt.Sprintf("**Files:** %s", strings.Join(response.RelatedFiles, ", ")))
+				}
+
+				detail := strings.Join(detailParts, "\n\n")
+
 				pass.ReportResult(
 					pass.AnalyzerName,
 					codeDiffAnalysis,
-					response.Question,
-					response.Answer,
+					fmt.Sprintf("Code Diff LLM flagged: %s", response.Question),
+					detail,
 				)
 			}
 		}
