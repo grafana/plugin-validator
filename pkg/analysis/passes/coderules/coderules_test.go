@@ -232,3 +232,37 @@ func TestWindowAccessWindowObjects(t *testing.T) {
 		require.Equal(t, tc.detail, interceptor.Diagnostics[index].Detail)
 	}
 }
+
+func TestOldReactInternals(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "old-react-internals"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"Detected usage of React internal API '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED'. This API is internal to React and should not be used directly as it may break in future React versions.",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Detail,
+		"Code rule violation found in testdata/old-react-internals/src/module.tsx at line 4",
+	)
+	require.Equal(
+		t,
+		interceptor.Diagnostics[0].Severity,
+		analysis.Warning,
+	)
+}
