@@ -54,26 +54,16 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@a37de51f3d713a30a9e4b21bcdfbd38170020593 # v1.3.0
-        with:
-          # secrets in vault /grafana/plugin-validator/npm_token
-          repo_secrets: |
-            NPM_TOKEN=npm_token:npm_token
-          export_env: false
-
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           persist-credentials: false
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: "22"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: npm install
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ fromJSON(steps.get-secrets.outputs.secrets).NPM_TOKEN }}
 
   release-to-dockerhub:
     runs-on: ubuntu-latest
