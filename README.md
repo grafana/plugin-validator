@@ -1,7 +1,6 @@
 # Grafana Plugin Validator
 
 [![License](https://img.shields.io/github/license/grafana/plugin-validator)](LICENSE)
-[![Drone](https://drone.grafana.net/api/badges/grafana/plugin-validator/status.svg)](https://drone.grafana.net/grafana/plugin-validator)
 [![Go Report Card](https://goreportcard.com/badge/github.com/grafana/plugin-validator)](https://goreportcard.com/report/github.com/grafana/plugin-validator)
 
 This tool helps speed up the process of publishing plugins to [Grafana.com](https://grafana.com/grafana/plugins/). It runs a series of [analyzers](#analyzers) to ensure plugins are following best practices, checking for security and structural issues, as well as specific requirements related to publishing. A general overview of these requirements can be found here: <https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/>.
