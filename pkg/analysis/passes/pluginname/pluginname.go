@@ -52,16 +52,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 
-	if data.ID != "" {
-		idParts := strings.Split(data.ID, "-")
-		if len(idParts) < 3 {
-			pass.ReportResult(
-				pass.AnalyzerName,
-				invalidIDFormat,
-				"plugin.json: plugin id should follow the format org-name-type",
-				"The plugin ID should be in the format org-name-type (e.g., myorg-myplugin-panel). It must have at least 3 parts separated by hyphens.",
-			)
-		}
+	idParts := strings.Split(data.ID, "-")
+	if len(idParts) < 3 {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			invalidIDFormat,
+			"plugin.json: plugin id should follow the format org-name-type",
+			"The plugin ID should be in the format org-name-type (e.g., myorg-myplugin-panel). It must have at least 3 parts separated by hyphens.",
+		)
 	}
 
 	return nil, nil
