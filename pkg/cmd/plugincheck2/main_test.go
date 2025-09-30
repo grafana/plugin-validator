@@ -187,7 +187,7 @@ func TestIntegration(t *testing.T) {
 					},
 					"pluginname": {
 						{
-							Severity: "error",
+							Severity: "warning",
 							Title:    "plugin.json: plugin id should follow the format org-name-type",
 							Detail:   "The plugin ID should be in the format org-name-type (e.g., myorg-myplugin-panel). It must have at least 3 parts separated by hyphens.",
 							Name:     "invalid-id-format",

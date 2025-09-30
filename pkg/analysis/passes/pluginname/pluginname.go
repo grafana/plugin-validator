@@ -11,7 +11,7 @@ import (
 
 var (
 	humanFriendlyName = &analysis.Rule{Name: "human-friendly-name", Severity: analysis.Error}
-	invalidIDFormat   = &analysis.Rule{Name: "invalid-id-format", Severity: analysis.Error}
+	invalidIDFormat   = &analysis.Rule{Name: "invalid-id-format", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
