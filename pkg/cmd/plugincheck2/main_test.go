@@ -185,6 +185,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "no-ident-root-dir",
 						},
 					},
+					"pluginname": {
+						{
+							Severity: "error",
+							Title:    "plugin.json: plugin id should follow the format org-name-type",
+							Detail:   "The plugin ID should be in the format org-name-type (e.g., myorg-myplugin-panel). It must have at least 3 parts separated by hyphens.",
+							Name:     "invalid-id-format",
+						},
+					},
 					"license": {
 						{
 							Severity: "error",
