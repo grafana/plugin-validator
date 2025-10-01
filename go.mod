@@ -19,7 +19,7 @@ require (
 	github.com/tailscale/hujson v0.0.0-20250226034555-ec1d1c113d33
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.42.0
-	golang.org/x/mod v0.27.0
+	golang.org/x/mod v0.28.0
 	google.golang.org/api v0.248.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
