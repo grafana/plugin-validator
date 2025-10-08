@@ -149,6 +149,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			defer resp.Body.Close()
 
 			if resp.StatusCode != http.StatusOK {
+				if isGitHubURL(url.url) && strings.Contains(resp.Status, "429 Too Many Requests") {
+					return
+				}
 				brokenCh <- urlstatus{url: url.url, status: resp.Status, context: url.context}
 			}
 		}(u)
