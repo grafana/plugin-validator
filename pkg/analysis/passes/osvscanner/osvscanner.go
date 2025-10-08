@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -96,13 +97,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			scanningPerformed = true
 			data, err := doScanInternal(lockFile)
 			if err != nil {
-				if scanningFailure.ReportAll {
-					pass.ReportResult(
-						pass.AnalyzerName,
-						scanningFailure,
-						"osv-scanner failed to run",
-						fmt.Sprintf("osv-scanner failed to run: %s", err.Error()))
-				}
+				logme.DebugFln("osv-scanner returned error (vulnerabilities found): %s", err.Error())
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
@@ -121,8 +116,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				// provide a count for each type
 				criticalSeverityCount := 0
 				highSeverityCount := 0
-				moderateSeverityCount := 0
-				lowSeverityCount := 0
 
 				messagesReported := map[string]bool{}
 				// iterate over results
@@ -153,10 +146,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 								criticalSeverityCount++
 							case SeverityHigh:
 								highSeverityCount++
-							case SeverityModerate:
-								moderateSeverityCount++
-							case SeverityLow:
-								lowSeverityCount++
 							}
 						}
 					}
@@ -168,26 +157,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						"osv-scanner detected critical severity issues",
 						fmt.Sprintf("osv-scanner detected %d unique critical severity issues for lockfile: %s", criticalSeverityCount, lockFile))
 				}
-				if highSeverityCount > 0 && osvScannerHighSeverityDetected.ReportAll {
+				if highSeverityCount > 0 {
 					pass.ReportResult(
 						pass.AnalyzerName,
 						osvScannerHighSeverityDetected,
 						"osv-scanner detected high severity issues",
 						fmt.Sprintf("osv-scanner detected %d unique high severity issues for lockfile: %s", highSeverityCount, lockFile))
-				}
-				if moderateSeverityCount > 0 && osvScannerModerateSeverityDetected.ReportAll {
-					pass.ReportResult(
-						pass.AnalyzerName,
-						osvScannerModerateSeverityDetected,
-						"osv-scanner detected moderate severity issues",
-						fmt.Sprintf("osv-scanner detected %d unique moderate severity issues for lockfile: %s", moderateSeverityCount, lockFile))
-				}
-				if lowSeverityCount > 0 && osvScannerLowSeverityDetected.ReportAll {
-					pass.ReportResult(
-						pass.AnalyzerName,
-						osvScannerLowSeverityDetected,
-						"osv-scanner detected low severity issues",
-						fmt.Sprintf("osv-scanner detected %d unique low severity issues for lockfile: %s", lowSeverityCount, lockFile))
 				}
 			}
 		}
