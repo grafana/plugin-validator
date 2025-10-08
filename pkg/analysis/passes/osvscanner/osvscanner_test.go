@@ -111,12 +111,13 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 	// restore default
 	doScanInternal = actualFunction
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 2)
+	require.Len(t, interceptor.Diagnostics, 3)
 
-	// this results in two issues since non-criticals are filtered out
+	// this results in three issues: 1 individual critical, 1 critical summary, 1 high summary
 	messages := []string{
 		"osv-scanner detected a critical severity issue",
 		"osv-scanner detected critical severity issues",
+		"osv-scanner detected high severity issues",
 	}
 	titles := interceptor.GetTitles()
 	require.Subset(t, titles, messages)
