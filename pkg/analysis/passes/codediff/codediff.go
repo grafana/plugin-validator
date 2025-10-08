@@ -71,6 +71,10 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
+	if os.Getenv("SKIP_LLM_CODEDIFF") != "" {
+		return nil, nil
+	}
+
 	geminiKey := os.Getenv("GEMINI_API_KEY")
 	if geminiKey == "" {
 		return nil, nil
@@ -146,11 +150,17 @@ func run(pass *analysis.Pass) (any, error) {
 				detailParts = append(detailParts, response.Answer)
 
 				if response.CodeSnippet != "" {
-					detailParts = append(detailParts, fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", response.CodeSnippet))
+					detailParts = append(
+						detailParts,
+						fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", response.CodeSnippet),
+					)
 				}
 
 				if len(response.RelatedFiles) > 0 {
-					detailParts = append(detailParts, fmt.Sprintf("**Files:** %s", strings.Join(response.RelatedFiles, ", ")))
+					detailParts = append(
+						detailParts,
+						fmt.Sprintf("**Files:** %s", strings.Join(response.RelatedFiles, ", ")),
+					)
 				}
 
 				detail := strings.Join(detailParts, "\n\n")
