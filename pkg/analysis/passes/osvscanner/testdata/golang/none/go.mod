@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/fatih/color v1.13.0
 	github.com/go-enry/go-license-detector/v4 v4.3.0
-	github.com/go-git/go-git/v5 v5.5.2
+	github.com/go-git/go-git/v5 v5.13.0
 	github.com/magefile/mage v1.14.0
 	github.com/smartystreets/goconvey v1.7.2
 	github.com/sourcegraph/go-diff-patch v0.0.0-20220818153721-50706a0e22c3
