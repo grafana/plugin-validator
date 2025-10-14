@@ -3,7 +3,6 @@
   "extends": [
     "github>grafana/grafana-community-team//renovate/renovate"
   ],
-  "minimumReleaseAge": "14 days",
   "packageRules": [
     {
       "matchManagers": [
@@ -29,8 +28,5 @@
   ],
   "labels": [
     "dependencies"
-  ],
-  "prConcurrentLimit": 10,
-  "rebaseWhen": "behind-base-branch"
+  ]
 }
-
