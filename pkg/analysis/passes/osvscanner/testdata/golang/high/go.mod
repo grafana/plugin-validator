@@ -263,7 +263,7 @@ require (
 )
 
 require (
-	github.com/containerd/containerd v1.5.9 // indirect
+	github.com/containerd/containerd v1.6.38 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
