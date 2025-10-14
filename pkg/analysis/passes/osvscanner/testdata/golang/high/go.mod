@@ -21,7 +21,7 @@ require (
 	cuelang.org/go v0.4.0
 	github.com/Azure/azure-sdk-for-go v57.1.0+incompatible
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.19.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.10.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.6.0
 	github.com/Azure/go-autorest/autorest v0.11.20
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/semver v1.5.0
