@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "github>grafana/grafana-community-team//renovate/renovate"
+  ],
+  "minimumReleaseAge": "14 days",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions",
+      "description": "Group GitHub Actions updates"
+    },
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "groupName": "Go dependencies",
+      "description": "Group all Go module dependencies together"
+    },
+    {
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "groupName": "Dockerfile dependencies",
+      "description": "Group all Dockerfile dependencies together"
+    }
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "prConcurrentLimit": 10,
+  "rebaseWhen": "behind-base-branch"
+}
+
