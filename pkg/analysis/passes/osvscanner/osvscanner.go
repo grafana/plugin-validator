@@ -189,7 +189,7 @@ var doScanInternal = func(lockPath string) (models.VulnerabilityResults, error) 
 	} // your real code
 	vulnResult, err := osvscanner.DoScan(osvscanner.ScannerActions{
 		LockfilePaths: flagged,
-	}, nil)
+	})
 
 	// logme.DebugFln("%+v", vulnResult)
 	return vulnResult, err

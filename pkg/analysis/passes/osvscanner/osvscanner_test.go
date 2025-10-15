@@ -1,12 +1,13 @@
 package osvscanner
 
 import (
-	"io"
-	"os"
+	"bytes"
+	"log"
 	"path/filepath"
 	"testing"
 
 	"github.com/google/osv-scanner/v2/pkg/models"
+	"github.com/ossf/osv-schema/bindings/go/osvschema"
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -27,12 +28,12 @@ var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, e
 	pkg := models.PackageVulns{
 		Package: models.PackageInfo{Name: "fake-package"},
 		Groups:  []models.GroupInfo{group},
-		Vulnerabilities: []models.Vulnerability{
+		Vulnerabilities: []osvschema.Vulnerability{
 			{
 				ID: "CVE-2020-1234",
-				Severity: []models.Severity{
+				Severity: []osvschema.Severity{
 					{
-						Type:  models.SeverityType("critical"),
+						Type:  osvschema.SeverityType("critical"),
 						Score: "1",
 					},
 				},
@@ -42,9 +43,9 @@ var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, e
 			},
 			{
 				ID: "CVE-2021-1234",
-				Severity: []models.Severity{
+				Severity: []osvschema.Severity{
 					{
-						Type:  models.SeverityType("high"),
+						Type:  osvschema.SeverityType("high"),
 						Score: "1",
 					},
 				},
@@ -54,9 +55,9 @@ var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, e
 			},
 			{
 				ID: "CVE-2022-1234",
-				Severity: []models.Severity{
+				Severity: []osvschema.Severity{
 					{
-						Type:  models.SeverityType("moderate"),
+						Type:  osvschema.SeverityType("moderate"),
 						Score: "1",
 					},
 				},
@@ -66,9 +67,9 @@ var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, e
 			},
 			{
 				ID: "CVE-2023-1234",
-				Severity: []models.Severity{
+				Severity: []osvschema.Severity{
 					{
-						Type:  models.SeverityType("low"),
+						Type:  osvschema.SeverityType("low"),
 						Score: "1",
 					},
 				},
@@ -149,16 +150,16 @@ func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	// output goes to stderr, capture it and restore
-	saveStderr := os.Stderr
-	r, w, _ := os.Pipe()
-	os.Stderr = w
+	var buf bytes.Buffer
+	oldOutput := log.Writer()
+	log.SetOutput(&buf)
+	defer log.SetOutput(oldOutput)
+
 	_, err := Analyzer.Run(pass)
-	w.Close()
-	got, _ := io.ReadAll(r)
-	os.Stderr = saveStderr
 
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
-	require.Equal(t, "Failed to determine version of not a valid yarn.lock file while parsing a yarn.lock - please report this!\n", string(got))
+
+	logOutput := buf.String()
+	require.Contains(t, logOutput, "Failed to determine version of not a valid yarn.lock file while parsing a yarn.lock")
 }
