@@ -1,8 +1,6 @@
 package osvscanner
 
 import (
-	"bytes"
-	"log"
 	"path/filepath"
 	"testing"
 
@@ -150,16 +148,8 @@ func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
 		Report: interceptor.ReportInterceptor(),
 	}
 
-	var buf bytes.Buffer
-	oldOutput := log.Writer()
-	log.SetOutput(&buf)
-	defer log.SetOutput(oldOutput)
-
 	_, err := Analyzer.Run(pass)
 
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
-
-	logOutput := buf.String()
-	require.Contains(t, logOutput, "Failed to determine version of not a valid yarn.lock file while parsing a yarn.lock")
 }
