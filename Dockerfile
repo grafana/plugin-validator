@@ -1,4 +1,4 @@
-ARG GOLANGCI_LINT_VERSION=v2.3.0
+ARG GOLANGCI_LINT_VERSION=v2.5.0
 ARG GOSEC_VERSION=v2.22.8
 ARG SEMGREP_VERSION=1.84.1
 
@@ -22,9 +22,9 @@ RUN git clone https://github.com/magefile/mage --depth 1 && \
     curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION} && \
     python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
-RUN cd /go/src/github.com/grafana/plugin-validator && \
-    mage -v build:ci && \
-    ls -al bin
+RUN mage -v build:lint
+
+RUN mage -v build:ci
 
 FROM alpine:3.21
 

@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/google/osv-scanner/pkg/models"
+	"github.com/google/osv-scanner/v2/pkg/models"
 
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 	"github.com/grafana/plugin-validator/pkg/logme"
