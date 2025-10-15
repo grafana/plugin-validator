@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/google/osv-scanner/pkg/models"
+	"github.com/google/osv-scanner/v2/pkg/models"
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
-
 
 var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, error) {
 	group := models.GroupInfo{
@@ -122,7 +121,6 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 	titles := interceptor.GetTitles()
 	require.Subset(t, titles, messages)
 }
-
 
 func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor

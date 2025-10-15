@@ -10,7 +10,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/r3labs/diff"
+	"github.com/r3labs/diff/v3"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/grafana/plugin-validator/pkg/prettyprint"
