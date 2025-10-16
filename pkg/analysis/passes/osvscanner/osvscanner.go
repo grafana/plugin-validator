@@ -145,6 +145,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 									message)
 								criticalSeverityCount++
 							case SeverityHigh:
+								pass.ReportResult(
+									pass.AnalyzerName,
+									osvScannerHighSeverityDetected,
+									"osv-scanner detected a high severity issue",
+									message,
+								)
 								highSeverityCount++
 							}
 						}
