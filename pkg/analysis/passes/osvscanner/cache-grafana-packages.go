@@ -51,14 +51,8 @@ func CacheGrafanaPackages(
 
 			for _, version := range allVersions {
 				for _, dep := range version.Dependencies {
-					exists := false
-					for _, existingDep := range merged.Dependencies {
-						if existingDep.Package.Name == dep.Name {
-							exists = true
-							break
-						}
-					}
-					if !exists {
+					// do not add them twice
+					if !dependencyExists(dep.Name, merged.Dependencies) {
 						state := lockfile.DependencyState{
 							Package:   dep,
 							Processed: false,
@@ -108,15 +102,8 @@ func expandDependenciesRecursively(
 		}
 
 		for _, subDep := range depPackage.Dependencies {
-			exists := false
-			for k := range topLevel.Dependencies {
-				if topLevel.Dependencies[k].Package.Name == subDep.Name {
-					exists = true
-					break
-				}
-			}
-
-			if !exists {
+			// do not add them twice
+			if !dependencyExists(subDep.Name, topLevel.Dependencies) {
 				state := lockfile.DependencyState{
 					Package:   subDep,
 					Processed: false,
@@ -125,4 +112,13 @@ func expandDependenciesRecursively(
 			}
 		}
 	}
+}
+
+func dependencyExists(depName string, dependencies []lockfile.DependencyState) bool {
+	for _, dep := range dependencies {
+		if dep.Package.Name == depName {
+			return true
+		}
+	}
+	return false
 }
