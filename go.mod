@@ -2,7 +2,7 @@ module github.com/grafana/plugin-validator
 
 go 1.24.6
 
-toolchain go1.24.9
+toolchain go1.25.1
 
 require (
 	github.com/bmatcuk/doublestar/v4 v4.9.1
@@ -14,11 +14,12 @@ require (
 	github.com/hashicorp/go-version v1.7.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/magefile/mage v1.15.0
+	github.com/ossf/osv-schema/bindings/go v0.0.0-20250926044009-f6ae0b6bae32
 	github.com/r3labs/diff/v3 v3.0.2
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e
 	github.com/stretchr/testify v1.11.1
-	github.com/tailscale/hujson v0.0.0-20250226034555-ec1d1c113d33
+	github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.42.0
 	golang.org/x/mod v0.28.0
@@ -136,7 +137,6 @@ require (
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
 	github.com/opencontainers/selinux v1.12.0 // indirect
-	github.com/ossf/osv-schema/bindings/go v0.0.0-20250926044009-f6ae0b6bae32 // indirect
 	github.com/owenrumney/go-sarif/v3 v3.2.3 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pjbgf/sha1cd v0.4.0 // indirect
