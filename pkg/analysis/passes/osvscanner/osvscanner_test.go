@@ -2,6 +2,7 @@ package osvscanner
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/osv-scanner/v2/pkg/models"
@@ -109,12 +110,13 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 	// restore default
 	doScanInternal = actualFunction
 	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 3)
+	require.Len(t, interceptor.Diagnostics, 4)
 
-	// this results in three issues: 1 individual critical, 1 critical summary, 1 high summary
+	// this results in four issues: 1 individual critical, 1 critical summary, 1 individual high, 1 high summary
 	messages := []string{
 		"osv-scanner detected a critical severity issue",
 		"osv-scanner detected critical severity issues",
+		"osv-scanner detected a high severity issue",
 		"osv-scanner detected high severity issues",
 	}
 	titles := interceptor.GetTitles()
@@ -152,4 +154,32 @@ func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestOSVScannerMultiVersionNPM(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "multi-version-npm"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "multi-version-npm"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	titles := interceptor.GetTitles()
+	require.Contains(t, titles, "osv-scanner detected high severity issues")
+
+	details := interceptor.GetDetails()
+	hasBodyParserVulnerability := false
+	for _, detail := range details {
+		if strings.Contains(detail, "body-parser") && strings.Contains(detail, "SEVERITY: HIGH") {
+			hasBodyParserVulnerability = true
+			break
+		}
+	}
+	require.True(t, hasBodyParserVulnerability, "body-parser high severity vulnerability should be reported")
 }
