@@ -97,10 +97,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			scanningPerformed = true
 			data, err := doScanInternal(lockFile)
 			if err != nil {
-				logme.DebugFln(
-					"osv-scanner returned error (vulnerabilities found): %s",
-					err.Error(),
-				)
+				logme.DebugFln("osv-scanner returned error (vulnerabilities found): %s", err.Error())
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
