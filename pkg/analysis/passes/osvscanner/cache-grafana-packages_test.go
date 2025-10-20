@@ -122,8 +122,8 @@ func TestNonGrafanaDependencyVulnerabilitiesAreNotFiltered(t *testing.T) {
 	cachedPackages, err := CacheGrafanaPackages(packages)
 	require.NoError(t, err)
 
-	expressInCache, _ := IncludedByGrafanaPackage("express", cachedPackages)
-	require.False(t, expressInCache, "express should NOT be included by any Grafana package")
+	bodyParserInCache, _ := IncludedByGrafanaPackage("body-parser", cachedPackages)
+	require.False(t, bodyParserInCache, "body-parser should NOT be included by any Grafana package")
 
 	dompurifyInCache, includedByDompurify := IncludedByGrafanaPackage("dompurify", cachedPackages)
 	require.True(t, dompurifyInCache, "dompurify should be included by a Grafana package")
