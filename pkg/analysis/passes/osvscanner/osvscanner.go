@@ -97,7 +97,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			scanningPerformed = true
 			data, err := doScanInternal(lockFile)
 			if err != nil {
-				logme.DebugFln("osv-scanner returned error (vulnerabilities found): %s", err.Error())
+				logme.DebugFln(
+					"osv-scanner returned error (vulnerabilities found): %s",
+					err.Error(),
+				)
 			}
 
 			filteredResults := FilterOSVResults(data, lockFile)
@@ -169,7 +172,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 						pass.AnalyzerName,
 						osvScannerHighSeverityDetected,
 						"osv-scanner detected high severity issues",
-						fmt.Sprintf("osv-scanner detected %d blah unique high severity issues for lockfile: %s", highSeverityCount, lockFile))
+						fmt.Sprintf("osv-scanner detected %d unique high severity issues for lockfile: %s", highSeverityCount, lockFile))
 				}
 			}
 		}
