@@ -6,16 +6,10 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner/lockfile"
 )
 
-func packageExists(name string, items []lockfile.PackageDetails) bool {
-	for _, aPackage := range items {
-		if aPackage.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
-func IncludedByGrafanaPackage(packageName string, cache []lockfile.PackageFlattened) (bool, string) {
+func IncludedByGrafanaPackage(
+	packageName string,
+	cache []lockfile.PackageFlattened,
+) (bool, string) {
 	for _, item := range cache {
 		for _, dependency := range item.Dependencies {
 			if dependency.Package.Name == packageName {
@@ -26,24 +20,105 @@ func IncludedByGrafanaPackage(packageName string, cache []lockfile.PackageFlatte
 	return false, ""
 }
 
-func CacheGrafanaPackages(allPackages []lockfile.PackageDetails) ([]lockfile.PackageFlattened, error) {
+func CacheGrafanaPackages(
+	allPackages []lockfile.PackageDetails,
+) ([]lockfile.PackageFlattened, error) {
 	cache := make([]lockfile.PackageFlattened, 0)
-	for grafanaPackage := range GrafanaPackages {
-		// check if the package is in the list parsed
-		if packageExists(grafanaPackage, allPackages) {
-			// get dependencies of grafanaPackage
-			expanded, err := lockfile.ExpandPackage(grafanaPackage, allPackages)
-			if err != nil {
-				// failed to parse
-				return nil, err
+	processedNames := make(map[string]bool)
+
+	for _, pkg := range allPackages {
+		if GrafanaPackages[pkg.Name] && !processedNames[pkg.Name] {
+			processedNames[pkg.Name] = true
+
+			allVersions := make([]lockfile.PackageDetails, 0)
+			for _, p := range allPackages {
+				if p.Name == pkg.Name {
+					allVersions = append(allVersions, p)
+				}
 			}
-			cache = append(cache, *expanded)
+
+			// should never happen
+			if len(allVersions) == 0 {
+				continue
+			}
+
+			// create a custom flattened package
+			// with all dependencies for all versions of this package
+			merged := lockfile.PackageFlattened{
+				Name:    pkg.Name,
+				Version: allVersions[0].Version,
+			}
+
+			for _, version := range allVersions {
+				for _, dep := range version.Dependencies {
+					// do not add them twice
+					if !dependencyExists(dep.Name, merged.Dependencies) {
+						state := lockfile.DependencyState{
+							Package:   dep,
+							Processed: false,
+						}
+						merged.Dependencies = append(merged.Dependencies, state)
+					}
+				}
+			}
+
+			// find all transitive dependencies of this package
+			// aka deps of deps of deps of deps to the infinite
+			expandDependenciesRecursively(&merged, allPackages)
+
+			cache = append(cache, merged)
 		}
 	}
-	// sort cache
+
 	sort.SliceStable(cache, func(i, j int) bool {
 		return cache[i].Name < cache[j].Name
 	})
 
 	return cache, nil
+}
+
+func expandDependenciesRecursively(
+	topLevel *lockfile.PackageFlattened,
+	allPackages []lockfile.PackageDetails,
+) {
+	for i := 0; i < len(topLevel.Dependencies); i++ {
+		if topLevel.Dependencies[i].Processed {
+			continue
+		}
+
+		topLevel.Dependencies[i].Processed = true
+		depName := topLevel.Dependencies[i].Package.Name
+
+		var depPackage *lockfile.PackageDetails
+		for j := range allPackages {
+			if allPackages[j].Name == depName {
+				depPackage = &allPackages[j]
+				break
+			}
+		}
+
+		if depPackage == nil {
+			continue
+		}
+
+		for _, subDep := range depPackage.Dependencies {
+			// do not add them twice
+			if !dependencyExists(subDep.Name, topLevel.Dependencies) {
+				state := lockfile.DependencyState{
+					Package:   subDep,
+					Processed: false,
+				}
+				topLevel.Dependencies = append(topLevel.Dependencies, state)
+			}
+		}
+	}
+}
+
+func dependencyExists(depName string, dependencies []lockfile.DependencyState) bool {
+	for _, dep := range dependencies {
+		if dep.Package.Name == depName {
+			return true
+		}
+	}
+	return false
 }
