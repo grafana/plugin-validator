@@ -29,7 +29,7 @@ func TestAccessEnvVariables(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "access-env"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -43,6 +43,14 @@ func TestAccessEnvVariables(t *testing.T) {
 		"It is not permitted to access environment variables from plugins.",
 	}
 	require.ElementsMatch(t, titles, interceptor.GetTitles())
+
+	// Verify specific rule IDs are used
+	ruleNames := []string{}
+	for _, d := range interceptor.Diagnostics {
+		ruleNames = append(ruleNames, d.Name)
+	}
+	require.Contains(t, ruleNames, "code-rules-access-forbidden-os-environment")
+	require.Contains(t, ruleNames, "code-rules-access-os-environment")
 }
 
 func TestAccessAllowedEnvVariables(t *testing.T) {
@@ -53,7 +61,7 @@ func TestAccessAllowedEnvVariables(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "access-env-allowed"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -68,6 +76,14 @@ func TestAccessAllowedEnvVariables(t *testing.T) {
 		"It is not permitted to access environment variables from plugins.",
 	}
 	require.ElementsMatch(t, titles, interceptor.GetTitles())
+
+	// Verify specific rule IDs are used
+	ruleNames := []string{}
+	for _, d := range interceptor.Diagnostics {
+		ruleNames = append(ruleNames, d.Name)
+	}
+	require.Contains(t, ruleNames, "code-rules-access-forbidden-os-environment")
+	require.Contains(t, ruleNames, "code-rules-access-os-environment")
 }
 
 func TestAccessFS(t *testing.T) {
@@ -78,7 +94,7 @@ func TestAccessFS(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "access-fs"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -93,6 +109,15 @@ func TestAccessFS(t *testing.T) {
 		"It is not permitted to access the file system.",
 	}
 	require.ElementsMatch(t, titles, interceptor.GetTitles())
+
+	// Verify specific rule IDs are used
+	ruleNames := []string{}
+	for _, d := range interceptor.Diagnostics {
+		ruleNames = append(ruleNames, d.Name)
+	}
+	require.Contains(t, ruleNames, "code-rules-access-file-system-with-fs")
+	require.Contains(t, ruleNames, "code-rules-access-file-system-with-filepath")
+	require.Contains(t, ruleNames, "code-rules-access-file-system-with-os")
 }
 
 func TestUseSyscall(t *testing.T) {
@@ -103,7 +128,7 @@ func TestUseSyscall(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "use-syscall"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -117,6 +142,11 @@ func TestUseSyscall(t *testing.T) {
 		"It is not permitted to use the syscall module. Using syscall.Getcwd is not permitted",
 		interceptor.Diagnostics[0].Title,
 	)
+	require.Equal(
+		t,
+		"code-rules-access-syscall",
+		interceptor.Diagnostics[0].Name,
+	)
 }
 
 func TestJSConsoleLog(t *testing.T) {
@@ -127,7 +157,7 @@ func TestJSConsoleLog(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "console-log"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -151,6 +181,11 @@ func TestJSConsoleLog(t *testing.T) {
 		interceptor.Diagnostics[0].Severity,
 		analysis.Warning,
 	)
+	require.Equal(
+		t,
+		"code-rules-console-logging",
+		interceptor.Diagnostics[0].Name,
+	)
 }
 
 func TestTopnavToggle(t *testing.T) {
@@ -161,7 +196,7 @@ func TestTopnavToggle(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "topnav-toggle"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -184,6 +219,11 @@ func TestTopnavToggle(t *testing.T) {
 		t,
 		interceptor.Diagnostics[0].Severity,
 		analysis.Error,
+	)
+	require.Equal(
+		t,
+		"code-rules-topnav-toggle",
+		interceptor.Diagnostics[0].Name,
 	)
 }
 
@@ -230,6 +270,11 @@ func TestWindowAccessWindowObjects(t *testing.T) {
 	for index, tc := range expectedDiagnostics {
 		require.Equal(t, tc.title, interceptor.Diagnostics[index].Title)
 		require.Equal(t, tc.detail, interceptor.Diagnostics[index].Detail)
+		require.Equal(
+			t,
+			"code-rules-window-properties",
+			interceptor.Diagnostics[index].Name,
+		)
 	}
 }
 
@@ -241,7 +286,7 @@ func TestOldReactInternals(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
+		ResultOf: map[*analysis.Analyzer]any{
 			sourcecode.Analyzer: filepath.Join("testdata", "old-react-internals"),
 		},
 		Report: interceptor.ReportInterceptor(),
@@ -264,5 +309,10 @@ func TestOldReactInternals(t *testing.T) {
 		t,
 		interceptor.Diagnostics[0].Severity,
 		analysis.Warning,
+	)
+	require.Equal(
+		t,
+		"code-rules-access-old-react-internals",
+		interceptor.Diagnostics[0].Name,
 	)
 }

@@ -108,45 +108,56 @@ func run(pass *analysis.Pass) (any, error) {
 
 	// report semgrep results
 	for _, result := range semgrepResults.Results {
+		var rule *analysis.Rule
 
-		severity := strings.ToLower(result.Extra.Severity)
-		switch severity {
-		case "error":
-			pass.ReportResult(
-				pass.AnalyzerName,
-				codeRulesViolationError,
-				result.Extra.Message,
-				fmt.Sprintf(
-					"Code rule violation found in %s at line %d",
-					result.Path,
-					result.Start.Line,
-				),
-			)
-			violations++
-		case "warning":
-			pass.ReportResult(
-				pass.AnalyzerName,
-				codeRulesViolationWarning,
-				result.Extra.Message,
-				fmt.Sprintf(
-					"Code rule violation found in %s at line %d",
-					result.Path,
-					result.Start.Line,
-				),
-			)
-			violations++
-		default:
-			pass.ReportResult(
-				pass.AnalyzerName,
-				codeRulesViolationWarning,
-				result.Extra.Message,
-				fmt.Sprintf(
-					"Code rule violation found in %s at line %d",
-					result.Path,
-					result.Start.Line,
-				),
-			)
+		// Use CheckID to create specific rule, fallback to generic rules if missing
+		if result.CheckID != "" {
+			// Strip any namespace prefix from CheckID (e.g., "tmp.detect-console-logs" -> "detect-console-logs")
+			// The prefix comes from semgrep's internal namespacing based on the rules file path/name
+			checkID := result.CheckID
+			if idx := strings.LastIndex(checkID, "."); idx != -1 {
+				checkID = checkID[idx+1:]
+			}
+			ruleName := fmt.Sprintf("code-rules-%s", checkID)
+			severity := strings.ToLower(result.Extra.Severity)
+			var ruleSeverity analysis.Severity
+			switch severity {
+			case "error":
+				ruleSeverity = analysis.Error
+			case "warning":
+				ruleSeverity = analysis.Warning
+			default:
+				ruleSeverity = analysis.Warning
+			}
+			rule = &analysis.Rule{
+				Name:     ruleName,
+				Severity: ruleSeverity,
+			}
+		} else {
+			// Fallback to generic rules if CheckID is missing
+			// this shouldn't happen
+			severity := strings.ToLower(result.Extra.Severity)
+			switch severity {
+			case "error":
+				rule = codeRulesViolationError
+			case "warning":
+				rule = codeRulesViolationWarning
+			default:
+				rule = codeRulesViolationWarning
+			}
 		}
+
+		pass.ReportResult(
+			pass.AnalyzerName,
+			rule,
+			result.Extra.Message,
+			fmt.Sprintf(
+				"Code rule violation found in %s at line %d",
+				result.Path,
+				result.Start.Line,
+			),
+		)
+		violations++
 	}
 
 	if violations == 0 && noCodeRulesViolations.ReportAll {
