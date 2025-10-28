@@ -194,3 +194,25 @@ rules:
     message: "Detected usage of React internal API '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED'. This API is internal to React and should not be used directly as it may break in future React versions."
     languages: [javascript, typescript]
     severity: WARNING
+
+  - id: no-direct-css-imports
+    pattern-either:
+      - pattern-regex: import\s+['"].*\.(css|scss|less)['"]
+      - pattern: import { Global } from '@emotion/react'
+      - pattern: <Global ... />
+      - pattern: <Global />
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+        - "src/**/*.js"
+        - "src/**/*.jsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "Direct CSS imports and Emotion UI Global components are not permitted. Use CSS-in-JS solutions like styled-components or emotion's css function instead."
+    languages: [javascript, typescript]
+    severity: ERROR
