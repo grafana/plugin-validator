@@ -23,3 +23,7 @@ var GrafanaPackages = map[string]bool{
 	"@grafana/toolkit": true,
 	"@grafana/ui":      true,
 }
+
+var WhitelistedPackages = map[string]bool{
+	"playwright@1.55.0": true,
+}

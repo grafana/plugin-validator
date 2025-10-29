@@ -49,6 +49,15 @@ func FilterOSVResults(source models.VulnerabilityResults, lockFile string) model
 	// iterate over the vulnerabilities and match against our list
 	for _, aPackage := range source.Results[0].Packages {
 		packageName := aPackage.Package.Name
+		packageVersion := aPackage.Package.Version
+		packageWithVersion := packageName + "@" + packageVersion
+
+		// Check if package is whitelisted
+		if WhitelistedPackages[packageWithVersion] {
+			logme.DebugFln("excluded by whitelist: %s", packageWithVersion)
+			continue
+		}
+
 		cacheHit, includedBy := IncludedByGrafanaPackage(packageName, cachedPackages)
 		if !cacheHit {
 			//logme.DebugFln("not filtered: %s", packageName)
