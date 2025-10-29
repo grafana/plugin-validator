@@ -181,5 +181,70 @@ func TestOSVScannerMultiVersionNPM(t *testing.T) {
 			break
 		}
 	}
-	require.True(t, hasBodyParserVulnerability, "body-parser high severity vulnerability should be reported")
+	require.True(
+		t,
+		hasBodyParserVulnerability,
+		"body-parser high severity vulnerability should be reported",
+	)
+}
+
+// TestOSVScannerWhitelistedPackage verifies that whitelisted packages are filtered from results
+func TestOSVScannerWhitelistedPackage(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "whitelist-playwright"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "whitelist-playwright"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	actualFunction := doScanInternal
+	doScanInternal = func(lockPath string) (models.VulnerabilityResults, error) {
+		group := models.GroupInfo{
+			IDs: []string{
+				"CVE-2024-PLAYWRIGHT-001",
+			},
+		}
+		pkg := models.PackageVulns{
+			Package: models.PackageInfo{Name: "playwright", Version: "1.55.0"},
+			Groups:  []models.GroupInfo{group},
+			Vulnerabilities: []osvschema.Vulnerability{
+				{
+					ID: "CVE-2024-PLAYWRIGHT-001",
+					Severity: []osvschema.Severity{
+						{
+							Type:  osvschema.SeverityType("high"),
+							Score: "7.5",
+						},
+					},
+					DatabaseSpecific: map[string]interface{}{
+						"severity": SeverityHigh,
+					},
+				},
+			},
+		}
+		source := models.PackageSource{
+			Source: models.SourceInfo{
+				Path: filepath.Join(
+					"testdata",
+					"node",
+					"whitelist-playwright",
+					"package-lock.json",
+				),
+				Type: "lockfile",
+			},
+			Packages: []models.PackageVulns{pkg},
+		}
+		vulns := models.VulnerabilityResults{Results: []models.PackageSource{source}}
+		return vulns, nil
+	}
+
+	_, err := Analyzer.Run(pass)
+	doScanInternal = actualFunction
+	require.NoError(t, err)
+
+	// playwright@1.55.0 is whitelisted, so no diagnostics should be reported
+	require.Len(t, interceptor.Diagnostics, 0, "playwright@1.55.0 should be filtered by whitelist")
 }

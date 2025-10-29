@@ -23,3 +23,8 @@ var GrafanaPackages = map[string]bool{
 	"@grafana/toolkit": true,
 	"@grafana/ui":      true,
 }
+
+var WhitelistedPackages = map[string]bool{
+	// package is a peer dependency of @grafana/plugins-e2e
+	"playwright@1.55.0": true,
+}
