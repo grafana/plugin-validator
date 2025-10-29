@@ -181,7 +181,11 @@ func TestOSVScannerMultiVersionNPM(t *testing.T) {
 			break
 		}
 	}
-	require.True(t, hasBodyParserVulnerability, "body-parser high severity vulnerability should be reported")
+	require.True(
+		t,
+		hasBodyParserVulnerability,
+		"body-parser high severity vulnerability should be reported",
+	)
 }
 
 // TestOSVScannerWhitelistedPackage verifies that whitelisted packages are filtered from results
@@ -223,7 +227,12 @@ func TestOSVScannerWhitelistedPackage(t *testing.T) {
 		}
 		source := models.PackageSource{
 			Source: models.SourceInfo{
-				Path: filepath.Join("testdata", "node", "whitelist-playwright", "package-lock.json"),
+				Path: filepath.Join(
+					"testdata",
+					"node",
+					"whitelist-playwright",
+					"package-lock.json",
+				),
 				Type: "lockfile",
 			},
 			Packages: []models.PackageVulns{pkg},
