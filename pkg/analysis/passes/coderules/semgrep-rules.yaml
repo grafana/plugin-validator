@@ -10,7 +10,7 @@ rules:
     message: It is not permitted to access environment variables from plugins.
     languages: [go]
     severity: ERROR
-  - id: access-only-allowed-os-environment
+  - id: access-forbidden-os-environment
     patterns:
       - pattern-either:
           - pattern: os.Getenv("$ENV")
@@ -111,7 +111,7 @@ rules:
     languages: [go]
     severity: ERROR
 
-  - id: detect-console-logs
+  - id: console-logging
     pattern-either:
       - pattern: console.log(...)
       - pattern: console.info(...)
@@ -142,7 +142,7 @@ rules:
     languages: [javascript, typescript]
     severity: WARNING
 
-  - id: detect-topnav-toggle
+  - id: topnav-toggle
     pattern-either:
       - pattern: featureToggles.topnav
     paths:
@@ -159,7 +159,7 @@ rules:
     languages: [typescript]
     severity: ERROR
 
-  - id: detect-invalid-window-properties
+  - id: window-properties
     pattern-either:
       - pattern-regex: window\.(grafanaBootData)
       - pattern-regex: window\.(grafanaRuntime)
@@ -178,7 +178,7 @@ rules:
     languages: [typescript]
     severity: ERROR
 
-  - id: detect-old-react-internals
+  - id: access-old-react-internals
     pattern-either:
       - pattern-regex: __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED
     paths:
