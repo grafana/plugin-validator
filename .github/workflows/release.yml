@@ -84,7 +84,7 @@ jobs:
           echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@ae92934a14a48b94494dbc06d74a81d47fe08a40
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@fb5afafb017999e08d103b0f79fc97d70b411058
         with:
           repository: grafana/plugin-validator-cli
           context: .
