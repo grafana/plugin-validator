@@ -170,6 +170,11 @@ func main() {
 
 	var outputMarshaler output.Marshaler
 
+	if cfg.Global.JSONOutput && cfg.Global.GHAOutput {
+		logme.Errorln("can't have more than one output type set to true")
+		os.Exit(1)
+	}
+
 	if *outputToFile != "" || cfg.Global.JSONOutput {
 		// JSON output for either JSON CLI or JSON file
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
@@ -184,11 +189,13 @@ func main() {
 			diags["archive"] = append(diags["archive"], archiveDiag)
 		}
 		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
+	} else if cfg.Global.GHAOutput {
+		// GHA output
+		outputMarshaler = output.MarshalGHA
 	} else {
 		// CLI output
 		outputMarshaler = output.MarshalCLI
 	}
-	// TODO: gha output
 
 	// Marshal output with the correct marshaler, depending on the config
 	ob, err := outputMarshaler.Marshal(diags)

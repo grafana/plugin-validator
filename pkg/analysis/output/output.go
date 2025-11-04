@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/fatih/color"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 )
 
@@ -84,6 +85,55 @@ var MarshalCLI = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 				buf.WriteString(color.BlueString("detail: "))
 				buf.WriteString(d.Detail)
 			}
+			buf.WriteRune('\n')
+		}
+	}
+	return buf.Bytes(), nil
+})
+
+var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
+	var buf bytes.Buffer
+	for name := range data {
+		for _, d := range data[name] {
+			switch d.Severity {
+			case analysis.Error:
+				buf.WriteString("::error ")
+			case analysis.Warning, analysis.SuspectedProblem:
+				buf.WriteString("::warning ")
+			case analysis.Recommendation:
+				buf.WriteString("::notice ")
+			case analysis.OK:
+				// Note: this will NOT produce a GHA annotation, "::ok" is not a supported value.
+				// It will just be printed to stdout, but we use the same format as GHA for clearer output.
+				buf.WriteString("::ok ")
+			}
+
+			// Message is mandatory in gha
+			var message string
+
+			// Title is optional in gha.
+			// Default gha title to the diagnostic's title
+			title := d.Title
+			if d.Context != "" {
+				// Add context to the title, if we have it
+				title = d.Context + ": " + title
+			}
+
+			if d.Detail != "" {
+				// If we have details, use them as the message
+				message = d.Detail
+			} else {
+				// If we don't have details, use what we previously had as title as message,
+				// and clear the title (it's optional).
+				message = title
+				title = ""
+			}
+			if title != "" {
+				buf.WriteString("title=")
+				buf.WriteString(title)
+			}
+			buf.WriteString("::")
+			buf.WriteString(message)
 			buf.WriteRune('\n')
 		}
 	}

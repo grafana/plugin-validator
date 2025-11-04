@@ -17,6 +17,7 @@ type GlobalConfig struct {
 	Enabled    bool              `yaml:"enabled"`
 	Severity   analysis.Severity `yaml:"severity"`
 	JSONOutput bool              `yaml:"jsonOutput"`
+	GHAOutput  bool              `yaml:"ghaOutput"`
 	ReportAll  bool              `yaml:"reportAll"`
 }
 
