@@ -39,7 +39,7 @@ func Check(
 	params analysis.CheckParams,
 	cfg Config,
 	severityOverwrite analysis.Severity,
-) (map[string][]analysis.Diagnostic, error) {
+) (analysis.Diagnostics, error) {
 	pluginId, err := utils.GetPluginId(params.ArchiveDir)
 	if err != nil {
 		// we only need the pluginId to check for exceptions
@@ -48,7 +48,7 @@ func Check(
 	}
 
 	initAnalyzers(analyzers, &cfg, pluginId, severityOverwrite)
-	diagnostics := make(map[string][]analysis.Diagnostic)
+	diagnostics := make(analysis.Diagnostics)
 
 	pass := &analysis.Pass{
 		RootDir:     params.ArchiveDir,

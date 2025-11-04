@@ -67,6 +67,8 @@ type Diagnostic struct {
 	Name     string
 }
 
+type Diagnostics map[string][]Diagnostic
+
 type Rule struct {
 	Name      string
 	Disabled  bool

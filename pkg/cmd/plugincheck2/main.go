@@ -4,15 +4,15 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/fatih/color"
+	"github.com/grafana/plugin-validator/pkg/analysis/output"
 	"gopkg.in/yaml.v3"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -22,12 +22,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 )
-
-type FormattedOutput struct {
-	ID          string                           `json:"id"`
-	Version     string                           `json:"version"`
-	Diagnostics map[string][]analysis.Diagnostic `json:"plugin-validator"`
-}
 
 func main() {
 	var (
@@ -174,11 +168,10 @@ func main() {
 		logme.DebugFln("check failed: %v", err)
 	}
 
-	var exitCode int
-	var jsonOutput = ""
+	var outputMarshaler output.Marshaler
 
-	// calculate json for either json cli output or file json output
 	if *outputToFile != "" || cfg.Global.JSONOutput {
+		// JSON output for either JSON CLI or JSON file
 		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 		if err != nil {
 			pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
@@ -190,78 +183,37 @@ func main() {
 			}
 			diags["archive"] = append(diags["archive"], archiveDiag)
 		}
-		allData := FormattedOutput{
-			ID:          pluginID,
-			Version:     pluginVersion,
-			Diagnostics: diags,
-		}
-		output, err := json.MarshalIndent(allData, "", "  ")
-		if err != nil {
-			logme.Errorln(fmt.Errorf("couldn't marshal output to json: %w", err))
-		}
-		jsonOutput = string(output)
+		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
+	} else {
+		// CLI output
+		outputMarshaler = output.MarshalCLI
 	}
+	// TODO: gha output
 
+	// Marshal output with the correct marshaler, depending on the config
+	ob, err := outputMarshaler.Marshal(diags)
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
+		os.Exit(1)
+	}
 	if *outputToFile != "" {
-		if err := os.WriteFile(*outputToFile, []byte(jsonOutput), 0644); err != nil {
+		if err := os.WriteFile(*outputToFile, ob, 0644); err != nil {
 			logme.Errorln(fmt.Errorf("couldn't write output to file: %w", err))
 		}
 	}
 
-	// JSON output
+	// Write to stdout or stderr, depending on config
+	var outWriter io.Writer
 	if cfg.Global.JSONOutput {
-		for name := range diags {
-			for _, d := range diags[name] {
-				switch d.Severity {
-				case analysis.Error:
-					exitCode = 1
-				case analysis.Warning:
-					if *strictFlag {
-						exitCode = 1
-					}
-				}
-			}
-		}
-		fmt.Println(jsonOutput)
-		os.Exit(exitCode)
+		outWriter = os.Stdout
+	} else {
+		outWriter = os.Stderr
 	}
 
-	// regular CLI output
-	for name := range diags {
-		for _, d := range diags[name] {
-			var buf bytes.Buffer
-			switch d.Severity {
-			case analysis.Error:
-				buf.WriteString(color.RedString("error: "))
-				exitCode = 1
-			case analysis.Warning:
-				buf.WriteString(color.YellowString("warning: "))
-				if *strictFlag {
-					exitCode = 1
-				}
-			case analysis.Recommendation:
-				buf.WriteString(color.CyanString("recommendation: "))
-			case analysis.OK:
-				buf.WriteString(color.GreenString("ok: "))
-			case analysis.SuspectedProblem:
-				buf.WriteString(color.YellowString("suspected: "))
-			}
-
-			if d.Context != "" {
-				buf.WriteString(d.Context + ": ")
-			}
-
-			buf.WriteString(d.Title)
-			if len(d.Detail) > 0 {
-				buf.WriteString("\n" + color.BlueString("detail: "))
-				buf.WriteString(d.Detail)
-			}
-			fmt.Fprintln(os.Stderr, buf.String())
-		}
-	}
-
-	logme.DebugFln("exit code: %d", exitCode)
-	os.Exit(exitCode)
+	// Write the output and exit.
+	// Nothing else should be printed from here on, or the output may become invalid.
+	_, _ = fmt.Fprintln(outWriter, string(ob))
+	os.Exit(output.ExitCode(*strictFlag, diags))
 }
 
 func readConfigFile(path string) (runner.Config, error) {
