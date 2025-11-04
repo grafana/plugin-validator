@@ -145,9 +145,9 @@ var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 
 // ExitCode returns the exit code of the CLI program.
 // It returns:
-//   - 1 if there's an error;
-//   - 1 if there's a warning AND strict is true;
-//   - 0 in all other cases.
+// 1 if there's an error;
+// 1 if there's a warning AND strict is true;
+// 0 in all other cases.
 func ExitCode(strict bool, diags analysis.Diagnostics) int {
 	for _, ds := range diags {
 		for _, d := range ds {
