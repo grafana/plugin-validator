@@ -170,43 +170,38 @@ func main() {
 
 	var outputMarshaler output.Marshaler
 
-	if cfg.Global.JSONOutput && cfg.Global.GHAOutput {
-		logme.Errorln("can't have more than one output type set to true")
-		os.Exit(1)
-	}
-
-	if *outputToFile != "" || cfg.Global.JSONOutput {
-		// JSON output for either JSON CLI or JSON file
-		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
-		if err != nil {
-			pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
-			archiveDiag := analysis.Diagnostic{
-				Name:     "zip-invalid",
-				Severity: analysis.Error,
-				Title:    "Plugin archive is improperly structured",
-				Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
-			}
-			diags["archive"] = append(diags["archive"], archiveDiag)
-		}
-		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
-	} else if cfg.Global.GHAOutput {
-		// GHA output
-		outputMarshaler = output.MarshalGHA
-	} else {
-		// CLI output
-		outputMarshaler = output.MarshalCLI
-	}
-
-	// Marshal output with the correct marshaler, depending on the config
-	ob, err := outputMarshaler.Marshal(diags)
+	// Plugin ID and version (needed by JSON output)
+	pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
 	if err != nil {
-		logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
-		os.Exit(1)
+		pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
+		archiveDiag := analysis.Diagnostic{
+			Name:     "zip-invalid",
+			Severity: analysis.Error,
+			Title:    "Plugin archive is improperly structured",
+			Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+		}
+		diags["archive"] = append(diags["archive"], archiveDiag)
 	}
+
+	// Additional JSON output to file
 	if *outputToFile != "" {
+		ob, err := output.NewJSONMarshaler(pluginID, pluginVersion).Marshal(diags)
+		if err != nil {
+			logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
+			os.Exit(1)
+		}
 		if err := os.WriteFile(*outputToFile, ob, 0644); err != nil {
 			logme.Errorln(fmt.Errorf("couldn't write output to file: %w", err))
 		}
+	}
+
+	// Stdout/Stderr output.
+
+	// Determine the correct marshaler depending on the config
+	if cfg.Global.JSONOutput {
+		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
+	} else {
+		outputMarshaler = output.MarshalCLI
 	}
 
 	// Write to stdout or stderr, depending on config
@@ -217,8 +212,13 @@ func main() {
 		outWriter = os.Stderr
 	}
 
-	// Write the output and exit.
+	// Write output with the correct marshaler, depending on the config, then exit.
 	// Nothing else should be printed from here on, or the output may become invalid.
+	ob, err := outputMarshaler.Marshal(diags)
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
+		os.Exit(1)
+	}
 	_, _ = fmt.Fprintln(outWriter, string(ob))
 	os.Exit(output.ExitCode(*strictFlag, diags))
 }
