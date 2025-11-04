@@ -91,6 +91,9 @@ var MarshalCLI = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 	return buf.Bytes(), nil
 })
 
+// MarshalGHA is a Marshaler that returns the diagnostics data in GitHub Actions workflow commands format.
+// See GitHub Actions docs for more information:
+// https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-a-notice-message
 var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 	var buf bytes.Buffer
 	for name := range data {
