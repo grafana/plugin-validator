@@ -7,7 +7,7 @@ on: # zizmor: ignore[cache-poisoning]
 
 jobs:
   release-to-github:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-arm64
     permissions:
       contents: read
       id-token: write
@@ -48,7 +48,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
   release-to-npm:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-arm64-small
     needs: release-to-github
     permissions:
       contents: read
@@ -66,7 +66,7 @@ jobs:
       - run: npm publish
 
   release-to-dockerhub:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-x64
     # this job doesn't really need the github release, but it is a fast
     # way to prevent it from running if the release is bad
     needs: release-to-github
