@@ -197,9 +197,17 @@ func main() {
 
 	// Stdout/Stderr output.
 
+	// Check that the config is valid
+	if cfg.Global.JSONOutput && cfg.Global.GHAOutput {
+		logme.Errorln("can't have more than one output type set to true")
+		os.Exit(1)
+	}
+
 	// Determine the correct marshaler depending on the config
 	if cfg.Global.JSONOutput {
 		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
+	} else if cfg.Global.GHAOutput {
+		outputMarshaler = output.MarshalGHA
 	} else {
 		outputMarshaler = output.MarshalCLI
 	}

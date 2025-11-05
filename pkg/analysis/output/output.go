@@ -3,6 +3,7 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/fatih/color"
 
@@ -90,6 +91,74 @@ var MarshalCLI = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 	}
 	return buf.Bytes(), nil
 })
+
+// MarshalGHA is a Marshaler that returns the diagnostics data in GitHub Actions workflow commands format.
+// See GitHub Actions docs for more information:
+// https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-a-notice-message
+var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
+	var buf bytes.Buffer
+	for name := range data {
+		for _, d := range data[name] {
+			var readableSeverity string
+			switch d.Severity {
+			case analysis.Error:
+				buf.WriteString("::error ")
+				readableSeverity = "Error"
+			case analysis.Warning, analysis.SuspectedProblem:
+				buf.WriteString("::warning ")
+				readableSeverity = "Warning"
+			case analysis.Recommendation:
+				buf.WriteString("::notice ")
+				readableSeverity = "Recommendation"
+			case analysis.OK:
+				buf.WriteString("::debug::")
+				readableSeverity = "OK"
+			}
+
+			// Simpler title for GHA if we don't have details in the diagnostics
+			ghaTitleFallback := "plugin-validator: " + readableSeverity
+
+			// Final GHA annotation output (title and message)
+			ghaTitle := ghaTitleFallback
+			var ghaMessage string
+
+			// If we have a more accurate title in the diagnostic, use it as the ghaTitle
+			diagnosticsTitle := d.Title
+			if d.Context != "" {
+				// Add context to the ghaTitle, if we have it
+				diagnosticsTitle = d.Context + ": " + diagnosticsTitle
+			}
+			if diagnosticsTitle != "" {
+				ghaTitle += ": " + diagnosticsTitle
+			}
+
+			if d.Detail != "" {
+				// If we have details, use them as the ghaMessage
+				ghaMessage = d.Detail
+			} else {
+				// If we don't have details, use what the diagnostics title as message
+				// and go back to the fallback ghaTitle ("plugin-validator: <severity level>")
+				// to avoid repetition.
+				ghaMessage = diagnosticsTitle
+				ghaTitle = ghaTitleFallback
+			}
+			buf.WriteString("title=")
+			buf.WriteString(ghaEscape(ghaTitle))
+			buf.WriteString("::")
+			buf.WriteString(ghaEscape(ghaMessage))
+			buf.WriteRune('\n')
+		}
+	}
+	return buf.Bytes(), nil
+})
+
+var ghaEscapeReplacer = strings.NewReplacer("::", "\\:\\:", "=", "\\=")
+
+// ghaEscape removes all characters that can mess with the GHA workflow commands syntax while outputting annotations.
+// This function should be called on each part of the GHA output (title, message, etc...) before outputting them.
+func ghaEscape(s string) string {
+	return ghaEscapeReplacer.Replace(s)
+}
 
 // ExitCode returns the exit code of the CLI program.
 // It returns:
