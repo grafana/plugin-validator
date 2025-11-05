@@ -207,13 +207,21 @@ func main() {
 
 	// Stdout/Stderr output.
 
-	// Check that the config is valid
+	// Check that the config and CLI flags are valid
 	if (cfg.Global.JSONOutput && cfg.Global.GHAOutput) || (*jsonOutputFlag && *ghaOutputFlag) {
 		logme.Errorln("can't have more than one output type set to true")
 		os.Exit(1)
 	}
-	jsonOutput := cfg.Global.JSONOutput || *jsonOutputFlag
-	ghaOutput := cfg.Global.GHAOutput || *ghaOutputFlag
+	var jsonOutput, ghaOutput bool
+	if *jsonOutputFlag || *ghaOutputFlag {
+		// Prioritize CLI flags
+		jsonOutput = *jsonOutputFlag
+		ghaOutput = *ghaOutputFlag
+	} else {
+		// Fall-back to config file
+		jsonOutput = cfg.Global.JSONOutput
+		ghaOutput = cfg.Global.GHAOutput
+	}
 
 	// Determine the correct marshaler depending on the config
 	if jsonOutput {
