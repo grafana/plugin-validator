@@ -128,7 +128,9 @@ var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 				// Add context to the ghaTitle, if we have it
 				diagnosticsTitle = d.Context + ": " + diagnosticsTitle
 			}
-			ghaTitle += ": " + diagnosticsTitle
+			if diagnosticsTitle != "" {
+				ghaTitle += ": " + diagnosticsTitle
+			}
 
 			if d.Detail != "" {
 				// If we have details, use them as the ghaMessage
