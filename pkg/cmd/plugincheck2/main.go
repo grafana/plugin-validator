@@ -227,7 +227,10 @@ func main() {
 		logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
 		os.Exit(1)
 	}
-	_, _ = fmt.Fprintln(outWriter, string(ob))
+	if _, err = fmt.Fprintln(outWriter, string(ob)); err != nil {
+		logme.Errorln(fmt.Errorf("couldn't write output: %w", err))
+		os.Exit(1)
+	}
 	os.Exit(output.ExitCode(*strictFlag, diags))
 }
 
