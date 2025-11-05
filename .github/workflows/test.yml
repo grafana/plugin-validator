@@ -16,7 +16,7 @@ jobs:
           persist-credentials: false
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@adf96be1e49ee477b740305ff3a910ae879e924f
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@db335abbb69aa555bd0a832075fad5259d15fae8
         with:
           repository: grafana/plugin-validator-cli
           context: .
