@@ -3,6 +3,7 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/fatih/color"
 
@@ -110,7 +111,7 @@ var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 				buf.WriteString("::notice ")
 				readableSeverity = "Recommendation"
 			case analysis.OK:
-				buf.WriteString("::debug ")
+				buf.WriteString("::debug::")
 				readableSeverity = "OK"
 			}
 
@@ -140,14 +141,22 @@ var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 				ghaTitle = ghaTitleFallback
 			}
 			buf.WriteString("title=")
-			buf.WriteString(ghaTitle)
+			buf.WriteString(ghaEscape(ghaTitle))
 			buf.WriteString("::")
-			buf.WriteString(ghaMessage)
+			buf.WriteString(ghaEscape(ghaMessage))
 			buf.WriteRune('\n')
 		}
 	}
 	return buf.Bytes(), nil
 })
+
+var ghaEscapeReplacer = strings.NewReplacer("::", "\\:\\:", "=", "\\=")
+
+// ghaEscape removes all characters that can mess with the GHA workflow commands syntax while outputting annotations.
+// This function should be called on each part of the GHA output (title, message, etc...) before outputting them.
+func ghaEscape(s string) string {
+	return ghaEscapeReplacer.Replace(s)
+}
 
 // ExitCode returns the exit code of the CLI program.
 // It returns:
