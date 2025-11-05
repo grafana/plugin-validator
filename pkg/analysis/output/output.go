@@ -98,45 +98,51 @@ var MarshalGHA = marshalerFunc(func(data analysis.Diagnostics) ([]byte, error) {
 	var buf bytes.Buffer
 	for name := range data {
 		for _, d := range data[name] {
+			var readableSeverity string
 			switch d.Severity {
 			case analysis.Error:
 				buf.WriteString("::error ")
+				readableSeverity = "Error"
 			case analysis.Warning, analysis.SuspectedProblem:
 				buf.WriteString("::warning ")
+				readableSeverity = "Warning"
 			case analysis.Recommendation:
 				buf.WriteString("::notice ")
+				readableSeverity = "Recommendation"
 			case analysis.OK:
-				// Note: this will NOT produce a GHA annotation, "::ok" is not a supported value.
-				// It will just be printed to stdout, but we use the same format as GHA for clearer output.
-				buf.WriteString("::ok ")
+				buf.WriteString("::debug ")
+				readableSeverity = "OK"
 			}
 
-			// Message is mandatory in gha
-			var message string
+			// Simpler title for GHA if we don't have details in the diagnostics
+			ghaTitleFallback := "plugin-validator: " + readableSeverity
 
-			// Title is optional in gha.
-			// Default gha title to the diagnostic's title
-			title := d.Title
+			// Final GHA annotation output (title and message)
+			ghaTitle := ghaTitleFallback
+			var ghaMessage string
+
+			// If we have a more accurate title in the diagnostic, use it as the ghaTitle
+			diagnosticsTitle := d.Title
 			if d.Context != "" {
-				// Add context to the title, if we have it
-				title = d.Context + ": " + title
+				// Add context to the ghaTitle, if we have it
+				diagnosticsTitle = d.Context + ": " + diagnosticsTitle
 			}
+			ghaTitle += ": " + diagnosticsTitle
 
 			if d.Detail != "" {
-				// If we have details, use them as the message
-				message = d.Detail
+				// If we have details, use them as the ghaMessage
+				ghaMessage = d.Detail
 			} else {
-				// If we don't have details, use what we previously had as title as message,
-				// and clear the title (it's optional).
-				message = title
-				title = ""
+				// If we don't have details, use what the diagnostics title as message
+				// and go back to the fallback ghaTitle ("plugin-validator: <severity level>")
+				// to avoid repetition.
+				ghaMessage = diagnosticsTitle
+				ghaTitle = ghaTitleFallback
 			}
-			if title != "" {
-				buf.WriteString("title=")
-				buf.WriteString(title)
-			}
+			buf.WriteString("title=")
+			buf.WriteString(ghaTitle)
 			buf.WriteString("::")
-			buf.WriteString(message)
+			buf.WriteString(ghaMessage)
 			buf.WriteRune('\n')
 		}
 	}
