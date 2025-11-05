@@ -56,6 +56,16 @@ func main() {
 			"",
 			"Write JSON output to specified file",
 		)
+		jsonOutputFlag = flag.Bool(
+			"jsonOutput",
+			false,
+			"If set, outputs results in JSON format regardless of config file setting",
+		)
+		ghaOutputFlag = flag.Bool(
+			"ghaOutput",
+			false,
+			"If set, outputs results in GitHub Actions format regardless of config file setting",
+		)
 	)
 
 	flag.Parse()
@@ -198,15 +208,17 @@ func main() {
 	// Stdout/Stderr output.
 
 	// Check that the config is valid
-	if cfg.Global.JSONOutput && cfg.Global.GHAOutput {
+	if (cfg.Global.JSONOutput && cfg.Global.GHAOutput) || (*jsonOutputFlag && *ghaOutputFlag) {
 		logme.Errorln("can't have more than one output type set to true")
 		os.Exit(1)
 	}
+	jsonOutput := cfg.Global.JSONOutput || *jsonOutputFlag
+	ghaOutput := cfg.Global.GHAOutput || *ghaOutputFlag
 
 	// Determine the correct marshaler depending on the config
-	if cfg.Global.JSONOutput {
+	if jsonOutput {
 		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
-	} else if cfg.Global.GHAOutput {
+	} else if ghaOutput {
 		outputMarshaler = output.MarshalGHA
 	} else {
 		outputMarshaler = output.MarshalCLI
@@ -214,7 +226,7 @@ func main() {
 
 	// Write to stdout or stderr, depending on config
 	var outWriter io.Writer
-	if cfg.Global.JSONOutput {
+	if jsonOutput {
 		outWriter = os.Stdout
 	} else {
 		outWriter = os.Stderr
