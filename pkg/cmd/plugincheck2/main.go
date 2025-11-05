@@ -4,30 +4,24 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/sha1"
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
-	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/output"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
 	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
 )
-
-type FormattedOutput struct {
-	ID          string                           `json:"id"`
-	Version     string                           `json:"version"`
-	Diagnostics map[string][]analysis.Diagnostic `json:"plugin-validator"`
-}
 
 func main() {
 	var (
@@ -174,94 +168,62 @@ func main() {
 		logme.DebugFln("check failed: %v", err)
 	}
 
-	var exitCode int
-	var jsonOutput = ""
+	var outputMarshaler output.Marshaler
 
-	// calculate json for either json cli output or file json output
-	if *outputToFile != "" || cfg.Global.JSONOutput {
-		pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
-		if err != nil {
-			pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
-			archiveDiag := analysis.Diagnostic{
-				Name:     "zip-invalid",
-				Severity: analysis.Error,
-				Title:    "Plugin archive is improperly structured",
-				Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
-			}
-			diags["archive"] = append(diags["archive"], archiveDiag)
+	// Plugin ID and version (needed by JSON output)
+	pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
+	if err != nil {
+		pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
+		archiveDiag := analysis.Diagnostic{
+			Name:     "zip-invalid",
+			Severity: analysis.Error,
+			Title:    "Plugin archive is improperly structured",
+			Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 		}
-		allData := FormattedOutput{
-			ID:          pluginID,
-			Version:     pluginVersion,
-			Diagnostics: diags,
-		}
-		output, err := json.MarshalIndent(allData, "", "  ")
-		if err != nil {
-			logme.Errorln(fmt.Errorf("couldn't marshal output to json: %w", err))
-		}
-		jsonOutput = string(output)
+		diags["archive"] = append(diags["archive"], archiveDiag)
 	}
 
+	// Additional JSON output to file
 	if *outputToFile != "" {
-		if err := os.WriteFile(*outputToFile, []byte(jsonOutput), 0644); err != nil {
+		ob, err := output.NewJSONMarshaler(pluginID, pluginVersion).Marshal(diags)
+		if err != nil {
+			logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
+			os.Exit(1)
+		}
+		if err := os.WriteFile(*outputToFile, ob, 0644); err != nil {
 			logme.Errorln(fmt.Errorf("couldn't write output to file: %w", err))
 		}
 	}
 
-	// JSON output
+	// Stdout/Stderr output.
+
+	// Determine the correct marshaler depending on the config
 	if cfg.Global.JSONOutput {
-		for name := range diags {
-			for _, d := range diags[name] {
-				switch d.Severity {
-				case analysis.Error:
-					exitCode = 1
-				case analysis.Warning:
-					if *strictFlag {
-						exitCode = 1
-					}
-				}
-			}
-		}
-		fmt.Println(jsonOutput)
-		os.Exit(exitCode)
+		outputMarshaler = output.NewJSONMarshaler(pluginID, pluginVersion)
+	} else {
+		outputMarshaler = output.MarshalCLI
 	}
 
-	// regular CLI output
-	for name := range diags {
-		for _, d := range diags[name] {
-			var buf bytes.Buffer
-			switch d.Severity {
-			case analysis.Error:
-				buf.WriteString(color.RedString("error: "))
-				exitCode = 1
-			case analysis.Warning:
-				buf.WriteString(color.YellowString("warning: "))
-				if *strictFlag {
-					exitCode = 1
-				}
-			case analysis.Recommendation:
-				buf.WriteString(color.CyanString("recommendation: "))
-			case analysis.OK:
-				buf.WriteString(color.GreenString("ok: "))
-			case analysis.SuspectedProblem:
-				buf.WriteString(color.YellowString("suspected: "))
-			}
-
-			if d.Context != "" {
-				buf.WriteString(d.Context + ": ")
-			}
-
-			buf.WriteString(d.Title)
-			if len(d.Detail) > 0 {
-				buf.WriteString("\n" + color.BlueString("detail: "))
-				buf.WriteString(d.Detail)
-			}
-			fmt.Fprintln(os.Stderr, buf.String())
-		}
+	// Write to stdout or stderr, depending on config
+	var outWriter io.Writer
+	if cfg.Global.JSONOutput {
+		outWriter = os.Stdout
+	} else {
+		outWriter = os.Stderr
 	}
 
-	logme.DebugFln("exit code: %d", exitCode)
-	os.Exit(exitCode)
+	// Write output with the correct marshaler, depending on the config, then exit.
+	// Nothing else should be printed from here on, or the output may become invalid.
+	ob, err := outputMarshaler.Marshal(diags)
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't marshal output: %w", err))
+		os.Exit(1)
+	}
+	if _, err = fmt.Fprintln(outWriter, string(ob)); err != nil {
+		logme.Errorln(fmt.Errorf("couldn't write output: %w", err))
+		os.Exit(1)
+	}
+	os.Exit(output.ExitCode(*strictFlag, diags))
 }
 
 func readConfigFile(path string) (runner.Config, error) {
