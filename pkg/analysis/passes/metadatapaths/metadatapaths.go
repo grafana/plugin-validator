@@ -54,12 +54,12 @@ type CheckPath struct {
 func checkMetadataPaths(pass *analysis.Pass) (interface{}, error) {
 	var paths []CheckPath
 
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
+	metadatamap, ok := analysis.GetResult[nestedmetadata.Metadatamap](pass, nestedmetadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}

@@ -36,7 +36,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ctx, canc := context.WithTimeout(context.Background(), time.Minute*1)
 	defer canc()
 
-	rawMetadataMaps, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
+	rawMetadataMaps, ok := analysis.GetResult[nestedmetadata.Metadatamap](pass, nestedmetadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}

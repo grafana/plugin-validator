@@ -25,7 +25,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}

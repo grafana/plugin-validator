@@ -49,7 +49,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (any, error) {
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 	if !ok {
 		// no source code for the validator
 		return nil, nil

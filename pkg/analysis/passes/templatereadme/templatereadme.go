@@ -23,7 +23,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	readmeResult, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeResult, ok := analysis.GetResult[[]byte](pass, readme.Analyzer)
 	if !ok {
 		return nil, nil
 	}

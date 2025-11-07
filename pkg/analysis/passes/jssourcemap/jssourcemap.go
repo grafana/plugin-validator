@@ -36,12 +36,12 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 	if !ok || sourceCodeDir == "" {
 		return nil, nil
 	}
 
-	archiveFilesPath, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveFilesPath, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok || archiveFilesPath == "" {
 		return nil, nil
 	}

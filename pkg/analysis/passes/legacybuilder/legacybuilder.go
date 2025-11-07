@@ -26,14 +26,14 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	publishedStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	publishedStatus, ok := analysis.GetResult[*published.PluginStatus](pass, published.Analyzer)
 
 	// we don't fail published plugins for using toolkit (yet)
 	if ok && publishedStatus.Status != "unknown" {
 		legacyBuilder.Severity = analysis.Warning
 	}
 
-	parsedJsonContent, ok := pass.ResultOf[packagejson.Analyzer].(packagejson.PackageJson)
+	parsedJsonContent, ok := analysis.GetResult[*packagejson.PackageJson](pass, packagejson.Analyzer)
 
 	if !ok {
 		return nil, nil

@@ -33,7 +33,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	schema, ok := pass.ResultOf[metadataschema.Analyzer].([]byte)
+	schema, ok := analysis.GetResult[[]byte](pass, metadataschema.Analyzer)
 	if !ok {
 		return nil, nil
 	}
@@ -55,7 +55,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}

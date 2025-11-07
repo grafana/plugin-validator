@@ -36,17 +36,17 @@ var svgImage = "image/svg+xml"
 var acceptedImageTypes = []string{"image/jpeg", "image/png", "image/gif", svgImage}
 
 func checkScreenshots(pass *analysis.Pass) (interface{}, error) {
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
 	// Ensure metadatavalid.Analyzer ran (it returns nil but we need it as dependency)
-	_, ok = pass.ResultOf[metadatavalid.Analyzer]
+	_, ok = pass.ResultOf.Load(metadatavalid.Analyzer)
 	if !ok {
 		return nil, nil
 	}

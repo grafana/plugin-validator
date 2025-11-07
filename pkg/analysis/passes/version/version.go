@@ -27,7 +27,7 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}
@@ -48,7 +48,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	pluginStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	pluginStatus, ok := analysis.GetResult[*published.PluginStatus](pass, published.Analyzer)
 	if !ok {
 		// in case of any error getting the online status, skip this check
 		return nil, nil

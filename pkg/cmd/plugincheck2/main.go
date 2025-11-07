@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
@@ -65,6 +66,11 @@ func main() {
 			"ghaOutput",
 			false,
 			"If set, outputs results in GitHub Actions format regardless of config file setting",
+		)
+		parallelFlag = flag.Bool(
+			"parallel",
+			false,
+			"Run the analyzers in parallel",
 		)
 	)
 
@@ -159,6 +165,7 @@ func main() {
 		}
 	}
 
+	st := time.Now()
 	diags, err := runner.Check(
 		analyzers,
 		analysis.CheckParams{
@@ -169,6 +176,7 @@ func main() {
 			Checksum:              *checksum,
 			ArchiveCalculatedMD5:  fmt.Sprintf("%x", md5hash),
 			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
+			Parallel:              *parallelFlag,
 		},
 		cfg,
 		severity,
@@ -177,6 +185,7 @@ func main() {
 		// we don't exit on error. we want to still report the diagnostics
 		logme.DebugFln("check failed: %v", err)
 	}
+	logme.DebugFln("analyzers run in %+v", time.Since(st))
 
 	var outputMarshaler output.Marshaler
 

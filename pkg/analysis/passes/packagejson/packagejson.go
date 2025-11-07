@@ -31,14 +31,14 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 
 	// we don't fail published plugins for using toolkit (yet)
 	if !ok || sourceCodeDir == "" {
 		return nil, nil
 	}
 
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}

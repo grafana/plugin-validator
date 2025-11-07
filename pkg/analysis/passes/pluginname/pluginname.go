@@ -26,12 +26,12 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	publishStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	publishStatus, ok := analysis.GetResult[*published.PluginStatus](pass, published.Analyzer)
 
 	// we don't check published plugins for naming conventions
 	if ok && publishStatus.Status != "unknown" {
