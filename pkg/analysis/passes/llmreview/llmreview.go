@@ -76,7 +76,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 	var err error
 	// only run if sourcecode.Analyzer succeeded
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 	if !ok {
 		return nil, nil
 	}

@@ -78,11 +78,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	archiveFilesPath, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveFilesPath, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok || archiveFilesPath == "" {
 		return nil, nil
 	}
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 	if !ok || sourceCodeDir == "" {
 		return nil, nil
 	}

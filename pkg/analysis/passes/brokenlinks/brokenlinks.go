@@ -48,12 +48,12 @@ type contextURL struct {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	metadataBody, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	metadataBody, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	readmeResult, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeResult, ok := analysis.GetResult[[]byte](pass, readme.Analyzer)
 	if !ok {
 		return nil, nil
 	}
