@@ -67,6 +67,10 @@ var Questions = []llmvalidate.LLMQuestion{
 		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for direct usage of document.querySelector(), document.getElementById(), document.getElementsByClassName(), etc. that aren't scoped to specific components or that bypass React refs). Component-scoped element access like useRef() or this.elementRef is acceptable. Provide the specific code snippet showing the global access if found.",
 		ExpectedAnswer: false,
 	},
+	{
+		Question:       "Only for go/golang code: Does this code create HTTP clients without using github.com/grafana/grafana-plugin-sdk-go/backend/httpclient? (Look for direct creation of http.Client{}, http.NewRequest, calls to third-party NewClient/NewHTTPClient functions that don't accept or use the SDK's httpclient, or any other HTTP client initialization that doesn't use github.com/grafana/grafana-plugin-sdk-go/backend/httpclient. The httpclient from github.com/grafana/grafana-plugin-sdk-go/backend/httpclient should be used directly or passed to the HTTP client being created. This includes cases where third-party libraries create HTTP clients internally - those libraries should accept the SDK's httpclient as a parameter). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
 }
 
 func run(pass *analysis.Pass) (any, error) {
