@@ -30,7 +30,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		"nodejs",
 	}
 
-	readmeContent, ok := pass.ResultOf[readme.Analyzer].([]byte)
+	readmeContent, ok := analysis.GetResult[[]byte](pass, readme.Analyzer)
 	if !ok {
 		return nil, nil
 	}

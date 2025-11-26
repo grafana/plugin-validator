@@ -52,13 +52,13 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	sourceCodeDir, ok := analysis.GetResult[string](pass, sourcecode.Analyzer)
 	if !ok {
 		// no source code found so we can't go.mod
 		return nil, nil
 	}
 
-	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
+	metadatamap, ok := analysis.GetResult[nestedmetadata.Metadatamap](pass, nestedmetadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}

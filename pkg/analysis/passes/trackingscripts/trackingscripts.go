@@ -30,7 +30,7 @@ var Analyzer = &analysis.Analyzer{
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(map[string][]byte)
+	moduleJsMap, ok := analysis.GetResult[map[string][]byte](pass, modulejs.Analyzer)
 	if !ok || len(moduleJsMap) == 0 {
 		return nil, nil
 	}

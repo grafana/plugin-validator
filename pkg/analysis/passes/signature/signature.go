@@ -47,17 +47,17 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	md, ok := pass.ResultOf[metadata.Analyzer].([]byte)
+	md, ok := analysis.GetResult[[]byte](pass, metadata.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	mf, ok := pass.ResultOf[manifest.Analyzer].([]byte)
+	mf, ok := analysis.GetResult[[]byte](pass, manifest.Analyzer)
 	if !ok {
 		return nil, nil
 	}

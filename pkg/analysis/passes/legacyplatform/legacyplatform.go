@@ -111,7 +111,7 @@ func fetchDetectors() ([]detector, error) {
 
 func run(pass *analysis.Pass) (interface{}, error) {
 
-	status, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	status, ok := analysis.GetResult[*published.PluginStatus](pass, published.Analyzer)
 
 	if !ok {
 		return nil, nil
@@ -122,7 +122,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		legacyPlatform.Severity = analysis.Warning
 	}
 
-	moduleJsMap, ok := pass.ResultOf[modulejs.Analyzer].(map[string][]byte)
+	moduleJsMap, ok := analysis.GetResult[map[string][]byte](pass, modulejs.Analyzer)
 	if !ok || len(moduleJsMap) == 0 {
 		return nil, nil
 	}

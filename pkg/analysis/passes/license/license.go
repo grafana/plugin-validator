@@ -53,7 +53,7 @@ var validLicensesRegex = []*regexp.Regexp{
 const minRequiredConfidenceLevel float32 = 0.9
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}

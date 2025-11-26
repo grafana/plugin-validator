@@ -50,12 +50,12 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	archiveDir, ok := analysis.GetResult[string](pass, archive.Analyzer)
 	if !ok {
 		return nil, nil
 	}
 
-	publishStatus, ok := pass.ResultOf[published.Analyzer].(*published.PluginStatus)
+	publishStatus, ok := analysis.GetResult[*published.PluginStatus](pass, published.Analyzer)
 	isPublished := false
 	if ok && publishStatus.Status != "unknown" {
 		isPublished = true
