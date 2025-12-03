@@ -15,7 +15,8 @@ import (
 var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
-	llmIssueFound = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
+	llmIssueFound   = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
+	llmWarningFound = &analysis.Rule{Name: "llm-warning-found", Severity: analysis.Warning}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -71,6 +72,102 @@ var Questions = []llmvalidate.LLMQuestion{
 		Question:       "Only for go/golang code: Does this code create HTTP clients without using github.com/grafana/grafana-plugin-sdk-go/backend/httpclient? (Look for direct creation of http.Client{}, http.NewRequest, calls to third-party NewClient/NewHTTPClient functions that don't accept or use the SDK's httpclient, or any other HTTP client initialization that doesn't use github.com/grafana/grafana-plugin-sdk-go/backend/httpclient. The httpclient from github.com/grafana/grafana-plugin-sdk-go/backend/httpclient should be used directly or passed to the HTTP client being created. This includes cases where third-party libraries create HTTP clients internally - those libraries should accept the SDK's httpclient as a parameter). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
+	{
+		Question:       "Does this code contain console.log(), console.warn(), console.info(), or console.debug() statements that would output in production builds? (Exclude code wrapped in NODE_ENV checks or test files). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code log sensitive information such as credentials, tokens, passwords, API keys, request bodies, or full request/response objects at INFO level or higher? (These should use DEBUG level only). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code use incorrect log formatting? (Look for patterns like `log.Info(\"message\", err)` instead of the correct `log.Info(\"message\", \"error\", err)` with key-value pairs, or logging that produces 'EXTRA_VALUE_AT_END' in output). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code render user-supplied or dynamic content as HTML without sanitization? (Look for dangerouslySetInnerHTML without DOMPurify, d3.html() with user data, innerHTML assignments, or markdown-it with html:true without sanitization). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code use window.open() without specifying 'noopener,noreferrer' in the features parameter? (This creates a tab nabbing vulnerability). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code use native browser dialogs like alert(), window.confirm(), or window.prompt() instead of Grafana UI components (Modal, ConfirmModal)? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code use panic() for error handling instead of returning errors properly? (panic should only be used for truly unrecoverable situations, not for regular error handling). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code use localStorage or sessionStorage with generic key names (not namespaced with the plugin ID) that could conflict with Grafana core or other plugins? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "For plugins that bundle multiple plugins (app + panels/datasources): Are the grafanaDependency values inconsistent across different plugin.json files? (The grafanaDependency property must be consistent across all bundled plugins - the version stated in the app plugin.json must match the versions supported in the panel/datasource plugin.json files). Provide the specific plugin.json files and their grafanaDependency values if found to be inconsistent.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "For app plugins: Does the navItem path in plugin.json not match the plugin ID? (The navItem path should match the plugin ID format, e.g., if plugin ID is 'myorg-myapp', the navItem path should be 'plugins/myorg-myapp/...' not a different path). Provide the specific plugin.json navItem configuration and plugin ID if found to be mismatched.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code access attributes or methods of a returned value before checking if it is nil? (Code that accesses returned values must be moved after error/nil checks to prevent nil pointer dereference crashes. For example, if a function returns `(req *Request, err error)`, code accessing `req` should be after checking `if err != nil` or `if req == nil`). Provide the specific code snippet showing the unsafe access if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code use fmt.Println, fmt.Print, or fmt.Printf for logging instead of the logger provided by the Grafana plugin SDK? (Backend plugins should use the logger from `github.com/grafana/grafana-plugin-sdk-go/backend` package instead of fmt.Println for proper log management and integration with Grafana's logging system). Provide the specific code snippet showing fmt.Println/fmt.Print/fmt.Printf usage if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "In ConfigEditor components: Does this code directly mutate the jsonData, secureJsonData or options object (e.g., `options.jsonData.property = 'value'` or `props.jsonData.property = 'value'`)? (Props should be treated as immutable. Instead of directly modifying jsonData, use `onOptionsChange` to create a new object with updated values, e.g., `this.props.onOptionsChange({ ...options, jsonData: { ...options.jsonData, property: 'value' } })`). Provide the specific code snippet showing direct mutation if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code contain hard-coded Grafana sub-paths or API URLs in API calls, fetch requests, or constants? (Hard-coded Grafana sub-paths should be replaced with `appUrl` or `appSubUrl` from `import { config } '@grafana/runtime'`, or made configurable in app settings. This ensures plugins work correctly in different Grafana setups, such as when Grafana is served from a sub-path like `/grafana`). Provide the specific code snippet showing hard-coded paths or URLs if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "For panel plugins (check plugin.json type field): Does this plugin include a backend component (Go code in pkg/ directory, .go files in backend/, or any Go backend implementation)? (Panel plugins cannot have backend components in Grafana; only app and datasource plugins can include backend components. If this is a panel plugin with backend code, it must be converted to an app plugin). Provide the specific plugin.json type and backend file locations if found.",
+		ExpectedAnswer: false,
+	},
+}
+
+// OptionalQuestions are non-blocking suggestions that can be addressed in future versions
+var OptionalQuestions = []llmvalidate.LLMQuestion{
+	{
+		Question:       "Does this code use deprecated Grafana CSS class names like 'gf-form', 'gf-form-group', 'gf-form-label', or similar legacy classes? (Use @grafana/ui components instead). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code directly access window.location.search, window.location.href, or URLSearchParams(window.location.search) instead of using locationService from @grafana/runtime? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: In QueryData or CheckHealth handlers, does this code create a new context (context.Background() or context.TODO()) instead of using/forwarding the context received from the request? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code using Grafana sqlds library: Is the code using an older version of sqlds (v1 or v2) instead of sqlds/v3 or sqlds/v4? (sqlds/v3 and sqlds/v4 have updated signatures that allow passing context.Context, which is required for forward compatibility). Provide the specific go.mod or import statement showing the sqlds version if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does the src/README.md file contain installation instructions for the plugin? (Installation instructions should be removed from src/README.md as this information will be included in the Grafana catalog once the plugin is published and may cause confusion). Provide the specific section or content if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code specify exact pixel values, font sizes, margins, or other hardcoded CSS values instead of using Grafana's emotion theme abstractions? (Rather than specifying exact pixels, font sizes, etc., it's recommended to use the abstractions defined in Grafana's emotion theme which is exposed by `@grafana/data`. This ensures consistency with Grafana's design system and better maintainability). Provide the specific code snippet showing hardcoded CSS values if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this TypeScript/JavaScript code use `// @ts-ignore` or `// @ts-expect-error` comments to suppress TypeScript errors? (Avoid @ts-ignore usages as this could potentially introduce runtime errors instead of build time errors. TypeScript errors should be fixed properly rather than suppressed, so issues are caught during compilation rather than at runtime). Provide the specific code snippet showing @ts-ignore or @ts-expect-error usage if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this plugin include both a backend component (Go code in pkg/ or backend/ directories) AND a 'routes' section in plugin.json for datasource proxy? (The plugin proxy should only be used when a plugin doesn't have a backend. If a backend exists, the routes section should be removed from plugin.json to avoid confusion and potential conflicts). Provide the specific plugin.json routes configuration and backend file locations if both are found.",
+		ExpectedAnswer: false,
+	},
 }
 
 func run(pass *analysis.Pass) (any, error) {
@@ -98,30 +195,17 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	var answers []llmvalidate.LLMAnswer
-	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
+	// Process mandatory questions (blocking issues)
+	var mandatoryAnswers []llmvalidate.LLMAnswer
+	mandatoryAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
 	if err != nil {
-		logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
+		logme.DebugFln("Error getting answers from Gemini LLM for mandatory questions: %v", err)
 		return nil, nil
 	}
 
-	for _, answer := range answers {
+	for _, answer := range mandatoryAnswers {
 		if answer.ShortAnswer != answer.ExpectedShortAnswer {
-
-			var detailParts []string
-
-			detailParts = append(detailParts, answer.Answer)
-
-			if answer.CodeSnippet != "" {
-				detailParts = append(detailParts, fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet))
-			}
-
-			if len(answer.Files) > 0 {
-				detailParts = append(detailParts, fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")))
-			}
-
-			detail := strings.Join(detailParts, "\n\n")
-
+			detail := buildDetailString(answer)
 			pass.ReportResult(
 				pass.AnalyzerName,
 				llmIssueFound,
@@ -131,5 +215,42 @@ func run(pass *analysis.Pass) (any, error) {
 		}
 	}
 
+	// Process optional questions (non-blocking warnings)
+	var optionalAnswers []llmvalidate.LLMAnswer
+	optionalAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, OptionalQuestions, []string{"src", "pkg"})
+	if err != nil {
+		logme.DebugFln("Error getting answers from Gemini LLM for optional questions: %v", err)
+		return nil, nil
+	}
+
+	for _, answer := range optionalAnswers {
+		if answer.ShortAnswer != answer.ExpectedShortAnswer {
+			detail := buildDetailString(answer)
+			pass.ReportResult(
+				pass.AnalyzerName,
+				llmWarningFound,
+				fmt.Sprintf("LLM suggestion: %s", answer.Question),
+				detail,
+			)
+		}
+	}
+
 	return nil, nil
+}
+
+// buildDetailString constructs the detail message for a reported issue
+func buildDetailString(answer llmvalidate.LLMAnswer) string {
+	var detailParts []string
+
+	detailParts = append(detailParts, answer.Answer)
+
+	if answer.CodeSnippet != "" {
+		detailParts = append(detailParts, fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet))
+	}
+
+	if len(answer.Files) > 0 {
+		detailParts = append(detailParts, fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")))
+	}
+
+	return strings.Join(detailParts, "\n\n")
 }
