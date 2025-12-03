@@ -69,14 +69,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			} else {
 				// The dependency is not a nested plugin, get the dependencies from GCOM
 				var err error
-				version := dep.Version
-				if version == "" {
-					version = "latest"
-				}
-				dependantDependencies, err = getGCOMPluginDependencies(ctx, dep.ID, version)
+				dependantDependencies, err = getGCOMPluginDependencies(ctx, dep.ID, "latest")
 				if err != nil {
 					// Do not fail the analysis if we cannot get the dependencies from GCOM.
-					logme.ErrorF("Could not get plugin version dependency from gcom: id=%q version=%q: %v\n", dep.ID, version, err)
+					logme.ErrorF("Could not get plugin dependency from gcom: id=%q: %v\n", dep.ID, err)
 
 					dependantDependencies = nil
 					continue

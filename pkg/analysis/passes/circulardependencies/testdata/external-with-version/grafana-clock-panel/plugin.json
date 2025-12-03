@@ -5,8 +5,7 @@
       {
         "id": "grafana-external-panel",
         "name": "External",
-        "type": "panel",
-        "version": "2.1.2"
+        "type": "panel"
       }
     ]
   },
