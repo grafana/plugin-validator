@@ -40,18 +40,15 @@ func TestCircularDependencies(t *testing.T) {
 	})
 
 	const (
-		gcomSpecificVersionURL = "https://grafana.com/api/plugins/grafana-external-panel/versions/2.1.2"
-		gcomLatestVersionURL   = "https://grafana.com/api/plugins/grafana-external-panel/versions/latest"
+		gcomLatestVersionURL = "https://grafana.com/api/plugins/grafana-external-panel/versions/latest"
 	)
 
 	t.Run("with an external plugin", func(t *testing.T) {
-		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		for _, u := range []string{gcomSpecificVersionURL, gcomLatestVersionURL} {
-			httpmock.RegisterResponder(http.MethodGet, u, httpmock.NewStringResponder(http.StatusOK, gcomAPIResponse))
-		}
+		t.Run("with external dependency", func(t *testing.T) {
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder(http.MethodGet, gcomLatestVersionURL, httpmock.NewStringResponder(http.StatusOK, gcomAPIResponse))
 
-		t.Run("with a pinned version", func(t *testing.T) {
 			pass, interceptor := newTestPass(filepath.Join("testdata", "external-with-version"))
 			require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
@@ -63,11 +60,14 @@ func TestCircularDependencies(t *testing.T) {
 				"grafana-clock-panel -> grafana-external-panel",
 			)
 			info := httpmock.GetCallCountInfo()
-			// WHY
-			require.Equal(t, 1, info["GET "+gcomSpecificVersionURL])
+			require.Equal(t, 1, info["GET "+gcomLatestVersionURL])
 		})
 
-		t.Run("without a pinned version", func(t *testing.T) {
+		t.Run("without version field", func(t *testing.T) {
+			httpmock.Activate()
+			defer httpmock.DeactivateAndReset()
+			httpmock.RegisterResponder(http.MethodGet, gcomLatestVersionURL, httpmock.NewStringResponder(http.StatusOK, gcomAPIResponse))
+
 			pass, interceptor := newTestPass(filepath.Join("testdata", "external-without-version"))
 			require.NoError(t, testutils.RunDependencies(pass, Analyzer))
 
@@ -79,7 +79,6 @@ func TestCircularDependencies(t *testing.T) {
 				"grafana-clock-panel -> grafana-external-panel",
 			)
 			info := httpmock.GetCallCountInfo()
-			// WHY
 			require.Equal(t, 1, info["GET "+gcomLatestVersionURL])
 		})
 	})
@@ -87,13 +86,11 @@ func TestCircularDependencies(t *testing.T) {
 	t.Run("gcom error should not return an error", func(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		for _, u := range []string{gcomSpecificVersionURL, gcomLatestVersionURL} {
-			httpmock.RegisterResponder(
-				http.MethodGet,
-				u,
-				httpmock.NewStringResponder(http.StatusInternalServerError, "not a json response"),
-			)
-		}
+		httpmock.RegisterResponder(
+			http.MethodGet,
+			gcomLatestVersionURL,
+			httpmock.NewStringResponder(http.StatusInternalServerError, "not a json response"),
+		)
 
 		pass, interceptor := newTestPass(filepath.Join("testdata", "external-without-version"))
 		require.NoError(t, testutils.RunDependencies(pass, Analyzer))
@@ -138,8 +135,7 @@ const gcomAPIResponse = `{
         {
           "id": "grafana-clock-panel",
           "name": "Clock",
-          "type": "panel",
-          "version": "2.1.2"
+          "type": "panel"
         }
       ]
     },
