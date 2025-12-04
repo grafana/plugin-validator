@@ -77,7 +77,7 @@ var Questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code log sensitive information such as credentials, tokens, passwords, API keys, request bodies, or full request/response objects at INFO level or higher? (These should use DEBUG level only). Provide the specific code snippet if found.",
+		Question:       "Does this code log sensitive information such as credentials, tokens, passwords, API keys, request bodies, or full request/response objects at INFO level or higher? (These should use DEBUG level only). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
 	{
@@ -126,10 +126,6 @@ var Questions = []llmvalidate.LLMQuestion{
 	},
 	{
 		Question:       "Does this code contain hard-coded Grafana sub-paths or API URLs in API calls, fetch requests, or constants? (Hard-coded Grafana sub-paths should be replaced with `appUrl` or `appSubUrl` from `import { config } '@grafana/runtime'`, or made configurable in app settings. This ensures plugins work correctly in different Grafana setups, such as when Grafana is served from a sub-path like `/grafana`). Provide the specific code snippet showing hard-coded paths or URLs if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "For panel plugins (check plugin.json type field): Does this plugin include a backend component (Go code in pkg/ directory, .go files in backend/, or any Go backend implementation)? (Panel plugins cannot have backend components in Grafana; only app and datasource plugins can include backend components. If this is a panel plugin with backend code, it must be converted to an app plugin). Provide the specific plugin.json type and backend file locations if found.",
 		ExpectedAnswer: false,
 	},
 }
