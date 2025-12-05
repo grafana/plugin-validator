@@ -1,0 +1,54 @@
+name: Update Grafana Plugin Schema
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9:00 UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-schema:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: true
+
+      - name: Download latest schema
+        run: |
+          curl -sSL https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json \
+            -o /tmp/new-schema.json
+
+      - name: Check if schema changed
+        id: check
+        run: |
+          if ! diff -q config/plugin.schema.json /tmp/new-schema.json > /dev/null 2>&1; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Schema is already up to date"
+          fi
+
+      - name: Update schema
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          cp /tmp/new-schema.json config/plugin.schema.json
+          cp /tmp/new-schema.json pkg/analysis/passes/metadatavalid/testdata/schema.json
+
+      - name: Create Pull Request
+        if: steps.check.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412 # v7.0.9
+        with:
+          commit-message: "chore: update Grafana plugin schema"
+          title: "chore: update Grafana plugin schema"
+          body: |
+            Automated update of the Grafana plugin schema from upstream.
+
+            **Source:** https://github.com/grafana/grafana/blob/main/docs/sources/developers/plugins/plugin.schema.json
+          branch: automation/update-plugin-schema
+          labels: dependencies
+          delete-branch: true
+          sign-commits: true
