@@ -141,19 +141,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							messagesReported[message] = true
 							switch severity {
 							case SeverityCritical:
-								logme.DebugFln("osv-scanner detected a critical severity issue: %s", message)
+								title := "osv-scanner detected a critical severity issue"
+								if aPackage.Package.Name != "" {
+									title = fmt.Sprintf("osv-scanner detected a critical severity issue in package %s", aPackage.Package.Name)
+								}
+								logme.DebugFln("%s: %s", title, message)
 								pass.ReportResult(
 									pass.AnalyzerName,
 									osvScannerCriticalSeverityDetected,
-									"osv-scanner detected a critical severity issue",
+									title,
 									message)
 								criticalSeverityCount++
 							case SeverityHigh:
-								logme.DebugFln("osv-scanner detected a high severity issue: %s", message)
+								title := "osv-scanner detected a high severity issue"
+								if aPackage.Package.Name != "" {
+									title = fmt.Sprintf("osv-scanner detected a high severity issue in package %s", aPackage.Package.Name)
+								}
+								logme.DebugFln("%s: %s", title, message)
 								pass.ReportResult(
 									pass.AnalyzerName,
 									osvScannerHighSeverityDetected,
-									"osv-scanner detected a high severity issue",
+									title,
 									message)
 								highSeverityCount++
 							}
