@@ -114,9 +114,9 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 
 	// this results in four issues: 1 individual critical, 1 critical summary, 1 individual high, 1 high summary
 	messages := []string{
-		"osv-scanner detected a critical severity issue",
+		"osv-scanner detected a critical severity issue in package fake-package",
 		"osv-scanner detected critical severity issues",
-		"osv-scanner detected a high severity issue",
+		"osv-scanner detected a high severity issue in package fake-package",
 		"osv-scanner detected high severity issues",
 	}
 	titles := interceptor.GetTitles()
