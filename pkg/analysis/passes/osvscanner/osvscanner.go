@@ -129,8 +129,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
 							// make sure this key exists
 							severity := "n/a"
-							if val, ok := aVulnerability.DatabaseSpecific["severity"]; ok {
-								severity = val.(string)
+							if aVulnerability.DatabaseSpecific != nil {
+								if fields := aVulnerability.DatabaseSpecific.GetFields(); fields != nil {
+									if val, ok := fields["severity"]; ok {
+										severity = val.GetStringValue()
+									}
+								}
 							}
 							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", severity, aPackage.Package.Name, aliases)
 							// prevent duplicate messages

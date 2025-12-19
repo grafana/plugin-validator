@@ -8,6 +8,7 @@ import (
 	"github.com/google/osv-scanner/v2/pkg/models"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
@@ -27,54 +28,66 @@ var mockedDoScanInternal = func(lockPath string) (models.VulnerabilityResults, e
 	pkg := models.PackageVulns{
 		Package: models.PackageInfo{Name: "fake-package"},
 		Groups:  []models.GroupInfo{group},
-		Vulnerabilities: []osvschema.Vulnerability{
+		Vulnerabilities: []*osvschema.Vulnerability{
 			{
-				ID: "CVE-2020-1234",
-				Severity: []osvschema.Severity{
+				Id: "CVE-2020-1234",
+				Severity: []*osvschema.Severity{
 					{
-						Type:  osvschema.SeverityType("critical"),
-						Score: "1",
+						Type:  osvschema.Severity_CVSS_V3,
+						Score: "9.0",
 					},
 				},
-				DatabaseSpecific: map[string]interface{}{
-					"severity": SeverityCritical,
-				},
+				DatabaseSpecific: func() *structpb.Struct {
+					s, _ := structpb.NewStruct(map[string]interface{}{
+						"severity": SeverityCritical,
+					})
+					return s
+				}(),
 			},
 			{
-				ID: "CVE-2021-1234",
-				Severity: []osvschema.Severity{
+				Id: "CVE-2021-1234",
+				Severity: []*osvschema.Severity{
 					{
-						Type:  osvschema.SeverityType("high"),
-						Score: "1",
+						Type:  osvschema.Severity_CVSS_V3,
+						Score: "7.5",
 					},
 				},
-				DatabaseSpecific: map[string]interface{}{
-					"severity": SeverityHigh,
-				},
+				DatabaseSpecific: func() *structpb.Struct {
+					s, _ := structpb.NewStruct(map[string]interface{}{
+						"severity": SeverityHigh,
+					})
+					return s
+				}(),
 			},
 			{
-				ID: "CVE-2022-1234",
-				Severity: []osvschema.Severity{
+				Id: "CVE-2022-1234",
+				Severity: []*osvschema.Severity{
 					{
-						Type:  osvschema.SeverityType("moderate"),
-						Score: "1",
+						Type:  osvschema.Severity_CVSS_V3,
+						Score: "5.0",
 					},
 				},
-				DatabaseSpecific: map[string]interface{}{
-					"severity": SeverityModerate,
-				},
+				DatabaseSpecific: func() *structpb.Struct {
+					s, _ := structpb.NewStruct(map[string]interface{}{
+						"severity": SeverityModerate,
+					})
+					return s
+				}(),
 			},
 			{
-				ID: "CVE-2023-1234",
-				Severity: []osvschema.Severity{
+				Id: "CVE-2023-1234",
+				Severity: []*osvschema.Severity{
 					{
-						Type:  osvschema.SeverityType("low"),
-						Score: "1",
+						Type:  osvschema.Severity_CVSS_V3,
+						Score: "3.0",
 					},
 				},
-				DatabaseSpecific: map[string]interface{}{
-					"severity": SeverityLow,
-				},
+				DatabaseSpecific: func() *structpb.Struct {
+					s, _ := structpb.NewStruct(map[string]interface{}{
+						"severity": SeverityLow,
+					})
+					return s
+				}(),
 			},
 		},
 	}
@@ -210,18 +223,21 @@ func TestOSVScannerWhitelistedPackage(t *testing.T) {
 		pkg := models.PackageVulns{
 			Package: models.PackageInfo{Name: "playwright", Version: "1.55.0"},
 			Groups:  []models.GroupInfo{group},
-			Vulnerabilities: []osvschema.Vulnerability{
+			Vulnerabilities: []*osvschema.Vulnerability{
 				{
-					ID: "CVE-2024-PLAYWRIGHT-001",
-					Severity: []osvschema.Severity{
+					Id: "CVE-2024-PLAYWRIGHT-001",
+					Severity: []*osvschema.Severity{
 						{
-							Type:  osvschema.SeverityType("high"),
+							Type:  osvschema.Severity_CVSS_V3,
 							Score: "7.5",
 						},
 					},
-					DatabaseSpecific: map[string]interface{}{
-						"severity": SeverityHigh,
-					},
+					DatabaseSpecific: func() *structpb.Struct {
+						s, _ := structpb.NewStruct(map[string]interface{}{
+							"severity": SeverityHigh,
+						})
+						return s
+					}(),
 				},
 			},
 		}
