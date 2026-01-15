@@ -142,6 +142,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	// check if go sdk was replaced before doing any version checks
+	for _, req := range goModParsed.Replace {
+		if req.Old.Path == "github.com/grafana/grafana-plugin-sdk-go" &&
+			req.New.Path != "github.com/grafana/grafana-plugin-sdk-go" {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				goSdkReplaced,
+				"Your plugin is using a custom or forked version of the Grafana Go SDK",
+				"Custom or forked version of Grafana Go SDK are not supported. Please use the latest Grafana Go SDK (github.com/grafana/grafana-plugin-sdk-go)",
+			)
+			return nil, nil
+		}
+	}
+
 	latestRelease, err := githubapi.FetchLatestGrafanaSdkRelease()
 	if err != nil {
 		// it is most likely this failed because of github auth or rate limits
@@ -154,10 +168,23 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	// fetch the release date of the sdk version the plugin uses
+	pluginSdkRelease, err := githubapi.FetchGrafanaSdkReleaseByTag(pluginGoSdkVersion)
+	if err != nil {
+		logme.DebugFln("Error fetching plugin SDK release: %s", err.Error())
+		pass.ReportResult(
+			pass.AnalyzerName,
+			goModError,
+			"Could not verify your Grafana Go SDK version",
+			"We could not fetch the release information for your SDK version. Please ensure you are using a valid released version of the Grafana Go SDK.",
+		)
+		return nil, nil
+	}
+
 	// today date in RFC3339 format
 	today := GetNowInRFC3339()
 
-	daysDiff, err := daysDifference(today, latestRelease.PublishedAt)
+	daysDiff, err := daysDifference(today, pluginSdkRelease.PublishedAt)
 	if err != nil {
 		// error calculating the days difference could be a problem in github date format
 		// ignoring it
@@ -185,20 +212,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// check if go sdk was replaced
-	for _, req := range goModParsed.Replace {
-		if req.Old.Path == "github.com/grafana/grafana-plugin-sdk-go" &&
-			req.New.Path != "github.com/grafana/grafana-plugin-sdk-go" {
-			pass.ReportResult(
-				pass.AnalyzerName,
-				goSdkReplaced,
-				"Your plugin is using a custom or forked version of the Grafana Go SDK",
-				"Custom or forked version of Grafana Go SDK are not supported. Please use the latest Grafana Go SDK (github.com/grafana/grafana-plugin-sdk-go)",
-			)
-			return nil, nil
-		}
-	}
-
 	return nil, nil
 }
 
@@ -214,15 +227,14 @@ func daysDifference(date1 string, date2 string) (int, error) {
 		return 0, err
 	}
 
-	// Calculate the difference in days
-	diff := t2.Sub(t1)
+	// Calculate the absolute difference in days
+	diff := t2.Sub(t1).Abs()
 	days := int(diff.Hours() / 24)
 
 	return days, nil
 }
 
 // mockable function for testing
-
 var GetNowInRFC3339 = func() string {
 	return time.Now().UTC().Format(time.RFC3339)
 }
