@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -124,15 +125,30 @@ func validateImage(imgPath string) error {
 		mimeType = svgImage
 	}
 
+	found := false
 	for _, accepted := range acceptedImageTypes {
 		if accepted == mimeType {
-			return nil
+			found = true
+			break
 		}
 	}
 
-	return fmt.Errorf(
-		"invalid screenshot image: %q. Accepted image types: %q",
-		imgPath,
-		acceptedImageTypes,
-	)
+	if !found {
+		return fmt.Errorf(
+			"invalid screenshot image: %q. Accepted image types: %q",
+			imgPath,
+			acceptedImageTypes,
+		)
+	}
+
+	ext := filepath.Ext(imgPath)
+	expectedMimeType := mime.TypeByExtension(ext)
+	if expectedMimeType != mimeType {
+		return fmt.Errorf(
+			"screenshot image has extension mismatch: %q has extension %q but content is %s",
+			imgPath, ext, mimeType,
+		)
+	}
+
+	return nil
 }
