@@ -1,7 +1,10 @@
 package runner
 
 import (
+	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -49,12 +52,123 @@ func Check(
 	}
 
 	initAnalyzers(analyzers, &cfg, pluginId, severityOverwrite)
+	if !params.Parallel {
+		logme.Debugln("running in sequential mode")
+		return checkSequential(analyzers, params)
+	}
+	logme.DebugFln("running in parallel mode")
+	return checkParallel(analyzers, params)
+}
+
+func checkParallel(analyzers []*analysis.Analyzer, params analysis.CheckParams) (analysis.Diagnostics, error) {
+	// TODO: func because it's the same when sequential
+	diagnostics := make(analysis.Diagnostics)
+	var diagnosticsMux sync.Mutex
+	pass := &analysis.Pass{
+		RootDir:     params.ArchiveDir,
+		CheckParams: params,
+		ResultOf:    sync.Map{},
+		Report: func(name string, d analysis.Diagnostic) {
+			// Collect all diagnostics for presenting at the end.
+			diagnosticsMux.Lock()
+			defer diagnosticsMux.Unlock()
+			diagnostics[name] = append(diagnostics[name], d)
+		},
+	}
+
+	var seen sync.Map
+
+	broker := newResultsBroker()
+	ready := make(chan struct{}, len(analyzers))
+	errs := make(chan error, len(analyzers))
+	for _, currentAnalyzer := range analyzers {
+		currentAnalyzer := currentAnalyzer
+		// Subscribe for all dependencies
+		depsChs := make([]<-chan any, 0, len(currentAnalyzer.Requires))
+		for _, dep := range currentAnalyzer.Requires {
+			depsChs = append(depsChs, broker.subscribe(dep))
+		}
+
+		// Start goroutine that will run the analyzer
+		go func() {
+			// Wait for all analyzers to be ready (all pubsub dependency requests done)
+			<-ready
+
+			// Wait for all dependencies to run
+			tickerQuit := make(chan struct{})
+			go func() {
+				ticker := time.NewTicker(time.Second * 30)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						logme.DebugFln("analyzer %s: waiting for dependencies", currentAnalyzer.Name)
+					case <-tickerQuit:
+						return
+					}
+				}
+			}()
+			var wg sync.WaitGroup
+			wg.Add(len(depsChs))
+			for _, depCh := range depsChs {
+				go func() {
+					defer wg.Done()
+					<-depCh
+				}()
+			}
+			tickerQuit <- struct{}{}
+			close(tickerQuit)
+			logme.DebugFln("analyzer %s: all dependencies done", currentAnalyzer.Name)
+
+			// Do not run the same analyzer twice
+			if _, ok := seen.Load(currentAnalyzer); ok {
+				// Always return nil error to the main goroutine
+				logme.DebugFln("analyzer %s: analyzer already run", currentAnalyzer.Name)
+				errs <- nil
+				return
+			}
+			seen.Store(currentAnalyzer, true)
+			logme.DebugFln("Running analyzer %s", currentAnalyzer.Name)
+
+			// Run the analyzer
+			// TODO: concurrent???
+			pass.AnalyzerName = currentAnalyzer.Name
+			// TODO: ensure no concurrent access in analyzers
+			res, err := currentAnalyzer.Run(pass)
+			// Publish the result to all subscribers (dependent analyzers)
+			defer func() {
+				logme.DebugFln("analyzer %s: publishing result", currentAnalyzer.Name)
+				broker.publish(currentAnalyzer, res)
+			}()
+			if err != nil {
+				errs <- err
+				return
+			}
+			pass.ResultOf.Store(currentAnalyzer, res)
+			errs <- nil
+		}()
+	}
+
+	// Signal all goroutines that subscription is done and analyzers are ready to run
+	for i := 0; i < len(analyzers); i++ {
+		ready <- struct{}{}
+	}
+
+	// Await all errors from all goroutines and return combined error
+	var finalErr error
+	for i := 0; i < len(analyzers); i++ {
+		errors.Join(finalErr, <-errs)
+	}
+	return diagnostics, finalErr
+}
+
+func checkSequential(analyzers []*analysis.Analyzer, params analysis.CheckParams) (analysis.Diagnostics, error) {
 	diagnostics := make(analysis.Diagnostics)
 
 	pass := &analysis.Pass{
 		RootDir:     params.ArchiveDir,
 		CheckParams: params,
-		ResultOf:    make(map[*analysis.Analyzer]interface{}),
+		ResultOf:    sync.Map{},
 		Report: func(name string, d analysis.Diagnostic) {
 			// Collect all diagnostics for presenting at the end.
 			diagnostics[name] = append(diagnostics[name], d)
@@ -88,7 +202,7 @@ func Check(
 		if err != nil {
 			return err
 		}
-		pass.ResultOf[currentAnalyzer] = res
+		pass.ResultOf.Store(currentAnalyzer, res)
 
 		return nil
 	}
@@ -99,7 +213,6 @@ func Check(
 			return diagnostics, err
 		}
 	}
-
 	return diagnostics, nil
 }
 

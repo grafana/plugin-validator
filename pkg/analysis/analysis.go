@@ -2,6 +2,7 @@ package analysis
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
@@ -20,8 +21,22 @@ type Pass struct {
 	AnalyzerName string
 	RootDir      string
 	CheckParams  CheckParams
-	ResultOf     map[*Analyzer]interface{}
-	Report       func(string, Diagnostic)
+	// ResultOf is a map[*Analyzer]any that holds the results of all analyzers and is safe for concurrent use.
+	// The convenience method GetResult can be used to retrieve typed results, or the map can be accessed directly.
+	ResultOf sync.Map
+	Report   func(string, Diagnostic)
+}
+
+func GetResult[T any](pass *Pass, key *Analyzer) (T, bool) {
+	anyV, ok := pass.ResultOf.Load(key)
+	if anyV == nil {
+		// Special case for nil result.
+		// Return the zero value of T, otherwise the type assertion below will panic
+		// due to nil interface{} not being assignable to T.
+		var zero T
+		return zero, ok
+	}
+	return anyV.(T), ok
 }
 
 type CheckParams struct {
@@ -39,6 +54,8 @@ type CheckParams struct {
 	ArchiveCalculatedMD5 string
 	// ArchiveCalculatedSHA1 contains the sha1 checksum calculated from the archive
 	ArchiveCalculatedSHA1 string
+
+	Parallel bool
 }
 
 func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, detail string) {
