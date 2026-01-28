@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -62,15 +63,13 @@ func Check(
 		// Check for exceptions at the rule level
 		if analyzerConfig, ok := cfg.Analyzers[pass.AnalyzerName]; ok {
 			if ruleConfig, ok := analyzerConfig.Rules[ruleName]; ok {
-				for _, exceptedPluginID := range ruleConfig.Exceptions {
-					if exceptedPluginID == pluginId {
-						logme.DebugFln(
-							"Diagnostic for rule '%s' skipped for plugin '%s' due to a rule-level exception.",
-							ruleName,
-							pluginId,
-						)
-						return
-					}
+				if slices.Contains(ruleConfig.Exceptions, pluginId) {
+					logme.DebugFln(
+						"Diagnostic for rule '%s' skipped for plugin '%s' due to a rule-level exception.",
+						ruleName,
+						pluginId,
+					)
+					return
 				}
 			}
 		}
@@ -186,10 +185,8 @@ func initAnalyzers(
 
 func isExcepted(pluginId string, cfg *AnalyzerConfig) bool {
 	if len(pluginId) > 0 && cfg != nil && len(cfg.Exceptions) > 0 {
-		for _, exception := range cfg.Exceptions {
-			if exception == pluginId {
-				return true
-			}
+		if slices.Contains(cfg.Exceptions, pluginId) {
+			return true
 		}
 	}
 	return false
