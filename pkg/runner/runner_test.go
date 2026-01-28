@@ -111,6 +111,64 @@ func contains(strs []string, str string) bool {
 	return false
 }
 
+func TestRuleExceptions(t *testing.T) {
+	analyzer := &analysis.Analyzer{
+		Name: "testanalyzer",
+		Rules: []*analysis.Rule{
+			{Name: "rule1"},
+			{Name: "rule2"},
+		},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			pass.Report("rule1", analysis.Diagnostic{
+				Title: "diagnostic from rule1",
+			})
+			pass.Report("rule2", analysis.Diagnostic{
+				Title: "diagnostic from rule2",
+			})
+			return nil, nil
+		},
+	}
+
+	config := Config{
+		Global: GlobalConfig{Enabled: true},
+		Analyzers: map[string]AnalyzerConfig{
+			"testanalyzer": {
+				Rules: map[string]RuleConfig{
+					"rule1": {
+						Exceptions: []string{"myorg-plugin-panel"},
+					},
+				},
+			},
+		},
+	}
+
+	pluginDir := filepath.Join("testdata", "RuleExceptions", "myorg-plugin-panel")
+
+	ds, err := Check([]*analysis.Analyzer{analyzer},
+		analysis.CheckParams{
+			ArchiveDir: pluginDir,
+		},
+		config,
+		analysis.Severity(""),
+	)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var diagnostics []string
+	for name := range ds {
+		for _, d := range ds[name] {
+			diagnostics = append(diagnostics, d.Title)
+		}
+	}
+
+	// rule1 should be skipped
+	assert.NotContains(t, diagnostics, "diagnostic from rule1")
+	// rule2 should be reported
+	assert.Contains(t, diagnostics, "diagnostic from rule2")
+}
+
 func TestLinearDependencies(t *testing.T) {
 	res := make(map[string]bool)
 	first := &analysis.Analyzer{

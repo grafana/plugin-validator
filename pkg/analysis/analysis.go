@@ -20,7 +20,7 @@ type Pass struct {
 	AnalyzerName string
 	RootDir      string
 	CheckParams  CheckParams
-	ResultOf     map[*Analyzer]interface{}
+	ResultOf     map[*Analyzer]any
 	Report       func(string, Diagnostic)
 }
 

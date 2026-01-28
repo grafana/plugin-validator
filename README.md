@@ -158,6 +158,35 @@ Severity levels could be: `error`, `warning`, or `ok`.
 
 > Note: Grafana Labs enforces its own configuration for plugins submissions and your own config file can't change these rules.
 
+#### Excluding a plugin from an analyzer or rule
+
+It's also possible to exclude a specific plugin from an analyzer or a specific rule within an analyzer. This is useful when a particular check is not applicable to your plugin.
+
+To disable an entire analyzer for a plugin, add an `exceptions` list with the plugin ID.
+
+```yaml
+analyzers:
+  some-analyzer:
+    enabled: true
+    # This entire analyzer will be skipped for 'my-plugin-id'
+    exceptions:
+      - my-plugin-id
+```
+
+To disable a single rule for a plugin, add the `exceptions` list to the rule's configuration.
+
+```yaml
+analyzers:
+  some-analyzer:
+    rules:
+      some-rule:
+        enabled: true
+        # This rule will be skipped for 'my-plugin-id'
+        exceptions:
+          - my-plugin-id
+```
+
+
 ### Source code
 
 You can specify the location of the plugin source code to the validator with the `-sourceCodeUri` option. Doing so allows for additional [analyzers](#analyzers) to be run and for a more complete scan.

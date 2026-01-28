@@ -29,8 +29,9 @@ type AnalyzerConfig struct {
 }
 
 type RuleConfig struct {
-	Enabled  *bool              `yaml:"enabled"`
-	Severity *analysis.Severity `yaml:"severity"`
+	Enabled    *bool              `yaml:"enabled"`
+	Severity   *analysis.Severity `yaml:"severity"`
+	Exceptions []string           `yaml:"exceptions"`
 }
 
 var defaultSeverity = analysis.Warning
@@ -54,11 +55,27 @@ func Check(
 	pass := &analysis.Pass{
 		RootDir:     params.ArchiveDir,
 		CheckParams: params,
-		ResultOf:    make(map[*analysis.Analyzer]interface{}),
-		Report: func(name string, d analysis.Diagnostic) {
-			// Collect all diagnostics for presenting at the end.
-			diagnostics[name] = append(diagnostics[name], d)
-		},
+		ResultOf:    make(map[*analysis.Analyzer]any),
+	}
+
+	pass.Report = func(ruleName string, d analysis.Diagnostic) {
+		// Check for exceptions at the rule level
+		if analyzerConfig, ok := cfg.Analyzers[pass.AnalyzerName]; ok {
+			if ruleConfig, ok := analyzerConfig.Rules[ruleName]; ok {
+				for _, exceptedPluginID := range ruleConfig.Exceptions {
+					if exceptedPluginID == pluginId {
+						logme.DebugFln(
+							"Diagnostic for rule '%s' skipped for plugin '%s' due to a rule-level exception.",
+							ruleName,
+							pluginId,
+						)
+						return
+					}
+				}
+			}
+		}
+		// Collect all diagnostics for presenting at the end.
+		diagnostics[ruleName] = append(diagnostics[ruleName], d)
 	}
 
 	seen := make(map[*analysis.Analyzer]bool)

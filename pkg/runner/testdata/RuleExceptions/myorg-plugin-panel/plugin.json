@@ -1,0 +1,5 @@
+{
+  "id": "myorg-plugin-panel",
+  "name": "my-plugin",
+  "type": "panel"
+}
