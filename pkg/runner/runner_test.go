@@ -17,6 +17,7 @@ var tests = []struct {
 }{
 	{Dir: "EmptyArchive", Messages: []string{
 		"Archive is empty",
+		"LLM review skipped due to errors in archive",
 	}},
 	{Dir: "EmptyDirectory", Messages: []string{
 		"missing plugin.json",
@@ -26,6 +27,7 @@ var tests = []struct {
 		"LICENSE file not found",
 		"plugin.json not found",
 		"missing CHANGELOG.md",
+		"LLM review skipped due to errors in metadata",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"empty manifest",
