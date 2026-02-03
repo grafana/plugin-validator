@@ -77,6 +77,16 @@ func (p *Pass) GetAnalyzerDiagnostics(a *Analyzer) []Diagnostic {
 	return result
 }
 
+// AnalyzerHasErrors returns true if the given analyzer reported any diagnostics with Error severity.
+func (p *Pass) AnalyzerHasErrors(a *Analyzer) bool {
+	for _, d := range p.GetAnalyzerDiagnostics(a) {
+		if d.Severity == Error {
+			return true
+		}
+	}
+	return false
+}
+
 type Diagnostic struct {
 	Severity Severity
 	Title    string

@@ -501,3 +501,46 @@ func TestGetAnalyzerDiagnosticsCheckForErrors(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func TestAnalyzerHasErrors(t *testing.T) {
+	errorRule := &analysis.Rule{Name: "error-rule", Severity: analysis.Error}
+	warningRule := &analysis.Rule{Name: "warning-rule", Severity: analysis.Warning}
+
+	analyzerWithErrors := &analysis.Analyzer{
+		Name:  "analyzer-with-errors",
+		Rules: []*analysis.Rule{errorRule, warningRule},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			pass.ReportResult(pass.AnalyzerName, errorRule, "this is an error", "")
+			pass.ReportResult(pass.AnalyzerName, warningRule, "this is a warning", "")
+			return nil, nil
+		},
+	}
+
+	analyzerWithWarningsOnly := &analysis.Analyzer{
+		Name:  "analyzer-warnings-only",
+		Rules: []*analysis.Rule{warningRule},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			pass.ReportResult(pass.AnalyzerName, warningRule, "just a warning", "")
+			return nil, nil
+		},
+	}
+
+	childAnalyzer := &analysis.Analyzer{
+		Name:     "child-analyzer",
+		Requires: []*analysis.Analyzer{analyzerWithErrors, analyzerWithWarningsOnly},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			assert.True(t, pass.AnalyzerHasErrors(analyzerWithErrors), "should detect errors")
+			assert.False(t, pass.AnalyzerHasErrors(analyzerWithWarningsOnly), "should not report errors for warnings-only")
+			return nil, nil
+		},
+	}
+
+	_, err := Check(
+		[]*analysis.Analyzer{childAnalyzer},
+		analysis.CheckParams{},
+		Config{Global: GlobalConfig{Enabled: true}},
+		analysis.Severity(""),
+	)
+
+	assert.NoError(t, err)
+}
