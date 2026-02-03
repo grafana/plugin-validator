@@ -357,7 +357,12 @@ func TestGetAnalyzerDiagnostics(t *testing.T) {
 		Run: func(pass *analysis.Pass) (interface{}, error) {
 			// Child can read parent's diagnostics
 			parentDiagnostics := pass.GetAnalyzerDiagnostics(parentAnalyzer)
-			assert.Len(t, parentDiagnostics, 1, "child should see exactly one diagnostic from parent")
+			assert.Len(
+				t,
+				parentDiagnostics,
+				1,
+				"child should see exactly one diagnostic from parent",
+			)
 			assert.Equal(t, "parent error", parentDiagnostics[0].Title)
 			assert.Equal(t, "parent detail", parentDiagnostics[0].Detail)
 			assert.Equal(t, analysis.Error, parentDiagnostics[0].Severity)
@@ -397,7 +402,11 @@ func TestGetAnalyzerDiagnosticsEmpty(t *testing.T) {
 		Requires: []*analysis.Analyzer{parentAnalyzer},
 		Run: func(pass *analysis.Pass) (interface{}, error) {
 			parentDiagnostics := pass.GetAnalyzerDiagnostics(parentAnalyzer)
-			assert.Empty(t, parentDiagnostics, "should return empty slice when analyzer reported nothing")
+			assert.Empty(
+				t,
+				parentDiagnostics,
+				"should return empty slice when analyzer reported nothing",
+			)
 			return nil, nil
 		},
 	}
@@ -530,7 +539,11 @@ func TestAnalyzerHasErrors(t *testing.T) {
 		Requires: []*analysis.Analyzer{analyzerWithErrors, analyzerWithWarningsOnly},
 		Run: func(pass *analysis.Pass) (interface{}, error) {
 			assert.True(t, pass.AnalyzerHasErrors(analyzerWithErrors), "should detect errors")
-			assert.False(t, pass.AnalyzerHasErrors(analyzerWithWarningsOnly), "should not report errors for warnings-only")
+			assert.False(
+				t,
+				pass.AnalyzerHasErrors(analyzerWithWarningsOnly),
+				"should not report errors for warnings-only",
+			)
 			return nil, nil
 		},
 	}

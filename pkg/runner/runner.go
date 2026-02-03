@@ -60,14 +60,14 @@ func Check(
 		Diagnostics: &diagnostics,
 	}
 
-	pass.Report = func(ruleName string, d analysis.Diagnostic) {
+	pass.Report = func(analyzerName string, d analysis.Diagnostic) {
 		// Check for exceptions at the rule level
 		if analyzerConfig, ok := cfg.Analyzers[pass.AnalyzerName]; ok {
-			if ruleConfig, ok := analyzerConfig.Rules[ruleName]; ok {
+			if ruleConfig, ok := analyzerConfig.Rules[analyzerName]; ok {
 				if slices.Contains(ruleConfig.Exceptions, pluginId) {
 					logme.DebugFln(
 						"Diagnostic for rule '%s' skipped for plugin '%s' due to a rule-level exception.",
-						ruleName,
+						analyzerName,
 						pluginId,
 					)
 					return
@@ -75,7 +75,7 @@ func Check(
 			}
 		}
 		// Collect all diagnostics for presenting at the end.
-		diagnostics[ruleName] = append(diagnostics[ruleName], d)
+		diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
 	}
 
 	seen := make(map[*analysis.Analyzer]bool)
