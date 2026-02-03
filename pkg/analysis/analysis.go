@@ -17,11 +17,13 @@ var (
 )
 
 type Pass struct {
-	AnalyzerName string
-	RootDir      string
-	CheckParams  CheckParams
-	ResultOf     map[*Analyzer]any
-	Report       func(string, Diagnostic)
+	AnalyzerName     string
+	RootDir          string
+	CheckParams      CheckParams
+	ResultOf         map[*Analyzer]any
+	Report           func(string, Diagnostic)
+	Diagnostics      *Diagnostics
+	AnalyzerRulesMap map[string]string
 }
 
 type CheckParams struct {
@@ -57,6 +59,22 @@ func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, det
 		Title:    message,
 		Detail:   detail,
 	})
+}
+
+// GetAnalyzerDiagnostics returns all diagnostics reported by the given analyzer.
+func (p *Pass) GetAnalyzerDiagnostics(a *Analyzer) []Diagnostic {
+	if p.Diagnostics == nil || a == nil {
+		return nil
+	}
+	var result []Diagnostic
+	for key, diags := range *p.Diagnostics {
+		// Key is the analyzer name when using ReportResult (which all validators use)
+		// or a rule name when using Report directly (mainly in tests)
+		if key == a.Name || p.AnalyzerRulesMap[key] == a.Name {
+			result = append(result, diags...)
+		}
+	}
+	return result
 }
 
 type Diagnostic struct {

@@ -53,10 +53,32 @@ func Check(
 	initAnalyzers(analyzers, &cfg, pluginId, severityOverwrite)
 	diagnostics := make(analysis.Diagnostics)
 
+	// Build rule name to analyzer name lookup map (including dependencies)
+	analyzerRulesMap := make(map[string]string)
+	seenAnalyzers := make(map[*analysis.Analyzer]bool)
+	var collectRules func(a *analysis.Analyzer)
+	collectRules = func(a *analysis.Analyzer) {
+		if seenAnalyzers[a] {
+			return
+		}
+		seenAnalyzers[a] = true
+		for _, r := range a.Rules {
+			analyzerRulesMap[r.Name] = a.Name
+		}
+		for _, dep := range a.Requires {
+			collectRules(dep)
+		}
+	}
+	for _, a := range analyzers {
+		collectRules(a)
+	}
+
 	pass := &analysis.Pass{
-		RootDir:     params.ArchiveDir,
-		CheckParams: params,
-		ResultOf:    make(map[*analysis.Analyzer]any),
+		RootDir:          params.ArchiveDir,
+		CheckParams:      params,
+		ResultOf:         make(map[*analysis.Analyzer]any),
+		Diagnostics:      &diagnostics,
+		AnalyzerRulesMap: analyzerRulesMap,
 	}
 
 	pass.Report = func(ruleName string, d analysis.Diagnostic) {
