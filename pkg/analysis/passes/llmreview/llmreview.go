@@ -62,9 +62,26 @@ var blockingAnalyzers = []*analysis.Analyzer{
 }
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "llmreview",
-	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
-	Run:      run,
+	Name: "llmreview",
+	Requires: []*analysis.Analyzer{
+		sourcecode.Analyzer,
+		// Blocking analyzers - if any report errors, LLM review is skipped
+		archive.Analyzer,
+		metadata.Analyzer,
+		metadatavalid.Analyzer,
+		modulejs.Analyzer,
+		coderules.Analyzer,
+		trackingscripts.Analyzer,
+		virusscan.Analyzer,
+		safelinks.Analyzer,
+		unsafesvg.Analyzer,
+		osvscanner.Analyzer,
+		gomanifest.Analyzer,
+		binarypermissions.Analyzer,
+		backendbinary.Analyzer,
+		manifest.Analyzer,
+	},
+	Run: run,
 	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "LLM Review",
