@@ -112,19 +112,18 @@ func contains(strs []string, str string) bool {
 }
 
 func TestRuleExceptions(t *testing.T) {
+	rule1 := &analysis.Rule{Name: "rule1"}
+	rule2 := &analysis.Rule{Name: "rule2"}
+
 	analyzer := &analysis.Analyzer{
 		Name: "testanalyzer",
 		Rules: []*analysis.Rule{
-			{Name: "rule1"},
-			{Name: "rule2"},
+			rule1,
+			rule2,
 		},
 		Run: func(pass *analysis.Pass) (interface{}, error) {
-			pass.Report("rule1", analysis.Diagnostic{
-				Title: "diagnostic from rule1",
-			})
-			pass.Report("rule2", analysis.Diagnostic{
-				Title: "diagnostic from rule2",
-			})
+			pass.ReportResult(pass.AnalyzerName, rule1, "diagnostic from rule1", "")
+			pass.ReportResult(pass.AnalyzerName, rule2, "diagnostic from rule2", "")
 			return nil, nil
 		},
 	}
