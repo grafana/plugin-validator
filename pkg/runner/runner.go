@@ -57,6 +57,7 @@ func Check(
 		RootDir:     params.ArchiveDir,
 		CheckParams: params,
 		ResultOf:    make(map[*analysis.Analyzer]any),
+		Diagnostics: &diagnostics,
 		Report: func(analyzerName string, d analysis.Diagnostic) {
 			diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
 		},
