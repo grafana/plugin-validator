@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
@@ -56,32 +57,16 @@ var blockingAnalyzers = []*analysis.Analyzer{
 	osvscanner.Analyzer,
 	// Tier 3: Build/Integrity issues
 	gomanifest.Analyzer,
+	jssourcemap.Analyzer,
 	binarypermissions.Analyzer,
 	backendbinary.Analyzer,
 	manifest.Analyzer,
 }
 
 var Analyzer = &analysis.Analyzer{
-	Name: "llmreview",
-	Requires: []*analysis.Analyzer{
-		sourcecode.Analyzer,
-		// Blocking analyzers - if any report errors, LLM review is skipped
-		archive.Analyzer,
-		metadata.Analyzer,
-		metadatavalid.Analyzer,
-		modulejs.Analyzer,
-		coderules.Analyzer,
-		trackingscripts.Analyzer,
-		virusscan.Analyzer,
-		safelinks.Analyzer,
-		unsafesvg.Analyzer,
-		osvscanner.Analyzer,
-		gomanifest.Analyzer,
-		binarypermissions.Analyzer,
-		backendbinary.Analyzer,
-		manifest.Analyzer,
-	},
-	Run: run,
+	Name:     "llmreview",
+	Requires: append([]*analysis.Analyzer{sourcecode.Analyzer}, blockingAnalyzers...),
+	Run:      run,
 	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "LLM Review",
