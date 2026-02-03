@@ -22,8 +22,7 @@ type Pass struct {
 	CheckParams      CheckParams
 	ResultOf         map[*Analyzer]any
 	Report           func(string, Diagnostic)
-	Diagnostics      *Diagnostics
-	AnalyzerRulesMap map[string]string
+	Diagnostics *Diagnostics
 }
 
 type CheckParams struct {
@@ -67,10 +66,8 @@ func (p *Pass) GetAnalyzerDiagnostics(a *Analyzer) []Diagnostic {
 		return nil
 	}
 	var result []Diagnostic
-	for key, diags := range *p.Diagnostics {
-		// Key is the analyzer name when using ReportResult (which all validators use)
-		// or a rule name when using Report directly (mainly in tests)
-		if key == a.Name || p.AnalyzerRulesMap[key] == a.Name {
+	for analyzerName, diags := range *p.Diagnostics {
+		if analyzerName == a.Name {
 			result = append(result, diags...)
 		}
 	}
