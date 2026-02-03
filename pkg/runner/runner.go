@@ -57,24 +57,9 @@ func Check(
 		RootDir:     params.ArchiveDir,
 		CheckParams: params,
 		ResultOf:    make(map[*analysis.Analyzer]any),
-	}
-
-	pass.Report = func(ruleName string, d analysis.Diagnostic) {
-		// Check for exceptions at the rule level
-		if analyzerConfig, ok := cfg.Analyzers[pass.AnalyzerName]; ok {
-			if ruleConfig, ok := analyzerConfig.Rules[ruleName]; ok {
-				if slices.Contains(ruleConfig.Exceptions, pluginId) {
-					logme.DebugFln(
-						"Diagnostic for rule '%s' skipped for plugin '%s' due to a rule-level exception.",
-						ruleName,
-						pluginId,
-					)
-					return
-				}
-			}
-		}
-		// Collect all diagnostics for presenting at the end.
-		diagnostics[ruleName] = append(diagnostics[ruleName], d)
+		Report: func(analyzerName string, d analysis.Diagnostic) {
+			diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
+		},
 	}
 
 	seen := make(map[*analysis.Analyzer]bool)
@@ -169,6 +154,15 @@ func initAnalyzers(
 				}
 				if ruleConfig.Severity != nil {
 					ruleSeverity = *ruleConfig.Severity
+				}
+				// Check for rule-level exceptions
+				if slices.Contains(ruleConfig.Exceptions, pluginId) {
+					logme.DebugFln(
+						"Rule '%s' disabled for plugin '%s' due to a rule-level exception.",
+						currentRule.Name,
+						pluginId,
+					)
+					ruleEnabled = false
 				}
 			}
 
