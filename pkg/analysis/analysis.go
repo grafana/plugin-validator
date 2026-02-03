@@ -22,7 +22,7 @@ type Pass struct {
 	CheckParams      CheckParams
 	ResultOf         map[*Analyzer]any
 	Report           func(string, Diagnostic)
-	Diagnostics *Diagnostics
+	Diagnostics      *Diagnostics
 }
 
 type CheckParams struct {
