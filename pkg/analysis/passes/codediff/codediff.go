@@ -12,7 +12,22 @@ import (
 	"text/template"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/backendbinary"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/safelinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
 	"github.com/grafana/plugin-validator/pkg/llmclient"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
@@ -38,13 +53,43 @@ var (
 		Name:     "code-diff-versions",
 		Severity: analysis.SuspectedProblem,
 	}
+	codeDiffSkipped = &analysis.Rule{
+		Name:     "code-diff-skipped",
+		Severity: analysis.SuspectedProblem,
+	}
 )
+
+// blockingAnalyzers contains validators that, if they report errors, should cause
+// the code diff analysis to be skipped to save costs. These are grouped into:
+// - Tier 1 (Structure): archive, metadata, metadatavalid, modulejs
+// - Tier 2 (Security): coderules, trackingscripts, virusscan, safelinks, unsafesvg, osvscanner
+// - Tier 3 (Integrity): gomanifest, binarypermissions, backendbinary, manifest
+var blockingAnalyzers = []*analysis.Analyzer{
+	// Tier 1: Fundamental structure issues
+	archive.Analyzer,
+	metadata.Analyzer,
+	metadatavalid.Analyzer,
+	modulejs.Analyzer,
+	// Tier 2: Security/Policy violations
+	coderules.Analyzer,
+	trackingscripts.Analyzer,
+	virusscan.Analyzer,
+	safelinks.Analyzer,
+	unsafesvg.Analyzer,
+	osvscanner.Analyzer,
+	// Tier 3: Build/Integrity issues
+	gomanifest.Analyzer,
+	jssourcemap.Analyzer,
+	binarypermissions.Analyzer,
+	backendbinary.Analyzer,
+	manifest.Analyzer,
+}
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "codediff",
-	Requires: []*analysis.Analyzer{llmreview.Analyzer},
+	Requires: append([]*analysis.Analyzer{llmreview.Analyzer}, blockingAnalyzers...),
 	Run:      run,
-	Rules:    []*analysis.Rule{codeDiffAnalysis, codeDiffversions},
+	Rules:    []*analysis.Rule{codeDiffAnalysis, codeDiffversions, codeDiffSkipped},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Code Diff",
 		Description:  "",
@@ -67,6 +112,23 @@ func isGitHubURL(url string) bool {
 }
 
 func run(pass *analysis.Pass) (any, error) {
+	// Check if any blocking analyzers reported errors - skip code diff to save costs
+	// keep here before source code and key check for tests to work
+	for _, analyzer := range blockingAnalyzers {
+		if pass.AnalyzerHasErrors(analyzer) {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				codeDiffSkipped,
+				fmt.Sprintf("Code diff skipped due to errors in %s", analyzer.Name),
+				fmt.Sprintf(
+					"Fix the errors reported by %s before code diff can run.",
+					analyzer.Name,
+				),
+			)
+			return nil, nil
+		}
+	}
+
 	if pass.CheckParams.SourceCodeReference == "" {
 		return nil, nil
 	}
