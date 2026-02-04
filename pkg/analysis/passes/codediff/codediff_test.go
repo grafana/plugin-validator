@@ -5,12 +5,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/llmclient"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/jarcoal/httpmock"
-	"github.com/stretchr/testify/require"
 )
 
 func mockGrafanaClockPanelVersionsAPI() {
@@ -258,4 +261,67 @@ func TestLLMResponseFiltering_NoResponsesAreIgnored(t *testing.T) {
 
 	// Verify the only report is the diff URL report
 	require.Equal(t, "code-diff-versions", interceptor.Diagnostics[0].Name)
+}
+
+func TestCodeDiffSkipsWhenBlockingAnalyzerHasErrors(t *testing.T) {
+	// Simulate diagnostics from a blocking analyzer (archive)
+	diagnostics := analysis.Diagnostics{
+		archive.Analyzer.Name: []analysis.Diagnostic{
+			{
+				Name:     "empty-archive",
+				Severity: analysis.Error,
+				Title:    "Archive is empty",
+			},
+		},
+	}
+
+	pass := &analysis.Pass{
+		AnalyzerName: Analyzer.Name,
+		ResultOf:     map[*analysis.Analyzer]any{},
+		Diagnostics:  &diagnostics,
+		Report: func(analyzerName string, d analysis.Diagnostic) {
+			diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
+		},
+	}
+
+	_, err := run(pass)
+	assert.NoError(t, err)
+
+	// Check that codeDiffSkipped diagnostic was reported
+	codediffDiags := diagnostics[Analyzer.Name]
+	assert.Len(t, codediffDiags, 1)
+	assert.Equal(t, "code-diff-skipped", codediffDiags[0].Name)
+	assert.Contains(t, codediffDiags[0].Title, archive.Analyzer.Name)
+}
+
+func TestCodeDiffDoesNotSkipOnWarnings(t *testing.T) {
+	// Simulate diagnostics with only warnings (no errors)
+	diagnostics := analysis.Diagnostics{
+		metadata.Analyzer.Name: []analysis.Diagnostic{
+			{
+				Name:     "some-warning",
+				Severity: analysis.Warning,
+				Title:    "This is just a warning",
+			},
+		},
+	}
+
+	pass := &analysis.Pass{
+		AnalyzerName: Analyzer.Name,
+		ResultOf:     map[*analysis.Analyzer]any{},
+		Diagnostics:  &diagnostics,
+		Report: func(analyzerName string, d analysis.Diagnostic) {
+			diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
+		},
+	}
+
+	_, err := run(pass)
+	assert.NoError(t, err)
+
+	// Code diff should NOT have reported a skip (it will exit early due to no source code reference)
+	// But importantly, it should NOT have reported codeDiffSkipped
+	codediffDiags := diagnostics[Analyzer.Name]
+	for _, d := range codediffDiags {
+		assert.NotEqual(t, "code-diff-skipped", d.Name, "should not skip on warnings only")
+	}
 }

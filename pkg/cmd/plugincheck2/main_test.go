@@ -125,6 +125,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "sponsorshiplink",
 						},
 					},
+					"codediff": {
+						{
+							Severity: "suspected",
+							Title:    "Code diff skipped due to errors in manifest",
+							Detail:   "Fix the errors reported by manifest before code diff can run.",
+							Name:     "code-diff-skipped",
+						},
+					},
 				},
 			},
 		},
@@ -165,6 +173,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "Plugin archive is improperly structured",
 							Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
 							Name:     "zip-invalid",
+						},
+					},
+					"codediff": {
+						{
+							Severity: "suspected",
+							Title:    "Code diff skipped due to errors in archive",
+							Detail:   "Fix the errors reported by archive before code diff can run.",
+							Name:     "code-diff-skipped",
 						},
 					},
 				},
@@ -253,6 +269,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "You can include a sponsorship link if you want users to support your work",
 							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
+						},
+					},
+					"codediff": {
+						{
+							Severity: "suspected",
+							Title:    "Code diff skipped due to errors in metadatavalid",
+							Detail:   "Fix the errors reported by metadatavalid before code diff can run.",
+							Name:     "code-diff-skipped",
 						},
 					},
 				},
