@@ -80,21 +80,6 @@ func FindPluginVersionsRefs(
 		cleanup = cleanupFn
 	}
 
-	pluginMetadata, err := utils.GetPluginMetadata(archivePath)
-	if err != nil {
-		logme.DebugFln("Failed to extract plugin metadata: %v", err)
-		return nil, nil, fmt.Errorf("failed to extract plugin metadata from archive: %w", err)
-	}
-	pluginID := pluginMetadata.ID
-	rawPluginVersion := pluginMetadata.Info.Version
-
-	// Resolve %VERSION% placeholder if present
-	pluginVersion, err := resolveVersion(archivePath, rawPluginVersion)
-	if err != nil {
-		logme.DebugFln("Failed to resolve plugin version: %v", err)
-		return nil, nil, fmt.Errorf("failed to resolve plugin version: %w", err)
-	}
-
 	repoInfo, err := repotool.ParseRepoFromGitURL(githubURL)
 	if err != nil {
 		logme.DebugFln("Failed to parse GitHub URL: %v", err)
@@ -107,6 +92,25 @@ func FindPluginVersionsRefs(
 		repoInfo.Ref,
 	)
 
+	logme.DebugFln("Fetching repository tags")
+	// Fetch all tags so we can checkout to any tag ref (shallow clones don't include all tags)
+	fetchTagsCmd := exec.Command("git", "fetch", "--tags")
+	fetchTagsCmd.Dir = archivePath
+	if err := fetchTagsCmd.Run(); err != nil {
+		logme.DebugFln("Failed to fetch tags: %v", err)
+	}
+
+	// Try to fetch the specific ref in case it's a branch (shallow clones only have default branch)
+	if repoInfo.Ref != "" {
+		logme.DebugFln("Fetching ref: %s", repoInfo.Ref)
+		fetchRefCmd := exec.Command("git", "fetch", "origin", repoInfo.Ref)
+		fetchRefCmd.Dir = archivePath
+		if err := fetchRefCmd.Run(); err != nil {
+			logme.DebugFln("Failed to fetch ref %s (may not be a branch): %v", repoInfo.Ref, err)
+		}
+	}
+
+	logme.DebugFln("Checking out ref: %s", repoInfo.Ref)
 	if repoInfo.Ref != "" {
 		cmd := exec.Command("git", "checkout", repoInfo.Ref)
 		cmd.Dir = archivePath
@@ -128,12 +132,28 @@ func FindPluginVersionsRefs(
 		}
 	}
 
+	pluginMetadata, err := utils.GetPluginMetadata(archivePath)
+	if err != nil {
+		logme.DebugFln("Failed to extract plugin metadata: %v", err)
+		return nil, nil, fmt.Errorf("failed to extract plugin metadata from archive: %w", err)
+	}
+	pluginID := pluginMetadata.ID
+	rawPluginVersion := pluginMetadata.Info.Version
+
+	// Resolve %VERSION% placeholder if present
+	pluginVersion, err := resolveVersion(archivePath, rawPluginVersion)
+	if err != nil {
+		logme.DebugFln("Failed to resolve plugin version: %v", err)
+		return nil, nil, fmt.Errorf("failed to resolve plugin version: %w", err)
+	}
+
 	var currentGrafanaVersion *repotool.VersionInfo
 
 	grafanaClient := grafana.NewClient()
 	grafanaVersions, err := grafanaClient.FindPluginVersions(pluginID)
 
 	if err == nil && len(grafanaVersions) >= 1 {
+		logme.DebugFln("Found %d Grafana API versions", len(grafanaVersions))
 		grafanaAPIVersion := grafanaVersions[0]
 		logme.DebugFln("Found Grafana API version: %s", grafanaAPIVersion.Version)
 
@@ -156,6 +176,7 @@ func FindPluginVersionsRefs(
 			}
 		}
 	}
+	logme.DebugFln("Current Grafana version: %s", currentGrafanaVersion)
 
 	// Get current commit SHA for the submitted version
 	cmd := exec.Command("git", "rev-parse", "HEAD")

@@ -211,7 +211,7 @@ func FindReleaseByVersion(
 					CommitSHA: commitSHA,
 					Source:    "github_release",
 					CreatedAt: createdAt,
-					URL:       release.HTMLURL,
+					URL:       fmt.Sprintf("https://github.com/%s/%s/commit/%s", repo.Owner, repo.Repo, commitSHA),
 				}, nil
 			}
 		}
@@ -226,18 +226,12 @@ func FindReleaseByVersion(
 			searchVersion := strings.TrimPrefix(version, "v")
 
 			if strings.EqualFold(tagVersion, searchVersion) {
-				tagURL := fmt.Sprintf(
-					"https://github.com/%s/%s/tree/%s",
-					repo.Owner,
-					repo.Repo,
-					tag.Name,
-				)
 				return &VersionInfo{
 					Version:   tag.Name,
 					CommitSHA: tag.Commit.SHA,
 					Source:    "github_tag",
 					CreatedAt: time.Time{}, // Tags don't have creation time in the API
-					URL:       tagURL,
+					URL:       fmt.Sprintf("https://github.com/%s/%s/commit/%s", repo.Owner, repo.Repo, tag.Commit.SHA),
 				}, nil
 			}
 		}
