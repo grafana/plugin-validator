@@ -191,6 +191,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "llm-review-skipped",
 						},
 					},
+					"codediff": {
+						{
+							Severity: "suspected",
+							Title:    "Code diff skipped due to errors in archive",
+							Detail:   "Fix the errors reported by archive before code diff can run.",
+							Name:     "code-diff-skipped",
+						},
+					},
 				},
 			},
 		},
@@ -285,6 +293,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "LLM review skipped due to errors in metadatavalid",
 							Detail:   "Fix the errors reported by metadatavalid before LLM review can run.",
 							Name:     "llm-review-skipped",
+						},
+					},
+					"codediff": {
+						{
+							Severity: "suspected",
+							Title:    "Code diff skipped due to errors in metadatavalid",
+							Detail:   "Fix the errors reported by metadatavalid before code diff can run.",
+							Name:     "code-diff-skipped",
 						},
 					},
 				},

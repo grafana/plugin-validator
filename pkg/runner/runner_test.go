@@ -29,7 +29,7 @@ var tests = []struct {
 		"plugin.json not found",
 		"missing CHANGELOG.md",
 		"LLM review skipped due to errors in metadata",
-		"Code diff skipped due to errors in archive",
+		"Code diff skipped due to errors in metadata",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"empty manifest",
