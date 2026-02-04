@@ -294,7 +294,7 @@ Run "mage gen:readme" to regenerate this section.
 | Sponsorship Link / `sponsorshiplink` | Checks if a sponsorship link is specified in `plugin.json` that will be shown in the Grafana plugin catalog for users to support the plugin developer. | None |
 | Type Suffix (panel/app/datasource) / `typesuffix` | Ensures the plugin has a valid type specified. | None |
 | Unique README.md / `templatereadme` | Ensures the plugin doesn't re-use the template from the `create-plugin` tool. | None |
-| Unsafe SVG / `manifest` | Checks if any svg files are safe based on a whitelist of elements and attributes. | None |
+| Unsafe SVG / `unsafesvg` | Checks if any svg files are safe based on a whitelist of elements and attributes. | None |
 | Version / `version` | Ensures the version submitted is newer than the currently published plugin. If this is a new/unpublished plugin, this is skipped. | None |
 | Virus Scan / `virusscan` | Runs a virus scan on the plugin archive and source code using `clamscan` (`clamav`). | clamscan |
 | Vulnerability Scanner / `osv-scanner` | Detects critical vulnerabilities in Go modules and yarn lock files. | [osv-scanner](https://github.com/google/osv-scanner), `sourceCodeUri` |

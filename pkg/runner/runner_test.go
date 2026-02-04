@@ -17,6 +17,7 @@ var tests = []struct {
 }{
 	{Dir: "EmptyArchive", Messages: []string{
 		"Archive is empty",
+		"LLM review skipped due to errors in archive",
 		"Code diff skipped due to errors in archive",
 	}},
 	{Dir: "EmptyDirectory", Messages: []string{
@@ -27,7 +28,8 @@ var tests = []struct {
 		"LICENSE file not found",
 		"plugin.json not found",
 		"missing CHANGELOG.md",
-		"Code diff skipped due to errors in metadata",
+		"LLM review skipped due to errors in metadata",
+		"Code diff skipped due to errors in archive",
 	}},
 	{Dir: "AllFilesPresentButEmpty", Messages: []string{
 		"empty manifest",
@@ -46,6 +48,7 @@ var tests = []struct {
 		"CHANGELOG.md is empty",
 		"You can include a sponsorship link if you want users to support your work",
 		"plugin.json: plugin id should follow the format org-name-type",
+		"LLM review skipped due to errors in metadatavalid",
 		"Code diff skipped due to errors in metadatavalid",
 	}},
 }

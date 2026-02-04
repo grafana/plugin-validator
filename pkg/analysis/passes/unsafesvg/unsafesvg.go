@@ -16,7 +16,7 @@ var (
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "manifest",
+	Name:     "unsafesvg",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules:    []*analysis.Rule{unsafeSvgFile},
@@ -47,7 +47,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		}
 		err = svgValidator.Validate(svgContent)
 		if err != nil {
-			pass.ReportResult(pass.AnalyzerName, unsafeSvgFile, fmt.Sprintf("SVG file %s is unsafe", svgFile), err.Error())
+			pass.ReportResult(
+				pass.AnalyzerName,
+				unsafeSvgFile,
+				fmt.Sprintf("SVG file %s is unsafe", svgFile),
+				err.Error(),
+			)
 		}
 
 	}
