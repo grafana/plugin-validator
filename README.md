@@ -250,6 +250,7 @@ Run "mage gen:readme" to regenerate this section.
 -->
 | Analyzer | Description | Dependencies |
 |----------|-------------|--------------|
+| API Compatibility / `levitate` | Checks if plugin source code is compatible with target Grafana version ranges using Levitate. | [levitate](https://github.com/grafana/levitate), `sourceCodeUri` |
 | Archive Name / `archivename` | The name of the archive should be correctly formatted. | None |
 | Archive Structure / `archive` | Ensures the contents of the zip file have the expected layout. | None |
 | Backend Binary / `backendbinary` | Validates the consistency between the existence of a binary file and plugin.json declarations for backend or alerting. | None |

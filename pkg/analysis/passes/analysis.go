@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacybuilder"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/legacyplatform"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/levitate"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/license"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
@@ -71,6 +72,7 @@ var Analyzers = []*analysis.Analyzer{
 	jssourcemap.Analyzer,
 	legacybuilder.Analyzer,
 	legacyplatform.Analyzer,
+	levitate.Analyzer,
 	license.Analyzer,
 	safelinks.Analyzer,
 	llmreview.Analyzer,
