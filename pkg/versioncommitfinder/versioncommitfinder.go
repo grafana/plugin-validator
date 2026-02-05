@@ -1,12 +1,14 @@
 package versioncommitfinder
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -25,6 +27,11 @@ type VersionComparison struct {
 
 type PackageJson struct {
 	Version string `json:"version"`
+}
+
+type geminiOutput struct {
+	CommitSHA string `json:"commitSHA"`
+	Reasoning string `json:"reasoning"`
 }
 
 // resolveVersion resolves the %VERSION% placeholder by reading package.json
@@ -178,6 +185,25 @@ func FindPluginVersionsRefs(
 	}
 	logme.DebugFln("Current Grafana version: %s", currentGrafanaVersion)
 
+	// If we still don't have a commit SHA, try gemini as a last resort
+	if currentGrafanaVersion != nil && currentGrafanaVersion.CommitSHA == "" {
+		logme.DebugFln("Attempting to find commit SHA using gemini CLI")
+		if sha, err := findCommitWithGemini(archivePath, currentGrafanaVersion.Version); err == nil &&
+			sha != "" {
+			currentGrafanaVersion.CommitSHA = sha
+			currentGrafanaVersion.Source = "gemini"
+			currentGrafanaVersion.URL = fmt.Sprintf(
+				"https://github.com/%s/%s/commit/%s",
+				repoInfo.Owner,
+				repoInfo.Repo,
+				sha,
+			)
+			logme.DebugFln("Found commit SHA via gemini: %s", sha)
+		} else if err != nil {
+			logme.DebugFln("Gemini fallback failed: %v", err)
+		}
+	}
+
 	// Get current commit SHA for the submitted version
 	cmd := exec.Command("git", "rev-parse", "HEAD")
 	cmd.Dir = archivePath
@@ -212,4 +238,149 @@ func FindPluginVersionsRefs(
 		Repository:             repoInfo,
 		RepositoryPath:         archivePath,
 	}, cleanup, nil
+}
+
+// findCommitWithGemini uses gemini CLI as a last resort to find the commit SHA
+// that corresponds to a specific version by analyzing git history.
+func findCommitWithGemini(archivePath, version string) (string, error) {
+	// Only run if GEMINI_API_KEY is set
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		return "", fmt.Errorf("GEMINI_API_KEY not set, skipping gemini fallback")
+	}
+
+	logme.DebugFln("Using gemini CLI to find commit for version %s", version)
+
+	// Build the prompt
+	prompt := fmt.Sprintf(
+		`You are in a git repository. Find the commit SHA for when version "%s was released".
+
+IMPORTANT: Follow this EXACT process step by step. Explain what you are doing and what you find at each step.
+
+## STEP 1: INVESTIGATION (find candidates)
+Search for the version using multiple approaches:
+- Check git tags: git tag -l "*%s*" or git tag -l
+- Search commit messages: git log --oneline --grep="%s"
+- Look for release patterns: git log --oneline --grep="release"
+- Check recent history: git log --oneline -30
+
+Different developers have different workflows, you must keep in consideration:
+- Some bump the version first, then work on features, then package/release later
+- Some implement changes first, then bump version at the end as the release commit
+- CHANGELOGS are unreliable, always validate your findings
+
+We want the commit that "truly" signifies when the version was "completed"
+
+## STEP 2: VERIFICATION (mandatory - do not skip!)
+Once you find a candidate commit, you MUST verify it by checking the actual SOURCE files:
+
+git show <commit>:src/plugin.json | grep version
+git show <commit>:package.json | grep version
+
+IMPORTANT: IGNORE the dist/ folder - it contains build artifacts, not source files.
+
+Check src/plugin.json as the SOURCE OF TRUTH for the version.
+- If src/plugin.json has an actual version number, that version MUST match "%s"
+- If src/plugin.json has a "%%VERSION%%" placeholder, THEN check package.json for the actual version
+- package.json is sometimes bumped BEFORE src/plugin.json - if they differ, keep looking for when src/plugin.json was updated to "%s"
+
+## STEP 3: DOUBLE-CHECK (mandatory - do not skip!)
+Even if you found a matching commit, investigate AT LEAST ONE more approach:
+- If you found it via tag, also check commit messages
+- If you found it via commit message, also check tags
+- Look at the commit BEFORE your candidate to see if version was already there
+- Is this the commit that had a "full" version? Developers can bump version and keep pilling up commits after for the same version.
+
+This helps catch cases where version was bumped earlier than the "release" commit.
+
+## STEP 4: OUTPUT
+Only after completing steps 1-3, write to output.json:
+
+{
+  "commitSHA": "full 40-character SHA (use 'git rev-parse <short-sha>' to expand if needed), or empty string if not found",
+  "reasoning": "brief explanation including: how you found it, what verification you did, what double-check you performed? Is it the "complete" version commit"
+}
+
+IMPORTANT: The commitSHA MUST be the full 40-character hash, not a short hash.
+
+YOU MUST validate your JSON by running: node -e "JSON.parse(require('fs').readFileSync('output.json'))"
+If it fails, fix the JSON and try again.
+
+Once output.json is valid, you are DONE. Exit immediately.`,
+
+		version,
+		version,
+		version,
+		version,
+		version,
+	)
+
+	// Execute gemini CLI with 2.5-flash model (5 minute timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	cmd := exec.CommandContext(
+		ctx,
+		"gemini",
+		"-m",
+		"gemini-2.5-flash",
+		"-p",
+		prompt,
+		"--approval-mode",
+		"yolo",
+	)
+	cmd.Dir = archivePath
+
+	if os.Getenv("DEBUG") == "1" {
+		cmd.Stdout = os.Stdout
+	}
+
+	if err := cmd.Run(); err != nil {
+		os.Remove(filepath.Join(archivePath, "output.json"))
+		if ctx.Err() == context.DeadlineExceeded {
+			return "", fmt.Errorf("gemini CLI timed out after 5 minutes")
+		}
+		return "", fmt.Errorf("gemini CLI failed: %w", err)
+	}
+
+	// Read output.json
+	outputPath := filepath.Join(archivePath, "output.json")
+	outputData, err := os.ReadFile(outputPath)
+	if err != nil {
+		os.Remove(outputPath)
+		return "", fmt.Errorf("failed to read gemini output: %w", err)
+	}
+
+	// Log the raw output for debugging
+	logme.DebugFln("Gemini output.json content: %s", string(outputData))
+
+	// Parse the output
+	var output geminiOutput
+	if err := json.Unmarshal(outputData, &output); err != nil {
+		os.Remove(outputPath)
+		return "", fmt.Errorf("failed to parse gemini output: %w", err)
+	}
+
+	logme.DebugFln("Gemini found commit %s: %s", output.CommitSHA, output.Reasoning)
+
+	// Cleanup
+	os.Remove(outputPath)
+
+	// If we got a short SHA, try to expand it
+	commitSHA := output.CommitSHA
+	if len(commitSHA) > 0 && len(commitSHA) < 40 {
+		logme.DebugFln("Got short SHA %s, expanding with git rev-parse", commitSHA)
+		expandCmd := exec.Command("git", "rev-parse", commitSHA)
+		expandCmd.Dir = archivePath
+		if expandedOutput, err := expandCmd.Output(); err == nil {
+			commitSHA = strings.TrimSpace(string(expandedOutput))
+			logme.DebugFln("Expanded to full SHA: %s", commitSHA)
+		}
+	}
+
+	// Validate the commit SHA (should be 40 hex characters)
+	if len(commitSHA) != 40 {
+		return "", fmt.Errorf("invalid commit SHA length: %d", len(commitSHA))
+	}
+
+	return commitSHA, nil
 }
