@@ -111,6 +111,14 @@ rules:
     languages: [go]
     severity: ERROR
 
+  - id: outdated-sqlds-version
+    pattern-either:
+      - pattern-regex: '"github\.com/grafana/sqlds"'
+      - pattern-regex: '"github\.com/grafana/sqlds/v2'
+    message: "Outdated sqlds version detected (v1 or v2). Use sqlds/v3 or sqlds/v4 which have updated signatures that allow passing context.Context for forward compatibility."
+    languages: [go]
+    severity: WARNING
+
   - id: console-logging
     pattern-either:
       - pattern: console.log(...)
@@ -192,6 +200,114 @@ rules:
         - "**/*.jsx"
     message: "Detected usage of React internal API '__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED'. This API is internal to React and should not be used directly as it may break in future React versions."
     languages: [javascript, typescript]
+    severity: WARNING
+
+  - id: native-browser-dialogs
+    pattern-either:
+      - pattern: alert(...)
+      - pattern: window.alert(...)
+      - pattern: window.confirm(...)
+      - pattern: window.prompt(...)
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "Native browser dialogs (alert, confirm, prompt) are not permitted. Use Grafana UI components (Modal, ConfirmModal) instead."
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: fmt-print-logging
+    pattern-either:
+      - pattern: fmt.Println(...)
+      - pattern: fmt.Print(...)
+      - pattern: fmt.Printf(...)
+    message: "Use the logger provided by the Grafana plugin SDK (github.com/grafana/grafana-plugin-sdk-go/backend) instead of fmt.Println/fmt.Print/fmt.Printf for proper log management and integration with Grafana's logging system."
+    languages: [go]
+    severity: ERROR
+
+  - id: window-open-without-noopener
+    pattern-either:
+      - patterns:
+          - pattern: window.open($URL)
+      - patterns:
+          - pattern: window.open($URL, $TARGET)
+      - patterns:
+          - pattern: window.open($URL, $TARGET, $FEATURES)
+          - metavariable-regex:
+              metavariable: $FEATURES
+              regex: ^(?!.*noopener.*noreferrer|.*noreferrer.*noopener)
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "window.open() called without 'noopener,noreferrer' in the features parameter. This creates a tab nabbing vulnerability. Use window.open(url, target, 'noopener,noreferrer')."
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: deprecated-gf-form-css-classes
+    pattern-either:
+      - pattern-regex: gf-form
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "Deprecated Grafana CSS class name detected (gf-form*). Use @grafana/ui components instead of legacy CSS classes."
+    languages: [javascript, typescript]
+    severity: WARNING
+
+  - id: direct-window-location-access
+    pattern-either:
+      - pattern: window.location.search
+      - pattern: window.location.href
+      - pattern: new URLSearchParams(window.location.search)
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "Direct access to window.location is not permitted. Use locationService from @grafana/runtime instead."
+    languages: [javascript, typescript]
+    severity: WARNING
+
+  - id: ts-ignore-suppress
+    pattern-either:
+      - pattern-regex: "@ts-ignore"
+      - pattern-regex: "@ts-expect-error"
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.js"
+    message: "Avoid using @ts-ignore or @ts-expect-error to suppress TypeScript errors. Fix TypeScript errors properly so issues are caught during compilation rather than at runtime."
+    languages: [typescript]
     severity: WARNING
 
   - id: no-direct-css-imports

@@ -317,6 +317,306 @@ func TestOldReactInternals(t *testing.T) {
 	)
 }
 
+func TestOutdatedSqldsVersion(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "outdated-sqlds-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 2)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Outdated sqlds version detected (v1 or v2). Use sqlds/v3 or sqlds/v4 which have updated signatures that allow passing context.Context for forward compatibility.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Warning, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-outdated-sqlds-version",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestOutdatedSqldsVersionGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "outdated-sqlds-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestNativeBrowserDialogs(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "native-browser-dialogs-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 4)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Native browser dialogs (alert, confirm, prompt) are not permitted. Use Grafana UI components (Modal, ConfirmModal) instead.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Error, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-native-browser-dialogs",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestFmtPrintLogging(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "fmt-print-logging"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 3)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Use the logger provided by the Grafana plugin SDK (github.com/grafana/grafana-plugin-sdk-go/backend) instead of fmt.Println/fmt.Print/fmt.Printf for proper log management and integration with Grafana's logging system.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Error, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-fmt-print-logging",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestWindowOpenWithoutNoopener(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "window-open-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 3)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"window.open() called without 'noopener,noreferrer' in the features parameter. This creates a tab nabbing vulnerability. Use window.open(url, target, 'noopener,noreferrer').",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Error, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-window-open-without-noopener",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestWindowOpenWithNoopenerGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "window-open-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestDeprecatedGfFormCSSClasses(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "deprecated-gf-form-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Greater(t, len(interceptor.Diagnostics), 0)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Deprecated Grafana CSS class name detected (gf-form*). Use @grafana/ui components instead of legacy CSS classes.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Warning, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-deprecated-gf-form-css-classes",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestDirectWindowLocationAccess(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "direct-window-location-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 4)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Direct access to window.location is not permitted. Use locationService from @grafana/runtime instead.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Warning, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-direct-window-location-access",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestDirectWindowLocationAccessGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "direct-window-location-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestTsIgnoreSuppress(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "ts-ignore-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 2)
+	for i := range interceptor.Diagnostics {
+		require.Equal(
+			t,
+			"Avoid using @ts-ignore or @ts-expect-error to suppress TypeScript errors. Fix TypeScript errors properly so issues are caught during compilation rather than at runtime.",
+			interceptor.Diagnostics[i].Title,
+		)
+		require.Equal(t, analysis.Warning, interceptor.Diagnostics[i].Severity)
+		require.Equal(
+			t,
+			"code-rules-ts-ignore-suppress",
+			interceptor.Diagnostics[i].Name,
+		)
+	}
+}
+
+func TestTsIgnoreSuppressGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "ts-ignore-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestNoDirectCSSImports(t *testing.T) {
 	if !isSemgrepInstalled() {
 		t.Skip("semgrep not installed, skipping test")

@@ -130,14 +130,6 @@ var Questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code use window.open() without specifying 'noopener,noreferrer' in the features parameter? (This creates a tab nabbing vulnerability). Provide the specific code snippet if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Does this code use native browser dialogs like alert(), window.confirm(), or window.prompt() instead of Grafana UI components (Modal, ConfirmModal)? Provide the specific code snippet if found.",
-		ExpectedAnswer: false,
-	},
-	{
 		Question:       "Only for go/golang code: Does this code use panic() for error handling instead of returning errors properly? (panic should only be used for truly unrecoverable situations, not for regular error handling). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
@@ -146,27 +138,11 @@ var Questions = []llmvalidate.LLMQuestion{
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "For plugins that bundle multiple plugins (app + panels/datasources): Are the grafanaDependency values inconsistent across different plugin.json files? (The grafanaDependency property must be consistent across all bundled plugins - the version stated in the app plugin.json must match the versions supported in the panel/datasource plugin.json files). Provide the specific plugin.json files and their grafanaDependency values if found to be inconsistent.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "For app plugins: Does the navItem path in plugin.json not match the plugin ID? (The navItem path should match the plugin ID format, e.g., if plugin ID is 'myorg-myapp', the navItem path should be 'plugins/myorg-myapp/...' not a different path). Provide the specific plugin.json navItem configuration and plugin ID if found to be mismatched.",
+		Question:       "For plugins that have multiple plugin.json files: Are the grafanaDependency values inconsistent across them? (The grafanaDependency property must be consistent across all plugins). Provide the specific plugin.json files and their grafanaDependency values if found to be inconsistent.",
 		ExpectedAnswer: false,
 	},
 	{
 		Question:       "Only for go/golang code: Does this code access attributes or methods of a returned value before checking if it is nil? (Code that accesses returned values must be moved after error/nil checks to prevent nil pointer dereference crashes. For example, if a function returns `(req *Request, err error)`, code accessing `req` should be after checking `if err != nil` or `if req == nil`). Provide the specific code snippet showing the unsafe access if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Only for go/golang code: Does this code use fmt.Println, fmt.Print, or fmt.Printf for logging instead of the logger provided by the Grafana plugin SDK? (Backend plugins should use the logger from `github.com/grafana/grafana-plugin-sdk-go/backend` package instead of fmt.Println for proper log management and integration with Grafana's logging system). Provide the specific code snippet showing fmt.Println/fmt.Print/fmt.Printf usage if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "In ConfigEditor components: Does this code directly mutate the jsonData, secureJsonData or options object (e.g., `options.jsonData.property = 'value'` or `props.jsonData.property = 'value'`)? (Props should be treated as immutable. Instead of directly modifying jsonData, use `onOptionsChange` to create a new object with updated values, e.g., `this.props.onOptionsChange({ ...options, jsonData: { ...options.jsonData, property: 'value' } })`). Provide the specific code snippet showing direct mutation if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Does this code contain hard-coded Grafana sub-paths or API URLs in API calls, fetch requests, or constants? (Hard-coded Grafana sub-paths should be replaced with `appUrl` or `appSubUrl` from `import { config } '@grafana/runtime'`, or made configurable in app settings. This ensures plugins work correctly in different Grafana setups, such as when Grafana is served from a sub-path like `/grafana`). Provide the specific code snippet showing hard-coded paths or URLs if found.",
 		ExpectedAnswer: false,
 	},
 }
@@ -174,19 +150,7 @@ var Questions = []llmvalidate.LLMQuestion{
 // OptionalQuestions are non-blocking suggestions that can be addressed in future versions
 var OptionalQuestions = []llmvalidate.LLMQuestion{
 	{
-		Question:       "Does this code use deprecated Grafana CSS class names like 'gf-form', 'gf-form-group', 'gf-form-label', or similar legacy classes? (Use @grafana/ui components instead). Provide the specific code snippet if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Does this code directly access window.location.search, window.location.href, or URLSearchParams(window.location.search) instead of using locationService from @grafana/runtime? Provide the specific code snippet if found.",
-		ExpectedAnswer: false,
-	},
-	{
 		Question:       "Only for go/golang code: In QueryData or CheckHealth handlers, does this code create a new context (context.Background() or context.TODO()) instead of using/forwarding the context received from the request? Provide the specific code snippet if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Only for go/golang code using Grafana sqlds library: Is the code using an older version of sqlds (v1 or v2) instead of sqlds/v3 or sqlds/v4? (sqlds/v3 and sqlds/v4 have updated signatures that allow passing context.Context, which is required for forward compatibility). Provide the specific go.mod or import statement showing the sqlds version if found.",
 		ExpectedAnswer: false,
 	},
 	{
@@ -195,14 +159,6 @@ var OptionalQuestions = []llmvalidate.LLMQuestion{
 	},
 	{
 		Question:       "Does this code specify exact pixel values, font sizes, margins, or other hardcoded CSS values instead of using Grafana's emotion theme abstractions? (Rather than specifying exact pixels, font sizes, etc., it's recommended to use the abstractions defined in Grafana's emotion theme which is exposed by `@grafana/data`. This ensures consistency with Grafana's design system and better maintainability). Provide the specific code snippet showing hardcoded CSS values if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Does this TypeScript/JavaScript code use `// @ts-ignore` or `// @ts-expect-error` comments to suppress TypeScript errors? (Avoid @ts-ignore usages as this could potentially introduce runtime errors instead of build time errors. TypeScript errors should be fixed properly rather than suppressed, so issues are caught during compilation rather than at runtime). Provide the specific code snippet showing @ts-ignore or @ts-expect-error usage if found.",
-		ExpectedAnswer: false,
-	},
-	{
-		Question:       "Does this plugin include both a backend component (Go code in pkg/ or backend/ directories) AND a 'routes' section in plugin.json for datasource proxy? (The plugin proxy should only be used when a plugin doesn't have a backend. If a backend exists, the routes section should be removed from plugin.json to avoid confusion and potential conflicts). Provide the specific plugin.json routes configuration and backend file locations if both are found.",
 		ExpectedAnswer: false,
 	},
 }
