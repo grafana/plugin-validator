@@ -129,8 +129,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							aliases := strings.Join(aVulnerability.Aliases, " ")
 							// make sure this key exists
 							severity := "n/a"
-							if val, ok := aVulnerability.DatabaseSpecific["severity"]; ok {
-								severity = val.(string)
+							if aVulnerability.DatabaseSpecific != nil {
+								if fields := aVulnerability.DatabaseSpecific.GetFields(); fields != nil {
+									if val, ok := fields["severity"]; ok {
+										severity = val.GetStringValue()
+									}
+								}
 							}
 							message := fmt.Sprintf("SEVERITY: %s in package %s, vulnerable to %s", severity, aPackage.Package.Name, aliases)
 							// prevent duplicate messages
@@ -141,19 +145,27 @@ func run(pass *analysis.Pass) (interface{}, error) {
 							messagesReported[message] = true
 							switch severity {
 							case SeverityCritical:
-								logme.DebugFln("osv-scanner detected a critical severity issue: %s", message)
+								title := "osv-scanner detected a critical severity issue"
+								if aPackage.Package.Name != "" {
+									title = fmt.Sprintf("osv-scanner detected a critical severity issue in package %s", aPackage.Package.Name)
+								}
+								logme.DebugFln("%s: %s", title, message)
 								pass.ReportResult(
 									pass.AnalyzerName,
 									osvScannerCriticalSeverityDetected,
-									"osv-scanner detected a critical severity issue",
+									title,
 									message)
 								criticalSeverityCount++
 							case SeverityHigh:
-								logme.DebugFln("osv-scanner detected a high severity issue: %s", message)
+								title := "osv-scanner detected a high severity issue"
+								if aPackage.Package.Name != "" {
+									title = fmt.Sprintf("osv-scanner detected a high severity issue in package %s", aPackage.Package.Name)
+								}
+								logme.DebugFln("%s: %s", title, message)
 								pass.ReportResult(
 									pass.AnalyzerName,
 									osvScannerHighSeverityDetected,
-									"osv-scanner detected a high severity issue",
+									title,
 									message)
 								highSeverityCount++
 							}

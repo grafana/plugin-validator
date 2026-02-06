@@ -81,17 +81,23 @@ func TestValidGoMod(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	// mock latest request
+	origGetTime := GetNowInRFC3339
+	GetNowInRFC3339 = func() string {
+		return "2024-05-01T10:00:00Z"
+	}
+	defer func() { GetNowInRFC3339 = origGetTime }()
+
+	// mock latest request - published 6 days before "today" (2024-05-01)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/latest",
 		httpmock.NewStringResponder(
 			200,
-			`{ "tag_name": "v0.230.0", "published_at": "2024-05-09T10:03:16Z" }`,
+			`{ "tag_name": "v0.230.0", "published_at": "2024-04-25T10:03:16Z" }`,
 		),
 	)
 
-	// mock tag request
+	// mock tag request - v0.225.0 published 13 days before "today", within 2 months
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/tags/v0.225.0",
@@ -167,23 +173,23 @@ func TestTwoMonthsOldSdk(t *testing.T) {
 	}
 	defer func() { GetNowInRFC3339 = origGetTime }()
 
-	// mock latest request
+	// mock latest request - published 8 days before "today" (2024-03-09)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/latest",
 		httpmock.NewStringResponder(
 			200,
-			`{ "tag_name": "v0.230.0", "published_at": "2024-05-09T10:03:16Z" }`,
+			`{ "tag_name": "v0.230.0", "published_at": "2024-03-01T10:03:16Z" }`,
 		),
 	)
 
-	// mock tag request
+	// mock tag request - v0.212.0 published 75 days before "today" (2024-03-09)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/tags/v0.212.0",
 		httpmock.NewStringResponder(
 			200,
-			`{ "tag_name": "v0.212.0", "published_at": "2024-02-19T13:06:21Z" }`,
+			`{ "tag_name": "v0.212.0", "published_at": "2023-12-25T13:06:21Z" }`,
 		),
 	)
 
@@ -228,23 +234,23 @@ func TestFiveMonthsOld(t *testing.T) {
 	}
 	defer func() { GetNowInRFC3339 = origGetTime }()
 
-	// mock latest request
+	// mock latest request - published 8 days before "today" (2023-11-09)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/latest",
 		httpmock.NewStringResponder(
 			200,
-			`{ "tag_name": "v0.230.0", "published_at": "2024-05-09T10:03:16Z" }`,
+			`{ "tag_name": "v0.230.0", "published_at": "2023-11-01T10:03:16Z" }`,
 		),
 	)
 
-	// mock tag request
+	// mock tag request - v0.187.0 published 161 days before "today" (2023-11-09)
 	httpmock.RegisterResponder(
 		"GET",
 		"https://api.github.com/repos/grafana/grafana-plugin-sdk-go/releases/tags/v0.187.0",
 		httpmock.NewStringResponder(
 			200,
-			`{ "tag_name": "v0.187.0", "published_at": "2023-10-19T11:06:45Z" }`,
+			`{ "tag_name": "v0.187.0", "published_at": "2023-06-01T11:06:45Z" }`,
 		),
 	)
 

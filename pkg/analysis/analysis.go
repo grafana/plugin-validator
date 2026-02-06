@@ -17,11 +17,12 @@ var (
 )
 
 type Pass struct {
-	AnalyzerName string
-	RootDir      string
-	CheckParams  CheckParams
-	ResultOf     map[*Analyzer]interface{}
-	Report       func(string, Diagnostic)
+	AnalyzerName     string
+	RootDir          string
+	CheckParams      CheckParams
+	ResultOf         map[*Analyzer]any
+	Report           func(string, Diagnostic)
+	Diagnostics      *Diagnostics
 }
 
 type CheckParams struct {
@@ -57,6 +58,30 @@ func (p *Pass) ReportResult(analysisName string, rule *Rule, message string, det
 		Title:    message,
 		Detail:   detail,
 	})
+}
+
+// GetAnalyzerDiagnostics returns all diagnostics reported by the given analyzer.
+func (p *Pass) GetAnalyzerDiagnostics(a *Analyzer) []Diagnostic {
+	if p.Diagnostics == nil || a == nil {
+		return nil
+	}
+	var result []Diagnostic
+	for analyzerName, diags := range *p.Diagnostics {
+		if analyzerName == a.Name {
+			result = append(result, diags...)
+		}
+	}
+	return result
+}
+
+// AnalyzerHasErrors returns true if the given analyzer reported any diagnostics with Error severity.
+func (p *Pass) AnalyzerHasErrors(a *Analyzer) bool {
+	for _, d := range p.GetAnalyzerDiagnostics(a) {
+		if d.Severity == Error {
+			return true
+		}
+	}
+	return false
 }
 
 type Diagnostic struct {

@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
@@ -29,8 +30,9 @@ type AnalyzerConfig struct {
 }
 
 type RuleConfig struct {
-	Enabled  *bool              `yaml:"enabled"`
-	Severity *analysis.Severity `yaml:"severity"`
+	Enabled    *bool              `yaml:"enabled"`
+	Severity   *analysis.Severity `yaml:"severity"`
+	Exceptions []string           `yaml:"exceptions"`
 }
 
 var defaultSeverity = analysis.Warning
@@ -54,10 +56,10 @@ func Check(
 	pass := &analysis.Pass{
 		RootDir:     params.ArchiveDir,
 		CheckParams: params,
-		ResultOf:    make(map[*analysis.Analyzer]interface{}),
-		Report: func(name string, d analysis.Diagnostic) {
-			// Collect all diagnostics for presenting at the end.
-			diagnostics[name] = append(diagnostics[name], d)
+		ResultOf:    make(map[*analysis.Analyzer]any),
+		Diagnostics: &diagnostics,
+		Report: func(analyzerName string, d analysis.Diagnostic) {
+			diagnostics[analyzerName] = append(diagnostics[analyzerName], d)
 		},
 	}
 
@@ -154,6 +156,15 @@ func initAnalyzers(
 				if ruleConfig.Severity != nil {
 					ruleSeverity = *ruleConfig.Severity
 				}
+				// Check for rule-level exceptions
+				if slices.Contains(ruleConfig.Exceptions, pluginId) {
+					logme.DebugFln(
+						"Rule '%s' disabled for plugin '%s' due to a rule-level exception.",
+						currentRule.Name,
+						pluginId,
+					)
+					ruleEnabled = false
+				}
 			}
 
 			if severityOverwrite != "" {
@@ -169,10 +180,8 @@ func initAnalyzers(
 
 func isExcepted(pluginId string, cfg *AnalyzerConfig) bool {
 	if len(pluginId) > 0 && cfg != nil && len(cfg.Exceptions) > 0 {
-		for _, exception := range cfg.Exceptions {
-			if exception == pluginId {
-				return true
-			}
+		if slices.Contains(cfg.Exceptions, pluginId) {
+			return true
 		}
 	}
 	return false

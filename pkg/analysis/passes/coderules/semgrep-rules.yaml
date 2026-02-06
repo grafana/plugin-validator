@@ -116,7 +116,6 @@ rules:
       - pattern: console.log(...)
       - pattern: console.info(...)
       - pattern: console.table(...)
-      - pattern: console.debug(...)
       - pattern: console.clear(...)
       - pattern: console.count(...)
       - pattern: console.countReset(...)

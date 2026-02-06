@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - renovate/*
 
 jobs:
   test-docker-build:
@@ -11,12 +12,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           persist-credentials: false
 
       - id: push-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@74b7ce2ebd577c25266d972683e376d9f62d0b07 # build-push-to-dockerhub/v0.4.0
+        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@f02d5da7ddff4ea32bbe5034c7c70e90d2b9622c # build-push-to-dockerhub/v0.4.1
         with:
           repository: grafana/plugin-validator-cli
           context: .

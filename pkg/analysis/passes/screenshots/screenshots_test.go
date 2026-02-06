@@ -67,6 +67,33 @@ func TestNoScreenshots(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Title, "plugin.json: should include screenshots for the Plugin catalog")
 }
 
+func TestMimeTypeExtMismatch(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	const pluginJsonContent = `{
+		"name": "my plugin name",
+		"info": {
+		"screenshots": [{
+			"path": "testdata/screenshot2.png",
+			"name": "screenshot2"
+		}]
+		}
+	}`
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer:      []byte(pluginJsonContent),
+			archive.Analyzer:       filepath.Join("."),
+			metadatavalid.Analyzer: nil,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, `screenshot image has extension mismatch: "testdata/screenshot2.png" has extension ".png" but content is image/jpeg`, interceptor.Diagnostics[0].Title)
+}
+
 func TestEmptyInvalidScreenshotPath(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	const pluginJsonContent = `{
