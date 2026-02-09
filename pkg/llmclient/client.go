@@ -86,16 +86,13 @@ func (g *GeminiClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptio
 		args = append(args, "-m", opts.Model)
 	}
 
-	if opts != nil && opts.ApprovalMode == "yolo" {
-		args = append(args, "-p", prompt, "--approval-mode", "yolo")
+	if opts != nil && opts.ApprovalMode != "" {
+		args = append(args, "--approval-mode", opts.ApprovalMode)
 	}
 
 	cmd := exec.CommandContext(ctx, geminiBin, args...)
 	cmd.Dir = repositoryPath
-
-	if opts == nil || opts.ApprovalMode != "yolo" {
-		cmd.Stdin = strings.NewReader(prompt)
-	}
+	cmd.Stdin = strings.NewReader(prompt)
 
 	if os.Getenv("DEBUG") != "" {
 		cmd.Stdout = os.Stdout
