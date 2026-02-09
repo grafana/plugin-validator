@@ -137,8 +137,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	geminiKey := os.Getenv("GEMINI_API_KEY")
-	if geminiKey == "" {
+	if err := llmClient.CanUseLLM(); err != nil {
 		return nil, nil
 	}
 

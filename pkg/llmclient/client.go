@@ -2,6 +2,7 @@ package llmclient
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,13 +13,27 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
+var ErrAPIKeyNotSet = errors.New("GEMINI_API_KEY not set")
+
 type CallLLMOptions struct {
 	Model        string // e.g. "gemini-2.5-flash", empty = CLI default
 	ApprovalMode string // "default", "yolo", etc. empty = default (stdin piping)
 }
 
 type LLMClient interface {
+	CanUseLLM() error
 	CallLLM(prompt, repositoryPath string, opts *CallLLMOptions) error
+}
+
+func (g *GeminiClient) CanUseLLM() error {
+	if os.Getenv("GEMINI_API_KEY") == "" {
+		return ErrAPIKeyNotSet
+	}
+	_, err := getGeminiBinaryPath()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type GeminiClient struct{}
@@ -27,20 +42,19 @@ func NewGeminiClient() *GeminiClient {
 	return &GeminiClient{}
 }
 
-var geminiInstallDir string
+var cachedGeminiBinPath string
 
-// GetGeminiBinaryPath returns the path to the gemini binary.
+// getGeminiBinaryPath returns the path to the gemini binary.
 // It first checks PATH, then falls back to a local npm install.
-func GetGeminiBinaryPath() (string, error) {
-	if p, err := exec.LookPath("gemini"); err == nil {
-		return p, nil
+// The result is cached after the first successful resolution.
+func getGeminiBinaryPath() (string, error) {
+	if cachedGeminiBinPath != "" {
+		return cachedGeminiBinPath, nil
 	}
 
-	if geminiInstallDir != "" {
-		bin := filepath.Join(geminiInstallDir, "node_modules", ".bin", "gemini")
-		if _, err := os.Stat(bin); err == nil {
-			return bin, nil
-		}
+	if p, err := exec.LookPath("gemini"); err == nil {
+		cachedGeminiBinPath = p
+		return p, nil
 	}
 
 	if _, err := exec.LookPath("npm"); err != nil {
@@ -66,13 +80,17 @@ func GetGeminiBinaryPath() (string, error) {
 		return "", fmt.Errorf("gemini binary not found after install")
 	}
 
-	geminiInstallDir = dir
+	cachedGeminiBinPath = bin
 	logme.DebugFln("Gemini CLI installed at %s", bin)
 	return bin, nil
 }
 
 func (g *GeminiClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptions) error {
-	geminiBin, err := GetGeminiBinaryPath()
+	if err := g.CanUseLLM(); err != nil {
+		return err
+	}
+
+	geminiBin, err := getGeminiBinaryPath()
 	if err != nil {
 		return fmt.Errorf("failed to get gemini CLI: %w", err)
 	}
@@ -96,7 +114,6 @@ func (g *GeminiClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptio
 
 	if os.Getenv("DEBUG") != "" {
 		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
 	}
 
 	logme.Debugln("Running gemini CLI analysis in directory:", repositoryPath)
@@ -110,4 +127,3 @@ func (g *GeminiClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptio
 
 	return nil
 }
-

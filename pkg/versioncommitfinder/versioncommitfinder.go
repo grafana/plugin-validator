@@ -242,9 +242,9 @@ func FindPluginVersionsRefs(
 // findCommitWithGemini uses gemini CLI as a last resort to find the commit SHA
 // that corresponds to a specific version by analyzing git history.
 func findCommitWithGemini(archivePath, version string) (string, error) {
-	// Only run if GEMINI_API_KEY is set
-	if os.Getenv("GEMINI_API_KEY") == "" {
-		return "", fmt.Errorf("GEMINI_API_KEY not set, skipping gemini fallback")
+	client := llmclient.NewGeminiClient()
+	if err := client.CanUseLLM(); err != nil {
+		return "", fmt.Errorf("cannot use LLM: %w", err)
 	}
 
 	logme.DebugFln("Using gemini CLI to find commit for version %s", version)
@@ -313,7 +313,6 @@ Once output.json is valid, you are DONE. Exit immediately.`,
 		version,
 	)
 
-	client := llmclient.NewGeminiClient()
 	if err := client.CallLLM(prompt, archivePath, &llmclient.CallLLMOptions{
 		Model:        "gemini-2.5-flash",
 		ApprovalMode: "yolo",
