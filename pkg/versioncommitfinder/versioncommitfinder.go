@@ -1,16 +1,15 @@
 package versioncommitfinder
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/grafana/plugin-validator/pkg/grafana"
+	"github.com/grafana/plugin-validator/pkg/llmclient"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/utils"
@@ -314,31 +313,12 @@ Once output.json is valid, you are DONE. Exit immediately.`,
 		version,
 	)
 
-	// Execute gemini CLI with 2.5-flash model (5 minute timeout)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-	defer cancel()
-
-	cmd := exec.CommandContext(
-		ctx,
-		"gemini",
-		"-m",
-		"gemini-2.5-flash",
-		"-p",
-		prompt,
-		"--approval-mode",
-		"yolo",
-	)
-	cmd.Dir = archivePath
-
-	if os.Getenv("DEBUG") == "1" {
-		cmd.Stdout = os.Stdout
-	}
-
-	if err := cmd.Run(); err != nil {
+	client := llmclient.NewGeminiClient()
+	if err := client.CallLLM(prompt, archivePath, &llmclient.CallLLMOptions{
+		Model:        "gemini-2.5-flash",
+		ApprovalMode: "yolo",
+	}); err != nil {
 		os.Remove(filepath.Join(archivePath, "output.json"))
-		if ctx.Err() == context.DeadlineExceeded {
-			return "", fmt.Errorf("gemini CLI timed out after 5 minutes")
-		}
 		return "", fmt.Errorf("gemini CLI failed: %w", err)
 	}
 

@@ -315,7 +315,7 @@ func runLLMAnalysis(
 	}
 
 	// Call the LLM
-	if err := llmClient.CallLLM(prompt, repositoryPath); err != nil {
+	if err := llmClient.CallLLM(prompt, repositoryPath, nil); err != nil {
 		logme.Debugln("Failed to call LLM:", err)
 		return nil, err
 	}
