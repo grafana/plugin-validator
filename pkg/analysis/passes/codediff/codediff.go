@@ -137,8 +137,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	geminiKey := os.Getenv("GEMINI_API_KEY")
-	if geminiKey == "" {
+	if err := llmClient.CanUseLLM(); err != nil {
 		return nil, nil
 	}
 
@@ -303,19 +302,10 @@ func runLLMAnalysis(
 		return nil, err
 	}
 
-	// clean up files from repositoryPath
-	cleanFiles := []string{"replies.json", ".nvmrc", "GEMINI.md"}
-	for _, file := range cleanFiles {
-		filePath := filepath.Join(repositoryPath, file)
-		if _, err := os.Stat(filePath); err == nil {
-			if err := os.Remove(filePath); err != nil {
-				logme.Debugln("Failed to remove file:", err)
-			}
-		}
-	}
+	llmclient.CleanUpPromptFiles(repositoryPath)
 
 	// Call the LLM
-	if err := llmClient.CallLLM(prompt, repositoryPath); err != nil {
+	if err := llmClient.CallLLM(prompt, repositoryPath, nil); err != nil {
 		logme.Debugln("Failed to call LLM:", err)
 		return nil, err
 	}

@@ -1,0 +1,45 @@
+{
+  "skills": {
+    "enabled": false
+  },
+  "tools": {
+    "approvalMode": "auto_edit",
+    "allowed": [
+      "ShellTool(ls)",
+      "ShellTool(cat)",
+      "ShellTool(git status)",
+      "ShellTool(git diff)",
+      "ShellTool(git log)",
+      "ShellTool(git show)",
+      "ShellTool(git blame)",
+      "ShellTool(git branch)",
+      "ShellTool(git tag)",
+      "ShellTool(git remote)",
+      "ShellTool(git rev-parse)",
+      "ShellTool(git ls-files)",
+      "ShellTool(git shortlog)",
+      "ShellTool(git checkout)",
+      "ShellTool(git reset)",
+      "ShellTool(git clean)",
+      "ShellTool(grep)",
+      "ShellTool(rg)",
+      "ShellTool(head)",
+      "ShellTool(tail)",
+      "ShellTool(wc)",
+      "ShellTool(diff)",
+      "ShellTool(tree)",
+      "ShellTool(file)",
+      "ShellTool(stat)",
+      "ShellTool(sort)",
+      "ShellTool(uniq)",
+      "ShellTool(jq)"
+    ],
+    "exclude": [
+      "web_fetch",
+      "google_web_search",
+      "ShellTool(curl)",
+      "ShellTool(wget)",
+      "ShellTool(ssh)"
+    ]
+  }
+}

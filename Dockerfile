@@ -31,7 +31,7 @@ FROM alpine:3.22@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
-RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav
+RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs npm
 RUN update-ca-certificates
 RUN freshclam
 

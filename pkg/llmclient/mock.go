@@ -46,7 +46,11 @@ func (m *MockLLMClient) WithResponses(responses []MockResponse) *MockLLMClient {
 	return m
 }
 
-func (m *MockLLMClient) CallLLM(prompt, repositoryPath string) error {
+func (m *MockLLMClient) CanUseLLM() error {
+	return nil
+}
+
+func (m *MockLLMClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptions) error {
 	logme.Debugln("Mock LLM client called with repository:", repositoryPath)
 
 	repliesPath := filepath.Join(repositoryPath, "replies.json")
