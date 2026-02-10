@@ -301,7 +301,7 @@ Only after completing steps 1-3, write to output.json:
 
 IMPORTANT: The commitSHA MUST be the full 40-character hash, not a short hash.
 
-YOU MUST validate your JSON by running: node -e "JSON.parse(require('fs').readFileSync('output.json'))"
+YOU MUST validate your JSON by running: jq . output.json
 If it fails, fix the JSON and try again.
 
 Once output.json is valid, you are DONE. Exit immediately.`,
@@ -313,9 +313,10 @@ Once output.json is valid, you are DONE. Exit immediately.`,
 		version,
 	)
 
+	llmclient.CleanUpPromptFiles(archivePath)
+
 	if err := client.CallLLM(prompt, archivePath, &llmclient.CallLLMOptions{
-		Model:        "gemini-2.5-flash",
-		ApprovalMode: "yolo",
+		Model: "gemini-2.5-flash",
 	}); err != nil {
 		os.Remove(filepath.Join(archivePath, "output.json"))
 		return "", fmt.Errorf("gemini CLI failed: %w", err)

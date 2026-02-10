@@ -2,6 +2,7 @@ package llmclient
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"fmt"
 	"os"
@@ -13,11 +14,37 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
+//go:embed settings.json
+var embeddedSettings []byte
+
 var ErrAPIKeyNotSet = errors.New("GEMINI_API_KEY not set")
 
+// filesToClean are files that should be removed from the working directory
+// before calling the LLM to avoid influencing its behavior.
+var filesToClean = []string{
+	"GEMINI.md", "gemini.md",
+	"CLAUDE.md", "claude.md",
+	"AGENTS.md", "agents.md",
+	"COPILOT.md", "copilot.md",
+	"replies.json",
+	"output.json",
+}
+
+// CleanUpPromptFiles removes agent config files and known output files
+// from the given directory to avoid influencing the LLM.
+func CleanUpPromptFiles(dir string) {
+	for _, file := range filesToClean {
+		p := filepath.Join(dir, file)
+		if _, err := os.Stat(p); err == nil {
+			if err := os.Remove(p); err != nil {
+				logme.DebugFln("Failed to remove %s: %v", p, err)
+			}
+		}
+	}
+}
+
 type CallLLMOptions struct {
-	Model        string // e.g. "gemini-2.5-flash", empty = CLI default
-	ApprovalMode string // "default", "yolo", etc. empty = default (stdin piping)
+	Model string // e.g. "gemini-2.5-flash", empty = CLI default
 }
 
 type LLMClient interface {
@@ -43,6 +70,29 @@ func NewGeminiClient() *GeminiClient {
 }
 
 var cachedGeminiBinPath string
+var cachedSettingsPath string
+
+// getSettingsPath writes the embedded settings.json to a temp file once and returns its path.
+func getSettingsPath() (string, error) {
+	if cachedSettingsPath != "" {
+		return cachedSettingsPath, nil
+	}
+
+	dir, err := os.MkdirTemp("", "gemini-settings-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp settings dir: %w", err)
+	}
+
+	p := filepath.Join(dir, "settings.json")
+	if err := os.WriteFile(p, embeddedSettings, 0644); err != nil {
+		os.RemoveAll(dir)
+		return "", fmt.Errorf("failed to write settings file: %w", err)
+	}
+
+	cachedSettingsPath = p
+	logme.DebugFln("Gemini settings written to %s", cachedSettingsPath)
+	return cachedSettingsPath, nil
+}
 
 // getGeminiBinaryPath returns the path to the gemini binary.
 // It first checks PATH, then falls back to a local npm install.
@@ -98,25 +148,27 @@ func (g *GeminiClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOptio
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
+	settingsPath, err := getSettingsPath()
+	if err != nil {
+		return fmt.Errorf("failed to prepare settings: %w", err)
+	}
+
 	args := []string{}
 
 	if opts != nil && opts.Model != "" {
 		args = append(args, "-m", opts.Model)
 	}
 
-	if opts != nil && opts.ApprovalMode != "" {
-		args = append(args, "--approval-mode", opts.ApprovalMode)
-	}
-
 	cmd := exec.CommandContext(ctx, geminiBin, args...)
 	cmd.Dir = repositoryPath
 	cmd.Stdin = strings.NewReader(prompt)
+	cmd.Env = append(os.Environ(), "GEMINI_CLI_SYSTEM_SETTINGS_PATH="+settingsPath)
 
 	if os.Getenv("DEBUG") != "" {
 		cmd.Stdout = os.Stdout
 	}
 
-	logme.Debugln("Running gemini CLI analysis in directory:", repositoryPath)
+	logme.DebugFln("Running: GEMINI_CLI_SYSTEM_SETTINGS_PATH=%s %s %s", settingsPath, geminiBin, strings.Join(args, " "))
 
 	if err := cmd.Run(); err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
