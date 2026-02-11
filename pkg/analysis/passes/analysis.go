@@ -41,6 +41,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/safelinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sdkusage"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/semvercheck"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/signature"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sponsorshiplink"
@@ -92,6 +93,7 @@ var Analyzers = []*analysis.Analyzer{
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
 	sdkusage.Analyzer,
+	semvercheck.Analyzer,
 	signature.Analyzer,
 	sourcecode.Analyzer,
 	templatereadme.Analyzer,

@@ -1,0 +1,13 @@
+{
+  "name": "custom-webpack-plugin",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack -w",
+    "build": "webpack",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@grafana/create-plugin": "^4.0.0"
+  }
+}

@@ -1,0 +1,51 @@
+You will analyze changes in this Grafana plugin to detect breaking changes and verify SemVer compliance. Use `git diff` to see the diff and `git show` to see full files in a specific commit.
+
+Analyze the changes between the versions focusing on:
+1. Breaking changes (API changes, removed functionality, behavioral changes that could break existing users)
+2. New features (new functionality, new APIs, new options)
+3. Bug fixes (corrections to existing functionality)
+
+## Definitions for Grafana Plugins
+
+### Breaking Changes (require MAJOR version bump)
+- Removed or renamed exported functions, components, or types
+- Changed function signatures (parameters, return types)
+- Removed configuration options
+- Changed default behavior in ways that could break existing setups
+- Removed support for previously supported data formats
+- Changed plugin.json schema in incompatible ways (removed fields, changed types)
+- Removed panel options or changed their structure
+
+### New Features (require MINOR version bump)
+- Added new exported functions, components, or types
+- Added new configuration options
+- Added new panel features or visualization options
+- Added support for new data sources or formats
+- Added new query capabilities
+
+### Bug Fixes (require PATCH version bump)
+- Fixed incorrect behavior
+- Fixed edge cases
+- Performance improvements
+- Documentation updates
+- Dependency updates (non-breaking)
+
+New version: {{.NewVersion}} introduced in commit: {{.NewCommit}}
+Current version: {{.CurrentVersion}} introduced in commit: {{.CurrentCommit}}
+
+Analyze the changes and write your analysis to a JSON file "replies.json" with this format:
+
+{
+  "has_breaking_changes": true|false,
+  "has_new_features": true|false,
+  "has_bug_fixes": true|false,
+  "breaking_changes_list": ["description of breaking change 1", "description of breaking change 2"],
+  "new_features_list": ["description of new feature 1", "description of new feature 2"],
+  "bug_fixes_list": ["description of bug fix 1", "description of bug fix 2"],
+  "recommended_version_bump": "major|minor|patch",
+  "explanation": "Brief explanation of why this version bump is recommended based on the changes"
+}
+
+Use jq to validate replies.json is valid JSON, fix any issues if necessary.
+
+Once you are finished say "I finished the SemVer analysis"

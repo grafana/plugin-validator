@@ -1,0 +1,11 @@
+{
+  "name": "missing-scripts-plugin",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "webpack -w",
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "@grafana/create-plugin": "^4.0.0"
+  }
+}
