@@ -45,6 +45,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sponsorshiplink"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/templatereadme"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/toolingcompliance"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/typesuffix"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
@@ -94,6 +95,7 @@ var Analyzers = []*analysis.Analyzer{
 	signature.Analyzer,
 	sourcecode.Analyzer,
 	templatereadme.Analyzer,
+	toolingcompliance.Analyzer,
 	trackingscripts.Analyzer,
 	typesuffix.Analyzer,
 	unsafesvg.Analyzer,

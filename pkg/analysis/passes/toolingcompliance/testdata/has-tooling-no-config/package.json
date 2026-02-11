@@ -1,0 +1,7 @@
+{
+  "name": "has-tooling-no-config-plugin",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@grafana/create-plugin": "^4.0.0"
+  }
+}

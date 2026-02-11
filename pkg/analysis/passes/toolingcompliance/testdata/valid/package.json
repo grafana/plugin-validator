@@ -1,0 +1,8 @@
+{
+  "name": "valid-plugin",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@grafana/create-plugin": "^4.0.0",
+    "@grafana/eslint-config": "^7.0.0"
+  }
+}
