@@ -265,6 +265,7 @@ Run "mage gen:readme" to regenerate this section.
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
 | Go Manifest / `go-manifest` | Validates the build manifest. | None |
 | Go Security Checker / `go-sec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
+| Grafana Tooling Compliance / `toolingcompliance` | Ensures the plugin uses Grafana's standard plugin tooling (create-plugin). | None |
 | JS Source Map / `jsMap` | Checks for required `module.js.map` file(s) in archive. | `sourceCodeUri` |
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
@@ -289,6 +290,7 @@ Run "mage gen:readme" to regenerate this section.
 | Safe Links / `safelinks` | Checks that links from `plugin.json` are safe. | None |
 | Screenshots / `screenshots` | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog. | None |
 | SDK Usage / `sdkusage` | Ensures that `grafana-plugin-sdk-go` is up-to-date. | None |
+| SemVer Compliance / `semvercheck` | Uses LLM to detect breaking changes and verify version increments match SemVer conventions. | None |
 | Signature / `signature` | Ensures the plugin has a valid signature. | None |
 | Source Code / `sourcecode` | A comparison is made between the zip file and the source code to ensure what is released matches the repo associated with it. | `sourceCodeUri` |
 | Sponsorship Link / `sponsorshiplink` | Checks if a sponsorship link is specified in `plugin.json` that will be shown in the Grafana plugin catalog for users to support the plugin developer. | None |

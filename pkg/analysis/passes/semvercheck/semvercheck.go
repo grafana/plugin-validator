@@ -45,10 +45,6 @@ var (
 		Name:     "breaking-change-detected",
 		Severity: analysis.SuspectedProblem,
 	}
-	semverAnalysisSkipped = &analysis.Rule{
-		Name:     "semver-analysis-skipped",
-		Severity: analysis.SuspectedProblem,
-	}
 )
 
 // blockingAnalyzers contains validators that, if they report errors, should cause
@@ -64,7 +60,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "semvercheck",
 	Requires: blockingAnalyzers,
 	Run:      run,
-	Rules:    []*analysis.Rule{semverMismatch, breakingChangeDetected, semverAnalysisSkipped},
+	Rules:    []*analysis.Rule{semverMismatch, breakingChangeDetected},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "SemVer Compliance",
 		Description: "Uses LLM to detect breaking changes and verify version increments match SemVer conventions.",
@@ -86,18 +82,9 @@ func isGitHubURL(url string) bool {
 }
 
 func run(pass *analysis.Pass) (any, error) {
-	// Check if any blocking analyzers reported errors
+	// Check if any blocking analyzers reported errors - silently skip to avoid noise
 	for _, analyzer := range blockingAnalyzers {
 		if pass.AnalyzerHasErrors(analyzer) {
-			pass.ReportResult(
-				pass.AnalyzerName,
-				semverAnalysisSkipped,
-				fmt.Sprintf("SemVer analysis skipped due to errors in %s", analyzer.Name),
-				fmt.Sprintf(
-					"Fix the errors reported by %s before SemVer analysis can run.",
-					analyzer.Name,
-				),
-			)
 			return nil, nil
 		}
 	}
