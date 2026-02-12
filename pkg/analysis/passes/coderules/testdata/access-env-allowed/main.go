@@ -1,7 +1,6 @@
 package donotinclude
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -21,10 +20,10 @@ func DoNotInclude() {
 
 	// GF_PLUGIN are allowed
 	env := os.Getenv("GF_PLUGIN_ALLOWED_ENV")
-	fmt.Println(env)
+	_ = env
 
 	// NOT allowed
 	for _, e := range os.Environ() {
-		fmt.Println(e)
+		_ = e
 	}
 }

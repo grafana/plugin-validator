@@ -31,6 +31,7 @@ var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
 	llmIssueFound    = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
+	llmWarningFound  = &analysis.Rule{Name: "llm-warning-found", Severity: analysis.Warning}
 	llmReviewSkipped = &analysis.Rule{
 		Name:     "llm-review-skipped",
 		Severity: analysis.SuspectedProblem,
@@ -116,6 +117,50 @@ var Questions = []llmvalidate.LLMQuestion{
 		Question:       "Only for go/golang code: Does this code create HTTP clients without using github.com/grafana/grafana-plugin-sdk-go/backend/httpclient? (Look for direct creation of http.Client{}, http.NewRequest, calls to third-party NewClient/NewHTTPClient functions that don't accept or use the SDK's httpclient, or any other HTTP client initialization that doesn't use github.com/grafana/grafana-plugin-sdk-go/backend/httpclient. The httpclient from github.com/grafana/grafana-plugin-sdk-go/backend/httpclient should be used directly or passed to the HTTP client being created. This includes cases where third-party libraries create HTTP clients internally - those libraries should accept the SDK's httpclient as a parameter). Provide the specific code snippet if found.",
 		ExpectedAnswer: false,
 	},
+	{
+		Question:       "Does this code log sensitive information such as credentials, tokens, passwords, API keys, request bodies, or full request/response objects at INFO level or higher? (These should use DEBUG level only). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code use incorrect log formatting? (Look for patterns like `log.Info(\"message\", err)` instead of the correct `log.Info(\"message\", \"error\", err)` with key-value pairs, or logging that produces 'EXTRA_VALUE_AT_END' in output). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code render user-supplied or dynamic content as HTML without sanitization? (Look for dangerouslySetInnerHTML without DOMPurify, d3.html() with user data, innerHTML assignments, or markdown-it with html:true without sanitization). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code use panic() for error handling instead of returning errors properly? (panic should only be used for truly unrecoverable situations, not for regular error handling). Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code use localStorage or sessionStorage with generic key names (not namespaced with the plugin ID) that could conflict with Grafana core or other plugins? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "For plugins that have multiple plugin.json files: Are the grafanaDependency values inconsistent across them? (The grafanaDependency property must be consistent across all plugins). Provide the specific plugin.json files and their grafanaDependency values if found to be inconsistent.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Only for go/golang code: Does this code access attributes or methods of a returned value before checking if it is nil? (Code that accesses returned values must be moved after error/nil checks to prevent nil pointer dereference crashes. For example, if a function returns `(req *Request, err error)`, code accessing `req` should be after checking `if err != nil` or `if req == nil`). Provide the specific code snippet showing the unsafe access if found.",
+		ExpectedAnswer: false,
+	},
+}
+
+// OptionalQuestions are non-blocking suggestions that can be addressed in future versions
+var OptionalQuestions = []llmvalidate.LLMQuestion{
+	{
+		Question:       "Only for go/golang code: In QueryData or CheckHealth handlers, does this code create a new context (context.Background() or context.TODO()) instead of using/forwarding the context received from the request? Provide the specific code snippet if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does the src/README.md file contain installation instructions for the plugin? (Installation instructions should be removed from src/README.md as this information will be included in the Grafana catalog once the plugin is published and may cause confusion). Provide the specific section or content if found.",
+		ExpectedAnswer: false,
+	},
+	{
+		Question:       "Does this code specify exact pixel values, font sizes, margins, or other hardcoded CSS values instead of using Grafana's emotion theme abstractions? (Rather than specifying exact pixels, font sizes, etc., it's recommended to use the abstractions defined in Grafana's emotion theme which is exposed by `@grafana/data`. This ensures consistency with Grafana's design system and better maintainability). Provide the specific code snippet showing hardcoded CSS values if found.",
+		ExpectedAnswer: false,
+	},
 }
 
 func run(pass *analysis.Pass) (any, error) {
@@ -160,36 +205,17 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	var answers []llmvalidate.LLMAnswer
-	answers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
+	// Process mandatory questions (blocking issues)
+	var mandatoryAnswers []llmvalidate.LLMAnswer
+	mandatoryAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
 	if err != nil {
-		logme.DebugFln("Error getting answers from Gemini LLM: %v", err)
+		logme.DebugFln("Error getting answers from Gemini LLM for mandatory questions: %v", err)
 		return nil, nil
 	}
 
-	for _, answer := range answers {
+	for _, answer := range mandatoryAnswers {
 		if answer.ShortAnswer != answer.ExpectedShortAnswer {
-
-			var detailParts []string
-
-			detailParts = append(detailParts, answer.Answer)
-
-			if answer.CodeSnippet != "" {
-				detailParts = append(
-					detailParts,
-					fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet),
-				)
-			}
-
-			if len(answer.Files) > 0 {
-				detailParts = append(
-					detailParts,
-					fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")),
-				)
-			}
-
-			detail := strings.Join(detailParts, "\n\n")
-
+			detail := buildDetailString(answer)
 			pass.ReportResult(
 				pass.AnalyzerName,
 				llmIssueFound,
@@ -199,5 +225,50 @@ func run(pass *analysis.Pass) (any, error) {
 		}
 	}
 
+	// Process optional questions (non-blocking warnings)
+	var optionalAnswers []llmvalidate.LLMAnswer
+	optionalAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, OptionalQuestions, []string{"src", "pkg"})
+	if err != nil {
+		logme.DebugFln("Error getting answers from Gemini LLM for optional questions: %v", err)
+		return nil, nil
+	}
+
+	for _, answer := range optionalAnswers {
+		if answer.ShortAnswer != answer.ExpectedShortAnswer {
+			detail := buildDetailString(answer)
+			pass.ReportResult(
+				pass.AnalyzerName,
+				llmWarningFound,
+				fmt.Sprintf("LLM suggestion: %s", answer.Question),
+				detail,
+			)
+		}
+	}
+
 	return nil, nil
+}
+
+// buildDetailString constructs the detail message for a reported issue
+func buildDetailString(answer llmvalidate.LLMAnswer) string {
+	var detailParts []string
+
+	detailParts = append(detailParts, answer.Answer)
+
+	if answer.CodeSnippet != "" {
+		detailParts = append(
+			detailParts,
+			fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet),
+		)
+	}
+
+	if len(answer.Files) > 0 {
+		detailParts = append(
+			detailParts,
+			fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")),
+		)
+	}
+
+	detail := strings.Join(detailParts, "\n\n")
+
+	return detail
 }
