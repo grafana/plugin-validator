@@ -1,6 +1,6 @@
 {
   "name": "@grafana/plugin-validator",
-  "version": "0.36.0",
+  "version": "0.37.0",
   "description": "Grafana Plugin Validator",
   "main": "index.js",
   "repository": {
