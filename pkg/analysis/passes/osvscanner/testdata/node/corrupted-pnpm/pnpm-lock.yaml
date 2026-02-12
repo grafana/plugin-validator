@@ -1,0 +1,18 @@
+lockfileVersion: '6.0'
+
+packages:
+  # Valid package - should be parsed
+  /valid-pkg/1.0.0:
+    resolution: {integrity: sha512-validhash}
+
+  # Edge case: empty string key (triggers empty parts slice after split)
+  '':
+    resolution: {integrity: sha512-emptyhash}
+
+  # Edge case: no leading slash (triggers empty parts slice after parts[1:])
+  malformed-no-slash:
+    resolution: {integrity: sha512-malformedhash}
+
+  # Another valid package to verify parsing continues after edge cases
+  /another-valid/2.0.0:
+    resolution: {integrity: sha512-anotherhash}
