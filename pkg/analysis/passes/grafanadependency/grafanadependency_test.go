@@ -123,12 +123,12 @@ func TestGrafanaDependency_GetPreRelease(t *testing.T) {
 		{"no pre-release with space", ">= 12.4.0", ""},
 		{"zero pre-release", ">=12.4.0-0", "0"},
 		{"zero pre-release with space", ">= 12.4.0-0", "0"},
-		{"non-zero pre-release", ">=12.4.0-01189998819991197253", "01189998819991197253"},
-		{"non-zero pre-release with space", ">= 12.4.0-01189998819991197253", "01189998819991197253"},
+		{"non-zero pre-release", ">=12.4.0-1189998819991197253", "1189998819991197253"},
+		{"non-zero pre-release with space", ">= 12.4.0-1189998819991197253", "1189998819991197253"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			pre := getPreRelease(">=12.4.0")
-			require.Empty(t, pre)
+			pre := getPreRelease(tc.dependency)
+			require.Equal(t, tc.expPre, pre, "extracted pre-release value should match")
 		})
 	}
 }
