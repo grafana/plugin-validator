@@ -260,6 +260,7 @@ Run "mage gen:readme" to regenerate this section.
 | Changelog (exists) / `changelog` | Ensures a `CHANGELOG.md` file exists within the zip file. | None |
 | Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
 | Circular Dependencies / `circulardependencies` | Ensures that there aren't any circular dependencies between plugins (`plugin.json`, `dependencies.plugins` field). | None |
+| Cloud version / `cloudversion` | Ensures the Grafana version specified as Grafana dependency contains a pre-release value, to ensure proper support in Grafana Cloud. Runs only for Grafana Labs plugins. | None |
 | Code Diff / `codediff` |  | Google API Key with Generative AI access |
 | Code Rules / `code-rules` | Checks for forbidden access to environment variables, file system or use of syscall module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
 | Developer Jargon / `jargon` | Generally discourages use of code jargon in the documentation. | None |
