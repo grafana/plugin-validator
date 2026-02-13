@@ -31,7 +31,6 @@ var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
 	llmIssueFound    = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
-	llmWarningFound  = &analysis.Rule{Name: "llm-warning-found", Severity: analysis.Warning}
 	llmReviewSkipped = &analysis.Rule{
 		Name:     "llm-review-skipped",
 		Severity: analysis.SuspectedProblem,
@@ -238,7 +237,7 @@ func run(pass *analysis.Pass) (any, error) {
 			detail := buildDetailString(answer)
 			pass.ReportResult(
 				pass.AnalyzerName,
-				llmWarningFound,
+				llmIssueFound,
 				fmt.Sprintf("LLM suggestion: %s", answer.Question),
 				detail,
 			)
