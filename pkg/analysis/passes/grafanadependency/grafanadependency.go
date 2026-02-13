@@ -65,7 +65,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 // getPreRelease extracts the pre-release identifier from a Grafana dependency version string.
 // It handles semver range operators (>=, >, <, <=) and returns the pre-release part after the dash.
-// Examples: ">=12.4.0-0" returns "0", ">=12.4.0" returns "", ">= 12.4.0-pre.1" returns "pre.1".
+// Examples: ">=12.4.0-0" returns "0", ">=12.4.0" returns "", ">= 12.4.0-1234" returns "1234".
 func getPreRelease(grafanaDependency string) string {
 	matches := semverRegex.FindStringSubmatch(grafanaDependency)
 	if matches == nil {
