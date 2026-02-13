@@ -3,12 +3,15 @@ package grafanadependency
 import (
 	"encoding/json"
 	"fmt"
-
-	"golang.org/x/mod/semver"
+	"regexp"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
+
+// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+// Modified to work with semver range operators (>=, >, <, <=) by removing ^ and $ anchors
+var semverRegex = regexp.MustCompile(`(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?`)
 
 var (
 	missingCloudPreRelease = &analysis.Rule{
@@ -61,5 +64,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 func getPreRelease(grafanaDependency string) string {
-	return semver.Prerelease(grafanaDependency)
+	matches := semverRegex.FindStringSubmatch(grafanaDependency)
+	if matches == nil {
+		return ""
+	}
+	for i, name := range semverRegex.SubexpNames() {
+		if name == "prerelease" && i < len(matches) {
+			return matches[i]
+		}
+	}
+	return ""
 }
