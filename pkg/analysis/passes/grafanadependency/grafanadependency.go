@@ -3,7 +3,6 @@ package grafanadependency
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"golang.org/x/mod/semver"
 
@@ -38,9 +37,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
 		return nil, err
 	}
-	isGrafanaLabs := strings.EqualFold(data.Info.Author.Name, "grafana labs") || strings.EqualFold(orgFromPluginID(data.ID), "grafana")
 	pre := semver.Prerelease(data.Dependencies.GrafanaDependency)
-	if pre == "" && isGrafanaLabs {
+	if pre == "" && data.IsGrafanaLabs() {
 		// Ensure that Grafana Labs plugin specify a pre-release (-99999999999) in Grafana Dependency.
 		// If the pre-release part is missing and the grafanaDependency specifies a version that's not
 		// been released yet, which is often the case for Grafana Labs plugins and not community/commercial plugins,
@@ -60,14 +58,4 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 	return nil, nil
-}
-
-// orgFromPluginID extracts and returns the organization prefix from a plugin ID by splitting on the first hyphen.
-// Returns an empty string if the plugin ID is empty or invalid.
-func orgFromPluginID(id string) string {
-	parts := strings.SplitN(id, "-", 3)
-	if len(parts) < 1 {
-		return ""
-	}
-	return parts[0]
 }
