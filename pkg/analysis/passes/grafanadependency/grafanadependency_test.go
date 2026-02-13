@@ -125,6 +125,8 @@ func TestGrafanaDependency_GetPreRelease(t *testing.T) {
 		{"zero pre-release with space", ">= 12.4.0-0", "0"},
 		{"non-zero pre-release", ">=12.4.0-1189998819991197253", "1189998819991197253"},
 		{"non-zero pre-release with space", ">= 12.4.0-1189998819991197253", "1189998819991197253"},
+		{"non-numeric pre-release", ">=12.4.0-alpha.1", "alpha.1"},
+		{"non-numeric pre-release with space", ">= 12.4.0-alpha-2", "alpha-2"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			pre := getPreRelease(tc.dependency)
