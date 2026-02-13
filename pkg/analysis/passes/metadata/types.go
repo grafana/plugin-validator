@@ -23,7 +23,8 @@ type Info struct {
 }
 
 type Author struct {
-	URL string `json:"url"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type Screenshots struct {
