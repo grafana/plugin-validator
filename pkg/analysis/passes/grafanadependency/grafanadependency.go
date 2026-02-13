@@ -1,4 +1,4 @@
-package cloudversion
+package grafanadependency
 
 import (
 	"encoding/json"
@@ -12,21 +12,20 @@ import (
 )
 
 var (
-	grafanaDependencyMissingCloudPreRelease = &analysis.Rule{
-		Name:     "grafana-dependency-missing-cloud-pre-release",
+	missingCloudPreRelease = &analysis.Rule{
+		Name:     "missing-cloud-pre-release",
 		Severity: analysis.Warning,
 	}
 )
 
 var Analyzer = &analysis.Analyzer{
-	Name:     "cloudversion",
+	Name:     "grafanadependency",
 	Requires: []*analysis.Analyzer{metadata.Analyzer},
 	Run:      run,
-	Rules:    []*analysis.Rule{grafanaDependencyMissingCloudPreRelease},
+	Rules:    []*analysis.Rule{missingCloudPreRelease},
 	ReadmeInfo: analysis.ReadmeInfo{
-		Name: "Cloud version",
-		Description: `Ensures the Grafana version specified as Grafana dependency contains a pre-release value, ` +
-			`to ensure proper support in Grafana Cloud. Runs only for Grafana Labs plugins.`,
+		Name:        "Grafana Dependency",
+		Description: "Ensures the Grafana dependency specified in plugin.json is valid",
 	},
 }
 
@@ -39,15 +38,19 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
 		return nil, err
 	}
-	// Run only for "grafana" plugins for now.
-	if !strings.EqualFold(data.Info.Author.Name, "grafana labs") && !strings.EqualFold(orgFromPluginID(data.ID), "grafana") {
-		return nil, nil
-	}
+	isGrafanaLabs := strings.EqualFold(data.Info.Author.Name, "grafana labs") && !strings.EqualFold(orgFromPluginID(data.ID), "grafana")
 	pre := semver.Prerelease(data.Dependencies.GrafanaDependency)
-	if pre == "" {
+	if pre == "" && isGrafanaLabs {
+		// Ensure that Grafana Labs plugin specify a pre-release (-99999999999) in Grafana Dependency.
+		// If the pre-release part is missing and the grafanaDependency specifies a version that's not
+		// been released yet, which is often the case for Grafana Labs plugins and not community/commercial plugins,
+		// the plugin won't be loaded correctly in cloud because it doesn't satisfy the Grafana dependency.
+		// Example: on a Cloud instance we have Grafana 12.4.0-99999999999. This is a PRE-RELEASE of 12.4.0.
+		// If the plugin specifies 12.4.0 as grafanaDependency, it's incompatible with 12.4.0-99999999999.
+		// This is because 12.4.0-x (pre-release) < 12.4.0 ("stable") => the plugin can't be installed in Cloud.
 		pass.ReportResult(
 			pass.AnalyzerName,
-			grafanaDependencyMissingCloudPreRelease,
+			missingCloudPreRelease,
 			fmt.Sprintf(`Grafana dependency %q has no pre-release value`, data.Dependencies.GrafanaDependency),
 			fmt.Sprintf(`The value of grafanaDependency in plugin.json (%q) is missing a pre-release value. `+
 				`This may make the plugin uninstallable in Grafana Cloud. `+

@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/changelog"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/circulardependencies"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/cloudversion"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/grafanadependency"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/codediff"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
@@ -104,5 +104,5 @@ var Analyzers = []*analysis.Analyzer{
 	virusscan.Analyzer,
 	circulardependencies.Analyzer,
 	codediff.Analyzer,
-	cloudversion.Analyzer,
+	grafanadependency.Analyzer,
 }
