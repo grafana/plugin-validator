@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"golang.org/x/mod/semver"
 )
 
 func TestGrafanaDependencyParse(t *testing.T) {
@@ -21,7 +20,7 @@ func TestGrafanaDependencyParse(t *testing.T) {
 		{"non-zero pre-release with space", ">= 12.4.0-01189998819991197253", "01189998819991197253"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			pre := semver.Prerelease(">=12.4.0")
+			pre := getPreRelease(">=12.4.0")
 			require.Empty(t, pre)
 		})
 	}

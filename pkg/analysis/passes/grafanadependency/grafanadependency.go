@@ -37,7 +37,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
 		return nil, err
 	}
-	pre := semver.Prerelease(data.Dependencies.GrafanaDependency)
+	pre := getPreRelease(data.Dependencies.GrafanaDependency)
 	if pre == "" && data.IsGrafanaLabs() {
 		// Ensure that Grafana Labs plugin specify a pre-release (-99999999999) in Grafana Dependency.
 		// If the pre-release part is missing and the grafanaDependency specifies a version that's not
@@ -58,4 +58,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 	return nil, nil
+}
+
+func getPreRelease(grafanaDependency string) string {
+	return semver.Prerelease(grafanaDependency)
 }
