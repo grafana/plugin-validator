@@ -38,7 +38,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
 		return nil, err
 	}
-	isGrafanaLabs := strings.EqualFold(data.Info.Author.Name, "grafana labs") && !strings.EqualFold(orgFromPluginID(data.ID), "grafana")
+	isGrafanaLabs := strings.EqualFold(data.Info.Author.Name, "grafana labs") || strings.EqualFold(orgFromPluginID(data.ID), "grafana")
 	pre := semver.Prerelease(data.Dependencies.GrafanaDependency)
 	if pre == "" && isGrafanaLabs {
 		// Ensure that Grafana Labs plugin specify a pre-release (-99999999999) in Grafana Dependency.
@@ -62,6 +62,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
+// orgFromPluginID extracts and returns the organization prefix from a plugin ID by splitting on the first hyphen.
+// Returns an empty string if the plugin ID is empty or invalid.
 func orgFromPluginID(id string) string {
 	parts := strings.SplitN(id, "-", 3)
 	if len(parts) < 1 {
