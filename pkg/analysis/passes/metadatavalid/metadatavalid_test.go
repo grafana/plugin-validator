@@ -53,6 +53,32 @@ func TestMetadataInvalid(t *testing.T) {
 	)
 }
 
+func TestGrafanaDependencyInvalid(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:        filepath.Join("testdata", "invalid", "grafana-dep"),
+			metadataschema.Analyzer: getSchema(),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Equal(
+		t,
+		"plugin.json: grafanaDependency field has invalid version constraint: >=invalid",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		"plugin.json: (root): Additional property invalid is not allowed",
+		interceptor.Diagnostics[1].Title,
+	)
+}
+
 func getSchema() []byte {
 	if len(schemaContent) > 0 {
 		return schemaContent

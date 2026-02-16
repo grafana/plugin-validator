@@ -2,11 +2,14 @@ package metadatavalid
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/hashicorp/go-version"
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -84,6 +87,25 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case err == nil:
 		break
 	}
+
+	pluginJsonBytes, _ := os.ReadFile(metadataPath)
+	if pluginJsonBytes != nil {
+		var data metadata.Metadata
+		if err := json.Unmarshal(pluginJsonBytes, &data); err == nil {
+			fmt.Println(data.Dependencies.GrafanaDependency)
+			_, err = version.NewConstraint(data.Dependencies.GrafanaDependency)
+			fmt.Println(err)
+			if err != nil {
+				pass.ReportResult(
+					pass.AnalyzerName,
+					invalidMetadata,
+					fmt.Sprintf("plugin.json: grafanaDependency field has invalid version constraint: %s", data.Dependencies.GrafanaDependency),
+					"Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
+				)
+			}
+		}
+	}
+
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
 	documentLoader := gojsonschema.NewReferenceLoader("file:///" + metadataPath)
 
@@ -92,7 +114,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
+	errLen := len(result.Errors())
 	for _, desc := range result.Errors() {
+		// we validate grafanaDependency at line 91-100,
+		// so we ignore the error from schema validation
+		if strings.Contains(desc.Field(), "grafanaDependency") {
+			errLen -= 1
+			continue
+		}
 		pass.ReportResult(
 			pass.AnalyzerName,
 			invalidMetadata,
@@ -100,7 +129,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 		)
 	}
-	if len(result.Errors()) == 0 && validMetadata.ReportAll {
+	if errLen == 0 && validMetadata.ReportAll {
 		pass.ReportResult(pass.AnalyzerName, validMetadata, "plugin.json: metadata is valid", "")
 	}
 
