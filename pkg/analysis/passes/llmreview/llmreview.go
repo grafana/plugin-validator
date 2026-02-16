@@ -25,8 +25,9 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
 	"github.com/grafana/plugin-validator/pkg/llmvalidate"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/joakimcarlsson/ai/model"
 )
+
+var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
 	llmIssueFound    = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
@@ -69,8 +70,8 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "LLM Review",
-		Description:  "Runs the code through an LLM to check for security issues or disallowed usage.",
-		Dependencies: "LLM API key (currently uses Gemini)",
+		Description:  "Runs the code through Gemini LLM to check for security issues or disallowed usage.",
+		Dependencies: "Gemini API key",
 	},
 }
 
@@ -190,17 +191,13 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	apiKey := os.Getenv("GEMINI_API_KEY")
-	if apiKey == "" {
+	if geminiKey == "" {
 		return nil, nil
 	}
 
-	logme.Debugln("Starting to run LLM code review. This might take a while...")
+	logme.Debugln("Starting to run Gemini Validations. This might take a while...")
 
-	llmClient, err := llmvalidate.New(context.Background(), llmvalidate.Config{
-		Model:  model.GeminiModels[model.Gemini3Flash],
-		APIKey: apiKey,
-	})
+	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-3-flash-preview")
 
 	if err != nil {
 		logme.DebugFln("Error initializing llm client: %v", err)
