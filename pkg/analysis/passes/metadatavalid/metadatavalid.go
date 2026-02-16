@@ -92,15 +92,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if pluginJsonBytes != nil {
 		var data metadata.Metadata
 		if err := json.Unmarshal(pluginJsonBytes, &data); err == nil {
-			fmt.Println(data.Dependencies.GrafanaDependency)
 			_, err = version.NewConstraint(data.Dependencies.GrafanaDependency)
-			fmt.Println(err)
 			if err != nil {
 				pass.ReportResult(
 					pass.AnalyzerName,
 					invalidMetadata,
 					fmt.Sprintf("plugin.json: Dependencies.grafanaDependency field has invalid or empty version constraint: %q", data.Dependencies.GrafanaDependency),
-					"Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
+					"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
 				)
 			}
 		}
@@ -118,7 +116,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	for _, desc := range result.Errors() {
 		// we validate grafanaDependency at line 91-100,
 		// so we ignore the error from schema validation
-		if strings.Contains(desc.Field(), "grafanaDependency") {
+		if strings.Contains(desc.Field(), "grafanaDependency") || strings.Contains(desc.Description(), "grafanaDependency") {
 			errLen -= 1
 			continue
 		}

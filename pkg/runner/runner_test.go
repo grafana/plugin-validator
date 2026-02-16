@@ -50,7 +50,7 @@ var tests = []struct {
 		"plugin.json: plugin id should follow the format org-name-type",
 		"LLM review skipped due to errors in metadatavalid",
 		"Code diff skipped due to errors in metadatavalid",
-		"plugin.json: grafanaDependency field has invalid or empty version constraint: \"\"",
+		"plugin.json: Dependencies.grafanaDependency field has invalid or empty version constraint: \"\"",
 	}},
 }
 
