@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadataschema"
+	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -88,7 +89,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		break
 	}
 
-	pluginJsonBytes, _ := os.ReadFile(metadataPath)
+	pluginJsonBytes, err := os.ReadFile(metadataPath)
+	if err != nil {
+		// log the error and continue with schema validation
+		logme.ErrorF("failed to read plugin.json in metadatavalid check: %q", err)
+	}
 	if pluginJsonBytes != nil {
 		var data metadata.Metadata
 		if err := json.Unmarshal(pluginJsonBytes, &data); err == nil {
