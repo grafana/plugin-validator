@@ -99,7 +99,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				pass.ReportResult(
 					pass.AnalyzerName,
 					invalidMetadata,
-					fmt.Sprintf("plugin.json: grafanaDependency field has invalid version constraint: %s", data.Dependencies.GrafanaDependency),
+					fmt.Sprintf("plugin.json: Dependencies.grafanaDependency field has invalid or empty version constraint: %q", data.Dependencies.GrafanaDependency),
 					"Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
 				)
 			}

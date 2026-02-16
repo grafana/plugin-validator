@@ -69,7 +69,7 @@ func TestGrafanaDependencyInvalid(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 2)
 	require.Equal(
 		t,
-		"plugin.json: grafanaDependency field has invalid version constraint: >=invalid",
+		"plugin.json: Dependencies.grafanaDependency field has invalid or empty version constraint: \">=invalid\"",
 		interceptor.Diagnostics[0].Title,
 	)
 	require.Equal(
