@@ -197,7 +197,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 	logme.Debugln("Starting to run Gemini Validations. This might take a while...")
 
-	llmClient, err := llmvalidate.New(context.Background(), geminiKey, "gemini-3-flash-preview")
+	llmClient, err := llmvalidate.New(context.Background(), "google", "gemini-3-flash-preview", geminiKey)
 
 	if err != nil {
 		logme.DebugFln("Error initializing llm client: %v", err)

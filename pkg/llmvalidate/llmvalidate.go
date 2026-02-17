@@ -13,10 +13,12 @@ import (
 	"unicode/utf8"
 
 	"github.com/danwakefield/fnmatch"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/prettyprint"
-	"google.golang.org/api/option"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/anthropic"
+	"github.com/tmc/langchaingo/llms/googleai"
+	"github.com/tmc/langchaingo/llms/openai"
 )
 
 // these are not regular expressions
@@ -82,10 +84,10 @@ var extensionToFileType = map[string]string{
 }
 
 type Client struct {
-	genaiClient *genai.Client
-	apiKey      string
-	modelName   string
-	ctx         context.Context
+	llm       llms.Model
+	provider  string
+	modelName string
+	ctx       context.Context
 }
 
 type LLMQuestion struct {
@@ -102,7 +104,7 @@ type LLMAnswer struct {
 	CodeSnippet         string `json:"code_snippet"`
 }
 
-func New(ctx context.Context, apiKey string, modelName string) (*Client, error) {
+func New(ctx context.Context, provider string, modelName string, apiKey string) (*Client, error) {
 
 	if apiKey == "" {
 		return nil, fmt.Errorf("API key is required")
@@ -111,19 +113,124 @@ func New(ctx context.Context, apiKey string, modelName string) (*Client, error) 
 	if modelName == "" {
 		return nil, fmt.Errorf("Model name is required")
 	}
-	logme.DebugFln("llmvalidate: Using model %s", modelName)
 
-	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+	if provider == "" {
+		return nil, fmt.Errorf("Provider is required")
+	}
+
+	logme.DebugFln("llmvalidate: Using provider %s with model %s", provider, modelName)
+
+	var llm llms.Model
+	var err error
+
+	switch provider {
+	case "google":
+		llm, err = googleai.New(
+			ctx,
+			googleai.WithAPIKey(apiKey),
+			googleai.WithDefaultModel(modelName),
+		)
+	case "anthropic":
+		llm, err = anthropic.New(
+			anthropic.WithToken(apiKey),
+			anthropic.WithModel(modelName),
+		)
+	case "openai":
+		llm, err = openai.New(
+			openai.WithToken(apiKey),
+			openai.WithModel(modelName),
+		)
+	default:
+		return nil, fmt.Errorf("unsupported provider: %s (supported: google, anthropic, openai)", provider)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create %s client: %w", provider, err)
 	}
 
 	return &Client{
-		genaiClient: genaiClient,
-		modelName:   modelName,
-		apiKey:      apiKey,
-		ctx:         ctx,
+		llm:       llm,
+		provider:  provider,
+		modelName: modelName,
+		ctx:       ctx,
 	}, nil
+}
+
+func createReplyQuestionTool() llms.Tool {
+	return llms.Tool{
+		Type: "function",
+		Function: &llms.FunctionDefinition{
+			Name:        "reply_question",
+			Description: "Reply to the code review question with structured information",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"question": map[string]interface{}{
+						"type":        "string",
+						"description": "The question being answered",
+					},
+					"answer": map[string]interface{}{
+						"type":        "string",
+						"description": "The full answer. Elaborate why yes or no",
+					},
+					"files": map[string]interface{}{
+						"type":        "array",
+						"items":       map[string]interface{}{"type": "string"},
+						"description": "Files related to the answer (optional)",
+					},
+					"short_answer": map[string]interface{}{
+						"type":        "boolean",
+						"description": "True or false",
+					},
+					"code_snippet": map[string]interface{}{
+						"type":        "string",
+						"description": "Code snippet as context (optional)",
+					},
+				},
+				"required": []string{"question", "answer", "short_answer"},
+			},
+		},
+	}
+}
+
+func extractAnswerFromToolCall(resp *llms.ContentResponse) (LLMAnswer, error) {
+	var answer LLMAnswer
+
+	if resp == nil {
+		return answer, fmt.Errorf("nil response")
+	}
+
+	if len(resp.Choices) == 0 {
+		return answer, fmt.Errorf("no choices in response")
+	}
+
+	choice := resp.Choices[0]
+
+	if len(choice.ToolCalls) == 0 {
+		return answer, fmt.Errorf("no tool calls found in response")
+	}
+
+	// Get first tool call
+	toolCall := choice.ToolCalls[0]
+
+	// Verify it's our tool
+	if toolCall.FunctionCall == nil {
+		return answer, fmt.Errorf("tool call has no function call")
+	}
+
+	if toolCall.FunctionCall.Name != "reply_question" {
+		return answer, fmt.Errorf("unexpected function call: %s", toolCall.FunctionCall.Name)
+	}
+
+	// Parse arguments (JSON string) into LLMAnswer
+	if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &answer); err != nil {
+		return answer, fmt.Errorf("failed to unmarshal arguments: %w", err)
+	}
+
+	// Clean up code snippet
+	answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
+
+	return answer, nil
 }
 
 func (c *Client) AskLLMAboutCode(
@@ -135,6 +242,7 @@ func (c *Client) AskLLMAboutCode(
 	if len(questions) == 0 {
 		return nil, fmt.Errorf("No questions provided")
 	}
+	logme.DebugFln("llmvalidate: Using code path %s with %d questions", codePath, len(questions))
 
 	// check that codepath exists and it is a directory
 	stat, err := os.Stat(codePath)
@@ -156,84 +264,19 @@ func (c *Client) AskLLMAboutCode(
 		return nil, fmt.Errorf("Error walking files inside %s: %v", codePath, err)
 	}
 
-	model := c.genaiClient.GenerativeModel(c.modelName)
-	// ensure it outputs json
-	model.GenerationConfig.ResponseMIMEType = "application/json"
-	model.ResponseSchema = &genai.Schema{
-		Type:     genai.TypeObject,
-		Required: []string{"question", "answer", "short_answer"},
-		Properties: map[string]*genai.Schema{
-			"question": {
-				Type:        genai.TypeString,
-				Description: "The question to answer",
-				Nullable:    false,
-			},
-			"answer": {
-				Type:        genai.TypeString,
-				Description: "The full answer to the question. Elaborate why yes or no",
-				Nullable:    false,
-			},
-			"files": {
-				Type: genai.TypeArray,
-				Items: &genai.Schema{
-					Type: genai.TypeString,
-				},
-				Nullable:    true,
-				Description: "An array of files related to the answer. Only if applicable. i.e. where the code snippet comes from. If not applicable, leave empty",
-			},
-			"short_answer": {
-				Type:        genai.TypeBoolean,
-				Description: "True or false",
-				Nullable:    false,
-			},
-			"code_snippet": {
-				Type:        genai.TypeString,
-				Description: "Code snippet as context for the answer. Only if application. i.e. the code you found is relevant to the answer. If not applicable, leave empty",
-				Nullable:    true,
-			},
-		},
-	}
-
-	model.SystemInstruction = &genai.Content{
-		Parts: []genai.Part{
-			genai.Text(
-				`You are source code reviewer. You are provided with a source code repository information and files. You will answer questions only based on the context of the files provided. The output muset be a valid JSON object
-
-				REVIEWER NOTE: Ignore code that exists only for testing or to setup development:
-					- Test files (*_test.go, *_spec.ts, etc.)
-					- Scripts dedicated  for development (e.g. test servers, seeding)
-					- Code that is clearly marked as development-only with comments
-					- Local development servers and database setup utilities
-					- dockerfiles
-					- make files, bash scripts, etc.
-					- files clearly not part of the plugin and intended for development
-
-				Focus your review on code that will run in production environments as part of a Grafana Plugin
-
-				`,
-			),
-		},
-	}
-
 	filesPrompt := fmt.Sprintf(
 		`The files in the repository are: %s `,
 		strings.Join(codePrompt, "\n"),
 	)
 
-	tokenCount, err := model.CountTokens(c.ctx, genai.Text(filesPrompt))
-	if err != nil {
-		logme.DebugFln("Error counting tokens: %v", err)
-	}
-	logme.DebugFln("llmvalidate: Token count for files prompt: %d", tokenCount)
-
-	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
+	var answers []LLMAnswer = make([]LLMAnswer, 0, len(questions))
 
 	for _, question := range questions {
 		var answer LLMAnswer
 		var err error
 
 		for retries := 3; retries > 0; retries-- {
-			answer, err = c.askModelQuestion(model, filesPrompt, question)
+			answer, err = c.askModelQuestion(filesPrompt, question)
 			if err == nil {
 				break
 			}
@@ -252,47 +295,54 @@ func (c *Client) AskLLMAboutCode(
 }
 
 func (c *Client) askModelQuestion(
-	model *genai.GenerativeModel,
 	filesPrompt string,
 	question LLMQuestion,
 ) (LLMAnswer, error) {
-	questionPrompt := fmt.Sprintf(
-		"%s\n\n Answer this question based on the previous files: %s",
-		filesPrompt,
-		question.Question,
-	)
-	var answer LLMAnswer
-	modelResponse, err := model.GenerateContent(c.ctx, genai.Text(questionPrompt))
-	if err != nil {
-		logme.DebugFln("Error generating content: %v", err)
-		return answer, err
+	// Create system prompt
+	systemPrompt := `You are a source code reviewer. You are provided with source code repository information and files. You will answer questions only based on the context of the files provided.
+
+IMPORTANT: You MUST use the reply_question tool to provide your answer. Do not respond with plain text.
+
+REVIEWER NOTE: Ignore code that exists only for testing or development:
+- Test files (*_test.go, *_spec.ts, etc.)
+- Development scripts and utilities
+- Dockerfiles, makefiles, bash scripts
+- Files clearly not part of the plugin
+
+Focus your review on production code that will run as part of a Grafana Plugin.`
+
+	// Build prompt with files and question
+	userPrompt := fmt.Sprintf("%s\n\nAnswer this question based on the files: %s", filesPrompt, question.Question)
+
+	// Create message history
+	messageHistory := []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt),
+		llms.TextParts(llms.ChatMessageTypeHuman, userPrompt),
 	}
 
-	content := getTextContentFromModelContentResponse(modelResponse)
-	//unmarshall content into []LLMAnswer
-	err = json.Unmarshal([]byte(content), &answer)
+	// Generate response with tools
+	resp, err := c.llm.GenerateContent(
+		c.ctx,
+		messageHistory,
+		llms.WithTools([]llms.Tool{createReplyQuestionTool()}),
+	)
 	if err != nil {
-		logme.DebugFln("Failed to unmarshal content: %v", content)
-		return answer, err
+		logme.DebugFln("Error generating content: %v", err)
+		return LLMAnswer{}, err
 	}
-	// some models have a tendency to generate many extra newlines in the code snippet
-	answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
+
+	// Extract answer from tool call
+	answer, err := extractAnswerFromToolCall(resp)
+	if err != nil {
+		return LLMAnswer{}, err
+	}
+
+	// Set expected answer from question
 	answer.ExpectedShortAnswer = question.ExpectedAnswer
+
 	logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
 
 	return answer, nil
-}
-
-func getTextContentFromModelContentResponse(modelResponse *genai.GenerateContentResponse) string {
-	if len(modelResponse.Candidates) == 0 {
-		return ""
-	}
-	content := modelResponse.Candidates[0].Content
-	finalContent := ""
-	for _, part := range content.Parts {
-		finalContent += fmt.Sprint(part)
-	}
-	return finalContent
 }
 
 func getPromptContentForCode(codePath string, subPathsOnly []string) ([]string, error) {
