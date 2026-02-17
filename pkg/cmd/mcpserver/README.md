@@ -4,33 +4,12 @@ An MCP (Model Context Protocol) server that provides Grafana plugin validation c
 
 ## Building
 
-### Using Go
-
 ```bash
 # From the project root
 go build -o bin/mcpserver ./pkg/cmd/mcpserver
 
 # Or using mage
 mage build:commands
-```
-
-### Using Docker
-
-Build the binary using Docker (no Go installation required):
-
-```bash
-# Build the Docker image (builds all binaries including mcpserver)
-docker build -t plugin-validator-build .
-
-# Extract the mcpserver binary from the image
-docker create --name temp-container plugin-validator-build
-docker cp temp-container:/app/bin/linux_amd64/mcpserver ./mcpserver
-docker rm temp-container
-
-# Move to installation directory
-mkdir -p ~/.local/bin
-mv ./mcpserver ~/.local/bin/plugin-validator-mcp
-chmod +x ~/.local/bin/plugin-validator-mcp
 ```
 
 ## Installation
