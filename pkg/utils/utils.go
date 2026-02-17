@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
@@ -64,4 +65,26 @@ func GetPluginMetadata(archiveDir string) (*metadata.Metadata, error) {
 		return nil, err
 	}
 	return &pluginJson, nil
+}
+
+// HasProperArchiveStructure checks if the archive has the proper structure:
+// single top-level directory containing plugin.json
+func HasProperArchiveStructure(archiveDir string) bool {
+	fis, err := os.ReadDir(archiveDir)
+	if err != nil || len(fis) == 0 {
+		return false
+	}
+
+	// Check if first entry is a directory
+	if !fis[0].IsDir() {
+		return false
+	}
+
+	// Check if plugin.json exists in that directory
+	pluginJsonPath := filepath.Join(archiveDir, fis[0].Name(), "plugin.json")
+	if _, err := os.Stat(pluginJsonPath); err != nil {
+		return false
+	}
+
+	return true
 }

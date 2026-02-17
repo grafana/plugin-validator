@@ -132,8 +132,22 @@ func ValidatePlugin(params Params) (Result, error) {
 		logme.DebugFln("check failed: %v", err)
 	}
 
-	metadata, err := utils.GetPluginMetadata(archiveDir)
-	if err != nil {
+	// Check if archive has proper structure (like old GetIDAndVersion did)
+	hasProperStructure := utils.HasProperArchiveStructure(archiveDir)
+
+	// Try to get metadata using glob pattern
+	// finds the plugin.json file anywhere in the archive
+	metadata, metadataErr := utils.GetPluginMetadata(archiveDir)
+
+	pluginID := "unknown"
+	pluginVersion := "unknown"
+	if metadataErr == nil {
+		pluginID = metadata.ID
+		pluginVersion = metadata.Info.Version
+	}
+
+	// Add diagnostic if structure is improper (matching old behavior when GetIDAndVersion failed)
+	if !hasProperStructure {
 		archiveDiag := analysis.Diagnostic{
 			Name:     "zip-invalid",
 			Severity: analysis.Error,
@@ -145,8 +159,8 @@ func ValidatePlugin(params Params) (Result, error) {
 
 	return Result{
 		Diagnostics:   diags,
-		PluginID:      metadata.ID,
-		PluginVersion: metadata.Info.Version,
+		PluginID:      pluginID,
+		PluginVersion: pluginVersion,
 	}, nil
 }
 
