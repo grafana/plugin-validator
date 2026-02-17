@@ -8,7 +8,6 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/prettyprint"
-	"github.com/joakimcarlsson/ai/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,13 +23,10 @@ func TestLLMIntegration_PositiveCase(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), Config{
-		Model:  model.GeminiModels[model.Gemini3Flash],
-		APIKey: apiKey,
-	})
+	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
 	require.NoError(t, err, "Failed to create LLM client")
 
-	testDataPath := filepath.Join("testdata", "llm-integration")
+	testDataPath := filepath.Join("testdata", "src")
 
 	questions := []LLMQuestion{
 		{
@@ -78,13 +74,11 @@ func TestLLMIntegration_NegativeCase(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), Config{
-		Model:  model.GeminiModels[model.Gemini3Flash],
-		APIKey: apiKey,
-	})
+	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
+
 	require.NoError(t, err, "Failed to create LLM client")
 
-	testDataPath := filepath.Join("testdata", "llm-integration")
+	testDataPath := filepath.Join("testdata", "src")
 
 	questions := []LLMQuestion{
 		{
@@ -126,13 +120,10 @@ func TestLLMIntegration_MultipleQuestions(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), Config{
-		Model:  model.GeminiModels[model.Gemini3Flash],
-		APIKey: apiKey,
-	})
+	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
 	require.NoError(t, err, "Failed to create LLM client")
 
-	testDataPath := filepath.Join("testdata", "llm-integration")
+	testDataPath := filepath.Join("testdata", "src")
 
 	questions := []LLMQuestion{
 		{

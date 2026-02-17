@@ -135,6 +135,7 @@ func (c *Client) AskLLMAboutCode(
 	if len(questions) == 0 {
 		return nil, fmt.Errorf("No questions provided")
 	}
+	logme.DebugFln("llmvalidate: Using code path %s with %d questions", codePath, len(questions))
 
 	// check that codepath exists and it is a directory
 	stat, err := os.Stat(codePath)
@@ -226,7 +227,7 @@ func (c *Client) AskLLMAboutCode(
 	}
 	logme.DebugFln("llmvalidate: Token count for files prompt: %d", tokenCount)
 
-	var answers []LLMAnswer = make([]LLMAnswer, len(questions))
+	var answers []LLMAnswer = make([]LLMAnswer, 0, len(questions))
 
 	for _, question := range questions {
 		var answer LLMAnswer
