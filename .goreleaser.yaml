@@ -18,6 +18,17 @@ builds:
     env:
       - CGO_ENABLED=0
 
+  - # MCP server
+    id: mcpserver
+    main: ./pkg/cmd/mcpserver
+    binary: plugin-validator-mcp
+    goos:
+      - linux
+      - windows
+      - darwin
+    env:
+      - CGO_ENABLED=0
+
 archives:
   - formats: [ tar.gz ]
     format_overrides:
