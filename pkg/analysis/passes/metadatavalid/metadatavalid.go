@@ -2,21 +2,17 @@ package metadatavalid
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/hashicorp/go-version"
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadataschema"
-	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
 var (
@@ -88,27 +84,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	case err == nil:
 		break
 	}
-
-	pluginJsonBytes, err := os.ReadFile(metadataPath)
-	if err != nil {
-		// log the error and continue with schema validation
-		logme.ErrorF("failed to read plugin.json in metadatavalid check: %q", err)
-	}
-	if pluginJsonBytes != nil {
-		var data metadata.Metadata
-		if err := json.Unmarshal(pluginJsonBytes, &data); err == nil {
-			_, err = version.NewConstraint(data.Dependencies.GrafanaDependency)
-			if err != nil {
-				pass.ReportResult(
-					pass.AnalyzerName,
-					invalidMetadata,
-					fmt.Sprintf("plugin.json: Dependencies.grafanaDependency field has invalid or empty version constraint: %q", data.Dependencies.GrafanaDependency),
-					"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
-				)
-			}
-		}
-	}
-
 	schemaLoader := gojsonschema.NewReferenceLoader("file:///" + schemaPath)
 	documentLoader := gojsonschema.NewReferenceLoader("file:///" + metadataPath)
 
@@ -117,14 +92,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, err
 	}
 
-	errLen := len(result.Errors())
 	for _, desc := range result.Errors() {
-		// we validate grafanaDependency at line 91-100,
-		// so we ignore the error from schema validation
-		if strings.Contains(desc.Field(), "grafanaDependency") || strings.Contains(desc.Description(), "grafanaDependency") {
-			errLen -= 1
-			continue
-		}
 		pass.ReportResult(
 			pass.AnalyzerName,
 			invalidMetadata,
@@ -132,7 +100,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			"The plugin.json file is not following the schema. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/",
 		)
 	}
-	if errLen == 0 && validMetadata.ReportAll {
+	if len(result.Errors()) == 0 && validMetadata.ReportAll {
 		pass.ReportResult(pass.AnalyzerName, validMetadata, "plugin.json: metadata is valid", "")
 	}
 

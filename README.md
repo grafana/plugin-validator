@@ -274,6 +274,7 @@ Run "mage gen:readme" to regenerate this section.
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
 | Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |
 | Metadata / `metadata` | Checks that `plugin.json` exists and is valid. | None |
+| Metadata Grafana Dependency / `grafanadependency` | Checks that dependencies.grafanaDependency in `plugin.json` is valid. | None |
 | Metadata Paths / `metadatapaths` | Ensures all paths are valid and images referenced exist. | None |
 | Metadata Validity / `metadatavalid` | Ensures metadata is valid and matches plugin schema. | None |
 | module.js (exists) / `modulejs` | All plugins require a `module.js` to be loaded. | None |
