@@ -15,6 +15,10 @@ func hasGeminiAPIKey() bool {
 	return os.Getenv("GEMINI_API_KEY") != ""
 }
 
+func hasAnthropicAPIKey() bool {
+	return os.Getenv("ANTHROPIC_API_KEY") != ""
+}
+
 // TestLLMIntegration_PositiveCase tests that the LLM correctly identifies
 // when the marker exists in the code
 func TestLLMIntegration_PositiveCase(t *testing.T) {
@@ -23,7 +27,58 @@ func TestLLMIntegration_PositiveCase(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
+	client, err := New(context.Background(), "google", "gemini-3-flash-preview", apiKey)
+	require.NoError(t, err, "Failed to create LLM client")
+
+	testDataPath := filepath.Join("testdata", "src")
+
+	questions := []LLMQuestion{
+		{
+			Question:       "Does the file sample1.go contain a comment with the exact text 'MAGIC_MARKER_BANANA_12345'?",
+			ExpectedAnswer: true,
+		},
+	}
+
+	answers, err := client.AskLLMAboutCode(testDataPath, questions, []string{"."})
+	logme.DebugFln("LLM answers :")
+	prettyprint.Print(answers)
+
+	require.NoError(t, err, "AskLLMAboutCode should not return error")
+	require.Len(t, answers, 1, "Should return exactly one answer")
+
+	answer := answers[0]
+
+	// Verify structured output fields are populated
+	require.NotEmpty(t, answer.Question, "Question field should be populated")
+	require.NotEmpty(t, answer.Answer, "Answer field should be populated")
+	require.Equal(t, true, answer.ShortAnswer, "ShortAnswer should be true when marker exists")
+	require.Equal(
+		t,
+		questions[0].ExpectedAnswer,
+		answer.ExpectedShortAnswer,
+		"ExpectedShortAnswer should match",
+	)
+
+	// The question should be preserved
+	require.Contains(
+		t,
+		answer.Question,
+		"MAGIC_MARKER_BANANA_12345",
+		"Question should contain the marker text",
+	)
+
+	t.Logf("LLM Answer: %s", answer.Answer)
+}
+
+// TestLLMIntegration_PositiveCase_Anthropic tests that the LLM correctly identifies
+// when the marker exists in the code using Anthropic Claude
+func TestLLMIntegration_PositiveCase_Anthropic(t *testing.T) {
+	if !hasAnthropicAPIKey() {
+		t.Skip("ANTHROPIC_API_KEY not set, skipping Anthropic LLM integration test")
+	}
+
+	apiKey := os.Getenv("ANTHROPIC_API_KEY")
+	client, err := New(context.Background(), "anthropic", "claude-sonnet-4-5", apiKey)
 	require.NoError(t, err, "Failed to create LLM client")
 
 	testDataPath := filepath.Join("testdata", "src")
@@ -74,7 +129,7 @@ func TestLLMIntegration_NegativeCase(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
+	client, err := New(context.Background(), "google", "gemini-3-flash-preview", apiKey)
 
 	require.NoError(t, err, "Failed to create LLM client")
 
@@ -120,7 +175,7 @@ func TestLLMIntegration_MultipleQuestions(t *testing.T) {
 	}
 
 	apiKey := os.Getenv("GEMINI_API_KEY")
-	client, err := New(context.Background(), apiKey, "gemini-3-flash-preview")
+	client, err := New(context.Background(), "google", "gemini-3-flash-preview", apiKey)
 	require.NoError(t, err, "Failed to create LLM client")
 
 	testDataPath := filepath.Join("testdata", "src")
