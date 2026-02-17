@@ -1,4 +1,4 @@
-package mcpserver
+package main
 
 import (
 	"context"
@@ -27,7 +27,18 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 		},
 	)
 	if err != nil {
-		return nil, Output{}, fmt.Errorf("couldn't validate plugin: %w", err)
+		// Need to return diagnostics even in case of error, to provide feedback on what went wrong
+		diagnostics := analysis.Diagnostics{
+			"validation": []analysis.Diagnostic{
+				{
+					Name:     "validation-error",
+					Severity: analysis.Error,
+					Title:    "Plugin validation failed",
+					Detail:   err.Error(),
+				},
+			},
+		}
+		return nil, Output{Diagnostics: diagnostics}, nil
 	}
 	return nil, Output{Diagnostics: res.Diagnostics}, nil
 }
