@@ -32,25 +32,25 @@ const (
 )
 
 type Input struct {
-	PluginPath    string `json:"pluginPath" jsonschema:"required,description=The path to the plugin directory. This can be a local file path or a URL. If it's a URL, it must be a zip file."`
-	SourceCodeUri string `json:"sourceCodeUri,omitempty" jsonschema:"description=The URI of the source code. This can be a local file path (zip or folder) or a URL. If it's a URL, it must be a git repository or a zip file."`
+	PluginPath    string `json:"pluginPath" jsonschema:"required" jsonschema_description:"The path to the plugin directory. This can be a local file path or a URL. If it's a URL, it must be a zip file."`
+	SourceCodeUri string `json:"sourceCodeUri,omitempty" jsonschema_description:"The URI of the source code. This can be a local file path (zip or folder) or a URL. If it's a URL, it must be a git repository or a zip file."`
 }
 
 type DiagnosticSummary struct {
-	TotalCategories int `json:"totalCategories" jsonschema:"description=Number of diagnostic categories checked."`
-	ErrorCount      int `json:"errorCount" jsonschema:"description=Number of error-level issues found."`
-	WarningCount    int `json:"warningCount" jsonschema:"description=Number of warning-level issues found."`
-	OkCount         int `json:"okCount" jsonschema:"description=Number of checks that passed."`
-	SuspectedCount  int `json:"suspectedCount" jsonschema:"description=Number of suspected/informational issues."`
-	TotalIssues     int `json:"totalIssues" jsonschema:"description=Total number of all issues across all severity levels."`
+	TotalCategories int `json:"totalCategories" jsonschema_description:"Number of diagnostic categories checked."`
+	ErrorCount      int `json:"errorCount" jsonschema_description:"Number of error-level issues found."`
+	WarningCount    int `json:"warningCount" jsonschema_description:"Number of warning-level issues found."`
+	OkCount         int `json:"okCount" jsonschema_description:"Number of checks that passed."`
+	SuspectedCount  int `json:"suspectedCount" jsonschema_description:"Number of suspected/informational issues."`
+	TotalIssues     int `json:"totalIssues" jsonschema_description:"Total number of all issues across all severity levels."`
 }
 
 type Output struct {
-	PluginID    string            `json:"pluginId" jsonschema:"description=The plugin ID from plugin.json."`
-	Version     string            `json:"version" jsonschema:"description=The plugin version from plugin.json."`
-	Summary     DiagnosticSummary `json:"summary" jsonschema:"description=Summary statistics of the validation results."`
-	Diagnostics Diagnostics       `json:"diagnostics" jsonschema:"description=Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
-	Passed      bool              `json:"passed" jsonschema:"description=True if validation passed (no errors), false otherwise."`
+	PluginID    string            `json:"pluginId" jsonschema_description:"The plugin ID from plugin.json."`
+	Version     string            `json:"version" jsonschema_description:"The plugin version from plugin.json."`
+	Summary     DiagnosticSummary `json:"summary" jsonschema_description:"Summary statistics of the validation results."`
+	Diagnostics Diagnostics       `json:"diagnostics" jsonschema_description:"Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
+	Passed      bool              `json:"passed" jsonschema_description:"True if validation passed (no errors), false otherwise."`
 }
 
 type cliOutput struct {
