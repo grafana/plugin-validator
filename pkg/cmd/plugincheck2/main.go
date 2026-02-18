@@ -1,17 +1,26 @@
 package main
 
 import (
+	"bytes"
+	"crypto/md5"
+	"crypto/sha1"
 	"flag"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
 
+	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/output"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes"
+	"github.com/grafana/plugin-validator/pkg/archivetool"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
-	"github.com/grafana/plugin-validator/pkg/service"
 )
 
 func main() {
@@ -84,22 +93,105 @@ func main() {
 
 	pluginURL := flag.Args()[0]
 
-	result, err := service.ValidatePlugin(service.Params{
-		PluginURL:        pluginURL,
-		SourceCodeUri:    *sourceCodeUri,
-		Checksum:         *checksum,
-		Analyzer:         *analyzer,
-		AnalyzerSeverity: *analyzerSeverity,
-		Config:           &cfg,
-	})
+	// read archive file into bytes
+	b, err := archivetool.ReadArchive(pluginURL)
 	if err != nil {
-		logme.Errorln(fmt.Errorf("couldn't validate plugin: %w", err))
+		logme.Errorln(fmt.Errorf("couldn't fetch plugin archive: %w", err))
 		os.Exit(1)
 	}
-	diags := result.Diagnostics
-	pluginID := result.PluginID
-	pluginVersion := result.PluginVersion
+
+	// write archive to a temp file
+	tmpZip, err := os.CreateTemp("", "plugin-archive")
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't create temporary file: %w", err))
+		os.Exit(1)
+	}
+	defer os.Remove(tmpZip.Name())
+
+	if _, err := tmpZip.Write(b); err != nil {
+		logme.Errorln(fmt.Errorf("couldn't write temporary file: %w", err))
+		os.Exit(1)
+	}
+
+	logme.Debugln(fmt.Sprintf("Archive copied to tmp file: %s", tmpZip.Name()))
+
+	md5hasher := md5.New()
+	md5hasher.Write(b)
+	md5hash := md5hasher.Sum(nil)
+
+	sha1hasher := sha1.New()
+	sha1hasher.Write(b)
+	sha1hash := sha1hasher.Sum(nil)
+
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedMD5: %x", md5hash))
+	logme.Debugln(fmt.Sprintf("ArchiveCalculatedSHA1: %x", sha1hash))
+
+	// Extract the ZIP archive in a temporary directory.
+	archiveDir, archiveCleanup, err := archivetool.ExtractPlugin(bytes.NewReader(b))
+	if err != nil {
+		logme.Errorln(fmt.Errorf("couldn't extract plugin archive: %w", err))
+		os.Exit(1)
+	}
+	defer archiveCleanup()
+
+	sourceCodeDir, sourceCodeDirCleanup, err := getSourceCodeDir(*sourceCodeUri)
+	if err != nil {
+		// if source code is not provided, we don't fail the validation
+		logme.Errorln(fmt.Errorf("couldn't get source code: %w", err))
+	}
+	if sourceCodeDirCleanup != nil {
+		defer sourceCodeDirCleanup()
+	}
+
+	analyzers := passes.Analyzers
+	severity := analysis.Severity("")
+
+	if *analyzer != "" {
+		for _, a := range analyzers {
+			if a.Name == *analyzer {
+				analyzers = []*analysis.Analyzer{a}
+
+				break
+			}
+		}
+		if *analyzerSeverity != "" {
+			severity = analysis.Severity(*analyzerSeverity)
+		}
+	}
+
+	diags, err := runner.Check(
+		analyzers,
+		analysis.CheckParams{
+			ArchiveFile:           tmpZip.Name(),
+			ArchiveDir:            archiveDir,
+			SourceCodeDir:         sourceCodeDir,
+			SourceCodeReference:   *sourceCodeUri,
+			Checksum:              *checksum,
+			ArchiveCalculatedMD5:  fmt.Sprintf("%x", md5hash),
+			ArchiveCalculatedSHA1: fmt.Sprintf("%x", sha1hash),
+		},
+		cfg,
+		severity,
+	)
+	if err != nil {
+		// we don't exit on error. we want to still report the diagnostics
+		logme.DebugFln("check failed: %v", err)
+	}
+
 	var outputMarshaler output.Marshaler
+
+	// Plugin ID and version (needed by JSON output)
+	pluginID, pluginVersion, err := GetIDAndVersion(archiveDir)
+	if err != nil {
+		pluginID, pluginVersion = GetIDAndVersionFallBack(archiveDir)
+		archiveDiag := analysis.Diagnostic{
+			Name:     "zip-invalid",
+			Severity: analysis.Error,
+			Title:    "Plugin archive is improperly structured",
+			Detail:   "It is possible your plugin archive structure is incorrect. Please see https://grafana.com/developers/plugin-tools/publish-a-plugin/package-a-plugin for more information on how to package a plugin.",
+		}
+		diags["archive"] = append(diags["archive"], archiveDiag)
+	}
 
 	// Additional JSON output to file
 	if *outputToFile != "" {
@@ -184,4 +276,68 @@ func readConfigFile(path string) (runner.Config, error) {
 	}
 
 	return config, nil
+}
+
+func getSourceCodeDirSubDir(sourceCodePath string) string {
+	// check if there's a package.json in the source code directory
+	// if so return the source code directory as is
+	if _, err := os.Stat(filepath.Join(sourceCodePath, "package.json")); err == nil {
+		return sourceCodePath
+	}
+
+	// use double start to find the first ocurrance of package.json
+	possiblePath, err := doublestar.FilepathGlob(sourceCodePath + "/**/package.json")
+	if err != nil {
+		return sourceCodePath
+	}
+	if len(possiblePath) == 0 {
+		return sourceCodePath
+	}
+	logme.DebugFln(
+		"Detected sourcecode inside a subdir: %v. Returning %s",
+		possiblePath,
+		filepath.Dir(possiblePath[0]),
+	)
+	// possiblePath points to a file, return the dir
+	return filepath.Dir(possiblePath[0])
+}
+
+func getSourceCodeDir(sourceCodeUri string) (string, func(), error) {
+	// If source code URI is not provided, return immediately with an empty string
+	// otherwise we will get an error when trying to extract the source code archive
+	if sourceCodeUri == "" {
+		return "", func() {}, nil
+	}
+
+	// file:// protocol for local directories
+	if strings.HasPrefix(sourceCodeUri, "file://") {
+		sourceCodeDir := strings.TrimPrefix(sourceCodeUri, "file://")
+		if _, err := os.Stat(sourceCodeDir); err != nil {
+			return "", nil, err
+		}
+		return sourceCodeDir, func() {}, nil
+	}
+
+	if repotool.IsSupportedGitUrl(sourceCodeUri) {
+		extractedGitRepo, sourceCodeCleanUp, err := repotool.GitUrlToLocalPath(sourceCodeUri)
+		if err != nil {
+			return "", sourceCodeCleanUp, err
+		}
+		return extractedGitRepo, sourceCodeCleanUp, nil
+	}
+
+	// assume is an archive url
+	extractedDir, sourceCodeCleanUp, err := archivetool.ArchiveToLocalPath(sourceCodeUri)
+	if err != nil {
+		return "", sourceCodeCleanUp, fmt.Errorf(
+			"couldn't extract source code archive: %s. %w",
+			sourceCodeUri,
+			err,
+		)
+	}
+	// some submissions from zip have their source code in a subdirectory
+	// of the extracted archive
+	extractedDir = getSourceCodeDirSubDir(extractedDir)
+	return extractedDir, sourceCodeCleanUp, nil
+
 }

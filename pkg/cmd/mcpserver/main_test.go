@@ -9,6 +9,11 @@ import (
 )
 
 func TestValidatePlugin_InvalidZip(t *testing.T) {
+	// Skip if neither docker nor npx is available (e.g., in CI/CD)
+	if !isDockerAvailable() && !isNpxAvailable() {
+		t.Skip("Skipping test: neither docker nor npx is available")
+	}
+
 	archivePath := filepath.Join("..", "plugincheck2", "testdata", "invalid.zip")
 	input := Input{
 		PluginPath:    archivePath,
@@ -38,6 +43,11 @@ func TestValidatePlugin_InvalidZip(t *testing.T) {
 }
 
 func TestValidatePlugin_ValidZip(t *testing.T) {
+	// Skip if neither docker nor npx is available (e.g., in CI/CD)
+	if !isDockerAvailable() && !isNpxAvailable() {
+		t.Skip("Skipping test: neither docker nor npx is available")
+	}
+
 	archivePath := filepath.Join("..", "plugincheck2", "testdata", "alexanderzobnin-zabbix-app-4.4.9.linux_amd64.zip")
 	input := Input{
 		PluginPath:    archivePath,
