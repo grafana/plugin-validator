@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -70,15 +71,19 @@ func isNpxAvailable() bool {
 }
 
 func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) (*mcp.CallToolResult, Output, error) {
+	log.Printf("[MCP] ValidatePlugin called - pluginPath: %s, sourceCodeUri: %s", input.PluginPath, input.SourceCodeUri)
+
 	var useDocker bool
 	var method string
 
 	if isDockerAvailable() {
 		useDocker = true
 		method = "docker"
+		log.Printf("[MCP] Using Docker for validation")
 	} else if isNpxAvailable() {
 		useDocker = false
 		method = "npx"
+		log.Printf("[MCP] Using npx for validation")
 	} else {
 		return nil, Output{}, fmt.Errorf("neither docker nor npx is available. Please install Docker or Node.js")
 	}
@@ -137,6 +142,7 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 		}
 
 		cmd = exec.CommandContext(ctx, "docker", args...)
+		log.Printf("[MCP] Executing: docker %v", args)
 	} else {
 		// Using npx
 		args := []string{"-y", "@grafana/plugin-validator@latest", "-jsonOutput"}
@@ -147,6 +153,7 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 
 		args = append(args, input.PluginPath)
 		cmd = exec.CommandContext(ctx, "npx", args...)
+		log.Printf("[MCP] Executing: npx %v", args)
 	}
 
 	// Execute the command - capture stdout and stderr separately
@@ -169,8 +176,11 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 	}
 
 	// Parse JSON output from stdout
+	log.Printf("[MCP] Command completed, stdout length: %d, stderr length: %d", len(stdout), len(stderr))
+
 	var cliOut cliOutput
 	if err := json.Unmarshal(stdout, &cliOut); err != nil {
+		log.Printf("[MCP] Failed to parse JSON: %v", err)
 		// If we can't parse the output, return a generic error diagnostic
 		diagnostics := Diagnostics{
 			"validation": []Diagnostic{
@@ -193,6 +203,8 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 
 	// Calculate summary statistics
 	summary := calculateSummary(cliOut.PluginValidator)
+	log.Printf("[MCP] Validation complete - PluginID: %s, Version: %s, Errors: %d, Warnings: %d",
+		cliOut.ID, cliOut.Version, summary.ErrorCount, summary.WarningCount)
 
 	return nil, Output{
 		PluginID:    cliOut.ID,
@@ -229,6 +241,10 @@ func calculateSummary(diags Diagnostics) DiagnosticSummary {
 }
 
 func run() error {
+	log.SetOutput(os.Stderr)
+	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
+	log.Printf("[MCP] Starting plugin-validator MCP server v0.1.0")
+
 	server := mcp.NewServer(&mcp.Implementation{Name: "plugin-validator", Version: "0.1.0"}, nil)
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "validate_plugin",
