@@ -9,8 +9,26 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
+
+// Diagnostic represents a single validation issue
+type Diagnostic struct {
+	Severity string `json:"Severity"`
+	Title    string `json:"Title"`
+	Detail   string `json:"Detail"`
+	Name     string `json:"Name"`
+}
+
+// Diagnostics is a map of category name to list of diagnostics
+type Diagnostics map[string][]Diagnostic
+
+// Severity constants
+const (
+	SeverityError     = "error"
+	SeverityWarning   = "warning"
+	SeverityOK        = "ok"
+	SeveritySuspected = "suspected"
 )
 
 type Input struct {
@@ -28,17 +46,17 @@ type DiagnosticSummary struct {
 }
 
 type Output struct {
-	PluginID    string               `json:"pluginId" jsonschema:"description=The plugin ID from plugin.json."`
-	Version     string               `json:"version" jsonschema:"description=The plugin version from plugin.json."`
-	Summary     DiagnosticSummary    `json:"summary" jsonschema:"description=Summary statistics of the validation results."`
-	Diagnostics analysis.Diagnostics `json:"diagnostics" jsonschema:"description=Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
-	Passed      bool                 `json:"passed" jsonschema:"description=True if validation passed (no errors), false otherwise."`
+	PluginID    string            `json:"pluginId" jsonschema:"description=The plugin ID from plugin.json."`
+	Version     string            `json:"version" jsonschema:"description=The plugin version from plugin.json."`
+	Summary     DiagnosticSummary `json:"summary" jsonschema:"description=Summary statistics of the validation results."`
+	Diagnostics Diagnostics       `json:"diagnostics" jsonschema:"description=Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
+	Passed      bool              `json:"passed" jsonschema:"description=True if validation passed (no errors), false otherwise."`
 }
 
 type cliOutput struct {
-	ID              string               `json:"id"`
-	Version         string               `json:"version"`
-	PluginValidator analysis.Diagnostics `json:"plugin-validator"`
+	ID              string      `json:"id"`
+	Version         string      `json:"version"`
+	PluginValidator Diagnostics `json:"plugin-validator"`
 }
 
 func isDockerAvailable() bool {
@@ -154,11 +172,11 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 	var cliOut cliOutput
 	if err := json.Unmarshal(stdout, &cliOut); err != nil {
 		// If we can't parse the output, return a generic error diagnostic
-		diagnostics := analysis.Diagnostics{
-			"validation": []analysis.Diagnostic{
+		diagnostics := Diagnostics{
+			"validation": []Diagnostic{
 				{
 					Name:     "validation-error",
-					Severity: analysis.Error,
+					Severity: SeverityError,
 					Title:    "Plugin validation failed",
 					Detail:   fmt.Sprintf("Failed to parse validator output: %v\nStdout: %s\nStderr: %s", err, string(stdout), string(stderr)),
 				},
@@ -186,7 +204,7 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 }
 
 // calculateSummary computes summary statistics from diagnostics
-func calculateSummary(diags analysis.Diagnostics) DiagnosticSummary {
+func calculateSummary(diags Diagnostics) DiagnosticSummary {
 	summary := DiagnosticSummary{
 		TotalCategories: len(diags),
 	}
@@ -194,11 +212,11 @@ func calculateSummary(diags analysis.Diagnostics) DiagnosticSummary {
 	for _, items := range diags {
 		for _, d := range items {
 			switch d.Severity {
-			case analysis.Error:
+			case SeverityError:
 				summary.ErrorCount++
-			case analysis.Warning:
+			case SeverityWarning:
 				summary.WarningCount++
-			case analysis.OK:
+			case SeverityOK:
 				summary.OkCount++
 			default: // "suspected" and others
 				summary.SuspectedCount++
