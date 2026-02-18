@@ -61,6 +61,14 @@ func TestIntegration(t *testing.T) {
 				Id:      "grafana-clock-panel",
 				Version: "2.1.5",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "warning",
+							Title:    "Grafana dependency \">=8.0.0\" has no pre-release value",
+							Detail:   "The value of grafanaDependency in plugin.json (\">=8.0.0\") is missing a pre-release value. This may make the plugin uninstallable in Grafana Cloud. Please add \"-0\" as a suffix of your grafanaDependency value (\">=8.0.0-0\")",
+							Name:     "missing-cloud-pre-release",
+						},
+					},
 					"jargon": {
 						{
 							Severity: "warning",
@@ -87,6 +95,14 @@ func TestIntegration(t *testing.T) {
 				Id:      "alexanderzobnin-zabbix-app",
 				Version: "4.4.9",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "warning",
+							Title:    "Grafana dependency \">=9.3.0\" has no pre-release value",
+							Detail:   "The value of grafanaDependency in plugin.json (\">=9.3.0\") is missing a pre-release value. This may make the plugin uninstallable in Grafana Cloud. Please add \"-0\" as a suffix of your grafanaDependency value (\">=9.3.0-0\")",
+							Name:     "missing-cloud-pre-release",
+						},
+					},
 					"includesnested": {
 						{
 							Severity: "error",
@@ -151,6 +167,14 @@ func TestIntegration(t *testing.T) {
 				Id:      "yesoreyeram-infinity-datasource",
 				Version: "2.6.3",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "warning",
+							Title:    "Grafana dependency \">=9.5.15\" has no pre-release value",
+							Detail:   "The value of grafanaDependency in plugin.json (\">=9.5.15\") is missing a pre-release value. This may make the plugin uninstallable in Grafana Cloud. Please add \"-0\" as a suffix of your grafanaDependency value (\">=9.5.15-0\")",
+							Name:     "missing-cloud-pre-release",
+						},
+					},
 					"sponsorshiplink": {
 						{
 							Severity: "recommendation",
@@ -352,6 +376,14 @@ func TestIntegration(t *testing.T) {
 				Id:      "grafana-clock-panel",
 				Version: "2.1.5",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "warning",
+							Title:    "Grafana dependency \">=8.0.0\" has no pre-release value",
+							Detail:   "The value of grafanaDependency in plugin.json (\">=8.0.0\") is missing a pre-release value. This may make the plugin uninstallable in Grafana Cloud. Please add \"-0\" as a suffix of your grafanaDependency value (\">=8.0.0-0\")",
+							Name:     "missing-cloud-pre-release",
+						},
+					},
 					"jargon": {
 						{
 							Severity: "warning",
@@ -379,6 +411,14 @@ func TestIntegration(t *testing.T) {
 				Id:      "grafana-clock-panel",
 				Version: "2.1.5",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "warning",
+							Title:    "Grafana dependency \">=8.0.0\" has no pre-release value",
+							Detail:   "The value of grafanaDependency in plugin.json (\">=8.0.0\") is missing a pre-release value. This may make the plugin uninstallable in Grafana Cloud. Please add \"-0\" as a suffix of your grafanaDependency value (\">=8.0.0-0\")",
+							Name:     "missing-cloud-pre-release",
+						},
+					},
 					"jargon": {
 						{
 							Severity: "warning",

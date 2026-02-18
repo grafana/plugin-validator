@@ -266,6 +266,7 @@ Run "mage gen:readme" to regenerate this section.
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
 | Go Manifest / `go-manifest` | Validates the build manifest. | None |
 | Go Security Checker / `go-sec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
+| Grafana Dependency / `grafanadependency` | Ensures the Grafana dependency specified in plugin.json is valid | None |
 | JS Source Map / `jsMap` | Checks for required `module.js.map` file(s) in archive. | `sourceCodeUri` |
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |

@@ -1,5 +1,7 @@
 package metadata
 
+import "strings"
+
 type Metadata struct {
 	ID           string               `json:"id"`
 	Name         string               `json:"name"`
@@ -10,6 +12,13 @@ type Metadata struct {
 	Backend      bool                 `json:"backend"`
 	Alerting     bool                 `json:"alerting"`
 	Dependencies MetadataDependencies `json:"dependencies"`
+}
+
+// IsGrafanaLabs returns true if the plugin was developed by Grafana Labs.
+// A plugin is considered developed by Grafana Labs if either
+// the author name is "Grafana Labs" or the org name in the slug is "grafana"
+func (m Metadata) IsGrafanaLabs() bool {
+	return strings.EqualFold(m.Info.Author.Name, "grafana labs") || strings.EqualFold(orgFromPluginID(m.ID), "grafana")
 }
 
 type Info struct {
@@ -23,7 +32,8 @@ type Info struct {
 }
 
 type Author struct {
-	URL string `json:"url"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
 type Screenshots struct {
@@ -63,4 +73,14 @@ type MetadataPluginDependency struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	Type string `json:"type"`
+}
+
+// orgFromPluginID extracts and returns the organization prefix from a plugin ID by splitting on the first hyphen.
+// Returns an empty string if the plugin ID is empty or invalid.
+func orgFromPluginID(id string) string {
+	parts := strings.SplitN(id, "-", 3)
+	if len(parts) < 1 {
+		return ""
+	}
+	return parts[0]
 }
