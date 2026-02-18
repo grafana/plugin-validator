@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
+	"os"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/service"
@@ -57,6 +57,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatalf("failed to run: %v", err)
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
 	}
 }
