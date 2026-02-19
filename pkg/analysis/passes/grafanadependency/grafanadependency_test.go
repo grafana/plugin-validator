@@ -40,6 +40,22 @@ func TestGrafanaDependency(t *testing.T) {
 			}`,
 			titleMsg: "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \">=invalid\"",
 		},
+		{
+			name: "empty grafanaDependency",
+			pluginJSON: `{
+				"id": "test-org-app",
+				"dependencies": { "grafanaDependency": "" }
+			}`,
+			titleMsg: "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \"\"",
+		},
+		{
+			name: "missing grafanaDependency",
+			pluginJSON: `{
+				"id": "test-org-app",
+				"dependencies": {"plugins": [ ]}
+			}`,
+			titleMsg: "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \"\"",
+		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var interceptor testpassinterceptor.TestPassInterceptor
