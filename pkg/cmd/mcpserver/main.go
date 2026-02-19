@@ -24,6 +24,8 @@ type Diagnostic struct {
 // Diagnostics is a map of category name to list of diagnostics
 type Diagnostics map[string][]Diagnostic
 
+var version = "dev"
+
 // Severity constants
 const (
 	SeverityError     = "error"
@@ -37,21 +39,10 @@ type Input struct {
 	SourceCodeUri string `json:"sourceCodeUri,omitempty" jsonschema_description:"The URI of the source code. This can be a local file path (zip or folder) or a URL. If it's a URL, it must be a git repository or a zip file."`
 }
 
-type DiagnosticSummary struct {
-	TotalCategories int `json:"totalCategories" jsonschema_description:"Number of diagnostic categories checked."`
-	ErrorCount      int `json:"errorCount" jsonschema_description:"Number of error-level issues found."`
-	WarningCount    int `json:"warningCount" jsonschema_description:"Number of warning-level issues found."`
-	OkCount         int `json:"okCount" jsonschema_description:"Number of checks that passed."`
-	SuspectedCount  int `json:"suspectedCount" jsonschema_description:"Number of suspected/informational issues."`
-	TotalIssues     int `json:"totalIssues" jsonschema_description:"Total number of all issues across all severity levels."`
-}
-
 type Output struct {
-	PluginID    string            `json:"pluginId" jsonschema_description:"The plugin ID from plugin.json."`
-	Version     string            `json:"version" jsonschema_description:"The plugin version from plugin.json."`
-	Summary     DiagnosticSummary `json:"summary" jsonschema_description:"Summary statistics of the validation results."`
-	Diagnostics Diagnostics       `json:"diagnostics" jsonschema_description:"Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
-	Passed      bool              `json:"passed" jsonschema_description:"True if validation passed (no errors), false otherwise."`
+	PluginID    string      `json:"pluginId" jsonschema_description:"The plugin ID from plugin.json."`
+	Version     string      `json:"version" jsonschema_description:"The plugin version from plugin.json."`
+	Diagnostics Diagnostics `json:"diagnostics" jsonschema_description:"Detailed diagnostics grouped by category (e.g., archive, manifest, security). Each category contains a list of issues with Severity (error/warning/ok/suspected), Title (brief description), Detail (detailed explanation), and Name (machine-readable identifier)."`
 }
 
 type cliOutput struct {
@@ -68,6 +59,14 @@ func isDockerAvailable() bool {
 func isNpxAvailable() bool {
 	_, err := exec.LookPath("npx")
 	return err == nil
+}
+
+func isLocalFilePath(path string) bool {
+	return strings.HasPrefix(path, "/") ||
+		strings.HasPrefix(path, "./") ||
+		strings.HasPrefix(path, "../") ||
+		strings.HasPrefix(path, "file://") ||
+		(!strings.HasPrefix(path, "http://") && !strings.HasPrefix(path, "https://"))
 }
 
 func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) (*mcp.CallToolResult, Output, error) {
@@ -91,20 +90,12 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 	var cmd *exec.Cmd
 	var pluginArg string
 
-	// Handle local file paths - need to mount for Docker
-	// Check if it's a local file path (absolute, relative, or file:// URI)
-	isLocalFile := strings.HasPrefix(input.PluginPath, "/") ||
-		strings.HasPrefix(input.PluginPath, "./") ||
-		strings.HasPrefix(input.PluginPath, "../") ||
-		strings.HasPrefix(input.PluginPath, "file://") ||
-		(!strings.HasPrefix(input.PluginPath, "http://") && !strings.HasPrefix(input.PluginPath, "https://"))
-
 	// Docker is preferred then npx as fallback
 	if useDocker {
 		args := []string{"run", "--pull=always", "--rm"}
 
 		// Mount local files if needed
-		if isLocalFile {
+		if isLocalFilePath(input.PluginPath) {
 			localPath := strings.TrimPrefix(input.PluginPath, "file://")
 			absPath, err := filepath.Abs(localPath)
 			if err != nil {
@@ -119,13 +110,8 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 
 		// Mount source code if provided and local
 		if input.SourceCodeUri != "" {
-			isLocalSource := strings.HasPrefix(input.SourceCodeUri, "/") ||
-				strings.HasPrefix(input.SourceCodeUri, "./") ||
-				strings.HasPrefix(input.SourceCodeUri, "../") ||
-				strings.HasPrefix(input.SourceCodeUri, "file://") ||
-				(!strings.HasPrefix(input.SourceCodeUri, "http://") && !strings.HasPrefix(input.SourceCodeUri, "https://"))
 
-			if isLocalSource {
+			if isLocalFilePath(input.SourceCodeUri) {
 				sourcePath := strings.TrimPrefix(input.SourceCodeUri, "file://")
 				absPath, err := filepath.Abs(sourcePath)
 				if err != nil {
@@ -196,56 +182,22 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 			PluginID:    "unknown",
 			Version:     "unknown",
 			Diagnostics: diagnostics,
-			Summary:     calculateSummary(diagnostics),
-			Passed:      false,
 		}, nil
 	}
-
-	// Calculate summary statistics
-	summary := calculateSummary(cliOut.PluginValidator)
-	log.Printf("[MCP] Validation complete - PluginID: %s, Version: %s, Errors: %d, Warnings: %d",
-		cliOut.ID, cliOut.Version, summary.ErrorCount, summary.WarningCount)
 
 	return nil, Output{
 		PluginID:    cliOut.ID,
 		Version:     cliOut.Version,
-		Summary:     summary,
 		Diagnostics: cliOut.PluginValidator,
-		Passed:      summary.ErrorCount == 0,
 	}, nil
-}
-
-// calculateSummary computes summary statistics from diagnostics
-func calculateSummary(diags Diagnostics) DiagnosticSummary {
-	summary := DiagnosticSummary{
-		TotalCategories: len(diags),
-	}
-
-	for _, items := range diags {
-		for _, d := range items {
-			switch d.Severity {
-			case SeverityError:
-				summary.ErrorCount++
-			case SeverityWarning:
-				summary.WarningCount++
-			case SeverityOK:
-				summary.OkCount++
-			default: // "suspected" and others
-				summary.SuspectedCount++
-			}
-		}
-	}
-
-	summary.TotalIssues = summary.ErrorCount + summary.WarningCount + summary.SuspectedCount
-	return summary
 }
 
 func run() error {
 	log.SetOutput(os.Stderr)
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-	log.Printf("[MCP] Starting plugin-validator MCP server v0.1.0")
+	log.Printf("[MCP] Starting plugin-validator MCP server v%s", version)
 
-	server := mcp.NewServer(&mcp.Implementation{Name: "plugin-validator", Version: "0.1.0"}, nil)
+	server := mcp.NewServer(&mcp.Implementation{Name: "plugin-validator", Version: version}, nil)
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "validate_plugin",
 		Description: "Validates a Grafana plugin by calling the validator CLI via Docker (with --pull=always for latest) or npx. Checks metadata, security, structure, and best practices. Returns detailed errors and warnings with actionable fix suggestions.",
