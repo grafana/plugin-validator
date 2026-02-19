@@ -3,9 +3,11 @@ package llmclient
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/tmc/langchaingo/llms"
@@ -330,7 +332,8 @@ func (e *toolExecutor) git(args map[string]interface{}) string {
 	subcommand := parts[0]
 
 	if !allowedGitSubcommands[subcommand] {
-		return fmt.Sprintf("Error: git subcommand '%s' is not allowed. Allowed commands: log, show, diff, status, ls-files, blame, rev-parse, cat-file, checkout, fetch, pull, branch, tag", subcommand)
+		allowed := strings.Join(slices.Sorted(maps.Keys(allowedGitSubcommands)), ", ")
+		return fmt.Sprintf("Error: git subcommand '%s' is not allowed. Allowed commands: %s", subcommand, allowed)
 	}
 
 	// Check for flags that could execute arbitrary commands
