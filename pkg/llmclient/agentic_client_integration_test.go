@@ -26,20 +26,21 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 		t.Skip("GEMINI_API_KEY not set, skipping agentic client integration test")
 	}
 
-	client := NewAgenticClient()
-
-	testDataPath, err := filepath.Abs(filepath.Join("testdata", "no_fs_access"))
-	require.NoError(t, err)
-
 	opts := &AgenticCallOptions{
 		Provider: "google",
 		Model:    "gemini-2.0-flash",
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
+	client, err := NewAgenticClient(opts)
+	require.NoError(t, err)
+
+	testDataPath, err := filepath.Abs(filepath.Join("testdata", "no_fs_access"))
+	require.NoError(t, err)
+
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
-	answers, err := client.CallLLM(context.Background(), prompt, testDataPath, opts)
+	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
 	logme.DebugFln("Agent answers:")
 	prettyprint.Print(answers)
 
@@ -64,20 +65,21 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 		t.Skip("GEMINI_API_KEY not set, skipping agentic client integration test")
 	}
 
-	client := NewAgenticClient()
-
-	testDataPath, err := filepath.Abs(filepath.Join("testdata", "fs_access"))
-	require.NoError(t, err)
-
 	opts := &AgenticCallOptions{
 		Provider: "google",
 		Model:    "gemini-2.0-flash",
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
+	client, err := NewAgenticClient(opts)
+	require.NoError(t, err)
+
+	testDataPath, err := filepath.Abs(filepath.Join("testdata", "fs_access"))
+	require.NoError(t, err)
+
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
-	answers, err := client.CallLLM(context.Background(), prompt, testDataPath, opts)
+	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
 	logme.DebugFln("Agent answers:")
 	prettyprint.Print(answers)
 
@@ -101,20 +103,21 @@ func TestAgenticClient_NoFilesystemAccess_Anthropic(t *testing.T) {
 		t.Skip("ANTHROPIC_API_KEY not set, skipping Anthropic agentic client integration test")
 	}
 
-	client := NewAgenticClient()
-
-	testDataPath, err := filepath.Abs(filepath.Join("testdata", "no_fs_access"))
-	require.NoError(t, err)
-
 	opts := &AgenticCallOptions{
 		Provider: "anthropic",
 		Model:    "claude-sonnet-4-5",
 		APIKey:   os.Getenv("ANTHROPIC_API_KEY"),
 	}
 
+	client, err := NewAgenticClient(opts)
+	require.NoError(t, err)
+
+	testDataPath, err := filepath.Abs(filepath.Join("testdata", "no_fs_access"))
+	require.NoError(t, err)
+
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
-	answers, err := client.CallLLM(context.Background(), prompt, testDataPath, opts)
+	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
 	logme.DebugFln("Agent answers:")
 	prettyprint.Print(answers)
 
@@ -138,20 +141,21 @@ func TestAgenticClient_FilesystemAccess_Anthropic(t *testing.T) {
 		t.Skip("ANTHROPIC_API_KEY not set, skipping Anthropic agentic client integration test")
 	}
 
-	client := NewAgenticClient()
-
-	testDataPath, err := filepath.Abs(filepath.Join("testdata", "fs_access"))
-	require.NoError(t, err)
-
 	opts := &AgenticCallOptions{
 		Provider: "anthropic",
 		Model:    "claude-sonnet-4-5",
 		APIKey:   os.Getenv("ANTHROPIC_API_KEY"),
 	}
 
+	client, err := NewAgenticClient(opts)
+	require.NoError(t, err)
+
+	testDataPath, err := filepath.Abs(filepath.Join("testdata", "fs_access"))
+	require.NoError(t, err)
+
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
-	answers, err := client.CallLLM(context.Background(), prompt, testDataPath, opts)
+	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
 	logme.DebugFln("Agent answers:")
 	prettyprint.Print(answers)
 

@@ -36,38 +36,47 @@ type AgenticCallOptions struct {
 
 // AgenticClient is an interface for agentic LLM interactions
 type AgenticClient interface {
-	CallLLM(ctx context.Context, prompt, repositoryPath string, opts *AgenticCallOptions) ([]AnswerSchema, error)
+	CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error)
 }
 
 // agenticClientImpl implements AgenticClient
-type agenticClientImpl struct{}
+type agenticClientImpl struct {
+	apiKey   string
+	model    string
+	provider string
+}
 
-// NewAgenticClient creates a new AgenticClient
-func NewAgenticClient() AgenticClient {
-	return &agenticClientImpl{}
+// NewAgenticClient creates a new AgenticClient with the given options
+func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
+	if opts == nil {
+		return nil, fmt.Errorf("options are required")
+	}
+	if opts.APIKey == "" {
+		return nil, fmt.Errorf("API key is required")
+	}
+	if opts.Model == "" {
+		return nil, fmt.Errorf("model is required")
+	}
+	if opts.Provider == "" {
+		return nil, fmt.Errorf("provider is required")
+	}
+	return &agenticClientImpl{
+		apiKey:   opts.APIKey,
+		model:    opts.Model,
+		provider: opts.Provider,
+	}, nil
 }
 
 // CallLLM executes an agentic loop with tools to answer questions about code.
 // The prompt may contain multiple questions, in which case the agent will call
 // submit_answer multiple times. All answers are collected and returned.
-func (c *agenticClientImpl) CallLLM(ctx context.Context, prompt, repositoryPath string, opts *AgenticCallOptions) ([]AnswerSchema, error) {
-	if opts == nil {
-		return nil, fmt.Errorf("options are required")
+func (c *agenticClientImpl) CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error) {
+	// Initialize LLM based on provider using the client's configured settings
+	opts := &AgenticCallOptions{
+		APIKey:   c.apiKey,
+		Model:    c.model,
+		Provider: c.provider,
 	}
-
-	if opts.APIKey == "" {
-		return nil, fmt.Errorf("API key is required")
-	}
-
-	if opts.Model == "" {
-		return nil, fmt.Errorf("model is required")
-	}
-
-	if opts.Provider == "" {
-		return nil, fmt.Errorf("provider is required")
-	}
-
-	// Initialize LLM based on provider
 	llm, err := initLLM(ctx, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize LLM: %w", err)
@@ -114,7 +123,7 @@ When ready, use submit_answer. For multiple questions, call submit_answer once p
 	printDebugLogPath()
 	debugLog("\n\n\n")
 	debugLog("################################################################")
-	debugLog("# NEW CallLLM - provider=%s model=%s", opts.Provider, opts.Model)
+	debugLog("# NEW CallLLM - provider=%s model=%s", c.provider, c.model)
 	debugLog("# repo=%s", repositoryPath)
 	debugLog("# prompt=%s", truncateString(prompt, 200))
 	debugLog("################################################################")
