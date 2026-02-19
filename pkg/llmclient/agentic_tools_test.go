@@ -1,6 +1,7 @@
 package llmclient
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -286,4 +287,21 @@ func TestGit_AllowedSubcommands(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExecute(t *testing.T) {
+	dir := setupTestRepo(t)
+	executor := newToolExecutor(dir)
+
+	t.Run("success", func(t *testing.T) {
+		args, _ := json.Marshal(map[string]string{"path": "main.go"})
+		result, err := executor.execute("read_file", string(args))
+		require.NoError(t, err)
+		require.Contains(t, result, "package main")
+	})
+
+	t.Run("unknown tool returns error", func(t *testing.T) {
+		_, err := executor.execute("nonexistent_tool", "{}")
+		require.ErrorContains(t, err, "unknown tool")
+	})
 }

@@ -262,7 +262,10 @@ func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount in
 	}
 
 	// Execute other tools
-	result := executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
+	result, err := executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
+	if err != nil {
+		result = fmt.Sprintf("Error: %v", err)
+	}
 	debugLog("AgenticClient: tool result: %s", truncateString(result, 300))
 
 	return llms.MessageContent{

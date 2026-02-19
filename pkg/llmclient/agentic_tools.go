@@ -164,33 +164,25 @@ func newToolExecutor(repoPath string) *toolExecutor {
 	return &toolExecutor{repoPath: repoPath}
 }
 
-// execute runs a tool and returns the result as a string
-func (e *toolExecutor) execute(toolName, argsJSON string) string {
+// execute runs a tool and returns the result or an error.
+func (e *toolExecutor) execute(toolName, argsJSON string) (string, error) {
 	var args map[string]interface{}
 	if err := json.Unmarshal([]byte(argsJSON), &args); err != nil {
-		return fmt.Sprintf("Error parsing arguments: %v", err)
+		return "", fmt.Errorf("parsing arguments: %w", err)
 	}
 
-	var (
-		result string
-		err    error
-	)
 	switch toolName {
 	case "read_file":
-		result, err = e.readFile(args)
+		return e.readFile(args)
 	case "list_directory":
-		result, err = e.listDirectory(args)
+		return e.listDirectory(args)
 	case "grep":
-		result, err = e.grep(args)
+		return e.grep(args)
 	case "git":
-		result, err = e.git(args)
+		return e.git(args)
 	default:
-		return fmt.Sprintf("Unknown tool: %s", toolName)
+		return "", fmt.Errorf("unknown tool: %s", toolName)
 	}
-	if err != nil {
-		return fmt.Sprintf("Error: %v", err)
-	}
-	return result
 }
 
 // validatePath checks that the resolved path is within the repository directory.
