@@ -2,6 +2,7 @@ package llmclient
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"os"
@@ -170,106 +171,114 @@ func (e *toolExecutor) execute(toolName, argsJSON string) string {
 		return fmt.Sprintf("Error parsing arguments: %v", err)
 	}
 
+	var (
+		result string
+		err    error
+	)
 	switch toolName {
 	case "read_file":
-		return e.readFile(args)
+		result, err = e.readFile(args)
 	case "list_directory":
-		return e.listDirectory(args)
+		result, err = e.listDirectory(args)
 	case "grep":
-		return e.grep(args)
+		result, err = e.grep(args)
 	case "git":
-		return e.git(args)
+		result, err = e.git(args)
 	default:
 		return fmt.Sprintf("Unknown tool: %s", toolName)
 	}
+	if err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
+	return result
 }
 
 // validatePath checks that the resolved path is within the repository directory.
-// Returns the validated absolute path or an error string.
-func (e *toolExecutor) validatePath(path string) (string, string) {
+// Returns the validated absolute path or an error.
+func (e *toolExecutor) validatePath(path string) (string, error) {
 	fullPath := filepath.Join(e.repoPath, path)
 	absPath, err := filepath.Abs(fullPath)
 	if err != nil {
-		return "", fmt.Sprintf("Error resolving path: %v", err)
+		return "", fmt.Errorf("resolving path: %w", err)
 	}
 
 	absRepo, err := filepath.Abs(e.repoPath)
 	if err != nil {
-		return "", fmt.Sprintf("Error resolving repo path: %v", err)
+		return "", fmt.Errorf("resolving repo path: %w", err)
 	}
 
 	// Check before resolving symlinks to catch plain traversal (e.g. "../..").
 	if absPath != absRepo && !strings.HasPrefix(absPath, absRepo+string(os.PathSeparator)) {
-		return "", "Error: path is outside the repository"
+		return "", errors.New("path is outside the repository")
 	}
 
 	// Resolve symlinks and check again to prevent a symlink inside the repo
 	// from pointing to a target outside the repo.
 	absPath, err = filepath.EvalSymlinks(absPath)
 	if err != nil {
-		return "", fmt.Sprintf("Error resolving path: %v", err)
+		return "", fmt.Errorf("resolving path: %w", err)
 	}
 	absRepo, err = filepath.EvalSymlinks(absRepo)
 	if err != nil {
-		return "", fmt.Sprintf("Error resolving repo path: %v", err)
+		return "", fmt.Errorf("resolving repo path: %w", err)
 	}
 
 	if absPath != absRepo && !strings.HasPrefix(absPath, absRepo+string(os.PathSeparator)) {
-		return "", "Error: path is outside the repository"
+		return "", errors.New("path is outside the repository")
 	}
 
-	return absPath, ""
+	return absPath, nil
 }
 
-func (e *toolExecutor) readFile(args map[string]interface{}) string {
+func (e *toolExecutor) readFile(args map[string]interface{}) (string, error) {
 	path, ok := args["path"].(string)
 	if !ok {
-		return "Error: path is required"
+		return "", errors.New("path is required")
 	}
 
-	fullPath, errMsg := e.validatePath(path)
-	if errMsg != "" {
-		return errMsg
+	fullPath, err := e.validatePath(path)
+	if err != nil {
+		return "", fmt.Errorf("validate path: %w", err)
 	}
 
 	debugLog("AgenticClient: read_file %s", fullPath)
 
 	info, err := os.Stat(fullPath)
 	if err != nil {
-		return fmt.Sprintf("Error reading file: %v", err)
+		return "", fmt.Errorf("reading file: %w", err)
 	}
 	if info.Size() > maxFileSize {
-		return fmt.Sprintf("Error: file is too large (%d bytes, limit is %d bytes). Try reading a smaller file or use grep to find specific content.", info.Size(), maxFileSize)
+		return "", fmt.Errorf("file is too large (%d bytes, limit is %d bytes). Try reading a smaller file or use grep to find specific content", info.Size(), maxFileSize)
 	}
 
 	content, err := os.ReadFile(fullPath)
 	if err != nil {
-		return fmt.Sprintf("Error reading file: %v", err)
+		return "", fmt.Errorf("reading file: %w", err)
 	}
 
 	if !utf8.Valid(content) {
-		return "Error: file is not a text file"
+		return "", errors.New("file is not a text file")
 	}
 
-	return string(content)
+	return string(content), nil
 }
 
-func (e *toolExecutor) listDirectory(args map[string]interface{}) string {
+func (e *toolExecutor) listDirectory(args map[string]interface{}) (string, error) {
 	path, ok := args["path"].(string)
 	if !ok {
 		path = "."
 	}
 
-	fullPath, errMsg := e.validatePath(path)
-	if errMsg != "" {
-		return errMsg
+	fullPath, err := e.validatePath(path)
+	if err != nil {
+		return "", fmt.Errorf("validate path: %w", err)
 	}
 
 	debugLog("AgenticClient: list_directory %s", fullPath)
 
 	entries, err := os.ReadDir(fullPath)
 	if err != nil {
-		return fmt.Sprintf("Error listing directory: %v", err)
+		return "", fmt.Errorf("listing directory: %w", err)
 	}
 
 	var result strings.Builder
@@ -281,13 +290,13 @@ func (e *toolExecutor) listDirectory(args map[string]interface{}) string {
 		}
 	}
 
-	return result.String()
+	return result.String(), nil
 }
 
-func (e *toolExecutor) grep(args map[string]interface{}) string {
+func (e *toolExecutor) grep(args map[string]interface{}) (string, error) {
 	pattern, ok := args["pattern"].(string)
 	if !ok || pattern == "" {
-		return "Error: pattern is required"
+		return "", errors.New("pattern is required")
 	}
 
 	path := "."
@@ -295,9 +304,9 @@ func (e *toolExecutor) grep(args map[string]interface{}) string {
 		path = p
 	}
 
-	fullPath, errMsg := e.validatePath(path)
-	if errMsg != "" {
-		return errMsg
+	fullPath, err := e.validatePath(path)
+	if err != nil {
+		return "", fmt.Errorf("validate path: %w", err)
 	}
 
 	debugLog("AgenticClient: grep '%s' in %s", pattern, fullPath)
@@ -306,31 +315,33 @@ func (e *toolExecutor) grep(args map[string]interface{}) string {
 	cmd := exec.Command("grep", "-rn", "--", pattern, fullPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		// grep returns exit code 1 if no matches found
-		if len(output) == 0 {
-			return "No matches found"
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+			// Exit code 1 means no matches found, not a real error.
+			return "No matches found", nil
 		}
+		return "", fmt.Errorf("grep failed: %w\nOutput: %s", err, output)
 	}
 
-	return string(output)
+	return string(output), nil
 }
 
-func (e *toolExecutor) git(args map[string]interface{}) string {
+func (e *toolExecutor) git(args map[string]interface{}) (string, error) {
 	argsStr, ok := args["args"].(string)
 	if !ok || argsStr == "" {
-		return "Error: git args are required"
+		return "", errors.New("git args are required")
 	}
 
 	parts := strings.Fields(argsStr)
 	if len(parts) == 0 {
-		return "Error: empty git command"
+		return "", errors.New("empty git command")
 	}
 
 	// Strip leading "git" if the LLM included it (e.g. "git diff" instead of "diff")
 	if parts[0] == "git" {
 		parts = parts[1:]
 		if len(parts) == 0 {
-			return "Error: empty git command"
+			return "", errors.New("empty git command")
 		}
 	}
 
@@ -338,14 +349,18 @@ func (e *toolExecutor) git(args map[string]interface{}) string {
 
 	if !allowedGitSubcommands[subcommand] {
 		allowed := strings.Join(slices.Sorted(maps.Keys(allowedGitSubcommands)), ", ")
-		return fmt.Sprintf("Error: git subcommand '%s' is not allowed. Allowed commands: %s", subcommand, allowed)
+		return "", fmt.Errorf("git subcommand '%s' is not allowed. Allowed commands: %s", subcommand, allowed)
 	}
 
 	// Check for flags that could execute arbitrary commands
 	for _, arg := range parts[1:] {
 		for _, blocked := range blockedGitFlags {
-			if arg == blocked || strings.HasPrefix(arg, blocked+"=") {
-				return fmt.Sprintf("Error: git flag '%s' is not allowed for security reasons", arg)
+			exactOrLongValue := arg == blocked || strings.HasPrefix(arg, blocked+"=")
+			// Short flags (e.g. -c) also accept a concatenated value with no separator:
+			// git -ccore.pager=evil. Match any arg that starts with the flag token.
+			shortConcatenated := len(blocked) == 2 && blocked[0] == '-' && blocked[1] != '-' && strings.HasPrefix(arg, blocked)
+			if exactOrLongValue || shortConcatenated {
+				return "", fmt.Errorf("git flag '%s' is not allowed for security reasons", arg)
 			}
 		}
 	}
@@ -356,8 +371,8 @@ func (e *toolExecutor) git(args map[string]interface{}) string {
 	cmd.Dir = e.repoPath
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Sprintf("Error executing git: %v\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("executing git: %w\nOutput: %s", err, string(output))
 	}
 
-	return string(output)
+	return string(output), nil
 }

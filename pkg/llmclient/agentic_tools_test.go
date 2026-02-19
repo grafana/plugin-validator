@@ -27,21 +27,20 @@ func TestValidatePath_WithinRepo(t *testing.T) {
 	executor := newToolExecutor(dir)
 
 	tests := []struct {
-		name    string
-		path    string
-		wantErr bool
+		name string
+		path string
 	}{
-		{name: "root dot", path: ".", wantErr: false},
-		{name: "file at root", path: "main.go", wantErr: false},
-		{name: "nested file", path: "src/lib.go", wantErr: false},
-		{name: "deeply nested", path: "src/nested/deep.go", wantErr: false},
-		{name: "directory", path: "src", wantErr: false},
+		{name: "root dot", path: "."},
+		{name: "file at root", path: "main.go"},
+		{name: "nested file", path: "src/lib.go"},
+		{name: "deeply nested", path: "src/nested/deep.go"},
+		{name: "directory", path: "src"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			absPath, errMsg := executor.validatePath(tt.path)
-			require.Empty(t, errMsg)
+			absPath, err := executor.validatePath(tt.path)
+			require.NoError(t, err)
 			require.NotEmpty(t, absPath)
 		})
 	}
@@ -63,9 +62,9 @@ func TestValidatePath_TraversalBlocked(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			absPath, errMsg := executor.validatePath(tt.path)
+			absPath, err := executor.validatePath(tt.path)
 			require.Empty(t, absPath)
-			require.Contains(t, errMsg, "outside the repository")
+			require.ErrorContains(t, err, "outside the repository")
 		})
 	}
 }
@@ -83,19 +82,19 @@ func TestValidatePath_SymlinkEscape(t *testing.T) {
 	symlinkPath := filepath.Join(dir, "escape.txt")
 	require.NoError(t, os.Symlink(externalFile, symlinkPath))
 
-	absPath, errMsg := executor.validatePath("escape.txt")
+	absPath, err := executor.validatePath("escape.txt")
 	require.Empty(t, absPath)
-	require.Contains(t, errMsg, "outside the repository")
+	require.ErrorContains(t, err, "outside the repository")
 }
 
 func TestReadFile_PathTraversal(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
 
-	result := executor.readFile(map[string]interface{}{
+	_, err := executor.readFile(map[string]interface{}{
 		"path": "../../etc/passwd",
 	})
-	require.Contains(t, result, "outside the repository")
+	require.ErrorContains(t, err, "outside the repository")
 }
 
 func TestReadFile_BinaryFile(t *testing.T) {
@@ -119,8 +118,8 @@ func TestReadFile_BinaryFile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.NoError(t, os.WriteFile(filepath.Join(dir, "binary.bin"), tt.content, 0644))
-			result := executor.readFile(map[string]interface{}{"path": "binary.bin"})
-			require.Contains(t, result, "not a text file")
+			_, err := executor.readFile(map[string]interface{}{"path": "binary.bin"})
+			require.ErrorContains(t, err, "not a text file")
 		})
 	}
 }
@@ -133,18 +132,19 @@ func TestReadFile_MaxFileSize(t *testing.T) {
 	bigContent := strings.Repeat("x", maxFileSize+1)
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "big.txt"), []byte(bigContent), 0644))
 
-	result := executor.readFile(map[string]interface{}{
+	_, err := executor.readFile(map[string]interface{}{
 		"path": "big.txt",
 	})
-	require.Contains(t, result, "file is too large")
+	require.ErrorContains(t, err, "file is too large")
 
 	// A file under the limit should work fine
 	smallContent := "hello world"
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "small.txt"), []byte(smallContent), 0644))
 
-	result = executor.readFile(map[string]interface{}{
+	result, err := executor.readFile(map[string]interface{}{
 		"path": "small.txt",
 	})
+	require.NoError(t, err)
 	require.Equal(t, smallContent, result)
 }
 
@@ -152,21 +152,21 @@ func TestListDirectory_PathTraversal(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
 
-	result := executor.listDirectory(map[string]interface{}{
+	_, err := executor.listDirectory(map[string]interface{}{
 		"path": "../",
 	})
-	require.Contains(t, result, "outside the repository")
+	require.ErrorContains(t, err, "outside the repository")
 }
 
 func TestGrep_PathTraversal(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
 
-	result := executor.grep(map[string]interface{}{
+	_, err := executor.grep(map[string]interface{}{
 		"pattern": "root",
 		"path":    "../../etc",
 	})
-	require.Contains(t, result, "outside the repository")
+	require.ErrorContains(t, err, "outside the repository")
 }
 
 func TestGrep_FlagInjection(t *testing.T) {
@@ -175,12 +175,33 @@ func TestGrep_FlagInjection(t *testing.T) {
 
 	// Pattern starting with - should not be interpreted as a flag
 	// thanks to the -- separator
-	result := executor.grep(map[string]interface{}{
+	result, err := executor.grep(map[string]interface{}{
 		"pattern": "-rn",
 		"path":    ".",
 	})
 	// Should not error with "invalid option", should just return no matches
+	require.NoError(t, err)
 	require.NotContains(t, result, "invalid option")
+}
+
+func TestGrep_ExitCodes(t *testing.T) {
+	dir := setupTestRepo(t)
+	executor := newToolExecutor(dir)
+
+	// Exit code 1: pattern not found — not an error, just no results.
+	result, err := executor.grep(map[string]interface{}{
+		"pattern": "this_pattern_will_never_match_xyz123",
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "No matches found", result)
+
+	// Exit code 2: invalid regex — should be a real error, not silently swallowed.
+	_, err = executor.grep(map[string]interface{}{
+		"pattern": "[invalid",
+		"path":    ".",
+	})
+	require.Error(t, err)
 }
 
 func TestGit_BlockedFlags(t *testing.T) {
@@ -196,6 +217,8 @@ func TestGit_BlockedFlags(t *testing.T) {
 		{name: "upload-pack", args: "fetch --upload-pack=evil"},
 		{name: "config flag", args: "log -c core.pager=evil"},
 		{name: "config equals", args: "log --config=evil"},
+		{name: "config concatenated", args: "log -ccore.pager=evil"},
+		{name: "config concatenated ssh", args: "log -ccore.sshCommand=evil"},
 		{name: "git prefix exec flag", args: "git log --exec=malicious"},
 		{name: "git prefix ext-diff", args: "git diff --ext-diff"},
 		{name: "git prefix upload-pack", args: "git fetch --upload-pack=evil"},
@@ -203,10 +226,10 @@ func TestGit_BlockedFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := executor.git(map[string]interface{}{
+			_, err := executor.git(map[string]interface{}{
 				"args": tt.args,
 			})
-			require.Contains(t, result, "not allowed for security reasons")
+			require.ErrorContains(t, err, "not allowed for security reasons")
 		})
 	}
 }
@@ -215,33 +238,35 @@ func TestGit_StripGitPrefix(t *testing.T) {
 	dir := t.TempDir()
 	executor := newToolExecutor(dir)
 
-	// "git status" should be treated the same as "status"
-	result := executor.git(map[string]interface{}{
+	// "git status" should be treated the same as "status" — not blocked by allowlist
+	_, err := executor.git(map[string]interface{}{
 		"args": "git status",
 	})
-	require.NotContains(t, result, "is not allowed")
+	if err != nil {
+		require.NotContains(t, err.Error(), "is not allowed")
+	}
 
 	// "git push" should still be blocked
-	result = executor.git(map[string]interface{}{
+	_, err = executor.git(map[string]interface{}{
 		"args": "git push",
 	})
-	require.Contains(t, result, "is not allowed")
+	require.ErrorContains(t, err, "is not allowed")
 
 	// bare "git" with nothing after should error
-	result = executor.git(map[string]interface{}{
+	_, err = executor.git(map[string]interface{}{
 		"args": "git",
 	})
-	require.Contains(t, result, "empty git command")
+	require.ErrorContains(t, err, "empty git command")
 }
 
 func TestGit_BlockedSubcommand(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
 
-	result := executor.git(map[string]interface{}{
+	_, err := executor.git(map[string]interface{}{
 		"args": "push origin main",
 	})
-	require.Contains(t, result, "not allowed")
+	require.ErrorContains(t, err, "not allowed")
 }
 
 func TestGit_AllowedSubcommands(t *testing.T) {
@@ -253,10 +278,12 @@ func TestGit_AllowedSubcommands(t *testing.T) {
 			dir := t.TempDir()
 			executor := newToolExecutor(dir)
 
-			result := executor.git(map[string]interface{}{
+			_, err := executor.git(map[string]interface{}{
 				"args": subcmd,
 			})
-			require.NotContains(t, result, "is not allowed")
+			if err != nil {
+				require.NotContains(t, err.Error(), "is not allowed")
+			}
 		})
 	}
 }
