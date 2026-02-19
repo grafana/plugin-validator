@@ -71,6 +71,30 @@ Add this to your Cline MCP settings:
 }
 ```
 
+### Codex
+
+Edit `~/.codex/config.toml` (or create `.codex/config.toml` in your project root for project-scoped configuration):
+
+**Using NPM (Recommended):**
+
+```toml
+[mcp_servers.grafana-plugin-validator]
+command = "npx"
+args = ["-y", "@grafana/plugin-validator-mcp@latest"]
+```
+
+**Using Docker:**
+
+```toml
+[mcp_servers.grafana-plugin-validator]
+command = "docker"
+args = [
+  "run", "-i", "--rm",
+  "-v", "/var/run/docker.sock:/var/run/docker.sock",
+  "grafana/plugin-validator-mcp:latest"
+]
+```
+
 ### Other MCP Clients
 
 For other MCP-compatible AI assistants and editors, use:
