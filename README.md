@@ -80,17 +80,9 @@ plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 
 ### MCP Server (for AI assistants)
 
-The plugin validator can also be used as an MCP (Model Context Protocol) server, which allows AI assistants and code editors like Claude, VS Code with Continue, and Cline to validate Grafana plugins directly.
+The plugin validator can be used as an MCP (Model Context Protocol) server, allowing AI assistants like Claude, Cline, and other MCP-compatible tools to validate Grafana plugins.
 
-To build and use the MCP server:
-
-```SHELL
-git clone git@github.com:grafana/plugin-validator.git
-cd plugin-validator
-go build -o ~/.local/bin/plugin-validator-mcp ./pkg/cmd/mcpserver
-```
-
-For detailed configuration instructions for different AI tools and editors, see the [MCP Server README](pkg/cmd/mcpserver/README.md).
+See the [MCP Server README](mcp-package/README.md) for configuration instructions.
 
 ### Generating local files For validation
 

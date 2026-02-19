@@ -1,0 +1,69 @@
+name: Release MCP Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver type of new version (major / minor / patch)"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release-mcp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@a37de51f3d713a30a9e4b21bcdfbd38170020593 # v1.3.0
+        with:
+          repo_secrets: |
+            GITHUB_APP_ID=plugins-platform-bot-app:app_id
+            GITHUB_APP_PRIVATE_KEY=plugins-platform-bot-app:app_pem
+          export_env: false
+
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_ID }}
+          private-key: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+          persist-credentials: true
+
+      - name: Setup Git
+        run: |
+          git config user.name 'grafana-plugins-platform-bot[bot]'
+          git config user.email '144369747+grafana-plugins-platform-bot[bot]@users.noreply.github.com'
+
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          node-version: "24"
+
+      - name: Bump MCP version and create tag
+        run: |
+          cd mcp-package
+          npm version ${INPUT_VERSION} --no-git-tag-version
+          NEW_VERSION=$(jq -r .version package.json)
+          cd ..
+
+          git add mcp-package/package.json
+          git commit -m "chore(mcp): release v${NEW_VERSION}"
+          git tag "mcp/v${NEW_VERSION}"
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+
+      - name: Push changes and tag
+        run: |
+          git push origin main
+          git push origin --tags

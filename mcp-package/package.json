@@ -1,0 +1,42 @@
+{
+    "name": "@grafana/plugin-validator-mcp",
+    "version": "0.1.0",
+    "description": "Model Context Protocol (MCP) server for Grafana Plugin Validator - provides AI assistants with validation capabilities",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/grafana/plugin-validator.git"
+    },
+    "keywords": [
+        "Grafana",
+        "plugins",
+        "validator",
+        "MCP",
+        "Model Context Protocol",
+        "AI",
+        "assistant"
+    ],
+    "author": "Grafana",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/grafana/plugin-validator/issues"
+    },
+    "homepage": "https://github.com/grafana/plugin-validator/tree/main/mcp-package#readme",
+    "files": [
+        "index.js",
+        "README.md"
+    ],
+    "bin": {
+        "plugin-validator-mcp": "./index.js"
+    },
+    "binWrapper": {
+        "name": "plugin-validator-mcp",
+        "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/mcp/v{{version}}/plugin-validator-mcp_{{version}}_{{platform}}_{{arch}}.tar.gz"
+    },
+    "dependencies": {
+        "tar": "^7.4.3"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
