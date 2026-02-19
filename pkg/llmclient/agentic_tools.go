@@ -195,6 +195,22 @@ func (e *toolExecutor) validatePath(path string) (string, string) {
 		return "", fmt.Sprintf("Error resolving repo path: %v", err)
 	}
 
+	// Check before resolving symlinks to catch plain traversal (e.g. "../..").
+	if absPath != absRepo && !strings.HasPrefix(absPath, absRepo+string(os.PathSeparator)) {
+		return "", "Error: path is outside the repository"
+	}
+
+	// Resolve symlinks and check again to prevent a symlink inside the repo
+	// from pointing to a target outside the repo.
+	absPath, err = filepath.EvalSymlinks(absPath)
+	if err != nil {
+		return "", fmt.Sprintf("Error resolving path: %v", err)
+	}
+	absRepo, err = filepath.EvalSymlinks(absRepo)
+	if err != nil {
+		return "", fmt.Sprintf("Error resolving repo path: %v", err)
+	}
+
 	if absPath != absRepo && !strings.HasPrefix(absPath, absRepo+string(os.PathSeparator)) {
 		return "", "Error: path is outside the repository"
 	}

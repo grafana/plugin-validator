@@ -70,6 +70,24 @@ func TestValidatePath_TraversalBlocked(t *testing.T) {
 	}
 }
 
+func TestValidatePath_SymlinkEscape(t *testing.T) {
+	dir := setupTestRepo(t)
+	executor := newToolExecutor(dir)
+
+	// Create a file outside the repo that the symlink will point to.
+	externalDir := t.TempDir()
+	externalFile := filepath.Join(externalDir, "secret.txt")
+	require.NoError(t, os.WriteFile(externalFile, []byte("secret"), 0644))
+
+	// Place a symlink inside the repo pointing to the external file.
+	symlinkPath := filepath.Join(dir, "escape.txt")
+	require.NoError(t, os.Symlink(externalFile, symlinkPath))
+
+	absPath, errMsg := executor.validatePath("escape.txt")
+	require.Empty(t, absPath)
+	require.Contains(t, errMsg, "outside the repository")
+}
+
 func TestReadFile_PathTraversal(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
