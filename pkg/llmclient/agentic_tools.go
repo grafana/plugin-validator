@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/tmc/langchaingo/llms"
 )
@@ -244,6 +245,10 @@ func (e *toolExecutor) readFile(args map[string]interface{}) string {
 	content, err := os.ReadFile(fullPath)
 	if err != nil {
 		return fmt.Sprintf("Error reading file: %v", err)
+	}
+
+	if !utf8.Valid(content) {
+		return "Error: file is not a text file"
 	}
 
 	return string(content)

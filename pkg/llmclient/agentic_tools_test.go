@@ -98,6 +98,33 @@ func TestReadFile_PathTraversal(t *testing.T) {
 	require.Contains(t, result, "outside the repository")
 }
 
+func TestReadFile_BinaryFile(t *testing.T) {
+	dir := t.TempDir()
+	executor := newToolExecutor(dir)
+
+	tests := []struct {
+		name    string
+		content []byte
+	}{
+		{
+			name:    "binary file with invalid utf-8",
+			content: []byte{0xff, 0xfe, 0x00, 0x01, 0x02, 0x03},
+		},
+		{
+			name:    "png image magic bytes",
+			content: []byte{0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NoError(t, os.WriteFile(filepath.Join(dir, "binary.bin"), tt.content, 0644))
+			result := executor.readFile(map[string]interface{}{"path": "binary.bin"})
+			require.Contains(t, result, "not a text file")
+		})
+	}
+}
+
 func TestReadFile_MaxFileSize(t *testing.T) {
 	dir := t.TempDir()
 	executor := newToolExecutor(dir)
