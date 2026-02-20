@@ -7,6 +7,22 @@ on:
       - renovate/*
 
 jobs:
+  test-mcp-server:
+    runs-on: ubuntu-x64
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Run MCP server tests
+        run: go test -v ./pkg/cmd/mcpserver/...
+
   test-docker-build:
     runs-on: ubuntu-x64
     permissions:
