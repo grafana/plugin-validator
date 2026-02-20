@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/grafanadependency"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/includesnested"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jssourcemap"
@@ -103,4 +104,5 @@ var Analyzers = []*analysis.Analyzer{
 	virusscan.Analyzer,
 	circulardependencies.Analyzer,
 	codediff.Analyzer,
+	grafanadependency.Analyzer,
 }

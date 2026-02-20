@@ -303,6 +303,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "code-diff-skipped",
 						},
 					},
+					"grafanadependency": {
+						{
+							Severity: "error",
+							Title:    "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \"\"",
+							Detail:   "The plugin.json file has an invalid or empty grafanaDependency field. Please refer to the documentation for more information. https://grafana.com/docs/grafana/latest/developers/plugins/metadata/#grafanadependency",
+							Name:     "invalid-grafana-dependency",
+						},
+					},
 				},
 			},
 		},
