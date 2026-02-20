@@ -29,9 +29,6 @@ builds:
 archives:
   - name_template: "plugin-validator-mcp_{{ .Env.MCP_VERSION }}_{{ .Os }}_{{ .Arch }}"
     formats: [tar.gz]
-    format_overrides:
-      - goos: windows
-        formats: [zip]
 
 checksum:
   name_template: "checksums.txt"
