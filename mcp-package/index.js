@@ -131,8 +131,10 @@ async function ensureBinary() {
     );
   }
 
-  // make the binary executable
-  fs.chmodSync(path.join(downloadPath, binaryName), 0o755);
+  // make the binary executable on Unix-like systems
+  if (process.platform !== "win32") {
+    fs.chmodSync(path.join(downloadPath, binaryName), 0o755);
+  }
 }
 
 async function main() {
@@ -144,7 +146,7 @@ async function main() {
       stdio: "inherit",
     });
     child.on("exit", (code) => {
-      process.exit(code);
+      process.exit(code ?? 1);
     });
   } catch (e) {
     console.error(e);

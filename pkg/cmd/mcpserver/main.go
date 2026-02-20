@@ -62,10 +62,16 @@ func isNpxAvailable() bool {
 }
 
 func isLocalFilePath(path string) bool {
+	// Detect Windows drive letter paths like "C:\..." or "D:/..."
+	isWindowsDrivePath := len(path) >= 2 &&
+		path[1] == ':' &&
+		((path[0] >= 'A' && path[0] <= 'Z') || (path[0] >= 'a' && path[0] <= 'z'))
+
 	return strings.HasPrefix(path, "/") ||
 		strings.HasPrefix(path, "./") ||
 		strings.HasPrefix(path, "../") ||
 		strings.HasPrefix(path, "file://") ||
+		isWindowsDrivePath ||
 		(!strings.HasPrefix(path, "http://") && !strings.HasPrefix(path, "https://"))
 }
 
@@ -90,7 +96,7 @@ func ValidatePlugin(ctx context.Context, req *mcp.CallToolRequest, input Input) 
 	var cmd *exec.Cmd
 	var pluginArg string
 
-	// Docker is preferred then npx as fallback
+	// Docker is preferred, with npx as a fallback
 	if useDocker {
 		args := []string{"run", "--pull=always", "--rm"}
 
