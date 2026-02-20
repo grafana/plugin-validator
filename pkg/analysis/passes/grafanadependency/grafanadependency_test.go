@@ -36,9 +36,9 @@ func TestGrafanaDependency(t *testing.T) {
 			name: "invalid grafanaDependency constraint",
 			pluginJSON: `{
 				"id": "test-org-app",
-				"dependencies": { "grafanaDependency": ">=invalid" }
+				"dependencies": { "grafanaDependency": ">=invalid2" }
 			}`,
-			titleMsg: "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \">=invalid\"",
+			titleMsg: "plugin.json: dependencies.grafanaDependency field has invalid or empty version constraint: \">=invalid2\"",
 		},
 		{
 			name: "empty grafanaDependency",
