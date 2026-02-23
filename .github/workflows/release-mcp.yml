@@ -1,9 +1,9 @@
-name: Create MCP release and publish to github, npm and docker hub
+name: Create MCP release and publish to github and npm
 
 on: # zizmor: ignore[cache-poisoning]
   push:
     tags:
-      - 'mcp/v[0-9]*'
+      - "mcp/v[0-9]*"
 
 jobs:
   release-mcp-to-github:
@@ -17,7 +17,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - run: git fetch --force --tags
       - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
         with:
           go-version-file: go.mod
@@ -69,33 +68,3 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: cd mcp-package && npm install
       - run: cd mcp-package && npm publish
-
-  release-mcp-to-dockerhub:
-    runs-on: ubuntu-x64
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-        with:
-          persist-credentials: false
-
-      - name: Get version from package.json
-        id: get_version
-        run: |
-          echo "version=$(jq -r .version mcp-package/package.json)" >> "$GITHUB_OUTPUT"
-
-      - id: push-mcp-to-dockerhub
-        uses: grafana/shared-workflows/actions/build-push-to-dockerhub@f02d5da7ddff4ea32bbe5034c7c70e90d2b9622c # build-push-to-dockerhub/v0.4.1
-        with:
-          repository: grafana/plugin-validator-mcp
-          context: .
-          file: mcp-package/Dockerfile
-          build-args: |
-            MCP_VERSION=${{ steps.get_version.outputs.version }}
-          tags: |-
-            "v${{ steps.get_version.outputs.version }}"
-            "latest"
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

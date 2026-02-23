@@ -17,12 +17,12 @@ var (
 )
 
 type Pass struct {
-	AnalyzerName     string
-	RootDir          string
-	CheckParams      CheckParams
-	ResultOf         map[*Analyzer]any
-	Report           func(string, Diagnostic)
-	Diagnostics      *Diagnostics
+	AnalyzerName string
+	RootDir      string
+	CheckParams  CheckParams
+	ResultOf     map[*Analyzer]any
+	Report       func(string, Diagnostic)
+	Diagnostics  *Diagnostics
 }
 
 type CheckParams struct {
@@ -85,11 +85,11 @@ func (p *Pass) AnalyzerHasErrors(a *Analyzer) bool {
 }
 
 type Diagnostic struct {
-	Severity Severity
-	Title    string
-	Detail   string
-	Context  string `json:"Context,omitempty"`
-	Name     string
+	Severity Severity `json:"Severity"`
+	Title    string   `json:"Title"`
+	Detail   string   `json:"Detail"`
+	Context  string   `json:"Context,omitempty"`
+	Name     string   `json:"Name"`
 }
 
 type Diagnostics map[string][]Diagnostic
