@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# Separate goreleaser config for the MCP server.
+# Triggered by mcp/v* tags independently of the main plugin-validator releases.
+# MCP_VERSION env var must be set to the bare semver (e.g. "0.2.0") by the workflow.
+version: 2
+
+project_name: plugin-validator-mcp
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: mcpserver
+    main: ./pkg/cmd/mcpserver
+    binary: plugin-validator-mcp
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.version={{ .Env.MCP_VERSION }}
+
+archives:
+  - name_template: "plugin-validator-mcp_{{ .Env.MCP_VERSION }}_{{ .Os }}_{{ .Arch }}"
+    formats: [tar.gz]
+
+checksum:
+  name_template: "checksums.txt"
+
+changelog:
+  disable: true

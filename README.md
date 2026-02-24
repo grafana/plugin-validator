@@ -78,6 +78,12 @@ Then you can run the utility:
 plugincheck2 -sourceCodeUri [source_code_location/] [plugin_archive.zip]
 ```
 
+### MCP Server (for AI assistants)
+
+The plugin validator can be used as an MCP (Model Context Protocol) server, allowing AI assistants like Claude, Cline, and other MCP-compatible tools to validate Grafana plugins.
+
+See the [MCP Server README](mcp-package/README.md) for configuration instructions.
+
 ### Generating local files For validation
 
 You must create a `.zip` archive containing the `dist/` directory but named as your plugin ID:
@@ -185,7 +191,6 @@ analyzers:
         exceptions:
           - my-plugin-id
 ```
-
 
 ### Source code
 
