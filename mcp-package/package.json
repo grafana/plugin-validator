@@ -1,6 +1,6 @@
 {
     "name": "@grafana/plugin-validator-mcp",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Model Context Protocol (MCP) server for Grafana Plugin Validator - provides AI assistants with validation capabilities",
     "main": "index.js",
     "repository": {
@@ -45,4 +45,3 @@
         "provenance": true
     }
 }
-
