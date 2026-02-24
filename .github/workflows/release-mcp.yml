@@ -41,6 +41,11 @@ jobs:
       - name: Extract MCP version
         run: echo "MCP_VERSION=${GITHUB_REF_NAME#mcp/v}" >> $GITHUB_ENV
 
+      - name: Find previous MCP tag
+        run: |
+          PREV=$(git tag --sort=-version:refname | grep '^mcp/v' | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+          echo "MCP_PREVIOUS_TAG=${PREV}" >> $GITHUB_ENV
+
       - uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
         with:
           distribution: goreleaser
@@ -49,6 +54,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_PREVIOUS_TAG: ${{ env.MCP_PREVIOUS_TAG }}
           MCP_VERSION: ${{ env.MCP_VERSION }}
 
   release-mcp-to-npm:
