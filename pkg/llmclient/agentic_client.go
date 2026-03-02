@@ -1,23 +1,25 @@
 package llmclient
 
 import (
+	"bufio"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
-
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/anthropic"
-	"github.com/tmc/langchaingo/llms/googleai"
-	"github.com/tmc/langchaingo/llms/openai"
 )
 
 const (
-	maxToolCalls            = 100
-	maxLLMRetries           = 3
-	maxConsecutiveNoTools   = 5
-	retryDelay              = 2 * time.Second
+	piAgentTimeout = 5 * time.Minute
 )
+
+//go:embed pi-extension/extension.ts
+var piExtensionTS []byte
 
 // AnswerSchema represents the structured response from the agentic client
 type AnswerSchema struct {
@@ -29,7 +31,7 @@ type AnswerSchema struct {
 
 // AgenticCallOptions contains configuration for the agentic LLM call
 type AgenticCallOptions struct {
-	Model    string // e.g. "gemini-2.0-flash"
+	Model    string // e.g. "gemini-2.5-flash"
 	Provider string // "google", "anthropic", "openai"
 	APIKey   string
 }
@@ -39,7 +41,7 @@ type AgenticClient interface {
 	CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error)
 }
 
-// agenticClientImpl implements AgenticClient
+// agenticClientImpl implements AgenticClient using pi in RPC mode
 type agenticClientImpl struct {
 	apiKey   string
 	model    string
@@ -67,236 +69,380 @@ func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
 	}, nil
 }
 
-// CallLLM executes an agentic loop with tools to answer questions about code.
-// The prompt may contain multiple questions, in which case the agent will call
-// submit_answer multiple times. All answers are collected and returned.
-func (c *agenticClientImpl) CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error) {
-	// Initialize LLM based on provider using the client's configured settings
-	opts := &AgenticCallOptions{
-		APIKey:   c.apiKey,
-		Model:    c.model,
-		Provider: c.provider,
+// piModelString converts provider/model to pi's --model format.
+// Pi uses "provider/model" format where provider names match pi's model registry
+// (e.g. "google/gemini-2.5-flash", "anthropic/claude-sonnet-4-5").
+func piModelString(provider, model string) string {
+	return provider + "/" + model
+}
+
+// apiKeyEnvVar returns the environment variable name for the given provider
+func apiKeyEnvVar(provider string) string {
+	switch provider {
+	case "google":
+		return "GEMINI_API_KEY"
+	case "anthropic":
+		return "ANTHROPIC_API_KEY"
+	case "openai":
+		return "OPENAI_API_KEY"
+	default:
+		return strings.ToUpper(provider) + "_API_KEY"
 	}
-	llm, err := initLLM(ctx, opts)
+}
+
+// writeExtensionFile writes the embedded extension to a temp file and returns its path.
+// The caller is responsible for cleaning up the returned directory.
+func writeExtensionFile() (extensionPath string, cleanupDir string, err error) {
+	dir, err := os.MkdirTemp("", "pi-extension-*")
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize LLM: %w", err)
+		return "", "", fmt.Errorf("failed to create temp dir: %w", err)
 	}
 
-	// Build tools
-	tools := buildAgenticTools()
+	p := filepath.Join(dir, "extension.ts")
+	if err := os.WriteFile(p, piExtensionTS, 0644); err != nil {
+		os.RemoveAll(dir)
+		return "", "", fmt.Errorf("failed to write extension file: %w", err)
+	}
 
-	// Create tool executor
-	executor := newToolExecutor(repositoryPath)
+	return p, dir, nil
+}
 
-	// System prompt
-	systemPrompt := `You are a code analysis assistant. You have tools to explore code in a repository.
+// rpcEvent represents a generic JSON event from pi's RPC stdout.
+// We only parse the fields we care about.
+type rpcEvent struct {
+	Type     string `json:"type"`
+	ToolName string `json:"toolName,omitempty"`
+	Args     json.RawMessage `json:"args,omitempty"`
+	Result   *struct {
+		Content []struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		} `json:"content,omitempty"`
+		Details json.RawMessage `json:"details,omitempty"`
+	} `json:"result,omitempty"`
+	IsError bool `json:"isError,omitempty"`
 
-AVAILABLE TOOLS:
-- list_directory: List files at a path. Use "." for root.
-- read_file: Read a file's contents. This is your primary tool for understanding code.
-- grep: Search for a pattern across files.
-- git: Run read-only git commands (log, show, diff, status, etc.)
-- submit_answer: Submit your final answer.
+	// For response events
+	Command string `json:"command,omitempty"`
+	Success *bool  `json:"success,omitempty"`
+	Error   string `json:"error,omitempty"`
+
+	// For message events (message_start, message_end, turn_end)
+	Message *rpcMessage `json:"message,omitempty"`
+	
+	// For text content in various events
+	Content []struct {
+		Type string `json:"type"`
+		Text string `json:"text"`
+	} `json:"content,omitempty"`
+}
+
+// rpcMessage captures relevant fields from assistant messages in events.
+type rpcMessage struct {
+	Role         string `json:"role,omitempty"`
+	StopReason   string `json:"stopReason,omitempty"`
+	ErrorMessage string `json:"errorMessage,omitempty"`
+}
+
+const systemPrompt = `You are a code analysis assistant. You have tools to explore code in a repository.
 
 STRATEGY:
-1. Use list_directory to see what files exist
-2. Use read_file to read the source code files
-3. Analyze the code to answer the question
+1. Use bash to list files (ls) and explore the repository structure
+2. Use the read tool to read source code files
+3. Use bash to run git commands (git diff, git log, etc.) and grep/rg for searching
+4. Analyze the code to answer the question
 
-You can only use one tool at a time.
 IMPORTANT: You are in non-interactive mode. Start working and using your tools immediately.
-When ready, use submit_answer. For multiple questions, call submit_answer once per question.`
+When ready, use submit_answer to provide your structured answer.
+For multiple questions, call submit_answer once per question.
+You MUST call submit_answer - do NOT just respond with text.`
 
-	// Build initial messages
-	messages := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt),
-		llms.TextParts(llms.ChatMessageTypeHuman, prompt),
+// piProcess holds the state of a running pi RPC subprocess.
+type piProcess struct {
+	cmd     *exec.Cmd
+	stdin   io.WriteCloser
+	scanner *bufio.Scanner
+}
+
+// startPiProcess spawns pi in RPC mode and returns a handle to interact with it.
+func (c *agenticClientImpl) startPiProcess(
+	ctx context.Context,
+	repositoryPath, extensionPath string,
+) (*piProcess, error) {
+	piModel := piModelString(c.provider, c.model)
+	args := []string{
+		"-y", "@mariozechner/pi-coding-agent",
+		"--mode", "rpc",
+		"--no-session",
+		"--no-extensions",
+		"--no-skills",
+		"--no-prompt-templates",
+		"-e", extensionPath,
+		"--model", piModel,
+		"--system-prompt", systemPrompt,
 	}
 
-	// Collect answers
-	var answers []AnswerSchema
+	debugLog("AgenticClient: spawning pi with args: npx %s", strings.Join(args, " "))
 
-	// Agentic loop
-	toolCallsRemaining := maxToolCalls
+	cmd := exec.CommandContext(ctx, "npx", args...)
+	cmd.Dir = repositoryPath
+	// Use minimal environment to avoid leaking sensitive parent env vars
+	cmd.Env = []string{
+		"PATH=" + os.Getenv("PATH"),
+		"HOME=" + os.Getenv("HOME"),
+		"TMPDIR=" + os.Getenv("TMPDIR"),
+		apiKeyEnvVar(c.provider) + "=" + c.apiKey,
+	}
 
-	// Print debug log file path before starting the loop
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdin pipe: %w", err)
+	}
+
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stdout pipe: %w", err)
+	}
+
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create stderr pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("failed to start pi: %w", err)
+	}
+
+	// Drain stderr in background for debug logging
+	go func() {
+		s := bufio.NewScanner(stderr)
+		for s.Scan() {
+			debugLog("pi stderr: %s", s.Text())
+		}
+	}()
+
+	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 1024*1024), 1024*1024)
+
+	return &piProcess{cmd: cmd, stdin: stdin, scanner: scanner}, nil
+}
+
+// sendPrompt writes a prompt command to pi's stdin.
+func (p *piProcess) sendPrompt(prompt string) error {
+	promptCmd := map[string]string{
+		"type":    "prompt",
+		"message": prompt,
+	}
+	promptJSON, err := json.Marshal(promptCmd)
+	if err != nil {
+		return fmt.Errorf("failed to marshal prompt command: %w", err)
+	}
+
+	debugLog("AgenticClient: RPC << %s", truncateString(string(promptJSON), 500))
+	if _, err := fmt.Fprintf(p.stdin, "%s\n", promptJSON); err != nil {
+		return fmt.Errorf("failed to write prompt to pi: %w", err)
+	}
+	return nil
+}
+
+// eventLoopResult holds the outcome of one event-reading pass.
+type eventLoopResult struct {
+	answers  []AnswerSchema
+	gotError bool
+	lastErr  string
+	fatalErr error
+}
+
+// printEventSummary outputs a human-readable summary of the event.
+func printEventSummary(event rpcEvent) {
+	switch event.Type {
+	case "tool_execution_start":
+		argsPreview := ""
+		if len(event.Args) > 0 && len(event.Args) < 100 {
+			argsPreview = fmt.Sprintf(" %s", string(event.Args))
+		} else if len(event.Args) >= 100 {
+			argsPreview = fmt.Sprintf(" %s...", truncateString(string(event.Args), 80))
+		}
+		debugLog("🔧 Agent calling tool: %s%s", event.ToolName, argsPreview)
+	case "tool_execution_end":
+		if event.IsError {
+			debugLog("❌ Tool %s failed", event.ToolName)
+		} else if event.ToolName == "submit_answer" {
+			debugLog("✅ Agent submitted answer")
+		} else {
+			resultPreview := ""
+			if event.Result != nil && len(event.Result.Content) > 0 {
+				for _, c := range event.Result.Content {
+					if c.Type == "text" && c.Text != "" {
+						resultPreview = truncateString(c.Text, 60)
+						break
+					}
+				}
+			}
+			if resultPreview != "" {
+				debugLog("   → %s", resultPreview)
+			}
+		}
+	case "text":
+		for _, c := range event.Content {
+			if c.Type == "text" && c.Text != "" {
+				debugLog("💭 Agent: %s", truncateString(c.Text, 100))
+			}
+		}
+	case "agent_end":
+		debugLog("🏁 Agent finished")
+	}
+}
+
+// readEvents reads RPC events from pi until agent_end, collecting answers
+// and tracking errors.
+func (p *piProcess) readEvents() eventLoopResult {
+	var result eventLoopResult
+
+	for p.scanner.Scan() {
+		line := p.scanner.Text()
+		if line == "" {
+			continue
+		}
+
+		var event rpcEvent
+		if err := json.Unmarshal([]byte(line), &event); err != nil {
+			debugLog(
+				"AgenticClient: failed to parse event: %v (line: %s)",
+				err,
+				truncateString(line, 200),
+			)
+			continue
+		}
+
+		printEventSummary(event)
+
+		if event.Type == "response" && event.Success != nil && !*event.Success {
+			debugLog("AgenticClient: pi error response: %s", event.Error)
+			result.fatalErr = fmt.Errorf("pi error: %s", event.Error)
+			return result
+		}
+
+		// Track errors from message events (e.g. 429 rate limits)
+		if event.Message != nil && event.Message.StopReason == "error" &&
+			event.Message.ErrorMessage != "" {
+			result.lastErr = event.Message.ErrorMessage
+			result.gotError = true
+		}
+
+		// Collect answers from submit_answer tool execution
+		if event.Type == "tool_execution_end" && event.ToolName == "submit_answer" &&
+			!event.IsError {
+			if event.Result != nil && event.Result.Details != nil {
+				var answer AnswerSchema
+				if err := json.Unmarshal(event.Result.Details, &answer); err != nil {
+					debugLog("AgenticClient: failed to parse submit_answer details: %v", err)
+					continue
+				}
+				debugLog("AgenticClient: received answer #%d: short_answer=%v, answer=%s",
+					len(result.answers)+1, answer.ShortAnswer, truncateString(answer.Answer, 100))
+				result.answers = append(result.answers, answer)
+			}
+		}
+
+		if event.Type == "agent_end" {
+			debugLog("AgenticClient: agent_end received, %d answers collected", len(result.answers))
+			return result
+		}
+	}
+
+	// Check if scanner exited due to an error (e.g., line too long)
+	if err := p.scanner.Err(); err != nil {
+		result.fatalErr = fmt.Errorf("scanner error reading pi output: %w", err)
+	}
+
+	return result
+}
+
+// close shuts down the pi process.
+func (p *piProcess) close() error {
+	p.stdin.Close()
+	return p.cmd.Wait()
+}
+
+const maxRetries = 3
+
+// CallLLM spawns pi in RPC mode, sends the prompt, and collects structured answers.
+// Retries up to maxRetries times on transient errors (e.g. rate limits), reusing the
+// same pi session.
+func (c *agenticClientImpl) CallLLM(
+	ctx context.Context,
+	prompt, repositoryPath string,
+) ([]AnswerSchema, error) {
 	printDebugLogPath()
 	debugLog("\n\n\n")
 	debugLog("################################################################")
-	debugLog("# NEW CallLLM - provider=%s model=%s", c.provider, c.model)
+	debugLog("# NEW CallLLM (pi RPC) - provider=%s model=%s", c.provider, c.model)
 	debugLog("# repo=%s", repositoryPath)
 	debugLog("# prompt=%s", truncateString(prompt, 200))
 	debugLog("################################################################")
 
-	iteration := 0
-	consecutiveNoTools := 0
-	for toolCallsRemaining > 0 {
-		iteration++
-		debugLog("========== AgenticClient: iteration %d ==========", iteration)
-		debugLog("AgenticClient: %d tool calls remaining, %d answers collected", toolCallsRemaining, len(answers))
-
-		// Call LLM with retry logic
-		debugLog("AgenticClient: calling LLM...")
-		resp, err := callLLMWithRetry(ctx, llm, messages, tools)
-		if err != nil {
-			debugLog("AgenticClient: LLM call failed: %v", err)
-			return nil, fmt.Errorf("LLM call failed after %d retries: %w", maxLLMRetries, err)
-		}
-
-		// resp.Choices contains the LLM's response options. Each choice has Content (text)
-		// and/or ToolCalls (function calls the model wants to make). Typically there's
-		// only one choice unless you request multiple completions.
-		if len(resp.Choices) == 0 {
-			debugLog("AgenticClient: no choices in response")
-			return nil, fmt.Errorf("no response from LLM")
-		}
-
-		// Use first choice. Google puts all tool calls in choices[0].ToolCalls.
-		// Anthropic creates a separate choice per content block (text or tool_use),
-		// but langchaingo's handleAIMessage only supports Parts[0] as either
-		// TextContent or ToolCall, so we process one choice at a time.
-		choice := resp.Choices[0]
-		debugLog("AgenticClient: received response with %d tool calls", len(choice.ToolCalls))
-		if choice.Content != "" {
-			debugLog("AgenticClient: AI message: %s", truncateString(choice.Content, 200))
-		}
-
-		// If no tool calls, check if we have answers
-		if len(choice.ToolCalls) == 0 {
-			debugLog("AgenticClient: no tool calls in response")
-
-			// If we have collected answers, the agent is done
-			if len(answers) > 0 {
-				debugLog("AgenticClient: agent finished with %d answers", len(answers))
-				return answers, nil
-			}
-
-			consecutiveNoTools++
-			debugLog("AgenticClient: consecutive no-tool responses: %d/%d", consecutiveNoTools, maxConsecutiveNoTools)
-			if consecutiveNoTools >= maxConsecutiveNoTools {
-				return nil, fmt.Errorf("agent failed to use tools after %d consecutive attempts", maxConsecutiveNoTools)
-			}
-
-			// No answers yet - add the AI response and remind to use tools
-			if choice.Content != "" {
-				messages = append(messages, llms.TextParts(llms.ChatMessageTypeAI, choice.Content))
-			}
-			debugLog("AgenticClient: no answers yet, reminding agent to use tools")
-			messages = append(messages, llms.TextParts(llms.ChatMessageTypeHuman,
-				"You are in non-interactive mode. You must start using your tools now to explore the repository. When you have enough information, use submit_answer to provide your answer."))
-			toolCallsRemaining--
-			continue
-		}
-
-		// Reset consecutive no-tool counter when tools are used
-		consecutiveNoTools = 0
-
-		// Build AI message with tool calls
-		aiMessage := llms.MessageContent{
-			Role: llms.ChatMessageTypeAI,
-		}
-		if choice.Content != "" {
-			aiMessage.Parts = append(aiMessage.Parts, llms.TextContent{Text: choice.Content})
-		}
-		for _, toolCall := range choice.ToolCalls {
-			aiMessage.Parts = append(aiMessage.Parts, toolCall)
-		}
-		messages = append(messages, aiMessage)
-
-		// Process tool calls
-		for i, toolCall := range choice.ToolCalls {
-			toolCallsRemaining--
-			response, answer := processToolCall(toolCall, i, len(choice.ToolCalls), len(answers), executor)
-			messages = append(messages, response)
-			if answer != nil {
-				answers = append(answers, *answer)
-			}
-		}
-	}
-
-	// If we collected some answers but ran out of tool calls, return what we have
-	if len(answers) > 0 {
-		debugLog("AgenticClient: ran out of tool calls, returning %d answers", len(answers))
-		return answers, nil
-	}
-
-	return nil, fmt.Errorf("exceeded maximum tool calls (%d), agent did not complete", maxToolCalls)
-}
-
-// processToolCall processes a single tool call and returns the response message and optional answer
-func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount int, executor *toolExecutor) (llms.MessageContent, *AnswerSchema) {
-	debugLog("AgenticClient: [%d/%d] executing tool: %s", index+1, total, toolCall.FunctionCall.Name)
-	debugLog("AgenticClient: tool args: %s", truncateString(toolCall.FunctionCall.Arguments, 500))
-
-	// Check for submit_answer
-	if toolCall.FunctionCall.Name == "submit_answer" {
-		var answer AnswerSchema
-		if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &answer); err != nil {
-			debugLog("AgenticClient: failed to parse submit_answer: %v", err)
-			// Report parse error back to agent so it can retry
-			return llms.MessageContent{
-				Role: llms.ChatMessageTypeTool,
-				Parts: []llms.ContentPart{
-					llms.ToolCallResponse{
-						ToolCallID: toolCall.ID,
-						Name:       toolCall.FunctionCall.Name,
-						Content:    fmt.Sprintf("Error parsing answer: %v. Please try again with valid JSON.", err),
-					},
-				},
-			}, nil
-		}
-		debugLog("AgenticClient: received answer #%d: short_answer=%v, answer=%s",
-			currentAnswerCount+1, answer.ShortAnswer, truncateString(answer.Answer, 100))
-
-		// Return success response and the answer
-		return llms.MessageContent{
-			Role: llms.ChatMessageTypeTool,
-			Parts: []llms.ContentPart{
-				llms.ToolCallResponse{
-					ToolCallID: toolCall.ID,
-					Name:       toolCall.FunctionCall.Name,
-					Content:    "Answer recorded successfully. If you have answered all questions, respond with a plain text message saying 'I am finished'. Otherwise, continue with the next question.",
-				},
-			},
-		}, &answer
-	}
-
-	// Execute other tools
-	result, err := executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
+	extensionPath, cleanupDir, err := writeExtensionFile()
 	if err != nil {
-		result = fmt.Sprintf("Error: %v", err)
+		return nil, fmt.Errorf("failed to write pi extension: %w", err)
 	}
-	debugLog("AgenticClient: tool result: %s", truncateString(result, 300))
+	defer os.RemoveAll(cleanupDir)
 
-	return llms.MessageContent{
-		Role: llms.ChatMessageTypeTool,
-		Parts: []llms.ContentPart{
-			llms.ToolCallResponse{
-				ToolCallID: toolCall.ID,
-				Name:       toolCall.FunctionCall.Name,
-				Content:    result,
-			},
-		},
-	}, nil
-}
+	ctx, cancel := context.WithTimeout(ctx, piAgentTimeout)
+	defer cancel()
 
-// callLLMWithRetry calls the LLM with retry logic for transient errors
-func callLLMWithRetry(ctx context.Context, llm llms.Model, messages []llms.MessageContent, tools []llms.Tool) (*llms.ContentResponse, error) {
-	var lastErr error
-	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
-		resp, err := llm.GenerateContent(ctx, messages, llms.WithTools(tools))
-		if err == nil {
-			return resp, nil
+	proc, err := c.startPiProcess(ctx, repositoryPath, extensionPath)
+	if err != nil {
+		return nil, err
+	}
+	defer proc.close()
+
+	var lastError string
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		var promptToSend string
+		if attempt == 0 {
+			promptToSend = prompt
+		} else {
+			// On retry, send a nudge instead of repeating the same prompt
+			debugLog("AgenticClient: retry %d/%d after error: %s", attempt, maxRetries, lastError)
+			time.Sleep(time.Duration(attempt) * 2 * time.Second)
+			promptToSend = "The previous attempt encountered an error. Please try again and complete the task by calling submit_answer with your analysis."
 		}
-		lastErr = err
-		debugLog("AgenticClient: LLM call failed (attempt %d/%d): %v", attempt, maxLLMRetries, err)
 
-		if attempt < maxLLMRetries {
-			debugLog("AgenticClient: retrying in %v...", retryDelay)
-			time.Sleep(retryDelay)
+		if err := proc.sendPrompt(promptToSend); err != nil {
+			return nil, err
+		}
+
+		result := proc.readEvents()
+		if result.fatalErr != nil {
+			return nil, result.fatalErr
+		}
+		if len(result.answers) > 0 {
+			debugLog("AgenticClient: returning %d answers", len(result.answers))
+			return result.answers, nil
+		}
+
+		lastError = result.lastErr
+		if !result.gotError || attempt >= maxRetries {
+			break
 		}
 	}
-	return nil, lastErr
+
+	if err := proc.scanner.Err(); err != nil {
+		debugLog("AgenticClient: scanner error: %v", err)
+	}
+
+	if ctx.Err() == context.DeadlineExceeded {
+		return nil, fmt.Errorf("pi timed out after %v", piAgentTimeout)
+	}
+
+	if lastError != "" {
+		return nil, fmt.Errorf(
+			"pi agent did not produce any answers (last error: %s)",
+			truncateString(lastError, 200),
+		)
+	}
+	return nil, fmt.Errorf("pi agent did not produce any answers")
 }
 
 // truncateString truncates a string to maxLen characters, adding "..." if truncated
@@ -305,28 +451,4 @@ func truncateString(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen] + "..."
-}
-
-// initLLM initializes the appropriate LLM based on provider
-func initLLM(ctx context.Context, opts *AgenticCallOptions) (llms.Model, error) {
-	switch opts.Provider {
-	case "google":
-		return googleai.New(
-			ctx,
-			googleai.WithAPIKey(opts.APIKey),
-			googleai.WithDefaultModel(opts.Model),
-		)
-	case "anthropic":
-		return anthropic.New(
-			anthropic.WithToken(opts.APIKey),
-			anthropic.WithModel(opts.Model),
-		)
-	case "openai":
-		return openai.New(
-			openai.WithToken(opts.APIKey),
-			openai.WithModel(opts.Model),
-		)
-	default:
-		return nil, fmt.Errorf("unsupported provider: %s (supported: google, anthropic, openai)", opts.Provider)
-	}
 }

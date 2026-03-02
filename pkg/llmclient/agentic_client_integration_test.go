@@ -28,7 +28,7 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "google",
-		Model:    "gemini-2.0-flash",
+		Model:    "gemini-2.5-flash",
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
@@ -67,7 +67,7 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "google",
-		Model:    "gemini-2.0-flash",
+		Model:    "gemini-2.5-flash",
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
