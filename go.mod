@@ -12,7 +12,7 @@ require (
 	github.com/hashicorp/go-version v1.8.0
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/magefile/mage v1.15.0
-	github.com/modelcontextprotocol/go-sdk v1.3.0
+	github.com/modelcontextprotocol/go-sdk v1.3.1
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20251230224438-88c48750ddae
 	github.com/r3labs/diff/v3 v3.0.2
 	github.com/smartystreets/goconvey v1.8.1
@@ -173,6 +173,8 @@ require (
 	github.com/saferwall/pe v1.5.7 // indirect
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/secDre4mer/pkcs7 v0.0.0-20240322103146-665324a4461d // indirect
+	github.com/segmentio/asm v1.1.3 // indirect
+	github.com/segmentio/encoding v0.5.3 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shogo82148/go-shuffle v1.1.1 // indirect
