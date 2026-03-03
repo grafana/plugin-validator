@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,6 +17,11 @@ func hasAnthropicAPIKey() bool {
 	return os.Getenv("ANTHROPIC_API_KEY") != ""
 }
 
+const (
+	googleAgenticTestModel    = defaultGoogleAgenticModel
+	anthropicAgenticTestModel = defaultAnthropicModel
+)
+
 // TestAgenticClient_NoFilesystemAccess tests that the agent correctly identifies
 // when an application does NOT access the filesystem
 func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
@@ -28,7 +31,7 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "google",
-		Model:    "gemini-2.5-flash",
+		Model:    googleAgenticTestModel,
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
@@ -41,15 +44,18 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
-	logme.DebugFln("Agent answers:")
-	prettyprint.Print(answers)
 
 	require.NoError(t, err, "CallLLM should not return error")
 	require.Len(t, answers, 1, "Should return exactly one answer")
 
 	answer := answers[0]
 	require.NotEmpty(t, answer.Answer, "Answer field should be populated")
-	require.Equal(t, false, answer.ShortAnswer, "ShortAnswer should be false - this app does not access the filesystem")
+	require.Equal(
+		t,
+		false,
+		answer.ShortAnswer,
+		"ShortAnswer should be false - this app does not access the filesystem",
+	)
 
 	t.Logf("Agent Answer: %s", answer.Answer)
 	t.Logf("Short Answer: %v", answer.ShortAnswer)
@@ -67,7 +73,7 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "google",
-		Model:    "gemini-2.5-flash",
+		Model:    googleAgenticTestModel,
 		APIKey:   os.Getenv("GEMINI_API_KEY"),
 	}
 
@@ -80,15 +86,18 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
-	logme.DebugFln("Agent answers:")
-	prettyprint.Print(answers)
 
 	require.NoError(t, err, "CallLLM should not return error")
 	require.Len(t, answers, 1, "Should return exactly one answer")
 
 	answer := answers[0]
 	require.NotEmpty(t, answer.Answer, "Answer field should be populated")
-	require.Equal(t, true, answer.ShortAnswer, "ShortAnswer should be true - this app accesses the filesystem via os.ReadFile")
+	require.Equal(
+		t,
+		true,
+		answer.ShortAnswer,
+		"ShortAnswer should be true - this app accesses the filesystem via os.ReadFile",
+	)
 
 	t.Logf("Agent Answer: %s", answer.Answer)
 	t.Logf("Short Answer: %v", answer.ShortAnswer)
@@ -105,7 +114,7 @@ func TestAgenticClient_NoFilesystemAccess_Anthropic(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "anthropic",
-		Model:    "claude-sonnet-4-5",
+		Model:    anthropicAgenticTestModel,
 		APIKey:   os.Getenv("ANTHROPIC_API_KEY"),
 	}
 
@@ -118,15 +127,18 @@ func TestAgenticClient_NoFilesystemAccess_Anthropic(t *testing.T) {
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
-	logme.DebugFln("Agent answers:")
-	prettyprint.Print(answers)
 
 	require.NoError(t, err, "CallLLM should not return error")
 	require.Len(t, answers, 1, "Should return exactly one answer")
 
 	answer := answers[0]
 	require.NotEmpty(t, answer.Answer, "Answer field should be populated")
-	require.Equal(t, false, answer.ShortAnswer, "ShortAnswer should be false - this app does not access the filesystem")
+	require.Equal(
+		t,
+		false,
+		answer.ShortAnswer,
+		"ShortAnswer should be false - this app does not access the filesystem",
+	)
 
 	t.Logf("Agent Answer: %s", answer.Answer)
 	t.Logf("Short Answer: %v", answer.ShortAnswer)
@@ -143,7 +155,7 @@ func TestAgenticClient_FilesystemAccess_Anthropic(t *testing.T) {
 
 	opts := &AgenticCallOptions{
 		Provider: "anthropic",
-		Model:    "claude-sonnet-4-5",
+		Model:    anthropicAgenticTestModel,
 		APIKey:   os.Getenv("ANTHROPIC_API_KEY"),
 	}
 
@@ -156,15 +168,18 @@ func TestAgenticClient_FilesystemAccess_Anthropic(t *testing.T) {
 	prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 	answers, err := client.CallLLM(context.Background(), prompt, testDataPath)
-	logme.DebugFln("Agent answers:")
-	prettyprint.Print(answers)
 
 	require.NoError(t, err, "CallLLM should not return error")
 	require.Len(t, answers, 1, "Should return exactly one answer")
 
 	answer := answers[0]
 	require.NotEmpty(t, answer.Answer, "Answer field should be populated")
-	require.Equal(t, true, answer.ShortAnswer, "ShortAnswer should be true - this app accesses the filesystem via os.ReadFile")
+	require.Equal(
+		t,
+		true,
+		answer.ShortAnswer,
+		"ShortAnswer should be true - this app accesses the filesystem via os.ReadFile",
+	)
 
 	t.Logf("Agent Answer: %s", answer.Answer)
 	t.Logf("Short Answer: %v", answer.ShortAnswer)

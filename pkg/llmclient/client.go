@@ -44,7 +44,7 @@ func CleanUpPromptFiles(dir string) {
 }
 
 type CallLLMOptions struct {
-	Model string // e.g. "gemini-2.5-flash", empty = CLI default
+	Model string // e.g. "gemini-3-flash-preview", empty = CLI default
 }
 
 type LLMClient interface {

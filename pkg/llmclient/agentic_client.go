@@ -15,8 +15,31 @@ import (
 )
 
 const (
-	piAgentTimeout = 5 * time.Minute
+	piAgentTimeout                      = 5 * time.Minute
+	defaultGoogleAgenticModel           = "gemini-3-flash-preview"
+	defaultAnthropicModel               = "claude-haiku-4-5"
+	maxRetries                          = 3
+	retryCauseError                     = "error"
+	retryCauseMissingSubmitAnswer       = "missing_submit_answer"
+	retryPromptAfterError               = "The previous attempt encountered an error. Please try again and complete the task by calling submit_answer with your analysis."
+	retryPromptAfterMissingSubmitAnswer = "The previous attempt did not call submit_answer. You are in non-interactive mode. Plain text assistant messages are ignored/discarded, and no human reads your message unless you use tools. Use tools as needed, then call submit_answer to provide your final structured answer."
 )
+
+const systemPrompt = `
+You are a code analysis assistant. You have tools to explore code in a repository.
+
+STRATEGY:
+1. Use bash to list files (ls) and explore the repository structure
+2. Use the read tool to read source code files
+3. Use bash to run git commands (git diff, git log, etc.) and grep/rg for searching
+4. Analyze the code to answer the question
+
+You are in non-interactive mode. Start working and using your tools immediately.
+
+When ready, use submit_answer to provide your structured answer.
+
+You MUST call submit_answer for your answers. No human reads your message unless you use tools.
+`
 
 //go:embed pi-extension/extension.ts
 var piExtensionTS []byte
@@ -31,7 +54,7 @@ type AnswerSchema struct {
 
 // AgenticCallOptions contains configuration for the agentic LLM call
 type AgenticCallOptions struct {
-	Model    string // e.g. "gemini-2.5-flash"
+	Model    string // optional, defaults by provider when empty (google: gemini-3-flash-preview, anthropic: claude-haiku-4-5)
 	Provider string // "google", "anthropic", "openai"
 	APIKey   string
 }
@@ -56,22 +79,31 @@ func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
 	if opts.APIKey == "" {
 		return nil, fmt.Errorf("API key is required")
 	}
-	if opts.Model == "" {
-		return nil, fmt.Errorf("model is required")
-	}
 	if opts.Provider == "" {
 		return nil, fmt.Errorf("provider is required")
 	}
+	model := opts.Model
+	if model == "" {
+		switch opts.Provider {
+		case "google":
+			model = defaultGoogleAgenticModel
+		case "anthropic":
+			model = defaultAnthropicModel
+		default:
+			return nil, fmt.Errorf("model is required for provider %q", opts.Provider)
+		}
+	}
+
 	return &agenticClientImpl{
 		apiKey:   opts.APIKey,
-		model:    opts.Model,
+		model:    model,
 		provider: opts.Provider,
 	}, nil
 }
 
 // piModelString converts provider/model to pi's --model format.
 // Pi uses "provider/model" format where provider names match pi's model registry
-// (e.g. "google/gemini-2.5-flash", "anthropic/claude-sonnet-4-5").
+// (e.g. "google/gemini-3-flash-preview", "anthropic/claude-haiku-4-5").
 func piModelString(provider, model string) string {
 	return provider + "/" + model
 }
@@ -110,8 +142,8 @@ func writeExtensionFile() (extensionPath string, cleanupDir string, err error) {
 // rpcEvent represents a generic JSON event from pi's RPC stdout.
 // We only parse the fields we care about.
 type rpcEvent struct {
-	Type     string `json:"type"`
-	ToolName string `json:"toolName,omitempty"`
+	Type     string          `json:"type"`
+	ToolName string          `json:"toolName,omitempty"`
 	Args     json.RawMessage `json:"args,omitempty"`
 	Result   *struct {
 		Content []struct {
@@ -129,7 +161,7 @@ type rpcEvent struct {
 
 	// For message events (message_start, message_end, turn_end)
 	Message *rpcMessage `json:"message,omitempty"`
-	
+
 	// For text content in various events
 	Content []struct {
 		Type string `json:"type"`
@@ -139,23 +171,34 @@ type rpcEvent struct {
 
 // rpcMessage captures relevant fields from assistant messages in events.
 type rpcMessage struct {
-	Role         string `json:"role,omitempty"`
-	StopReason   string `json:"stopReason,omitempty"`
-	ErrorMessage string `json:"errorMessage,omitempty"`
+	Role         string          `json:"role,omitempty"`
+	StopReason   string          `json:"stopReason,omitempty"`
+	ErrorMessage string          `json:"errorMessage,omitempty"`
+	Content      json.RawMessage `json:"content,omitempty"`
 }
 
-const systemPrompt = `You are a code analysis assistant. You have tools to explore code in a repository.
+func extractFinalAssistantText(message *rpcMessage) string {
+	if message == nil || message.Role != "assistant" || len(message.Content) == 0 {
+		return ""
+	}
 
-STRATEGY:
-1. Use bash to list files (ls) and explore the repository structure
-2. Use the read tool to read source code files
-3. Use bash to run git commands (git diff, git log, etc.) and grep/rg for searching
-4. Analyze the code to answer the question
+	var blocks []struct {
+		Type string `json:"type,omitempty"`
+		Text string `json:"text,omitempty"`
+	}
+	if err := json.Unmarshal(message.Content, &blocks); err != nil {
+		return ""
+	}
 
-IMPORTANT: You are in non-interactive mode. Start working and using your tools immediately.
-When ready, use submit_answer to provide your structured answer.
-For multiple questions, call submit_answer once per question.
-You MUST call submit_answer - do NOT just respond with text.`
+	var texts []string
+	for _, block := range blocks {
+		if block.Type == "text" && strings.TrimSpace(block.Text) != "" {
+			texts = append(texts, block.Text)
+		}
+	}
+
+	return strings.TrimSpace(strings.Join(texts, "\n"))
+}
 
 // piProcess holds the state of a running pi RPC subprocess.
 type piProcess struct {
@@ -169,7 +212,6 @@ func (c *agenticClientImpl) startPiProcess(
 	ctx context.Context,
 	repositoryPath, extensionPath string,
 ) (*piProcess, error) {
-	piModel := piModelString(c.provider, c.model)
 	args := []string{
 		"-y", "@mariozechner/pi-coding-agent",
 		"--mode", "rpc",
@@ -178,7 +220,8 @@ func (c *agenticClientImpl) startPiProcess(
 		"--no-skills",
 		"--no-prompt-templates",
 		"-e", extensionPath,
-		"--model", piModel,
+		"--provider", c.provider,
+		"--model", piModelString(c.provider, c.model),
 		"--system-prompt", systemPrompt,
 	}
 
@@ -289,6 +332,11 @@ func printEventSummary(event rpcEvent) {
 				debugLog("💭 Agent: %s", truncateString(c.Text, 100))
 			}
 		}
+	case "message_end":
+		finalText := extractFinalAssistantText(event.Message)
+		if finalText != "" {
+			debugLog("💭 Agent (final): %s", truncateString(finalText, 300))
+		}
 	case "agent_end":
 		debugLog("🏁 Agent finished")
 	}
@@ -365,11 +413,64 @@ func (p *piProcess) close() error {
 	return p.cmd.Wait()
 }
 
-const maxRetries = 3
+func retryPromptForCause(cause string) string {
+	if cause == retryCauseMissingSubmitAnswer {
+		return retryPromptAfterMissingSubmitAnswer
+	}
+	return retryPromptAfterError
+}
+
+func shouldRetry(result eventLoopResult, attempt int) (retry bool, cause string) {
+	if len(result.answers) > 0 {
+		return false, ""
+	}
+
+	cause = retryCauseMissingSubmitAnswer
+	if result.gotError {
+		cause = retryCauseError
+	}
+
+	if attempt >= maxRetries {
+		return false, cause
+	}
+
+	return true, cause
+}
+
+func noAnswersError(lastError string) error {
+	totalAttempts := maxRetries + 1 // initial attempt + retries
+	if lastError != "" {
+		return fmt.Errorf(
+			"pi agent did not produce any answers after %d total attempts (%d retries) (last error: %s)",
+			totalAttempts,
+			maxRetries,
+			truncateString(lastError, 200),
+		)
+	}
+
+	return fmt.Errorf(
+		"pi agent did not produce any answers after %d total attempts (%d retries) (no submit_answer tool call received)",
+		totalAttempts,
+		maxRetries,
+	)
+}
+
+func waitForRetryDelay(ctx context.Context, attempt int) error {
+	delay := time.Duration(attempt) * 2 * time.Second
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
 
 // CallLLM spawns pi in RPC mode, sends the prompt, and collects structured answers.
-// Retries up to maxRetries times on transient errors (e.g. rate limits), reusing the
-// same pi session.
+// Retries up to maxRetries times on transient errors (e.g. rate limits) or missing
+// submit_answer tool calls, reusing the same pi session.
 func (c *agenticClientImpl) CallLLM(
 	ctx context.Context,
 	prompt, repositoryPath string,
@@ -398,15 +499,25 @@ func (c *agenticClientImpl) CallLLM(
 	defer proc.close()
 
 	var lastError string
+	lastRetryCause := ""
+
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		var promptToSend string
-		if attempt == 0 {
-			promptToSend = prompt
-		} else {
-			// On retry, send a nudge instead of repeating the same prompt
-			debugLog("AgenticClient: retry %d/%d after error: %s", attempt, maxRetries, lastError)
-			time.Sleep(time.Duration(attempt) * 2 * time.Second)
-			promptToSend = "The previous attempt encountered an error. Please try again and complete the task by calling submit_answer with your analysis."
+		promptToSend := prompt
+		if attempt > 0 {
+			debugLog(
+				"AgenticClient: retry %d/%d after %s (last error: %s)",
+				attempt,
+				maxRetries,
+				lastRetryCause,
+				truncateString(lastError, 200),
+			)
+			if err := waitForRetryDelay(ctx, attempt); err != nil {
+				if err == context.DeadlineExceeded {
+					return nil, fmt.Errorf("pi timed out after %v", piAgentTimeout)
+				}
+				return nil, fmt.Errorf("pi canceled during retry backoff: %w", err)
+			}
+			promptToSend = retryPromptForCause(lastRetryCause)
 		}
 
 		if err := proc.sendPrompt(promptToSend); err != nil {
@@ -423,7 +534,9 @@ func (c *agenticClientImpl) CallLLM(
 		}
 
 		lastError = result.lastErr
-		if !result.gotError || attempt >= maxRetries {
+		var shouldTryAgain bool
+		shouldTryAgain, lastRetryCause = shouldRetry(result, attempt)
+		if !shouldTryAgain {
 			break
 		}
 	}
@@ -436,13 +549,7 @@ func (c *agenticClientImpl) CallLLM(
 		return nil, fmt.Errorf("pi timed out after %v", piAgentTimeout)
 	}
 
-	if lastError != "" {
-		return nil, fmt.Errorf(
-			"pi agent did not produce any answers (last error: %s)",
-			truncateString(lastError, 200),
-		)
-	}
-	return nil, fmt.Errorf("pi agent did not produce any answers")
+	return nil, noAnswersError(lastError)
 }
 
 // truncateString truncates a string to maxLen characters, adding "..." if truncated

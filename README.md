@@ -14,7 +14,9 @@ You can _additionally_ provide a link to the source code for the project with `-
 
 ## Installation and usage
 
-Ensure that your version of Go matches the one specified in the `go.mod` file to avoid compatibility issues
+Ensure that your version of Go matches the one specified in the `go.mod` file to avoid compatibility issues.
+
+For local development with mage targets (`mage test` / `mage test:verbose`), run `npm install` (or `npm ci`) once so TypeScript validation for `pkg/llmclient/pi-extension` can run.
 
 ### Docker (recommended)
 

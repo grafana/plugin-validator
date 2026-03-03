@@ -316,10 +316,7 @@ Once output.json is valid, you are DONE. Exit immediately.`,
 	llmclient.CleanUpPromptFiles(archivePath)
 
 	if err := client.CallLLM(prompt, archivePath, &llmclient.CallLLMOptions{
-		// we are using gemini 2.5 flash  after testing it against gemini 3 flash
-		// and see much better performance in speed and obeying instructions for this
-		// particular case
-		Model: "gemini-2.5-flash",
+		Model: "gemini-3-flash-preview",
 	}); err != nil {
 		os.Remove(filepath.Join(archivePath, "output.json"))
 		return "", fmt.Errorf("gemini CLI failed: %w", err)

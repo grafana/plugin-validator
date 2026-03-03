@@ -26,7 +26,16 @@
     "name": "plugincheck2",
     "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
   },
+  "scripts": {
+    "validate:pi-extension": "tsc -p pkg/llmclient/pi-extension/tsconfig.json --noEmit"
+  },
   "dependencies": {
     "tar": "^7.4.3"
+  },
+  "devDependencies": {
+    "@mariozechner/pi-coding-agent": "^0.55.4",
+    "@sinclair/typebox": "^0.34.48",
+    "@types/node": "^25.3.3",
+    "typescript": "^5.9.3"
   }
 }

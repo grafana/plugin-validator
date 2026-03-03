@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -167,6 +168,18 @@ func test() error {
 	return sh.RunV("go", "test", "./pkg/...")
 }
 
+func validatePiExtension() error {
+	log.Printf("Validating pi extension TypeScript")
+	tscPath := filepath.Join("node_modules", ".bin", "tsc")
+	if _, err := os.Stat(tscPath); err != nil {
+		if os.IsNotExist(err) {
+			return fmt.Errorf("missing npm dependencies for pi extension validation; run `npm install` (or `npm ci`) first")
+		}
+		return fmt.Errorf("failed to check %s: %w", tscPath, err)
+	}
+	return sh.RunV("npm", "run", "validate:pi-extension")
+}
+
 // Formats the source files
 func (Build) Format() error {
 	if err := sh.RunV("gofmt", "-w", "./pkg"); err != nil {
@@ -217,14 +230,20 @@ func (Build) Lint() error {
 func (Test) Verbose() {
 	mg.SerialDeps(
 		Build.Local,
+		validatePiExtension,
 		testVerbose,
 	)
+}
+
+func (Test) PiExtension() error {
+	return validatePiExtension()
 }
 
 // Run tests in normal mode
 func (Test) Default() {
 	mg.SerialDeps(
 		Build.Local,
+		validatePiExtension,
 		test,
 	)
 }

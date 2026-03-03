@@ -40,4 +40,4 @@ sequenceDiagram
 
 ## Debug logging
 
-Set `DEBUG=1` to write detailed logs to `/tmp/validator-agentic-<timestamp>.log`.
+Set `DEBUG=1` to write detailed logs to `/tmp/validator-agentic.log` (truncated on each process start).
