@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/grafana/plugin-validator/pkg/prettyprint"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,7 +71,6 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 			prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 			answers, err := client.CallLLM(context.Background(), []string{prompt}, testDataPath)
-			prettyprint.Print(answers)
 
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 1, "Should return exactly one answer")
@@ -82,12 +80,6 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 			require.NotEmpty(t, answer.Answer, "Answer field should be populated")
 			require.Equal(t, false, answer.ShortAnswer,
 				"ShortAnswer should be false - this app does not access the filesystem")
-
-			t.Logf("Agent Answer: %s", answer.Answer)
-			t.Logf("Short Answer: %v", answer.ShortAnswer)
-			if len(answer.Files) > 0 {
-				t.Logf("Files: %v", answer.Files)
-			}
 		})
 	}
 }
@@ -105,7 +97,6 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 			prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
 
 			answers, err := client.CallLLM(context.Background(), []string{prompt}, testDataPath)
-			prettyprint.Print(answers)
 
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 1, "Should return exactly one answer")
@@ -115,12 +106,6 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 			require.NotEmpty(t, answer.Answer, "Answer field should be populated")
 			require.Equal(t, true, answer.ShortAnswer,
 				"ShortAnswer should be true - this app accesses the filesystem via os.ReadFile")
-
-			t.Logf("Agent Answer: %s", answer.Answer)
-			t.Logf("Short Answer: %v", answer.ShortAnswer)
-			if len(answer.Files) > 0 {
-				t.Logf("Files: %v", answer.Files)
-			}
 		})
 	}
 }
@@ -141,7 +126,6 @@ func TestAgenticClient_TwoQuestions(t *testing.T) {
 			}
 
 			answers, err := client.CallLLM(context.Background(), questions, testDataPath)
-			prettyprint.Print(answers)
 
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 2, "Should return exactly two answers")
@@ -153,9 +137,6 @@ func TestAgenticClient_TwoQuestions(t *testing.T) {
 
 			require.Equal(t, questions[1], answers[1].Question, "Second answer's question should match")
 			require.NotEmpty(t, answers[1].Answer, "Second answer should be populated")
-
-			t.Logf("Answer 1: %s", answers[0].Answer)
-			t.Logf("Answer 2: %s", answers[1].Answer)
 		})
 	}
 }
@@ -177,7 +158,6 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 			}
 
 			answers, err := client.CallLLM(context.Background(), questions, testDataPath)
-			prettyprint.Print(answers)
 
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 3, "Should return exactly three answers")
@@ -192,10 +172,6 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 
 			require.Equal(t, questions[2], answers[2].Question, "Third answer's question should match")
 			require.NotEmpty(t, answers[2].Answer, "Third answer should be populated")
-
-			t.Logf("Answer 1: %s", answers[0].Answer)
-			t.Logf("Answer 2: %s", answers[1].Answer)
-			t.Logf("Answer 3: %s", answers[2].Answer)
 		})
 	}
 }
