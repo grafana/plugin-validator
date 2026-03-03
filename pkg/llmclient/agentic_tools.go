@@ -126,6 +126,7 @@ func buildAgenticTools() []llms.Tool {
 			Function: &llms.FunctionDefinition{
 				Name:        "submit_answer",
 				Description: "Submit your final answer to the question. Use this when you have gathered enough information.",
+				Strict: true,
 				Parameters: map[string]interface{}{
 					"type": "object",
 					"properties": map[string]interface{}{
@@ -140,14 +141,15 @@ func buildAgenticTools() []llms.Tool {
 						"files": map[string]interface{}{
 							"type":        "array",
 							"items":       map[string]interface{}{"type": "string"},
-							"description": "List of relevant files (optional)",
+							"description": "List of relevant files. Pass an empty array if not relevant.",
 						},
 						"code_snippet": map[string]interface{}{
 							"type":        "string",
-							"description": "A relevant code snippet (optional)",
+							"description": "A relevant code snippet. Pass an empty string if not relevant.",
 						},
 					},
-					"required": []string{"answer", "short_answer"},
+					"required":             []string{"answer", "short_answer", "files", "code_snippet"},
+					"additionalProperties": false,
 				},
 			},
 		},
