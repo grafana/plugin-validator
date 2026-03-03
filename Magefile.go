@@ -173,7 +173,9 @@ func validatePiExtension() error {
 	tscPath := filepath.Join("node_modules", ".bin", "tsc")
 	if _, err := os.Stat(tscPath); err != nil {
 		if os.IsNotExist(err) {
-			return fmt.Errorf("missing npm dependencies for pi extension validation; run `npm install` (or `npm ci`) first")
+			return fmt.Errorf(
+				"missing npm dependencies for pi extension validation; run `npm install` (or `npm ci`) first",
+			)
 		}
 		return fmt.Errorf("failed to check %s: %w", tscPath, err)
 	}
@@ -230,7 +232,6 @@ func (Build) Lint() error {
 func (Test) Verbose() {
 	mg.SerialDeps(
 		Build.Local,
-		validatePiExtension,
 		testVerbose,
 	)
 }
@@ -243,7 +244,6 @@ func (Test) PiExtension() error {
 func (Test) Default() {
 	mg.SerialDeps(
 		Build.Local,
-		validatePiExtension,
 		test,
 	)
 }

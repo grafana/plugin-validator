@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	piAgentTimeout                      = 5 * time.Minute
+	perQuestionTimeout                  = 3 * time.Minute
 	defaultGoogleAgenticModel           = "gemini-3-flash-preview"
 	defaultAnthropicModel               = "claude-haiku-4-5"
 	maxRetries                          = 3
@@ -61,7 +61,7 @@ type AgenticCallOptions struct {
 
 // AgenticClient is an interface for agentic LLM interactions
 type AgenticClient interface {
-	CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error)
+	CallLLM(ctx context.Context, prompts []string, repositoryPath string) ([]AnswerSchema, error)
 }
 
 // agenticClientImpl implements AgenticClient using pi in RPC mode
@@ -468,44 +468,18 @@ func waitForRetryDelay(ctx context.Context, attempt int) error {
 	}
 }
 
-// CallLLM spawns pi in RPC mode, sends the prompt, and collects structured answers.
-// Retries up to maxRetries times on transient errors (e.g. rate limits) or missing
-// submit_answer tool calls, reusing the same pi session.
-func (c *agenticClientImpl) CallLLM(
-	ctx context.Context,
-	prompt, repositoryPath string,
-) ([]AnswerSchema, error) {
-	printDebugLogPath()
-	debugLog("\n\n\n")
-	debugLog("################################################################")
-	debugLog("# NEW CallLLM (pi RPC) - provider=%s model=%s", c.provider, c.model)
-	debugLog("# repo=%s", repositoryPath)
-	debugLog("# prompt=%s", truncateString(prompt, 200))
-	debugLog("################################################################")
-
-	extensionPath, cleanupDir, err := writeExtensionFile()
-	if err != nil {
-		return nil, fmt.Errorf("failed to write pi extension: %w", err)
-	}
-	defer os.RemoveAll(cleanupDir)
-
-	ctx, cancel := context.WithTimeout(ctx, piAgentTimeout)
-	defer cancel()
-
-	proc, err := c.startPiProcess(ctx, repositoryPath, extensionPath)
-	if err != nil {
-		return nil, err
-	}
-	defer proc.close()
-
+// askQuestion sends a single question to the running pi process and retries
+// up to maxRetries times if the agent doesn't call submit_answer or hits a
+// transient error. Returns the first answer from the agent turn.
+func askQuestion(ctx context.Context, proc *piProcess, prompt string) (AnswerSchema, error) {
 	var lastError string
-	lastRetryCause := ""
+	var lastRetryCause string
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		promptToSend := prompt
 		if attempt > 0 {
 			debugLog(
-				"AgenticClient: retry %d/%d after %s (last error: %s)",
+				"askQuestion: retry %d/%d after %s (last error: %s)",
 				attempt,
 				maxRetries,
 				lastRetryCause,
@@ -513,24 +487,26 @@ func (c *agenticClientImpl) CallLLM(
 			)
 			if err := waitForRetryDelay(ctx, attempt); err != nil {
 				if err == context.DeadlineExceeded {
-					return nil, fmt.Errorf("pi timed out after %v", piAgentTimeout)
+					return AnswerSchema{}, fmt.Errorf("pi timed out after %v per question", perQuestionTimeout)
 				}
-				return nil, fmt.Errorf("pi canceled during retry backoff: %w", err)
+				return AnswerSchema{}, fmt.Errorf("pi canceled during retry backoff: %w", err)
 			}
 			promptToSend = retryPromptForCause(lastRetryCause)
 		}
 
 		if err := proc.sendPrompt(promptToSend); err != nil {
-			return nil, err
+			return AnswerSchema{}, err
 		}
 
 		result := proc.readEvents()
 		if result.fatalErr != nil {
-			return nil, result.fatalErr
+			return AnswerSchema{}, result.fatalErr
 		}
 		if len(result.answers) > 0 {
-			debugLog("AgenticClient: returning %d answers", len(result.answers))
-			return result.answers, nil
+			if len(result.answers) > 1 {
+				debugLog("askQuestion: got %d answers in one turn, using first", len(result.answers))
+			}
+			return result.answers[0], nil
 		}
 
 		lastError = result.lastErr
@@ -542,14 +518,66 @@ func (c *agenticClientImpl) CallLLM(
 	}
 
 	if err := proc.scanner.Err(); err != nil {
-		debugLog("AgenticClient: scanner error: %v", err)
+		debugLog("askQuestion: scanner error: %v", err)
 	}
 
 	if ctx.Err() == context.DeadlineExceeded {
-		return nil, fmt.Errorf("pi timed out after %v", piAgentTimeout)
+		return AnswerSchema{}, fmt.Errorf("pi timed out after %v per question", perQuestionTimeout)
 	}
 
-	return nil, noAnswersError(lastError)
+	return AnswerSchema{}, noAnswersError(lastError)
+}
+
+// CallLLM spawns pi in RPC mode, sends each prompt sequentially, and collects
+// one structured answer per prompt. The pi session is reused across all prompts
+// so the agent retains context. Each question is retried up to maxRetries times
+// on transient errors or missing submit_answer calls.
+func (c *agenticClientImpl) CallLLM(
+	ctx context.Context,
+	prompts []string,
+	repositoryPath string,
+) ([]AnswerSchema, error) {
+	if len(prompts) == 0 {
+		return nil, nil
+	}
+
+	printDebugLogPath()
+	debugLog("\n\n\n")
+	debugLog("################################################################")
+	debugLog("# NEW CallLLM (pi RPC) - provider=%s model=%s", c.provider, c.model)
+	debugLog("# repo=%s", repositoryPath)
+	debugLog("# %d prompts", len(prompts))
+	debugLog("################################################################")
+
+	extensionPath, cleanupDir, err := writeExtensionFile()
+	if err != nil {
+		return nil, fmt.Errorf("failed to write pi extension: %w", err)
+	}
+	defer os.RemoveAll(cleanupDir)
+
+	totalTimeout := perQuestionTimeout * time.Duration(len(prompts))
+	ctx, cancel := context.WithTimeout(ctx, totalTimeout)
+	defer cancel()
+
+	proc, err := c.startPiProcess(ctx, repositoryPath, extensionPath)
+	if err != nil {
+		return nil, err
+	}
+	defer proc.close()
+
+	answers := make([]AnswerSchema, 0, len(prompts))
+	for i, prompt := range prompts {
+		debugLog("AgenticClient: sending question %d/%d: %s", i+1, len(prompts), truncateString(prompt, 200))
+		answer, err := askQuestion(ctx, proc, prompt)
+		if err != nil {
+			return answers, fmt.Errorf("question %d/%d failed: %w", i+1, len(prompts), err)
+		}
+		debugLog("AgenticClient: got answer %d/%d: short_answer=%v, answer=%s",
+			i+1, len(prompts), answer.ShortAnswer, truncateString(answer.Answer, 100))
+		answers = append(answers, answer)
+	}
+
+	return answers, nil
 }
 
 // truncateString truncates a string to maxLen characters, adding "..." if truncated

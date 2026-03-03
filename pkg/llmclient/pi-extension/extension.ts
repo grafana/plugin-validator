@@ -16,7 +16,7 @@ import { execSync } from "child_process";
 
 const submitAnswerSchema = Type.Object({
   answer: Type.String({
-    description: "Your detailed answer explaining your findings",
+    description: "Brief answer explaining your findings",
   }),
   short_answer: Type.Boolean({
     description:
