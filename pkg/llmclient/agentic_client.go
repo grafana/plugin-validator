@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/tmc/langchaingo/llms"
@@ -13,14 +14,42 @@ import (
 )
 
 const (
-	maxToolCalls            = 100
-	maxLLMRetries           = 3
-	maxConsecutiveNoTools   = 5
-	retryDelay              = 2 * time.Second
+	maxToolCallsFirstQuestion = 60
+	maxToolCallsFollowUp      = 20
+	maxLLMRetries             = 3
+	maxConsecutiveNoTools     = 5
+	retryDelay                = 2 * time.Second
+
+	systemPrompt = `You are a code analysis assistant. You have tools to explore code in a repository.
+
+AVAILABLE TOOLS:
+- list_directory: List files at a path. Use "." for root.
+- read_file: Read a file's contents. This is your primary tool for understanding code.
+- grep: Search for a pattern across files.
+- git: Run read-only git commands (log, show, diff, status, etc.)
+- submit_answer: Submit your answers.
+
+STRATEGY:
+1. Use list_directory to see what files exist
+2. Use read_file to read the source code files
+3. Analyze the code to answer the question
+
+You can only use one tool at a time.
+IMPORTANT: You are in non-interactive mode. No one will read your text answers, only tools.
+When you have gathered enough information, use submit_answer to provide your answer.`
+
+	questionAppendPrompt = `Start by listing the files in the repository and exploring the contents.`
+
+	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
+
+	useToolsReminderPrompt = `You are in non-interactive mode. You must start using your tools now to explore the repository. When you have enough information, use submit_answer to provide your answer.`
+
+	submitAnswerAloneError = `Error: submit_answer must be called alone. When you have an answer, call submit_answer as a single tool call without any other tools in the same response.`
 )
 
 // AnswerSchema represents the structured response from the agentic client
 type AnswerSchema struct {
+	Question    string   `json:"question"`
 	Answer      string   `json:"answer"`
 	ShortAnswer bool     `json:"short_answer"`
 	Files       []string `json:"files,omitempty"`
@@ -36,7 +65,7 @@ type AgenticCallOptions struct {
 
 // AgenticClient is an interface for agentic LLM interactions
 type AgenticClient interface {
-	CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error)
+	CallLLM(ctx context.Context, questions []string, repositoryPath string) ([]AnswerSchema, error)
 }
 
 // agenticClientImpl implements AgenticClient
@@ -68,9 +97,17 @@ func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
 }
 
 // CallLLM executes an agentic loop with tools to answer questions about code.
-// The prompt may contain multiple questions, in which case the agent will call
-// submit_answer multiple times. All answers are collected and returned.
-func (c *agenticClientImpl) CallLLM(ctx context.Context, prompt, repositoryPath string) ([]AnswerSchema, error) {
+// Each question is processed sequentially, with follow-up questions benefiting
+// from the context accumulated by earlier questions.
+func (c *agenticClientImpl) CallLLM(
+	ctx context.Context,
+	questions []string,
+	repositoryPath string,
+) ([]AnswerSchema, error) {
+	if len(questions) == 0 {
+		return nil, fmt.Errorf("at least one question is required")
+	}
+
 	// Initialize LLM based on provider using the client's configured settings
 	opts := &AgenticCallOptions{
 		APIKey:   c.apiKey,
@@ -88,36 +125,10 @@ func (c *agenticClientImpl) CallLLM(ctx context.Context, prompt, repositoryPath 
 	// Create tool executor
 	executor := newToolExecutor(repositoryPath)
 
-	// System prompt
-	systemPrompt := `You are a code analysis assistant. You have tools to explore code in a repository.
-
-AVAILABLE TOOLS:
-- list_directory: List files at a path. Use "." for root.
-- read_file: Read a file's contents. This is your primary tool for understanding code.
-- grep: Search for a pattern across files.
-- git: Run read-only git commands (log, show, diff, status, etc.)
-- submit_answer: Submit your final answer.
-
-STRATEGY:
-1. Use list_directory to see what files exist
-2. Use read_file to read the source code files
-3. Analyze the code to answer the question
-
-You can only use one tool at a time.
-IMPORTANT: You are in non-interactive mode. Start working and using your tools immediately.
-When ready, use submit_answer. For multiple questions, call submit_answer once per question.`
-
-	// Build initial messages
+	// Build initial messages with system prompt only (no user message yet)
 	messages := []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt),
-		llms.TextParts(llms.ChatMessageTypeHuman, prompt),
 	}
-
-	// Collect answers
-	var answers []AnswerSchema
-
-	// Agentic loop
-	toolCallsRemaining := maxToolCalls
 
 	// Print debug log file path before starting the loop
 	printDebugLogPath()
@@ -125,65 +136,195 @@ When ready, use submit_answer. For multiple questions, call submit_answer once p
 	debugLog("################################################################")
 	debugLog("# NEW CallLLM - provider=%s model=%s", c.provider, c.model)
 	debugLog("# repo=%s", repositoryPath)
-	debugLog("# prompt=%s", truncateString(prompt, 200))
+	debugLog("# questions=%d", len(questions))
 	debugLog("################################################################")
 
-	iteration := 0
+	// Collect answers
+	var answers []AnswerSchema
+
+	// Process each question sequentially
+	for questionIndex, question := range questions {
+		debugLog(
+			"\n========== Processing question %d/%d ==========",
+			questionIndex+1,
+			len(questions),
+		)
+		debugLog("Question: %s", truncateString(question, 200))
+
+		originalQuestion := question
+		question = fmt.Sprintf("%s\n\n%s", question, questionAppendPrompt)
+
+		// Determine budget for this question
+		budget := maxToolCallsFirstQuestion
+		if questionIndex > 0 {
+			budget = maxToolCallsFollowUp
+		}
+		debugLog("Budget: %d tool calls", budget)
+
+		// Add the question as a human message
+		messages = append(messages, llms.TextParts(llms.ChatMessageTypeHuman, question))
+
+		// Run the question loop
+		updatedMessages, answer, err := c.runQuestionLoop(
+			ctx,
+			llm,
+			messages,
+			tools,
+			executor,
+			budget,
+			questionIndex,
+		)
+		messages = updatedMessages
+
+		if err != nil {
+			// Return partial results on error
+			debugLog("AgenticClient: question %d failed: %v", questionIndex+1, err)
+			if len(answers) > 0 {
+				debugLog("AgenticClient: returning %d partial answers", len(answers))
+				return answers, nil
+			}
+			return nil, err
+		}
+
+		if answer != nil {
+			// Set the question field
+			answer.Question = originalQuestion
+			answers = append(answers, *answer)
+			debugLog("AgenticClient: collected answer %d/%d", len(answers), len(questions))
+		} else {
+			// Budget exhausted without answer - stop processing further questions
+			debugLog("AgenticClient: question %d exhausted budget without answer, stopping", questionIndex+1)
+			if len(answers) > 0 {
+				debugLog("AgenticClient: returning %d partial answers", len(answers))
+				return answers, nil
+			}
+			return nil, fmt.Errorf("question %d exhausted budget without providing answer", questionIndex+1)
+		}
+	}
+
+	debugLog("AgenticClient: successfully answered all %d questions", len(questions))
+	return answers, nil
+}
+
+// runQuestionLoop runs the tool-calling loop for a single question.
+// Returns updated messages, the answer (or nil if budget exhausted), and error.
+func (c *agenticClientImpl) runQuestionLoop(
+	ctx context.Context,
+	llm llms.Model,
+	messages []llms.MessageContent,
+	tools []llms.Tool,
+	executor *toolExecutor,
+	budget int,
+	questionIndex int,
+) ([]llms.MessageContent, *AnswerSchema, error) {
+	toolCallsRemaining := budget
 	consecutiveNoTools := 0
+	iteration := 0
+
+	budgetNudged := false
+
 	for toolCallsRemaining > 0 {
 		iteration++
-		debugLog("========== AgenticClient: iteration %d ==========", iteration)
-		debugLog("AgenticClient: %d tool calls remaining, %d answers collected", toolCallsRemaining, len(answers))
+		debugLog("========== Question %d iteration %d ==========", questionIndex+1, iteration)
+		debugLog("AgenticClient: %d tool calls remaining", toolCallsRemaining)
+
+		if !budgetNudged && toolCallsRemaining <= 5 {
+			budgetNudged = true
+			debugLog("AgenticClient: nudging model about low budget")
+			messages = append(messages, llms.TextParts(
+				llms.ChatMessageTypeHuman,
+				fmt.Sprintf(budgetNudgePrompt, toolCallsRemaining),
+			))
+		}
 
 		// Call LLM with retry logic
 		debugLog("AgenticClient: calling LLM...")
 		resp, err := callLLMWithRetry(ctx, llm, messages, tools)
 		if err != nil {
 			debugLog("AgenticClient: LLM call failed: %v", err)
-			return nil, fmt.Errorf("LLM call failed after %d retries: %w", maxLLMRetries, err)
+			return messages, nil, fmt.Errorf(
+				"LLM call failed after %d retries: %w",
+				maxLLMRetries,
+				err,
+			)
 		}
 
-		// resp.Choices contains the LLM's response options. Each choice has Content (text)
-		// and/or ToolCalls (function calls the model wants to make). Typically there's
-		// only one choice unless you request multiple completions.
 		if len(resp.Choices) == 0 {
 			debugLog("AgenticClient: no choices in response")
-			return nil, fmt.Errorf("no response from LLM")
+			return messages, nil, fmt.Errorf("no response from LLM")
 		}
 
-		// Use first choice. Google puts all tool calls in choices[0].ToolCalls.
-		// Anthropic creates a separate choice per content block (text or tool_use),
-		// but langchaingo's handleAIMessage only supports Parts[0] as either
-		// TextContent or ToolCall, so we process one choice at a time.
-		choice := resp.Choices[0]
-		debugLog("AgenticClient: received response with %d tool calls", len(choice.ToolCalls))
+		// Log raw response for debugging
+		debugLog("AgenticClient: received response with %d choices", len(resp.Choices))
+		if choicesJSON, err := json.MarshalIndent(resp.Choices, "", "  "); err == nil {
+			debugLog("Raw response Choices:\n%s", string(choicesJSON))
+		}
+
+		// Merge all choices into one (Anthropic returns text and tool calls as separate choices)
+		mergedChoice := llms.ContentChoice{}
+		var allToolCalls []llms.ToolCall
+		var contentParts []string
+
+		for i, ch := range resp.Choices {
+			debugLog("AgenticClient: processing choice %d: Content=%q, ToolCalls=%d",
+				i, truncateString(ch.Content, 100), len(ch.ToolCalls))
+
+			if ch.Content != "" {
+				contentParts = append(contentParts, ch.Content)
+			}
+			if len(ch.ToolCalls) > 0 {
+				allToolCalls = append(allToolCalls, ch.ToolCalls...)
+			}
+			// Use StopReason from first non-empty one
+			if mergedChoice.StopReason == "" && ch.StopReason != "" {
+				mergedChoice.StopReason = ch.StopReason
+			}
+			// Use GenerationInfo from first choice
+			if i == 0 {
+				mergedChoice.GenerationInfo = ch.GenerationInfo
+			}
+		}
+
+		// Build merged choice — join all content parts so nothing is lost
+		// when Anthropic returns multiple text blocks (e.g. thinking + response).
+		if len(contentParts) > 0 {
+			mergedChoice.Content = strings.Join(contentParts, "\n")
+		}
+		mergedChoice.ToolCalls = allToolCalls
+
+		choice := mergedChoice
+		debugLog("AgenticClient: merged choice - Content=%q, ToolCalls=%d",
+			truncateString(choice.Content, 200), len(choice.ToolCalls))
 		if choice.Content != "" {
 			debugLog("AgenticClient: AI message: %s", truncateString(choice.Content, 200))
 		}
 
-		// If no tool calls, check if we have answers
+		// If no tool calls, check if we should nudge the agent
 		if len(choice.ToolCalls) == 0 {
 			debugLog("AgenticClient: no tool calls in response")
 
-			// If we have collected answers, the agent is done
-			if len(answers) > 0 {
-				debugLog("AgenticClient: agent finished with %d answers", len(answers))
-				return answers, nil
-			}
-
 			consecutiveNoTools++
-			debugLog("AgenticClient: consecutive no-tool responses: %d/%d", consecutiveNoTools, maxConsecutiveNoTools)
+			debugLog(
+				"AgenticClient: consecutive no-tool responses: %d/%d",
+				consecutiveNoTools,
+				maxConsecutiveNoTools,
+			)
 			if consecutiveNoTools >= maxConsecutiveNoTools {
-				return nil, fmt.Errorf("agent failed to use tools after %d consecutive attempts", maxConsecutiveNoTools)
+				return messages, nil, fmt.Errorf(
+					"agent failed to use tools after %d consecutive attempts",
+					maxConsecutiveNoTools,
+				)
 			}
 
-			// No answers yet - add the AI response and remind to use tools
+			// Add the AI response and remind to use tools
 			if choice.Content != "" {
 				messages = append(messages, llms.TextParts(llms.ChatMessageTypeAI, choice.Content))
 			}
-			debugLog("AgenticClient: no answers yet, reminding agent to use tools")
-			messages = append(messages, llms.TextParts(llms.ChatMessageTypeHuman,
-				"You are in non-interactive mode. You must start using your tools now to explore the repository. When you have enough information, use submit_answer to provide your answer."))
+			debugLog("AgenticClient: reminding agent to use tools")
+			messages = append(messages, llms.TextParts(
+				llms.ChatMessageTypeHuman,
+				useToolsReminderPrompt,
+			))
 			toolCallsRemaining--
 			continue
 		}
@@ -191,41 +332,85 @@ When ready, use submit_answer. For multiple questions, call submit_answer once p
 		// Reset consecutive no-tool counter when tools are used
 		consecutiveNoTools = 0
 
-		// Build AI message with tool calls
-		aiMessage := llms.MessageContent{
-			Role: llms.ChatMessageTypeAI,
-		}
-		if choice.Content != "" {
-			aiMessage.Parts = append(aiMessage.Parts, llms.TextContent{Text: choice.Content})
-		}
+		// Validate submit_answer is called alone
+		hasSubmitAnswer := false
 		for _, toolCall := range choice.ToolCalls {
-			aiMessage.Parts = append(aiMessage.Parts, toolCall)
+			if toolCall.FunctionCall.Name == "submit_answer" {
+				hasSubmitAnswer = true
+				break
+			}
 		}
-		messages = append(messages, aiMessage)
+		if hasSubmitAnswer && len(choice.ToolCalls) > 1 {
+			debugLog("AgenticClient: submit_answer called with other tools - rejecting all")
+			// Add a single AI message with ALL tool calls so every
+			// tool_result below has a matching tool_use in the preceding
+			// assistant message.
+			aiParts := make([]llms.ContentPart, len(choice.ToolCalls))
+			for i, tc := range choice.ToolCalls {
+				aiParts[i] = tc
+			}
+			aiMessage := llms.MessageContent{
+				Role:  llms.ChatMessageTypeAI,
+				Parts: aiParts,
+			}
+			messages = append(messages, aiMessage)
+			for _, toolCall := range choice.ToolCalls {
+				toolCallsRemaining--
+				errorResponse := llms.MessageContent{
+					Role: llms.ChatMessageTypeTool,
+					Parts: []llms.ContentPart{
+						llms.ToolCallResponse{
+							ToolCallID: toolCall.ID,
+							Name:       toolCall.FunctionCall.Name,
+							Content:    submitAnswerAloneError,
+						},
+					},
+				}
+				messages = append(messages, errorResponse)
+			}
+			continue
+		}
 
-		// Process tool calls
+		// Process each tool call as a separate AI message + tool result pair.
+		// langchaingo's Anthropic handleAIMessage only serializes Parts[0], so
+		// putting all tool calls in one message loses everything after the first.
+		// Interleaving ensures each tool_use has a matching tool_result in the
+		// immediately following user message.
 		for i, toolCall := range choice.ToolCalls {
 			toolCallsRemaining--
-			response, answer := processToolCall(toolCall, i, len(choice.ToolCalls), len(answers), executor)
+
+			aiMessage := llms.MessageContent{
+				Role:  llms.ChatMessageTypeAI,
+				Parts: []llms.ContentPart{toolCall},
+			}
+			messages = append(messages, aiMessage)
+
+			response, answer := processToolCall(toolCall, i, len(choice.ToolCalls), executor)
 			messages = append(messages, response)
 			if answer != nil {
-				answers = append(answers, *answer)
+				debugLog("AgenticClient: received answer for question %d", questionIndex+1)
+				return messages, answer, nil
 			}
 		}
 	}
 
-	// If we collected some answers but ran out of tool calls, return what we have
-	if len(answers) > 0 {
-		debugLog("AgenticClient: ran out of tool calls, returning %d answers", len(answers))
-		return answers, nil
-	}
-
-	return nil, fmt.Errorf("exceeded maximum tool calls (%d), agent did not complete", maxToolCalls)
+	// Budget exhausted without answer
+	debugLog("AgenticClient: question %d exhausted budget", questionIndex+1)
+	return messages, nil, nil
 }
 
 // processToolCall processes a single tool call and returns the response message and optional answer
-func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount int, executor *toolExecutor) (llms.MessageContent, *AnswerSchema) {
-	debugLog("AgenticClient: [%d/%d] executing tool: %s", index+1, total, toolCall.FunctionCall.Name)
+func processToolCall(
+	toolCall llms.ToolCall,
+	index, total int,
+	executor *toolExecutor,
+) (llms.MessageContent, *AnswerSchema) {
+	debugLog(
+		"AgenticClient: [%d/%d] executing tool: %s",
+		index+1,
+		total,
+		toolCall.FunctionCall.Name,
+	)
 	debugLog("AgenticClient: tool args: %s", truncateString(toolCall.FunctionCall.Arguments, 500))
 
 	// Check for submit_answer
@@ -240,13 +425,16 @@ func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount in
 					llms.ToolCallResponse{
 						ToolCallID: toolCall.ID,
 						Name:       toolCall.FunctionCall.Name,
-						Content:    fmt.Sprintf("Error parsing answer: %v. Please try again with valid JSON.", err),
+						Content: fmt.Sprintf(
+							"Error parsing answer: %v. Please try again with valid JSON.",
+							err,
+						),
 					},
 				},
 			}, nil
 		}
-		debugLog("AgenticClient: received answer #%d: short_answer=%v, answer=%s",
-			currentAnswerCount+1, answer.ShortAnswer, truncateString(answer.Answer, 100))
+		debugLog("AgenticClient: received answer: short_answer=%v, answer=%s",
+			answer.ShortAnswer, truncateString(answer.Answer, 100))
 
 		// Return success response and the answer
 		return llms.MessageContent{
@@ -255,7 +443,7 @@ func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount in
 				llms.ToolCallResponse{
 					ToolCallID: toolCall.ID,
 					Name:       toolCall.FunctionCall.Name,
-					Content:    "Answer recorded successfully. If you have answered all questions, respond with a plain text message saying 'I am finished'. Otherwise, continue with the next question.",
+					Content:    "Answer recorded successfully.",
 				},
 			},
 		}, &answer
@@ -281,7 +469,12 @@ func processToolCall(toolCall llms.ToolCall, index, total, currentAnswerCount in
 }
 
 // callLLMWithRetry calls the LLM with retry logic for transient errors
-func callLLMWithRetry(ctx context.Context, llm llms.Model, messages []llms.MessageContent, tools []llms.Tool) (*llms.ContentResponse, error) {
+func callLLMWithRetry(
+	ctx context.Context,
+	llm llms.Model,
+	messages []llms.MessageContent,
+	tools []llms.Tool,
+) (*llms.ContentResponse, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
 		resp, err := llm.GenerateContent(ctx, messages, llms.WithTools(tools))
@@ -327,6 +520,9 @@ func initLLM(ctx context.Context, opts *AgenticCallOptions) (llms.Model, error) 
 			openai.WithModel(opts.Model),
 		)
 	default:
-		return nil, fmt.Errorf("unsupported provider: %s (supported: google, anthropic, openai)", opts.Provider)
+		return nil, fmt.Errorf(
+			"unsupported provider: %s (supported: google, anthropic, openai)",
+			opts.Provider,
+		)
 	}
 }

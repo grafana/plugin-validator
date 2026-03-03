@@ -135,7 +135,7 @@ func buildAgenticTools() []llms.Tool {
 						},
 						"short_answer": map[string]interface{}{
 							"type":        "boolean",
-							"description": "A boolean true/false answer to yes/no questions",
+							"description": "A boolean answer to the question: true means YES, false means NO. For example, if the question is 'Is the sky blue?' the short_answer is true. If the question is 'Is the sky green?' the short_answer is false.",
 						},
 						"files": map[string]interface{}{
 							"type":        "array",

@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"time"
 )
 
 var (
@@ -24,8 +23,7 @@ func initDebugLogger() {
 			return
 		}
 
-		timestamp := time.Now().Format("20060102-150405")
-		debugPath = filepath.Join(os.TempDir(), fmt.Sprintf("validator-agentic-%s.log", timestamp))
+		debugPath = filepath.Join(os.TempDir(), "validator-agentic.log")
 
 		f, err := os.OpenFile(debugPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
