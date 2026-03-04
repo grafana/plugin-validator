@@ -12,7 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/tmc/langchaingo/llms"
+	"github.com/grafana/plugin-validator/pkg/llmprovider"
 )
 
 const maxFileSize = 500 * 1024 // 500KB
@@ -47,11 +47,11 @@ var blockedGitFlags = []string{
 }
 
 // buildAgenticTools returns the list of tools available to the agent
-func buildAgenticTools() []llms.Tool {
-	return []llms.Tool{
+func buildAgenticTools() []llmprovider.Tool {
+	return []llmprovider.Tool{
 		{
 			Type: "function",
-			Function: &llms.FunctionDefinition{
+			Function: &llmprovider.FunctionDef{
 				Name:        "read_file",
 				Description: "Read the contents of a file at the given path",
 				Parameters: map[string]interface{}{
@@ -68,7 +68,7 @@ func buildAgenticTools() []llms.Tool {
 		},
 		{
 			Type: "function",
-			Function: &llms.FunctionDefinition{
+			Function: &llmprovider.FunctionDef{
 				Name:        "list_directory",
 				Description: "List files and directories at the given path",
 				Parameters: map[string]interface{}{
@@ -85,7 +85,7 @@ func buildAgenticTools() []llms.Tool {
 		},
 		{
 			Type: "function",
-			Function: &llms.FunctionDefinition{
+			Function: &llmprovider.FunctionDef{
 				Name:        "grep",
 				Description: "Search for a pattern in files. Returns matching lines with file names and line numbers.",
 				Parameters: map[string]interface{}{
@@ -106,7 +106,7 @@ func buildAgenticTools() []llms.Tool {
 		},
 		{
 			Type: "function",
-			Function: &llms.FunctionDefinition{
+			Function: &llmprovider.FunctionDef{
 				Name:        "git",
 				Description: "Execute a git command. Only allowed commands: log, show, diff, status, ls-files, blame, rev-parse, cat-file, checkout, fetch, pull, branch, tag.",
 				Parameters: map[string]interface{}{
@@ -123,10 +123,9 @@ func buildAgenticTools() []llms.Tool {
 		},
 		{
 			Type: "function",
-			Function: &llms.FunctionDefinition{
+			Function: &llmprovider.FunctionDef{
 				Name:        "submit_answer",
 				Description: "Submit your final answer to the question. Use this when you have gathered enough information.",
-				Strict: true,
 				Parameters: map[string]interface{}{
 					"type": "object",
 					"properties": map[string]interface{}{

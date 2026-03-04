@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tmc/langchaingo/llms"
+	"github.com/grafana/plugin-validator/pkg/llmprovider"
+	"github.com/grafana/plugin-validator/pkg/llmprovider/gemini"
 	"github.com/tmc/langchaingo/llms/anthropic"
-	"github.com/tmc/langchaingo/llms/googleai"
 	"github.com/tmc/langchaingo/llms/openai"
 )
 
@@ -71,7 +71,7 @@ type agenticClientImpl struct {
 	apiKey   string
 	model    string
 	provider string
-	tools    []llms.Tool
+	tools    []llmprovider.Tool
 	executor *toolExecutor
 }
 
@@ -114,7 +114,7 @@ func (c *agenticClientImpl) CallLLM(
 		Model:    c.model,
 		Provider: c.provider,
 	}
-	llm, err := initLLM(ctx, opts)
+	provider, err := initProvider(ctx, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize LLM: %w", err)
 	}
@@ -124,8 +124,8 @@ func (c *agenticClientImpl) CallLLM(
 	c.executor = newToolExecutor(repositoryPath)
 
 	// Build initial messages with system prompt only (no user message yet)
-	messages := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt),
+	messages := []llmprovider.Message{
+		llmprovider.TextMessage(llmprovider.RoleSystem, systemPrompt),
 	}
 
 	// Print debug log file path before starting the loop
@@ -159,12 +159,12 @@ func (c *agenticClientImpl) CallLLM(
 		debugLog("Budget: %d tool calls", toolsBudget)
 
 		// Add the question as a human message
-		messages = append(messages, llms.TextParts(llms.ChatMessageTypeHuman, question))
+		messages = append(messages, llmprovider.TextMessage(llmprovider.RoleHuman, question))
 
 		// Run the question loop
 		updatedMessages, answer, err := c.runQuestionLoop(
 			ctx,
-			llm,
+			provider,
 			messages,
 			toolsBudget,
 			questionIndex,
@@ -205,11 +205,11 @@ func (c *agenticClientImpl) CallLLM(
 // Returns updated messages, the answer (or nil if budget exhausted), and error.
 func (c *agenticClientImpl) runQuestionLoop(
 	ctx context.Context,
-	llm llms.Model,
-	messages []llms.MessageContent,
+	provider llmprovider.Provider,
+	messages []llmprovider.Message,
 	toolsBudget int,
 	questionIndex int,
-) ([]llms.MessageContent, *AnswerSchema, error) {
+) ([]llmprovider.Message, *AnswerSchema, error) {
 	toolCallsRemaining := toolsBudget
 	consecutiveNoTools := 0
 	iteration := 0
@@ -224,15 +224,15 @@ func (c *agenticClientImpl) runQuestionLoop(
 		if !budgetNudged && toolCallsRemaining <= 5 {
 			budgetNudged = true
 			debugLog("AgenticClient: nudging model about low budget")
-			messages = append(messages, llms.TextParts(
-				llms.ChatMessageTypeHuman,
+			messages = append(messages, llmprovider.TextMessage(
+				llmprovider.RoleHuman,
 				fmt.Sprintf(budgetNudgePrompt, toolCallsRemaining),
 			))
 		}
 
 		// Call LLM with retry logic
 		debugLog("AgenticClient: calling LLM...")
-		resp, err := c.callLLMWithRetry(ctx, llm, messages)
+		resp, err := c.callLLMWithRetry(ctx, provider, messages)
 		if err != nil {
 			debugLog("AgenticClient: LLM call failed: %v", err)
 			return messages, nil, fmt.Errorf(
@@ -253,19 +253,23 @@ func (c *agenticClientImpl) runQuestionLoop(
 		// which go-langchain converts into separate ContentChoice objects. For example, a response
 		// with text + 2 tool calls becomes 3 separate Choices.
 		//
-		// We merge them here to process the complete response, but later (around line 360) we must
+		// We merge them here to process the complete response, but later we must
 		// split them back into separate AI messages because go-langchain's handleAIMessage() only
 		// serializes Parts[0] when sending back to Anthropic. Putting multiple tool calls in one
 		// message would lose all but the first.
 		//
 		// See docs/anthropic-choices-behavior.md for detailed explanation of this pattern.
-		mergedChoice := llms.ContentChoice{}
-		var allToolCalls []llms.ToolCall
+		mergedChoice := llmprovider.Choice{}
+		var allToolCalls []llmprovider.ToolCallPart
 		var contentParts []string
 
 		for i, ch := range resp.Choices {
-			debugLog("AgenticClient: processing choice %d: Content=%q, ToolCalls=%d",
-				i, truncateString(ch.Content, 100), len(ch.ToolCalls))
+			debugLog("AgenticClient: processing choice %d: Content=%q, ToolCalls=%d, Thinking=%d",
+				i, truncateString(ch.Content, 100), len(ch.ToolCalls), len(ch.Thinking))
+			for j, t := range ch.Thinking {
+				debugLog("AgenticClient:   thinking[%d]: text=%q sig=%v",
+					j, truncateString(t.Text, 150), t.Signature != "")
+			}
 
 			if ch.Content != "" {
 				contentParts = append(contentParts, ch.Content)
@@ -316,11 +320,11 @@ func (c *agenticClientImpl) runQuestionLoop(
 
 			// Add the AI response and remind to use tools
 			if choice.Content != "" {
-				messages = append(messages, llms.TextParts(llms.ChatMessageTypeAI, choice.Content))
+				messages = append(messages, llmprovider.TextMessage(llmprovider.RoleAI, choice.Content))
 			}
 			debugLog("AgenticClient: reminding agent to use tools")
-			messages = append(messages, llms.TextParts(
-				llms.ChatMessageTypeHuman,
+			messages = append(messages, llmprovider.TextMessage(
+				llmprovider.RoleHuman,
 				useToolsReminderPrompt,
 			))
 			toolCallsRemaining--
@@ -333,7 +337,7 @@ func (c *agenticClientImpl) runQuestionLoop(
 		// Validate submit_answer is called alone
 		hasSubmitAnswer := false
 		for _, toolCall := range choice.ToolCalls {
-			if toolCall.FunctionCall.Name == "submit_answer" {
+			if toolCall.Name == "submit_answer" {
 				hasSubmitAnswer = true
 				break
 			}
@@ -343,23 +347,23 @@ func (c *agenticClientImpl) runQuestionLoop(
 			// Add a single AI message with ALL tool calls so every
 			// tool_result below has a matching tool_use in the preceding
 			// assistant message.
-			aiParts := make([]llms.ContentPart, len(choice.ToolCalls))
+			aiParts := make([]llmprovider.Part, len(choice.ToolCalls))
 			for i, tc := range choice.ToolCalls {
 				aiParts[i] = tc
 			}
-			aiMessage := llms.MessageContent{
-				Role:  llms.ChatMessageTypeAI,
+			aiMessage := llmprovider.Message{
+				Role:  llmprovider.RoleAI,
 				Parts: aiParts,
 			}
 			messages = append(messages, aiMessage)
 			for _, toolCall := range choice.ToolCalls {
 				toolCallsRemaining--
-				errorResponse := llms.MessageContent{
-					Role: llms.ChatMessageTypeTool,
-					Parts: []llms.ContentPart{
-						llms.ToolCallResponse{
+				errorResponse := llmprovider.Message{
+					Role: llmprovider.RoleTool,
+					Parts: []llmprovider.Part{
+						llmprovider.ToolResultPart{
 							ToolCallID: toolCall.ID,
-							Name:       toolCall.FunctionCall.Name,
+							Name:       toolCall.Name,
 							Content:    submitAnswerAloneError,
 						},
 					},
@@ -381,9 +385,9 @@ func (c *agenticClientImpl) runQuestionLoop(
 		for i, toolCall := range choice.ToolCalls {
 			toolCallsRemaining--
 
-			aiMessage := llms.MessageContent{
-				Role:  llms.ChatMessageTypeAI,
-				Parts: []llms.ContentPart{toolCall},
+			aiMessage := llmprovider.Message{
+				Role:  llmprovider.RoleAI,
+				Parts: []llmprovider.Part{toolCall},
 			}
 			messages = append(messages, aiMessage)
 
@@ -403,29 +407,29 @@ func (c *agenticClientImpl) runQuestionLoop(
 
 // processToolCall processes a single tool call and returns the response message and optional answer
 func (c *agenticClientImpl) processToolCall(
-	toolCall llms.ToolCall,
+	toolCall llmprovider.ToolCallPart,
 	index, total int,
-) (llms.MessageContent, *AnswerSchema) {
+) (llmprovider.Message, *AnswerSchema) {
 	debugLog(
 		"AgenticClient: [%d/%d] executing tool: %s",
 		index+1,
 		total,
-		toolCall.FunctionCall.Name,
+		toolCall.Name,
 	)
-	debugLog("AgenticClient: tool args: %s", truncateString(toolCall.FunctionCall.Arguments, 500))
+	debugLog("AgenticClient: tool args: %s", truncateString(toolCall.Arguments, 500))
 
 	// Check for submit_answer
-	if toolCall.FunctionCall.Name == "submit_answer" {
+	if toolCall.Name == "submit_answer" {
 		var answer AnswerSchema
-		if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &answer); err != nil {
+		if err := json.Unmarshal([]byte(toolCall.Arguments), &answer); err != nil {
 			debugLog("AgenticClient: failed to parse submit_answer: %v", err)
 			// Report parse error back to agent so it can retry
-			return llms.MessageContent{
-				Role: llms.ChatMessageTypeTool,
-				Parts: []llms.ContentPart{
-					llms.ToolCallResponse{
+			return llmprovider.Message{
+				Role: llmprovider.RoleTool,
+				Parts: []llmprovider.Part{
+					llmprovider.ToolResultPart{
 						ToolCallID: toolCall.ID,
-						Name:       toolCall.FunctionCall.Name,
+						Name:       toolCall.Name,
 						Content: fmt.Sprintf(
 							"Error parsing answer: %v. Please try again with valid JSON.",
 							err,
@@ -438,12 +442,12 @@ func (c *agenticClientImpl) processToolCall(
 			answer.ShortAnswer, truncateString(answer.Answer, 100))
 
 		// Return success response and the answer
-		return llms.MessageContent{
-			Role: llms.ChatMessageTypeTool,
-			Parts: []llms.ContentPart{
-				llms.ToolCallResponse{
+		return llmprovider.Message{
+			Role: llmprovider.RoleTool,
+			Parts: []llmprovider.Part{
+				llmprovider.ToolResultPart{
 					ToolCallID: toolCall.ID,
-					Name:       toolCall.FunctionCall.Name,
+					Name:       toolCall.Name,
 					Content:    "Answer recorded successfully.",
 				},
 			},
@@ -451,18 +455,18 @@ func (c *agenticClientImpl) processToolCall(
 	}
 
 	// Execute other tools
-	result, err := c.executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
+	result, err := c.executor.execute(toolCall.Name, toolCall.Arguments)
 	if err != nil {
 		result = fmt.Sprintf("Error: %v", err)
 	}
 	debugLog("AgenticClient: tool result: %s", truncateString(result, 300))
 
-	return llms.MessageContent{
-		Role: llms.ChatMessageTypeTool,
-		Parts: []llms.ContentPart{
-			llms.ToolCallResponse{
+	return llmprovider.Message{
+		Role: llmprovider.RoleTool,
+		Parts: []llmprovider.Part{
+			llmprovider.ToolResultPart{
 				ToolCallID: toolCall.ID,
-				Name:       toolCall.FunctionCall.Name,
+				Name:       toolCall.Name,
 				Content:    result,
 			},
 		},
@@ -472,12 +476,12 @@ func (c *agenticClientImpl) processToolCall(
 // callLLMWithRetry calls the LLM with retry logic for transient errors
 func (c *agenticClientImpl) callLLMWithRetry(
 	ctx context.Context,
-	llm llms.Model,
-	messages []llms.MessageContent,
-) (*llms.ContentResponse, error) {
+	provider llmprovider.Provider,
+	messages []llmprovider.Message,
+) (*llmprovider.Response, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
-		resp, err := llm.GenerateContent(ctx, messages, llms.WithTools(c.tools))
+		resp, err := provider.GenerateContent(ctx, messages, llmprovider.WithTools(c.tools))
 		if err == nil {
 			return resp, nil
 		}
@@ -500,25 +504,31 @@ func truncateString(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
-// initLLM initializes the appropriate LLM based on provider
-func initLLM(ctx context.Context, opts *AgenticCallOptions) (llms.Model, error) {
+// initProvider initializes the appropriate provider based on configuration.
+// Gemini uses our native provider; Anthropic and OpenAI use langchain adapters
+// until they are migrated.
+func initProvider(ctx context.Context, opts *AgenticCallOptions) (llmprovider.Provider, error) {
 	switch opts.Provider {
 	case "google":
-		return googleai.New(
-			ctx,
-			googleai.WithAPIKey(opts.APIKey),
-			googleai.WithDefaultModel(opts.Model),
-		)
+		return gemini.New(ctx, opts.APIKey, opts.Model)
 	case "anthropic":
-		return anthropic.New(
+		llm, err := anthropic.New(
 			anthropic.WithToken(opts.APIKey),
 			anthropic.WithModel(opts.Model),
 		)
+		if err != nil {
+			return nil, err
+		}
+		return llmprovider.NewLangchainAdapter(llm), nil
 	case "openai":
-		return openai.New(
+		llm, err := openai.New(
 			openai.WithToken(opts.APIKey),
 			openai.WithModel(opts.Model),
 		)
+		if err != nil {
+			return nil, err
+		}
+		return llmprovider.NewLangchainAdapter(llm), nil
 	default:
 		return nil, fmt.Errorf(
 			"unsupported provider: %s (supported: google, anthropic, openai)",
