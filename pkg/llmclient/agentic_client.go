@@ -492,9 +492,7 @@ func truncateString(s string, maxLen int) string {
 	return s[:maxLen] + "..."
 }
 
-// initProvider initializes the appropriate provider based on configuration.
 // initProvider creates the appropriate native provider for the given config.
-// until they are migrated.
 func initProvider(ctx context.Context, opts *AgenticCallOptions) (llmprovider.Provider, error) {
 	switch opts.Provider {
 	case "google":
