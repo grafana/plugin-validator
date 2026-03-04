@@ -18,7 +18,12 @@ type providerConfig struct {
 
 var providers = []providerConfig{
 	{name: "Gemini", provider: "google", model: "gemini-2.5-flash", envKey: "GEMINI_API_KEY"},
-	{name: "Anthropic", provider: "anthropic", model: "claude-haiku-4-5", envKey: "ANTHROPIC_API_KEY"},
+	{
+		name:     "Anthropic",
+		provider: "anthropic",
+		model:    "claude-haiku-4-5",
+		envKey:   "ANTHROPIC_API_KEY",
+	},
 	{name: "OpenAI", provider: "openai", model: "gpt-5-mini", envKey: "OPENAI_API_KEY"},
 }
 
@@ -130,12 +135,22 @@ func TestAgenticClient_TwoQuestions(t *testing.T) {
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 2, "Should return exactly two answers")
 
-			require.Equal(t, questions[0], answers[0].Question, "First answer's question should match")
+			require.Equal(
+				t,
+				questions[0],
+				answers[0].Question,
+				"First answer's question should match",
+			)
 			require.NotEmpty(t, answers[0].Answer, "First answer should be populated")
 			require.Equal(t, true, answers[0].ShortAnswer,
 				"First answer should be true - app accesses filesystem")
 
-			require.Equal(t, questions[1], answers[1].Question, "Second answer's question should match")
+			require.Equal(
+				t,
+				questions[1],
+				answers[1].Question,
+				"Second answer's question should match",
+			)
 			require.NotEmpty(t, answers[1].Answer, "Second answer should be populated")
 		})
 	}
@@ -162,15 +177,30 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 			require.NoError(t, err, "CallLLM should not return error")
 			require.Len(t, answers, 3, "Should return exactly three answers")
 
-			require.Equal(t, questions[0], answers[0].Question, "First answer's question should match")
+			require.Equal(
+				t,
+				questions[0],
+				answers[0].Question,
+				"First answer's question should match",
+			)
 			require.NotEmpty(t, answers[0].Answer, "First answer should be populated")
 			require.Equal(t, true, answers[0].ShortAnswer,
 				"First answer should be true - app accesses filesystem")
 
-			require.Equal(t, questions[1], answers[1].Question, "Second answer's question should match")
+			require.Equal(
+				t,
+				questions[1],
+				answers[1].Question,
+				"Second answer's question should match",
+			)
 			require.NotEmpty(t, answers[1].Answer, "Second answer should be populated")
 
-			require.Equal(t, questions[2], answers[2].Question, "Third answer's question should match")
+			require.Equal(
+				t,
+				questions[2],
+				answers[2].Question,
+				"Third answer's question should match",
+			)
 			require.NotEmpty(t, answers[2].Answer, "Third answer should be populated")
 		})
 	}

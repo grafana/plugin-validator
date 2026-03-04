@@ -38,8 +38,6 @@ You can only use one tool at a time.
 IMPORTANT: You are in non-interactive mode. No one will read your text answers, only tools.
 When you have gathered enough information, use submit_answer to provide your answer.`
 
-	questionAppendPrompt = `Start by listing the files in the repository and exploring the contents.`
-
 	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
 
 	useToolsReminderPrompt = `You are in non-interactive mode. You must start using your tools now to explore the repository. When you have enough information, use submit_answer to provide your answer.`
@@ -73,6 +71,8 @@ type agenticClientImpl struct {
 	apiKey   string
 	model    string
 	provider string
+	tools    []llms.Tool
+	executor *toolExecutor
 }
 
 // NewAgenticClient creates a new AgenticClient with the given options
@@ -119,11 +119,9 @@ func (c *agenticClientImpl) CallLLM(
 		return nil, fmt.Errorf("failed to initialize LLM: %w", err)
 	}
 
-	// Build tools
-	tools := buildAgenticTools()
-
-	// Create tool executor
-	executor := newToolExecutor(repositoryPath)
+	// Initialize tools and executor for this repository
+	c.tools = buildAgenticTools()
+	c.executor = newToolExecutor(repositoryPath)
 
 	// Build initial messages with system prompt only (no user message yet)
 	messages := []llms.MessageContent{
@@ -152,14 +150,13 @@ func (c *agenticClientImpl) CallLLM(
 		debugLog("Question: %s", truncateString(question, 200))
 
 		originalQuestion := question
-		question = fmt.Sprintf("%s\n\n%s", question, questionAppendPrompt)
 
 		// Determine budget for this question
-		budget := maxToolCallsFirstQuestion
+		toolsBudget := maxToolCallsFirstQuestion
 		if questionIndex > 0 {
-			budget = maxToolCallsFollowUp
+			toolsBudget = maxToolCallsFollowUp
 		}
-		debugLog("Budget: %d tool calls", budget)
+		debugLog("Budget: %d tool calls", toolsBudget)
 
 		// Add the question as a human message
 		messages = append(messages, llms.TextParts(llms.ChatMessageTypeHuman, question))
@@ -169,9 +166,7 @@ func (c *agenticClientImpl) CallLLM(
 			ctx,
 			llm,
 			messages,
-			tools,
-			executor,
-			budget,
+			toolsBudget,
 			questionIndex,
 		)
 		messages = updatedMessages
@@ -212,12 +207,10 @@ func (c *agenticClientImpl) runQuestionLoop(
 	ctx context.Context,
 	llm llms.Model,
 	messages []llms.MessageContent,
-	tools []llms.Tool,
-	executor *toolExecutor,
-	budget int,
+	toolsBudget int,
 	questionIndex int,
 ) ([]llms.MessageContent, *AnswerSchema, error) {
-	toolCallsRemaining := budget
+	toolCallsRemaining := toolsBudget
 	consecutiveNoTools := 0
 	iteration := 0
 
@@ -239,7 +232,7 @@ func (c *agenticClientImpl) runQuestionLoop(
 
 		// Call LLM with retry logic
 		debugLog("AgenticClient: calling LLM...")
-		resp, err := callLLMWithRetry(ctx, llm, messages, tools)
+		resp, err := c.callLLMWithRetry(ctx, llm, messages)
 		if err != nil {
 			debugLog("AgenticClient: LLM call failed: %v", err)
 			return messages, nil, fmt.Errorf(
@@ -254,13 +247,18 @@ func (c *agenticClientImpl) runQuestionLoop(
 			return messages, nil, fmt.Errorf("no response from LLM")
 		}
 
-		// Log raw response for debugging
-		debugLog("AgenticClient: received response with %d choices", len(resp.Choices))
-		if choicesJSON, err := json.MarshalIndent(resp.Choices, "", "  "); err == nil {
-			debugLog("Raw response Choices:\n%s", string(choicesJSON))
-		}
-
-		// Merge all choices into one (Anthropic returns text and tool calls as separate choices)
+		// Merge all choices into one unified view for processing.
+		// 
+		// Background: Anthropic's API returns separate content blocks (text, tool_use, thinking)
+		// which go-langchain converts into separate ContentChoice objects. For example, a response
+		// with text + 2 tool calls becomes 3 separate Choices.
+		//
+		// We merge them here to process the complete response, but later (around line 360) we must
+		// split them back into separate AI messages because go-langchain's handleAIMessage() only
+		// serializes Parts[0] when sending back to Anthropic. Putting multiple tool calls in one
+		// message would lose all but the first.
+		//
+		// See docs/anthropic-choices-behavior.md for detailed explanation of this pattern.
 		mergedChoice := llms.ContentChoice{}
 		var allToolCalls []llms.ToolCall
 		var contentParts []string
@@ -372,10 +370,14 @@ func (c *agenticClientImpl) runQuestionLoop(
 		}
 
 		// Process each tool call as a separate AI message + tool result pair.
-		// langchaingo's Anthropic handleAIMessage only serializes Parts[0], so
-		// putting all tool calls in one message loses everything after the first.
-		// Interleaving ensures each tool_use has a matching tool_result in the
-		// immediately following user message.
+		// This is the "split" part of the merge-then-split pattern.
+		//
+		// Why: go-langchain's Anthropic handleAIMessage() only serializes Parts[0], so
+		// MessageContent{Parts: [toolCall1, toolCall2]} would lose toolCall2 when sent back.
+		// By creating one AI message per tool call, we ensure all tool calls are properly
+		// serialized. Each tool_use then has its matching tool_result in the following message.
+		//
+		// See docs/anthropic-choices-behavior.md for details on this serialization constraint.
 		for i, toolCall := range choice.ToolCalls {
 			toolCallsRemaining--
 
@@ -385,7 +387,7 @@ func (c *agenticClientImpl) runQuestionLoop(
 			}
 			messages = append(messages, aiMessage)
 
-			response, answer := processToolCall(toolCall, i, len(choice.ToolCalls), executor)
+			response, answer := c.processToolCall(toolCall, i, len(choice.ToolCalls))
 			messages = append(messages, response)
 			if answer != nil {
 				debugLog("AgenticClient: received answer for question %d", questionIndex+1)
@@ -400,10 +402,9 @@ func (c *agenticClientImpl) runQuestionLoop(
 }
 
 // processToolCall processes a single tool call and returns the response message and optional answer
-func processToolCall(
+func (c *agenticClientImpl) processToolCall(
 	toolCall llms.ToolCall,
 	index, total int,
-	executor *toolExecutor,
 ) (llms.MessageContent, *AnswerSchema) {
 	debugLog(
 		"AgenticClient: [%d/%d] executing tool: %s",
@@ -450,7 +451,7 @@ func processToolCall(
 	}
 
 	// Execute other tools
-	result, err := executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
+	result, err := c.executor.execute(toolCall.FunctionCall.Name, toolCall.FunctionCall.Arguments)
 	if err != nil {
 		result = fmt.Sprintf("Error: %v", err)
 	}
@@ -469,15 +470,14 @@ func processToolCall(
 }
 
 // callLLMWithRetry calls the LLM with retry logic for transient errors
-func callLLMWithRetry(
+func (c *agenticClientImpl) callLLMWithRetry(
 	ctx context.Context,
 	llm llms.Model,
 	messages []llms.MessageContent,
-	tools []llms.Tool,
 ) (*llms.ContentResponse, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
-		resp, err := llm.GenerateContent(ctx, messages, llms.WithTools(tools))
+		resp, err := llm.GenerateContent(ctx, messages, llms.WithTools(c.tools))
 		if err == nil {
 			return resp, nil
 		}
