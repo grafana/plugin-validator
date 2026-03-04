@@ -1,7 +1,7 @@
 // Package gemini implements the llmprovider.Provider interface using the
 // Google GenAI SDK (google.golang.org/genai).  It properly preserves
 // thought_signatures for Gemini 3.x models.
-package gemini
+package geminiprovider
 
 import (
 	"context"

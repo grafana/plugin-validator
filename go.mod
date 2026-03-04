@@ -73,6 +73,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/anchore/go-lzo v0.1.0 // indirect
+	github.com/anthropics/anthropic-sdk-go v1.26.0 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/compose-spec/compose-go/v2 v2.8.1 // indirect
 	github.com/containerd/cgroups/v3 v3.0.5 // indirect
@@ -155,6 +156,7 @@ require (
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
+	github.com/openai/openai-go v1.12.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/opencontainers/runtime-spec v1.2.1 // indirect
@@ -185,6 +187,7 @@ require (
 	github.com/tidwall/jsonc v0.3.2 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/tink-crypto/tink-go/v2 v2.4.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect

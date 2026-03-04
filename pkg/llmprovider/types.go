@@ -1,11 +1,8 @@
 // Package llmprovider defines a unified interface for LLM providers.
 //
-// These types mirror github.com/tmc/langchaingo/llms but add support for
-// provider-specific features like Gemini thought_signatures, Anthropic
-// thinking blocks, and OpenAI encrypted reasoning content.
-//
-// During migration, conversion helpers allow gradual adoption: one provider
-// can be migrated at a time while the rest continue using langchain types.
+// Each provider (Gemini, Anthropic, OpenAI) has a native SDK implementation
+// that supports provider-specific features like Gemini thought_signatures,
+// Anthropic thinking blocks, and OpenAI encrypted reasoning content.
 package llmprovider
 
 import "context"

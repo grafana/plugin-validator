@@ -2,7 +2,7 @@
 
 LLM client package for code analysis.
 
-- **AgenticClient**: Provider-agnostic agentic client using [langchaingo](https://github.com/tmc/langchaingo). Gives the LLM tools to explore a repository and answer questions about code.
+- **AgenticClient**: Provider-agnostic agentic client using native SDK implementations for each provider. Gives the LLM tools to explore a repository and answer questions about code.
 
 ## AgenticClient
 

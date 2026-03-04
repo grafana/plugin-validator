@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
-	"github.com/grafana/plugin-validator/pkg/llmprovider/gemini"
-	"github.com/tmc/langchaingo/llms/anthropic"
-	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/grafana/plugin-validator/pkg/llmprovider/anthropicprovider"
+	"github.com/grafana/plugin-validator/pkg/llmprovider/geminiprovider"
+	"github.com/grafana/plugin-validator/pkg/llmprovider/openaiprovider"
 )
 
 const (
@@ -248,17 +248,8 @@ func (c *agenticClientImpl) runQuestionLoop(
 		}
 
 		// Merge all choices into one unified view for processing.
-		// 
-		// Background: Anthropic's API returns separate content blocks (text, tool_use, thinking)
-		// which go-langchain converts into separate ContentChoice objects. For example, a response
-		// with text + 2 tool calls becomes 3 separate Choices.
-		//
-		// We merge them here to process the complete response, but later we must
-		// split them back into separate AI messages because go-langchain's handleAIMessage() only
-		// serializes Parts[0] when sending back to Anthropic. Putting multiple tool calls in one
-		// message would lose all but the first.
-		//
-		// See docs/anthropic-choices-behavior.md for detailed explanation of this pattern.
+		// Providers return a single Choice, but we merge defensively
+		// in case a provider returns multiple.
 		mergedChoice := llmprovider.Choice{}
 		var allToolCalls []llmprovider.ToolCallPart
 		var contentParts []string
@@ -376,12 +367,9 @@ func (c *agenticClientImpl) runQuestionLoop(
 		// Process each tool call as a separate AI message + tool result pair.
 		// This is the "split" part of the merge-then-split pattern.
 		//
-		// Why: go-langchain's Anthropic handleAIMessage() only serializes Parts[0], so
-		// MessageContent{Parts: [toolCall1, toolCall2]} would lose toolCall2 when sent back.
-		// By creating one AI message per tool call, we ensure all tool calls are properly
-		// serialized. Each tool_use then has its matching tool_result in the following message.
-		//
-		// See docs/anthropic-choices-behavior.md for details on this serialization constraint.
+		// Create one AI message per tool call, each followed by its tool_result.
+		// This keeps the conversation in strict alternating assistant/user order
+		// as required by Anthropic's API.
 		for i, toolCall := range choice.ToolCalls {
 			toolCallsRemaining--
 
@@ -505,30 +493,16 @@ func truncateString(s string, maxLen int) string {
 }
 
 // initProvider initializes the appropriate provider based on configuration.
-// Gemini uses our native provider; Anthropic and OpenAI use langchain adapters
+// initProvider creates the appropriate native provider for the given config.
 // until they are migrated.
 func initProvider(ctx context.Context, opts *AgenticCallOptions) (llmprovider.Provider, error) {
 	switch opts.Provider {
 	case "google":
-		return gemini.New(ctx, opts.APIKey, opts.Model)
+		return geminiprovider.New(ctx, opts.APIKey, opts.Model)
 	case "anthropic":
-		llm, err := anthropic.New(
-			anthropic.WithToken(opts.APIKey),
-			anthropic.WithModel(opts.Model),
-		)
-		if err != nil {
-			return nil, err
-		}
-		return llmprovider.NewLangchainAdapter(llm), nil
+		return anthropicprovider.New(opts.APIKey, opts.Model)
 	case "openai":
-		llm, err := openai.New(
-			openai.WithToken(opts.APIKey),
-			openai.WithModel(opts.Model),
-		)
-		if err != nil {
-			return nil, err
-		}
-		return llmprovider.NewLangchainAdapter(llm), nil
+		return openaiprovider.New(opts.APIKey, opts.Model)
 	default:
 		return nil, fmt.Errorf(
 			"unsupported provider: %s (supported: google, anthropic, openai)",
