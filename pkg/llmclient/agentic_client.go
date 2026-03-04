@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
@@ -247,49 +246,12 @@ func (c *agenticClientImpl) runQuestionLoop(
 			return messages, nil, fmt.Errorf("no response from LLM")
 		}
 
-		// Merge all choices into one unified view for processing.
-		// Providers return a single Choice, but we merge defensively
-		// in case a provider returns multiple.
-		mergedChoice := llmprovider.Choice{}
-		var allToolCalls []llmprovider.ToolCallPart
-		var contentParts []string
-
-		for i, ch := range resp.Choices {
-			debugLog("AgenticClient: processing choice %d: Content=%q, ToolCalls=%d, Thinking=%d",
-				i, truncateString(ch.Content, 100), len(ch.ToolCalls), len(ch.Thinking))
-			for j, t := range ch.Thinking {
-				debugLog("AgenticClient:   thinking[%d]: text=%q sig=%v",
-					j, truncateString(t.Text, 150), t.Signature != "")
-			}
-
-			if ch.Content != "" {
-				contentParts = append(contentParts, ch.Content)
-			}
-			if len(ch.ToolCalls) > 0 {
-				allToolCalls = append(allToolCalls, ch.ToolCalls...)
-			}
-			// Use StopReason from first non-empty one
-			if mergedChoice.StopReason == "" && ch.StopReason != "" {
-				mergedChoice.StopReason = ch.StopReason
-			}
-			// Use GenerationInfo from first choice
-			if i == 0 {
-				mergedChoice.GenerationInfo = ch.GenerationInfo
-			}
-		}
-
-		// Build merged choice — join all content parts so nothing is lost
-		// when Anthropic returns multiple text blocks (e.g. thinking + response).
-		if len(contentParts) > 0 {
-			mergedChoice.Content = strings.Join(contentParts, "\n")
-		}
-		mergedChoice.ToolCalls = allToolCalls
-
-		choice := mergedChoice
-		debugLog("AgenticClient: merged choice - Content=%q, ToolCalls=%d",
-			truncateString(choice.Content, 200), len(choice.ToolCalls))
-		if choice.Content != "" {
-			debugLog("AgenticClient: AI message: %s", truncateString(choice.Content, 200))
+		choice := resp.Choices[0]
+		debugLog("AgenticClient: choice - Content=%q, ToolCalls=%d, Thinking=%d",
+			truncateString(choice.Content, 200), len(choice.ToolCalls), len(choice.Thinking))
+		for j, t := range choice.Thinking {
+			debugLog("AgenticClient:   thinking[%d]: text=%q sig=%v",
+				j, truncateString(t.Text, 150), t.Signature != "")
 		}
 
 		// If no tool calls, check if we should nudge the agent
@@ -325,6 +287,23 @@ func (c *agenticClientImpl) runQuestionLoop(
 		// Reset consecutive no-tool counter when tools are used
 		consecutiveNoTools = 0
 
+		// Build the assistant message with all parts from the response:
+		// thinking blocks, text content, and tool calls.
+		var aiParts []llmprovider.Part
+		for _, t := range choice.Thinking {
+			aiParts = append(aiParts, t)
+		}
+		if choice.Content != "" {
+			aiParts = append(aiParts, llmprovider.TextPart{Text: choice.Content})
+		}
+		for _, tc := range choice.ToolCalls {
+			aiParts = append(aiParts, tc)
+		}
+		messages = append(messages, llmprovider.Message{
+			Role:  llmprovider.RoleAI,
+			Parts: aiParts,
+		})
+
 		// Validate submit_answer is called alone
 		hasSubmitAnswer := false
 		for _, toolCall := range choice.ToolCalls {
@@ -335,56 +314,40 @@ func (c *agenticClientImpl) runQuestionLoop(
 		}
 		if hasSubmitAnswer && len(choice.ToolCalls) > 1 {
 			debugLog("AgenticClient: submit_answer called with other tools - rejecting all")
-			// Add a single AI message with ALL tool calls so every
-			// tool_result below has a matching tool_use in the preceding
-			// assistant message.
-			aiParts := make([]llmprovider.Part, len(choice.ToolCalls))
-			for i, tc := range choice.ToolCalls {
-				aiParts[i] = tc
-			}
-			aiMessage := llmprovider.Message{
-				Role:  llmprovider.RoleAI,
-				Parts: aiParts,
-			}
-			messages = append(messages, aiMessage)
+			var resultParts []llmprovider.Part
 			for _, toolCall := range choice.ToolCalls {
 				toolCallsRemaining--
-				errorResponse := llmprovider.Message{
-					Role: llmprovider.RoleTool,
-					Parts: []llmprovider.Part{
-						llmprovider.ToolResultPart{
-							ToolCallID: toolCall.ID,
-							Name:       toolCall.Name,
-							Content:    submitAnswerAloneError,
-						},
-					},
-				}
-				messages = append(messages, errorResponse)
+				resultParts = append(resultParts, llmprovider.ToolResultPart{
+					ToolCallID: toolCall.ID,
+					Name:       toolCall.Name,
+					Content:    submitAnswerAloneError,
+				})
 			}
+			messages = append(messages, llmprovider.Message{
+				Role:  llmprovider.RoleTool,
+				Parts: resultParts,
+			})
 			continue
 		}
 
-		// Process each tool call as a separate AI message + tool result pair.
-		// This is the "split" part of the merge-then-split pattern.
-		//
-		// Create one AI message per tool call, each followed by its tool_result.
-		// This keeps the conversation in strict alternating assistant/user order
-		// as required by Anthropic's API.
+		// Execute tool calls and collect results into a single tool message.
+		var resultParts []llmprovider.Part
+		var answer *AnswerSchema
 		for i, toolCall := range choice.ToolCalls {
 			toolCallsRemaining--
-
-			aiMessage := llmprovider.Message{
-				Role:  llmprovider.RoleAI,
-				Parts: []llmprovider.Part{toolCall},
+			response, ans := c.processToolCall(toolCall, i, len(choice.ToolCalls))
+			resultParts = append(resultParts, response.Parts...)
+			if ans != nil {
+				answer = ans
 			}
-			messages = append(messages, aiMessage)
-
-			response, answer := c.processToolCall(toolCall, i, len(choice.ToolCalls))
-			messages = append(messages, response)
-			if answer != nil {
-				debugLog("AgenticClient: received answer for question %d", questionIndex+1)
-				return messages, answer, nil
-			}
+		}
+		messages = append(messages, llmprovider.Message{
+			Role:  llmprovider.RoleTool,
+			Parts: resultParts,
+		})
+		if answer != nil {
+			debugLog("AgenticClient: received answer for question %d", questionIndex+1)
+			return messages, answer, nil
 		}
 	}
 
