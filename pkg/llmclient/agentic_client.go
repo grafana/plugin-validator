@@ -29,7 +29,7 @@ type AnswerSchema struct {
 
 // AgenticCallOptions contains configuration for the agentic LLM call
 type AgenticCallOptions struct {
-	Model    string // e.g. "gemini-2.0-flash"
+	Model    string // e.g. "gemini-3.1-flash-lite-preview"
 	Provider string // "google", "anthropic", "openai"
 	APIKey   string
 }
