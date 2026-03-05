@@ -19,46 +19,12 @@ const (
 	maxConsecutiveNoTools     = 5
 	retryDelay                = 2 * time.Second
 
-	systemPrompt = `You are a code analysis assistant. You have tools to explore code in a repository.
-
-AVAILABLE TOOLS:
-- list_directory: List files at a path. Use "." for root.
-- read_file: Read a file's contents. This is your primary tool for understanding code.
-- grep: Search for a pattern across files.
-- git: Run read-only git commands (log, show, diff, status, etc.)
-- submit_answer: Submit your answers.
-
-STRATEGY:
-1. Use list_directory to see what files exist
-2. Use read_file to read the source code files
-3. Analyze the code to answer the question
-
-You can only use one tool at a time.
-IMPORTANT: You are in non-interactive mode. No one will read your text answers, only tools.
-When you have gathered enough information, use submit_answer to provide your answer.`
-
 	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
 
 	useToolsReminderPrompt = `You are in non-interactive mode. You must start using your tools now to explore the repository. When you have enough information, use submit_answer to provide your answer.`
 
 	submitAnswerAloneError = `Error: submit_answer must be called alone. When you have an answer, call submit_answer as a single tool call without any other tools in the same response.`
 )
-
-// AnswerSchema represents the structured response from the agentic client
-type AnswerSchema struct {
-	Question    string   `json:"question"`
-	Answer      string   `json:"answer"`
-	ShortAnswer bool     `json:"short_answer"`
-	Files       []string `json:"files,omitempty"`
-	CodeSnippet string   `json:"code_snippet,omitempty"`
-}
-
-// AgenticCallOptions contains configuration for the agentic LLM call
-type AgenticCallOptions struct {
-	Model    string // e.g. "gemini-2.0-flash"
-	Provider string // "google", "anthropic", "openai"
-	APIKey   string
-}
 
 // AgenticClient is an interface for agentic LLM interactions
 type AgenticClient interface {
@@ -67,11 +33,12 @@ type AgenticClient interface {
 
 // agenticClientImpl implements AgenticClient
 type agenticClientImpl struct {
-	apiKey   string
-	model    string
-	provider string
-	tools    []llmprovider.Tool
-	executor *toolExecutor
+	apiKey       string
+	model        string
+	provider     string
+	tools        []llmprovider.Tool
+	systemPrompt string
+	executor     *toolExecutor
 }
 
 // NewAgenticClient creates a new AgenticClient with the given options
@@ -88,10 +55,18 @@ func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
 	if opts.Provider == "" {
 		return nil, fmt.Errorf("provider is required")
 	}
+
+	tools, err := resolveTools(opts)
+	if err != nil {
+		return nil, fmt.Errorf("resolving tools: %w", err)
+	}
+
 	return &agenticClientImpl{
-		apiKey:   opts.APIKey,
-		model:    opts.Model,
-		provider: opts.Provider,
+		apiKey:       opts.APIKey,
+		model:        opts.Model,
+		provider:     opts.Provider,
+		tools:        tools,
+		systemPrompt: buildSystemPrompt(opts.SystemPrompt, tools),
 	}, nil
 }
 
@@ -118,13 +93,12 @@ func (c *agenticClientImpl) CallLLM(
 		return nil, fmt.Errorf("failed to initialize LLM: %w", err)
 	}
 
-	// Initialize tools and executor for this repository
-	c.tools = buildAgenticTools()
+	// Initialize executor for this repository
 	c.executor = newToolExecutor(repositoryPath)
 
 	// Build initial messages with system prompt only (no user message yet)
 	messages := []llmprovider.Message{
-		llmprovider.TextMessage(llmprovider.RoleSystem, systemPrompt),
+		llmprovider.TextMessage(llmprovider.RoleSystem, c.systemPrompt),
 	}
 
 	// Print debug log file path before starting the loop
