@@ -12,7 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/tmc/langchaingo/llms"
+	"github.com/grafana/plugin-validator/pkg/llmprovider"
 )
 
 const maxFileSize = 500 * 1024 // 500KB
@@ -46,109 +46,112 @@ var blockedGitFlags = []string{
 	"--run",
 }
 
-// buildAgenticTools returns the list of tools available to the agent
-func buildAgenticTools() []llms.Tool {
-	return []llms.Tool{
-		{
-			Type: "function",
-			Function: &llms.FunctionDefinition{
-				Name:        "read_file",
-				Description: "Read the contents of a file at the given path",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"path": map[string]interface{}{
-							"type":        "string",
-							"description": "The relative path to the file to read",
-						},
+// toolRegistry maps AgenticTool names to their llmprovider.Tool definitions.
+var toolRegistry = map[AgenticTool]llmprovider.Tool{
+	ToolReadFile: {
+		Type: "function",
+		Function: &llmprovider.FunctionDef{
+			Name:        "read_file",
+			Description: "Read the contents of a file at the given path",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"path": map[string]interface{}{
+						"type":        "string",
+						"description": "The relative path to the file to read",
 					},
-					"required": []string{"path"},
 				},
+				"required": []string{"path"},
 			},
 		},
-		{
-			Type: "function",
-			Function: &llms.FunctionDefinition{
-				Name:        "list_directory",
-				Description: "List files and directories at the given path",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"path": map[string]interface{}{
-							"type":        "string",
-							"description": "The relative path to the directory to list (use '.' for root)",
-						},
+	},
+	ToolListDirectory: {
+		Type: "function",
+		Function: &llmprovider.FunctionDef{
+			Name:        "list_directory",
+			Description: "List files and directories at the given path",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"path": map[string]interface{}{
+						"type":        "string",
+						"description": "The relative path to the directory to list (use '.' for root)",
 					},
-					"required": []string{"path"},
 				},
+				"required": []string{"path"},
 			},
 		},
-		{
-			Type: "function",
-			Function: &llms.FunctionDefinition{
-				Name:        "grep",
-				Description: "Search for a pattern in files. Returns matching lines with file names and line numbers.",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"pattern": map[string]interface{}{
-							"type":        "string",
-							"description": "The pattern to search for",
-						},
-						"path": map[string]interface{}{
-							"type":        "string",
-							"description": "Optional: directory or file to search in (defaults to '.')",
-						},
+	},
+	ToolGrep: {
+		Type: "function",
+		Function: &llmprovider.FunctionDef{
+			Name:        "grep",
+			Description: "Search for a pattern in files. Returns matching lines with file names and line numbers.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"pattern": map[string]interface{}{
+						"type":        "string",
+						"description": "The pattern to search for",
 					},
-					"required": []string{"pattern"},
+					"path": map[string]interface{}{
+						"type":        "string",
+						"description": "Optional: directory or file to search in (defaults to '.')",
+					},
 				},
+				"required": []string{"pattern"},
 			},
 		},
-		{
-			Type: "function",
-			Function: &llms.FunctionDefinition{
-				Name:        "git",
-				Description: "Execute a git command. Only allowed commands: log, show, diff, status, ls-files, blame, rev-parse, cat-file, checkout, fetch, pull, branch, tag.",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"args": map[string]interface{}{
-							"type":        "string",
-							"description": "The git command arguments (e.g., 'log -n 5' or 'show HEAD')",
-						},
+	},
+	ToolGit: {
+		Type: "function",
+		Function: &llmprovider.FunctionDef{
+			Name:        "git",
+			Description: "Execute a git command. Only allowed commands: log, show, diff, status, ls-files, blame, rev-parse, cat-file, checkout, fetch, pull, branch, tag.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"args": map[string]interface{}{
+						"type":        "string",
+						"description": "The git command arguments (e.g., 'log -n 5' or 'show HEAD')",
 					},
-					"required": []string{"args"},
 				},
+				"required": []string{"args"},
 			},
 		},
-		{
-			Type: "function",
-			Function: &llms.FunctionDefinition{
-				Name:        "submit_answer",
-				Description: "Submit your final answer to the question. Use this when you have gathered enough information.",
-				Parameters: map[string]interface{}{
-					"type": "object",
-					"properties": map[string]interface{}{
-						"answer": map[string]interface{}{
-							"type":        "string",
-							"description": "Your detailed answer explaining your findings",
-						},
-						"short_answer": map[string]interface{}{
-							"type":        "boolean",
-							"description": "A boolean true/false answer to yes/no questions",
-						},
-						"files": map[string]interface{}{
-							"type":        "array",
-							"items":       map[string]interface{}{"type": "string"},
-							"description": "List of relevant files (optional)",
-						},
-						"code_snippet": map[string]interface{}{
-							"type":        "string",
-							"description": "A relevant code snippet (optional)",
-						},
+	},
+}
+
+// submitAnswerTool returns the submit_answer tool definition.
+func submitAnswerTool() llmprovider.Tool {
+	return llmprovider.Tool{
+		Type: "function",
+		Function: &llmprovider.FunctionDef{
+			Name:        "submit_answer",
+			Description: "Submit your final answer to the question. Use this when you have gathered enough information.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"answer": map[string]interface{}{
+						"type":        "string",
+						"description": "Your detailed answer explaining your findings",
 					},
-					"required": []string{"answer", "short_answer"},
+					"short_answer": map[string]interface{}{
+						"type":        "boolean",
+						"description": "A boolean answer to the question: true means YES, false means NO. For example, if the question is 'Is the sky blue?' the short_answer is true. If the question is 'Is the sky green?' the short_answer is false.",
+					},
+					"files": map[string]interface{}{
+						"type":        "array",
+						"items":       map[string]interface{}{"type": "string"},
+						"description": "List of relevant files. Pass an empty array if not relevant.",
+					},
+					"code_snippet": map[string]interface{}{
+						"type":        "string",
+						"description": "A relevant code snippet. Pass an empty string if not relevant.",
+					},
 				},
+				"required":             []string{"answer", "short_answer", "files", "code_snippet"},
+				"additionalProperties": false,
 			},
 		},
 	}
