@@ -34,7 +34,7 @@
         "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/mcp/v{{version}}/plugin-validator-mcp_{{version}}_{{platform}}_{{arch}}.tar.gz"
     },
     "dependencies": {
-        "tar": "^7.4.3"
+        "tar": "^7.5.10"
     },
     "engines": {
         "node": ">=18.0.0"
