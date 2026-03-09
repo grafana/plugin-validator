@@ -351,6 +351,12 @@ func fromGenAIResponse(resp *genai.GenerateContentResponse) (*llmprovider.Respon
 		result.Choices = append(result.Choices, choice)
 	}
 
+	if resp.UsageMetadata != nil {
+		result.Usage.InputTokens = int(resp.UsageMetadata.PromptTokenCount)
+		result.Usage.OutputTokens = int(resp.UsageMetadata.CandidatesTokenCount)
+		result.Usage.TotalTokens = int(resp.UsageMetadata.TotalTokenCount)
+	}
+
 	return result, nil
 }
 

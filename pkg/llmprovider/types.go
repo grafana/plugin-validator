@@ -81,9 +81,17 @@ type ThinkingPart struct {
 
 func (ThinkingPart) partMarker() {}
 
+// Usage tracks token usage metrics.
+type Usage struct {
+	InputTokens  int
+	OutputTokens int
+	TotalTokens  int
+}
+
 // Response is the result of a GenerateContent call.
 type Response struct {
 	Choices []*Choice
+	Usage   Usage
 }
 
 // Choice is a single response candidate.

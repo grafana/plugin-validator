@@ -286,6 +286,11 @@ func fromAnthropicResponse(resp *anthropic.Message) *llmprovider.Response {
 
 	return &llmprovider.Response{
 		Choices: []*llmprovider.Choice{choice},
+		Usage: llmprovider.Usage{
+			InputTokens:  int(resp.Usage.InputTokens),
+			OutputTokens: int(resp.Usage.OutputTokens),
+			TotalTokens:  int(resp.Usage.InputTokens + resp.Usage.OutputTokens),
+		},
 	}
 }
 
