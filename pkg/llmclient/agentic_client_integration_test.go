@@ -73,7 +73,7 @@ func TestAgenticClient_NoFilesystemAccess(t *testing.T) {
 			testDataPath, err := filepath.Abs(filepath.Join("testdata", "no_fs_access"))
 			require.NoError(t, err)
 
-			prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
+			prompt := "Does this application access the filesystem (read or write files)?"
 
 			answers, err := client.CallLLM(context.Background(), []string{prompt}, testDataPath)
 
@@ -99,7 +99,7 @@ func TestAgenticClient_FilesystemAccess(t *testing.T) {
 			testDataPath, err := filepath.Abs(filepath.Join("testdata", "fs_access"))
 			require.NoError(t, err)
 
-			prompt := "Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations."
+			prompt := "Does this application access the filesystem (read or write files)?"
 
 			answers, err := client.CallLLM(context.Background(), []string{prompt}, testDataPath)
 
@@ -126,8 +126,8 @@ func TestAgenticClient_TwoQuestions(t *testing.T) {
 			require.NoError(t, err)
 
 			questions := []string{
-				"Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations.",
-				"Which specific files contain the filesystem operations and what operations do they perform?",
+				"Does this application access the filesystem (read or write files)?",
+				"Does this application make any external HTTP requests to a remote server?",
 			}
 
 			answers, err := client.CallLLM(context.Background(), questions, testDataPath)
@@ -152,6 +152,8 @@ func TestAgenticClient_TwoQuestions(t *testing.T) {
 				"Second answer's question should match",
 			)
 			require.NotEmpty(t, answers[1].Answer, "Second answer should be populated")
+			require.Equal(t, false, answers[1].ShortAnswer,
+				"Second answer should be false - app does not make HTTP requests")
 		})
 	}
 }
@@ -167,9 +169,9 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 			require.NoError(t, err)
 
 			questions := []string{
-				"Does this application access the filesystem (read or write files)? Examine the code to determine if it performs any file I/O operations.",
-				"Which specific files contain the filesystem operations and what operations do they perform?",
-				"Does this application use any caching mechanisms? If so, describe how the cache works.",
+				"Does this application access the filesystem (read or write files)?",
+				"Does this application make any external HTTP requests to a remote server?",
+				"Does this application use any caching mechanisms?",
 			}
 
 			answers, err := client.CallLLM(context.Background(), questions, testDataPath)
@@ -194,6 +196,8 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 				"Second answer's question should match",
 			)
 			require.NotEmpty(t, answers[1].Answer, "Second answer should be populated")
+			require.Equal(t, false, answers[1].ShortAnswer,
+				"Second answer should be false - app does not make HTTP requests")
 
 			require.Equal(
 				t,
@@ -202,6 +206,8 @@ func TestAgenticClient_ThreeQuestions(t *testing.T) {
 				"Third answer's question should match",
 			)
 			require.NotEmpty(t, answers[2].Answer, "Third answer should be populated")
+			require.Equal(t, true, answers[2].ShortAnswer,
+				"Third answer should be true - app uses caching")
 		})
 	}
 }
