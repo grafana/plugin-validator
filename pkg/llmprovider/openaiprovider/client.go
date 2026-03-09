@@ -217,5 +217,9 @@ func fromOpenAIResponse(resp *openai.ChatCompletion) *llmprovider.Response {
 		result.Choices = append(result.Choices, choice)
 	}
 
+	result.Usage.InputTokens = int(resp.Usage.PromptTokens)
+	result.Usage.OutputTokens = int(resp.Usage.CompletionTokens)
+	result.Usage.TotalTokens = int(resp.Usage.TotalTokens)
+
 	return result
 }

@@ -70,6 +70,12 @@ func NewAgenticClient(opts *AgenticCallOptions) (AgenticClient, error) {
 	}, nil
 }
 
+func (c *agenticClientImpl) getFreshContext() []llmprovider.Message {
+	return []llmprovider.Message{
+		llmprovider.TextMessage(llmprovider.RoleSystem, c.systemPrompt),
+	}
+}
+
 // CallLLM executes an agentic loop with tools to answer questions about code.
 // Each question is processed sequentially, with follow-up questions benefiting
 // from the context accumulated by earlier questions.
@@ -97,9 +103,7 @@ func (c *agenticClientImpl) CallLLM(
 	c.executor = newToolExecutor(repositoryPath)
 
 	// Build initial messages with system prompt only (no user message yet)
-	messages := []llmprovider.Message{
-		llmprovider.TextMessage(llmprovider.RoleSystem, c.systemPrompt),
-	}
+	messages := c.getFreshContext()
 
 	// Print debug log file path before starting the loop
 	printDebugLogPath()
@@ -135,7 +139,7 @@ func (c *agenticClientImpl) CallLLM(
 		messages = append(messages, llmprovider.TextMessage(llmprovider.RoleHuman, question))
 
 		// Run the question loop
-		updatedMessages, answer, err := c.runQuestionLoop(
+		updatedMessages, answer, usage, err := c.runQuestionLoop(
 			ctx,
 			provider,
 			messages,
@@ -168,6 +172,19 @@ func (c *agenticClientImpl) CallLLM(
 			}
 			return nil, fmt.Errorf("question %d exhausted budget without providing answer", questionIndex+1)
 		}
+
+		debugLog(
+			"AgenticClient: accumulated context tokens after question %d: %d",
+			questionIndex+1,
+			usage.TotalTokens,
+		)
+		if usage.TotalTokens > 100000 {
+			debugLog(
+				"AgenticClient: context reached %d tokens (>100k). Flushing context to start fresh.",
+				usage.TotalTokens,
+			)
+			messages = c.getFreshContext()
+		}
 	}
 
 	debugLog("AgenticClient: successfully answered all %d questions", len(questions))
@@ -182,10 +199,11 @@ func (c *agenticClientImpl) runQuestionLoop(
 	messages []llmprovider.Message,
 	toolsBudget int,
 	questionIndex int,
-) ([]llmprovider.Message, *AnswerSchema, error) {
+) ([]llmprovider.Message, *AnswerSchema, llmprovider.Usage, error) {
 	toolCallsRemaining := toolsBudget
 	consecutiveNoTools := 0
 	iteration := 0
+	var lastUsage llmprovider.Usage
 
 	budgetNudged := false
 
@@ -208,16 +226,18 @@ func (c *agenticClientImpl) runQuestionLoop(
 		resp, err := c.callLLMWithRetry(ctx, provider, messages)
 		if err != nil {
 			debugLog("AgenticClient: LLM call failed: %v", err)
-			return messages, nil, fmt.Errorf(
+			return messages, nil, llmprovider.Usage{}, fmt.Errorf(
 				"LLM call failed after %d retries: %w",
 				maxLLMRetries,
 				err,
 			)
 		}
 
+		lastUsage = resp.Usage
+
 		if len(resp.Choices) == 0 {
 			debugLog("AgenticClient: no choices in response")
-			return messages, nil, fmt.Errorf("no response from LLM")
+			return messages, nil, llmprovider.Usage{}, fmt.Errorf("no response from LLM")
 		}
 
 		choice := resp.Choices[0]
@@ -239,7 +259,7 @@ func (c *agenticClientImpl) runQuestionLoop(
 				maxConsecutiveNoTools,
 			)
 			if consecutiveNoTools >= maxConsecutiveNoTools {
-				return messages, nil, fmt.Errorf(
+				return messages, nil, resp.Usage, fmt.Errorf(
 					"agent failed to use tools after %d consecutive attempts",
 					maxConsecutiveNoTools,
 				)
@@ -247,7 +267,10 @@ func (c *agenticClientImpl) runQuestionLoop(
 
 			// Add the AI response and remind to use tools
 			if choice.Content != "" {
-				messages = append(messages, llmprovider.TextMessage(llmprovider.RoleAI, choice.Content))
+				messages = append(
+					messages,
+					llmprovider.TextMessage(llmprovider.RoleAI, choice.Content),
+				)
 			}
 			debugLog("AgenticClient: reminding agent to use tools")
 			messages = append(messages, llmprovider.TextMessage(
@@ -321,13 +344,13 @@ func (c *agenticClientImpl) runQuestionLoop(
 		})
 		if answer != nil {
 			debugLog("AgenticClient: received answer for question %d", questionIndex+1)
-			return messages, answer, nil
+			return messages, answer, resp.Usage, nil
 		}
 	}
 
 	// Budget exhausted without answer
 	debugLog("AgenticClient: question %d exhausted budget", questionIndex+1)
-	return messages, nil, nil
+	return messages, nil, lastUsage, nil
 }
 
 // processToolCall processes a single tool call and returns the response message and optional answer
