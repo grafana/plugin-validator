@@ -14,6 +14,7 @@ var (
 	OK               Severity = "ok"
 	SuspectedProblem Severity = "suspected"
 	Recommendation   Severity = "recommendation"
+	Info             Severity = "info"
 )
 
 type Pass struct {

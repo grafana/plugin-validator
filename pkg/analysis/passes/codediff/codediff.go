@@ -51,7 +51,7 @@ var (
 	}
 	codeDiffversions = &analysis.Rule{
 		Name:     "code-diff-versions",
-		Severity: analysis.SuspectedProblem,
+		Severity: analysis.Info,
 	}
 	codeDiffSkipped = &analysis.Rule{
 		Name:     "code-diff-skipped",
