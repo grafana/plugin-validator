@@ -206,6 +206,52 @@ func TestGrep_ExitCodes(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGrep_ExtendedRegex(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "code.js"), []byte(
+		"import('module')\neval('code')\nnew Function('x')\nconst x = 42\n",
+	), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "code.go"), []byte(
+		"package main\nfunc main() {\n\tfmt.Println(os.Open(\"file\"))\n}\n",
+	), 0644))
+	executor := newToolExecutor(dir)
+
+	// Escaped parens should match literal parens (fails with BRE, works with ERE)
+	result, err := executor.grep(map[string]interface{}{
+		"pattern": `import\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "import('module')")
+
+	// Alternation with | should work
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `eval\(|new Function\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "eval('code')")
+	require.Contains(t, result, "new Function('x')")
+
+	// Alternation with escaped dots and parens across files
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `os\.Open\(|import\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "os.Open")
+	require.Contains(t, result, "import(")
+
+	// Partial match: only one alternative matches
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `eval\(|syscall\.Exec\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "eval('code')")
+	require.NotContains(t, result, "syscall")
+}
+
 func TestGit_BlockedFlags(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)

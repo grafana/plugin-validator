@@ -92,7 +92,7 @@ var (
 	agenticClient llmclient.AgenticClient
 
 	defaultLLMProvider  = "google"
-	defaultLLMModel     = "gemini-2.5-flash"
+	defaultLLMModel     = "gemini-3.1-flash-lite-preview"
 	defaultLLMAPIKeyEnv = "GEMINI_API_KEY"
 )
 

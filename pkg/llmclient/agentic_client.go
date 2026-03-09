@@ -23,6 +23,7 @@ const (
 	maxLLMRetries             = 3
 	maxConsecutiveNoTools     = 5
 	retryDelay                = 2 * time.Second
+	llmCallTimeout            = 20 * time.Second
 
 	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
 
@@ -449,7 +450,9 @@ func (c *agenticClientImpl) callLLMWithRetry(
 ) (*llmprovider.Response, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
-		resp, err := provider.GenerateContent(ctx, messages, llmprovider.WithTools(c.tools))
+		callCtx, cancel := context.WithTimeout(ctx, llmCallTimeout)
+		resp, err := provider.GenerateContent(callCtx, messages, llmprovider.WithTools(c.tools))
+		cancel()
 		if err == nil {
 			return resp, nil
 		}

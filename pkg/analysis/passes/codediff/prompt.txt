@@ -13,3 +13,5 @@ Use `git diff {{.CurrentCommit}}..{{.NewCommit}}` to see the changes between ver
 You can also use `git checkout` to fully move the code to a specific version.
 
 you must always grep in the context of the correct commit or you risk false positives
+
+When submitting answers, each question asks whether a specific issue or pattern exists in the code. Set short_answer to true if the issue WAS found, false if it was NOT found. If your detailed answer says "No" or that nothing problematic was found, short_answer must be false.
