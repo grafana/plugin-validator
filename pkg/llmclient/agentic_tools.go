@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
+	shellwords "github.com/mattn/go-shellwords"
 )
 
 const maxFileSize = 500 * 1024 // 500KB
@@ -327,7 +328,13 @@ func (e *toolExecutor) git(args map[string]interface{}) (string, error) {
 		return "", errors.New("git args are required")
 	}
 
-	parts := strings.Fields(argsStr)
+	parser := shellwords.NewParser()
+	parser.ParseBacktick = false
+	parser.ParseEnv = false
+	parts, err := parser.Parse(argsStr)
+	if err != nil {
+		return "", fmt.Errorf("parsing git args: %w", err)
+	}
 	if len(parts) == 0 {
 		return "", errors.New("empty git command")
 	}

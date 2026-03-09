@@ -3,6 +3,7 @@ package llmclient
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -258,6 +259,46 @@ func TestGit_StripGitPrefix(t *testing.T) {
 		"args": "git",
 	})
 	require.ErrorContains(t, err, "empty git command")
+}
+
+func TestGit_QuotedPathspecs(t *testing.T) {
+	dir := t.TempDir()
+
+	execGit := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "git %v failed: %s", args, out)
+	}
+
+	// Set up a real git repo with two commits
+	execGit("init")
+	execGit("config", "user.email", "test@test.com")
+	execGit("config", "user.name", "test")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n"), 0644))
+	execGit("add", ".")
+	execGit("commit", "-m", "init")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n\nfunc Hello() {}\n"), 0644))
+	execGit("add", ".")
+	execGit("commit", "-m", "add function")
+
+	executor := newToolExecutor(dir)
+
+	// LLMs send quoted pathspecs like: diff HEAD~1 -- "*.go"
+	// The quotes must be stripped before passing to exec.Command.
+	result, err := executor.git(map[string]interface{}{
+		"args": `diff HEAD~1 -- "*.go"`,
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "func Hello")
+
+	// :(exclude) pathspecs with quotes
+	result, err = executor.git(map[string]interface{}{
+		"args": `diff HEAD~1 -- "*.go" ":(exclude)*test*"`,
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "func Hello")
 }
 
 func TestGit_BlockedSubcommand(t *testing.T) {

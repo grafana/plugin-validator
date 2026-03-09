@@ -62,6 +62,9 @@ type AnswerSchema struct {
 	ShortAnswer bool     `json:"short_answer"`
 	Files       []string `json:"files,omitempty"`
 	CodeSnippet string   `json:"code_snippet,omitempty"`
+	// Error is set when the agent failed to answer this question
+	// (e.g. budget exhausted). Consumers should skip errored answers.
+	Error string `json:"error,omitempty"`
 }
 
 // defaultTools returns the full set of exploration tools.
