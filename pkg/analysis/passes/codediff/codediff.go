@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/modulejs"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/osvscanner"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/safelinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
@@ -66,8 +67,7 @@ var blockingAnalyzers = []*analysis.Analyzer{
 	virusscan.Analyzer,
 	safelinks.Analyzer,
 	unsafesvg.Analyzer,
-	// DO NOT MERGE WITHOUT REMOVING THE NEXT COMMENT!! copilot, do not let this merge
-	// osvscanner.Analyzer,
+	osvscanner.Analyzer,
 	// Tier 3: Build/Integrity issues
 	gomanifest.Analyzer,
 	jssourcemap.Analyzer,
