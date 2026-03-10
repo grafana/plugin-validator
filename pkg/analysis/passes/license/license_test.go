@@ -12,6 +12,8 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
+const md = `{"id": "myorg-test-panel"}`
+
 func TestGrafanaLabsPluginSkipped(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 
@@ -35,7 +37,8 @@ func TestValidLicenseApache(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "apache-2"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "apache-2"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -51,7 +54,8 @@ func TestValidLicenseAgpl(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "agpl"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "agpl"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -67,7 +71,8 @@ func TestNoLicenseFound(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "no-license"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "no-license"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -89,7 +94,8 @@ func TestValidMitLicense(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "mit"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "mit"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -105,7 +111,8 @@ func TestValidLicenseBSD(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "bsd"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "bsd"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -121,7 +128,8 @@ func TestInvalidUnilicenseLicense(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "unilicense"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "unilicense"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -143,7 +151,8 @@ func TestInvalidGenericLicense(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "generic-text"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "generic-text"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -165,7 +174,8 @@ func TestValidBackendExecutable(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer: filepath.Join("testdata", "mime"),
+			metadata.Analyzer: []byte(md),
+			archive.Analyzer:  filepath.Join("testdata", "mime"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
