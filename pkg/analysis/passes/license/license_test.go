@@ -8,8 +8,26 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
+
+func TestGrafanaLabsPluginSkipped(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(`{"id": "grafana-test-panel"}`),
+			archive.Analyzer:  filepath.Join("testdata", "no-license"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
 
 func TestValidLicenseApache(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
