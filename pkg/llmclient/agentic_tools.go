@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
+	shellwords "github.com/mattn/go-shellwords"
 )
 
 const maxFileSize = 500 * 1024 // 500KB
@@ -86,7 +87,7 @@ var toolRegistry = map[AgenticTool]llmprovider.Tool{
 		Type: "function",
 		Function: &llmprovider.FunctionDef{
 			Name:        "grep",
-			Description: "Search for a pattern in files. Returns matching lines with file names and line numbers.",
+			Description: "Search for a pattern in files using extended regular expressions (ERE). Returns matching lines with file names and line numbers.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -138,7 +139,7 @@ func submitAnswerTool() llmprovider.Tool {
 					},
 					"short_answer": map[string]interface{}{
 						"type":        "boolean",
-						"description": "A boolean answer to the question: true means YES, false means NO. For example, if the question is 'Is the sky blue?' the short_answer is true. If the question is 'Is the sky green?' the short_answer is false.",
+						"description": "true means YES, false means NO. Must be consistent with your answer text: if your detailed answer concludes 'No', set this to false. If it concludes 'Yes', set this to true.",
 					},
 					"files": map[string]interface{}{
 						"type":        "array",
@@ -307,7 +308,7 @@ func (e *toolExecutor) grep(args map[string]interface{}) (string, error) {
 	debugLog("AgenticClient: grep '%s' in %s", pattern, fullPath)
 
 	// Use -- to prevent pattern from being interpreted as flags
-	cmd := exec.Command("grep", "-rn", "--", pattern, fullPath)
+	cmd := exec.Command("grep", "-rnE", "--", pattern, fullPath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		var exitErr *exec.ExitError
@@ -327,7 +328,13 @@ func (e *toolExecutor) git(args map[string]interface{}) (string, error) {
 		return "", errors.New("git args are required")
 	}
 
-	parts := strings.Fields(argsStr)
+	parser := shellwords.NewParser()
+	parser.ParseBacktick = false
+	parser.ParseEnv = false
+	parts, err := parser.Parse(argsStr)
+	if err != nil {
+		return "", fmt.Errorf("parsing git args: %w", err)
+	}
 	if len(parts) == 0 {
 		return "", errors.New("empty git command")
 	}

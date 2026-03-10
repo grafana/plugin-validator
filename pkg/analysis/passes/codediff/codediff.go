@@ -2,12 +2,11 @@ package codediff
 
 import (
 	"bytes"
+	"context"
 	_ "embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -35,14 +34,6 @@ import (
 
 //go:embed prompt.txt
 var promptTemplate string
-
-type LLMAnalysisResponse struct {
-	Question     string   `json:"question"`
-	Answer       string   `json:"answer"`
-	RelatedFiles []string `json:"related_files"`
-	CodeSnippet  string   `json:"code_snippet"`
-	ShortAnswer  string   `json:"short_answer"`
-}
 
 var (
 	codeDiffAnalysis = &analysis.Rule{
@@ -97,14 +88,16 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
-var llmClient llmclient.LLMClient
+var (
+	agenticClient llmclient.AgenticClient
 
-func SetLLMClient(client llmclient.LLMClient) {
-	llmClient = client
-}
+	defaultLLMProvider  = "google"
+	defaultLLMModel     = "gemini-3.1-flash-lite-preview"
+	defaultLLMAPIKeyEnv = "GEMINI_API_KEY"
+)
 
-func init() {
-	llmClient = llmclient.NewGeminiClient()
+func SetAgenticClient(client llmclient.AgenticClient) {
+	agenticClient = client
 }
 
 func isGitHubURL(url string) bool {
@@ -137,7 +130,8 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	if err := llmClient.CanUseLLM(); err != nil {
+	if os.Getenv(defaultLLMAPIKeyEnv) == "" {
+		logme.Debugln("Skipping LLM code diff analysis:", defaultLLMAPIKeyEnv, "not set")
 		return nil, nil
 	}
 
@@ -190,7 +184,7 @@ func run(pass *analysis.Pass) (any, error) {
 		pass.ReportResult(pass.AnalyzerName, codeDiffversions, message, detail)
 
 		// Run LLM analysis
-		responses, err := runLLMAnalysis(
+		answers, err := runLLMAnalysis(
 			versions.SubmittedGitHubVersion.Version,
 			versions.SubmittedGitHubVersion.CommitSHA,
 			versions.CurrentGrafanaVersion.Version,
@@ -202,25 +196,31 @@ func run(pass *analysis.Pass) (any, error) {
 			return nil, nil
 		}
 
-		// Report analysis results based on LLM responses
-		for _, response := range responses {
-			logme.Debugln("LLM response:", response.Question, response.Answer)
-			if strings.ToLower(response.ShortAnswer) == "yes" {
+		// Report analysis results: flag answers that don't match expected.
+		// Answers with Error set (e.g. budget exhausted) are skipped.
+		for i, answer := range answers {
+			if answer.Error != "" {
+				logme.Debugln("LLM response error for question:", answer.Question, answer.Error)
+				continue
+			}
+			logme.Debugln("LLM response:", answer.Question, answer.Answer)
+
+			if answer.ShortAnswer != llmreview.Questions[i].ExpectedAnswer {
 				var detailParts []string
 
-				detailParts = append(detailParts, response.Answer)
+				detailParts = append(detailParts, answer.Answer)
 
-				if response.CodeSnippet != "" {
+				if answer.CodeSnippet != "" {
 					detailParts = append(
 						detailParts,
-						fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", response.CodeSnippet),
+						fmt.Sprintf("**Code Snippet:**\n```\n%s\n```", answer.CodeSnippet),
 					)
 				}
 
-				if len(response.RelatedFiles) > 0 {
+				if len(answer.Files) > 0 {
 					detailParts = append(
 						detailParts,
-						fmt.Sprintf("**Files:** %s", strings.Join(response.RelatedFiles, ", ")),
+						fmt.Sprintf("**Files:** %s", strings.Join(answer.Files, ", ")),
 					)
 				}
 
@@ -229,7 +229,7 @@ func run(pass *analysis.Pass) (any, error) {
 				pass.ReportResult(
 					pass.AnalyzerName,
 					codeDiffAnalysis,
-					fmt.Sprintf("Code Diff LLM flagged: %s", response.Question),
+					fmt.Sprintf("Code Diff LLM flagged: %s", answer.Question),
 					detail,
 				)
 			}
@@ -248,7 +248,9 @@ func run(pass *analysis.Pass) (any, error) {
 	return nil, nil
 }
 
-func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string) (string, error) {
+func generateSystemPrompt(
+	newVersion, newCommit, currentVersion, currentCommit string,
+) (string, error) {
 	if newVersion == "" {
 		return "", errors.New("new version is empty")
 	}
@@ -262,14 +264,6 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 		return "", errors.New("current commit is empty")
 	}
 
-	// Build questions section from llmreview questions
-	var questionsSection strings.Builder
-	for _, q := range llmreview.Questions {
-		questionsSection.WriteString("* ")
-		questionsSection.WriteString(q.Question)
-		questionsSection.WriteString("\n")
-	}
-
 	tmpl, err := template.New("prompt").Parse(promptTemplate)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse prompt template: %w", err)
@@ -280,8 +274,6 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 		"NewCommit":      newCommit,
 		"CurrentVersion": currentVersion,
 		"CurrentCommit":  currentCommit,
-		"Questions":      strings.TrimSuffix(questionsSection.String(), "\n"),
-		"QuestionCount":  len(llmreview.Questions),
 	}
 
 	var buf bytes.Buffer
@@ -292,43 +284,55 @@ func generatePrompt(newVersion, newCommit, currentVersion, currentCommit string)
 	return buf.String(), nil
 }
 
+// buildQuestionWithContext wraps a question with a reminder about the diff context
+// so the agent doesn't lose track of what it's comparing across sequential questions.
+func buildQuestionWithContext(question, currentCommit, newCommit string) string {
+	return fmt.Sprintf(
+		"You are comparing changes between commits %s and %s. Feel free to use git diff and git show to understand what changed. If a change looks significant, compare full file versions to understand context. %s.\n First verify in which current git ref you are",
+		currentCommit,
+		newCommit,
+		question,
+	)
+}
+
 func runLLMAnalysis(
 	newVersion, newCommit, currentVersion, currentCommit, repositoryPath string,
-) ([]LLMAnalysisResponse, error) {
-	// Generate the prompt with dynamic version/commit information
-	prompt, err := generatePrompt(newVersion, newCommit, currentVersion, currentCommit)
+) ([]llmclient.AnswerSchema, error) {
+	systemPrompt, err := generateSystemPrompt(newVersion, newCommit, currentVersion, currentCommit)
 	if err != nil {
-		logme.Debugln("Failed to generate prompt:", err)
+		logme.Debugln("Failed to generate system prompt:", err)
 		return nil, err
 	}
 
 	llmclient.CleanUpPromptFiles(repositoryPath)
 
-	// Call the LLM
-	if err := llmClient.CallLLM(prompt, repositoryPath, nil); err != nil {
+	// Build questions with diff context reminder
+	questions := make([]string, len(llmreview.Questions))
+	for i, q := range llmreview.Questions {
+		questions[i] = buildQuestionWithContext(q.Question, currentCommit, newCommit)
+	}
+
+	// Use mock client if set (tests), otherwise create a real one
+	client := agenticClient
+	if client == nil {
+		client, err = llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
+			Provider:     defaultLLMProvider,
+			Model:        defaultLLMModel,
+			APIKey:       os.Getenv(defaultLLMAPIKeyEnv),
+			SystemPrompt: systemPrompt,
+		})
+		if err != nil {
+			logme.Debugln("Failed to create agentic client:", err)
+			return nil, err
+		}
+	}
+
+	answers, err := client.CallLLM(context.Background(), questions, repositoryPath)
+	if err != nil {
 		logme.Debugln("Failed to call LLM:", err)
 		return nil, err
 	}
 
-	// Read and parse the responses
-	responsesPath := filepath.Join(repositoryPath, "replies.json")
-	if _, err := os.Stat(responsesPath); err != nil {
-		logme.Debugln("replies.json file not found:", err)
-		return nil, fmt.Errorf("replies.json file not found: %w", err)
-	}
-
-	responsesData, err := os.ReadFile(responsesPath)
-	if err != nil {
-		logme.Debugln("Failed to read replies.json:", err)
-		return nil, fmt.Errorf("failed to read replies.json: %w", err)
-	}
-
-	var responses []LLMAnalysisResponse
-	if err := json.Unmarshal(responsesData, &responses); err != nil {
-		logme.Debugln("Failed to parse replies.json:", err)
-		return nil, fmt.Errorf("failed to parse replies.json: %w", err)
-	}
-
 	logme.Debugln("LLM analysis completed successfully")
-	return responses, nil
+	return answers, nil
 }

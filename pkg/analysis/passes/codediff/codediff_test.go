@@ -77,13 +77,25 @@ func TestValidDiffUrlGenerated(t *testing.T) {
 	// Set GEMINI_API_KEY for test
 	t.Setenv("GEMINI_API_KEY", "test-key")
 
-	// Set up mock LLM client for this test
-	mockClient := llmclient.NewMockLLMClient()
-	SetLLMClient(mockClient)
-	defer func() {
-		// Restore original client after test
-		SetLLMClient(llmclient.NewGeminiClient())
-	}()
+	// Set up mock agentic client for this test
+	mockClient := llmclient.NewMockAgenticClient([]llmclient.AnswerSchema{
+		{
+			Question:    "Are there any security vulnerabilities in the code changes?",
+			Answer:      "No security vulnerabilities were found in the code changes.",
+			Files:       []string{"src/ClockPanel.tsx"},
+			CodeSnippet: "// Mock code snippet",
+			ShortAnswer: false,
+		},
+		{
+			Question:    "Are there any performance issues in the code changes?",
+			Answer:      "No performance issues were identified in the code changes.",
+			Files:       []string{"src/migrations.ts"},
+			CodeSnippet: "// Mock migration code",
+			ShortAnswer: false,
+		},
+	})
+	SetAgenticClient(mockClient)
+	defer SetAgenticClient(nil)
 
 	pluginId := "grafana-clock-panel"
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -121,29 +133,28 @@ func TestLLMResponseFiltering_YesResponsesAreReported(t *testing.T) {
 	// Set GEMINI_API_KEY for test
 	t.Setenv("GEMINI_API_KEY", "test-key")
 
-	// Create mock responses with "yes" answers that should be reported
-	mockResponses := []llmclient.MockResponse{
+	// Create mock responses with true (yes) answers that should be reported.
+	// All llmreview.Questions have ExpectedAnswer: false, so ShortAnswer: true is a mismatch.
+	mockAnswers := []llmclient.AnswerSchema{
 		{
-			Question:     "Are there any security vulnerabilities in the code changes?",
-			Answer:       "Yes, there is a potential XSS vulnerability in the input handling.",
-			RelatedFiles: []string{"src/ClockPanel.tsx"},
-			CodeSnippet:  "dangerouslySetInnerHTML: {__html: userInput}",
-			ShortAnswer:  "yes",
+			Question:    "Are there any security vulnerabilities in the code changes?",
+			Answer:      "Yes, there is a potential XSS vulnerability in the input handling.",
+			Files:       []string{"src/ClockPanel.tsx"},
+			CodeSnippet: "dangerouslySetInnerHTML: {__html: userInput}",
+			ShortAnswer: true,
 		},
 		{
-			Question:     "Are there any performance issues in the code changes?",
-			Answer:       "Yes, the code contains an inefficient loop that could cause performance degradation.",
-			RelatedFiles: []string{"src/migrations.ts"},
-			CodeSnippet:  "for (let i = 0; i < largeArray.length; i++)",
-			ShortAnswer:  "yes",
+			Question:    "Are there any performance issues in the code changes?",
+			Answer:      "Yes, the code contains an inefficient loop that could cause performance degradation.",
+			Files:       []string{"src/migrations.ts"},
+			CodeSnippet: "for (let i = 0; i < largeArray.length; i++)",
+			ShortAnswer: true,
 		},
 	}
 
-	mockClient := llmclient.NewMockLLMClient().WithResponses(mockResponses)
-	SetLLMClient(mockClient)
-	defer func() {
-		SetLLMClient(llmclient.NewGeminiClient())
-	}()
+	mockClient := llmclient.NewMockAgenticClient(mockAnswers)
+	SetAgenticClient(mockClient)
+	defer SetAgenticClient(nil)
 
 	pluginId := "grafana-clock-panel"
 	var interceptor testpassinterceptor.TestPassInterceptor
@@ -196,29 +207,28 @@ func TestLLMResponseFiltering_NoResponsesAreIgnored(t *testing.T) {
 	// Set GEMINI_API_KEY for test
 	t.Setenv("GEMINI_API_KEY", "test-key")
 
-	// Create mock responses with "no" answers that should NOT be reported
-	mockResponses := []llmclient.MockResponse{
+	// Create mock responses with false (no) answers that should NOT be reported.
+	// All llmreview.Questions have ExpectedAnswer: false, so ShortAnswer: false matches.
+	mockAnswers := []llmclient.AnswerSchema{
 		{
-			Question:     "Are there any security vulnerabilities in the code changes?",
-			Answer:       "No security vulnerabilities were found in the code changes.",
-			RelatedFiles: []string{"src/ClockPanel.tsx"},
-			CodeSnippet:  "// Safe code implementation",
-			ShortAnswer:  "no",
+			Question:    "Are there any security vulnerabilities in the code changes?",
+			Answer:      "No security vulnerabilities were found in the code changes.",
+			Files:       []string{"src/ClockPanel.tsx"},
+			CodeSnippet: "// Safe code implementation",
+			ShortAnswer: false,
 		},
 		{
-			Question:     "Are there any performance issues in the code changes?",
-			Answer:       "No performance issues were identified in the code changes.",
-			RelatedFiles: []string{"src/migrations.ts"},
-			CodeSnippet:  "// Optimized implementation",
-			ShortAnswer:  "no",
+			Question:    "Are there any performance issues in the code changes?",
+			Answer:      "No performance issues were identified in the code changes.",
+			Files:       []string{"src/migrations.ts"},
+			CodeSnippet: "// Optimized implementation",
+			ShortAnswer: false,
 		},
 	}
 
-	mockClient := llmclient.NewMockLLMClient().WithResponses(mockResponses)
-	SetLLMClient(mockClient)
-	defer func() {
-		SetLLMClient(llmclient.NewGeminiClient())
-	}()
+	mockClient := llmclient.NewMockAgenticClient(mockAnswers)
+	SetAgenticClient(mockClient)
+	defer SetAgenticClient(nil)
 
 	pluginId := "grafana-clock-panel"
 	var interceptor testpassinterceptor.TestPassInterceptor

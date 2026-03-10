@@ -1,6 +1,7 @@
 package llmclient
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -61,5 +62,24 @@ func (m *MockLLMClient) CallLLM(prompt, repositoryPath string, opts *CallLLMOpti
 	}
 
 	return os.WriteFile(repliesPath, responseData, 0644)
+}
+
+// MockAgenticClient implements AgenticClient for testing.
+type MockAgenticClient struct {
+	answers []AnswerSchema
+}
+
+func NewMockAgenticClient(answers []AnswerSchema) *MockAgenticClient {
+	return &MockAgenticClient{answers: answers}
+}
+
+func (m *MockAgenticClient) CallLLM(ctx context.Context, questions []string, repoPath string) ([]AnswerSchema, error) {
+	logme.Debugln("Mock agentic client called with", len(questions), "questions")
+	// Match real AgenticClient behavior: return one answer per question
+	count := len(questions)
+	if count > len(m.answers) {
+		count = len(m.answers)
+	}
+	return m.answers[:count], nil
 }
 

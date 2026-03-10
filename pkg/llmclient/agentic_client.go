@@ -3,6 +3,7 @@ package llmclient
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,12 +13,17 @@ import (
 	"github.com/grafana/plugin-validator/pkg/llmprovider/openaiprovider"
 )
 
+// errRecoverable marks per-question failures that should not abort the entire
+// run. The question is marked as errored and processing continues.
+var errRecoverable = errors.New("recoverable")
+
 const (
 	maxToolCallsFirstQuestion = 60
-	maxToolCallsFollowUp      = 20
+	maxToolCallsFollowUp      = 30
 	maxLLMRetries             = 3
 	maxConsecutiveNoTools     = 5
 	retryDelay                = 2 * time.Second
+	llmCallTimeout            = 20 * time.Second
 
 	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
 
@@ -149,7 +155,19 @@ func (c *agenticClientImpl) CallLLM(
 		messages = updatedMessages
 
 		if err != nil {
-			// Return partial results on error
+			if errors.Is(err, errRecoverable) {
+				// Recoverable: mark question as errored, reset context, continue
+				debugLog("AgenticClient: question %d recoverable error: %v", questionIndex+1, err)
+				answers = append(answers, AnswerSchema{
+					Question: originalQuestion,
+					Error:    err.Error(),
+				})
+				messages = []llmprovider.Message{
+					llmprovider.TextMessage(llmprovider.RoleSystem, c.systemPrompt),
+				}
+				continue
+			}
+			// Hard error (provider failure) - abort
 			debugLog("AgenticClient: question %d failed: %v", questionIndex+1, err)
 			if len(answers) > 0 {
 				debugLog("AgenticClient: returning %d partial answers", len(answers))
@@ -164,13 +182,16 @@ func (c *agenticClientImpl) CallLLM(
 			answers = append(answers, *answer)
 			debugLog("AgenticClient: collected answer %d/%d", len(answers), len(questions))
 		} else {
-			// Budget exhausted without answer - stop processing further questions
-			debugLog("AgenticClient: question %d exhausted budget without answer, stopping", questionIndex+1)
-			if len(answers) > 0 {
-				debugLog("AgenticClient: returning %d partial answers", len(answers))
-				return answers, nil
+			// Budget exhausted without answer - record error and reset context for next question
+			debugLog("AgenticClient: question %d exhausted budget without answer, marking as errored", questionIndex+1)
+			answers = append(answers, AnswerSchema{
+				Question: originalQuestion,
+				Error:    "budget exhausted without answer",
+			})
+			// Reset conversation to system prompt only so the next question starts fresh
+			messages = []llmprovider.Message{
+				llmprovider.TextMessage(llmprovider.RoleSystem, c.systemPrompt),
 			}
-			return nil, fmt.Errorf("question %d exhausted budget without providing answer", questionIndex+1)
 		}
 
 		debugLog(
@@ -260,8 +281,8 @@ func (c *agenticClientImpl) runQuestionLoop(
 			)
 			if consecutiveNoTools >= maxConsecutiveNoTools {
 				return messages, nil, resp.Usage, fmt.Errorf(
-					"agent failed to use tools after %d consecutive attempts",
-					maxConsecutiveNoTools,
+					"agent failed to use tools after %d consecutive attempts: %w",
+					maxConsecutiveNoTools, errRecoverable,
 				)
 			}
 
@@ -429,7 +450,9 @@ func (c *agenticClientImpl) callLLMWithRetry(
 ) (*llmprovider.Response, error) {
 	var lastErr error
 	for attempt := 1; attempt <= maxLLMRetries; attempt++ {
-		resp, err := provider.GenerateContent(ctx, messages, llmprovider.WithTools(c.tools))
+		callCtx, cancel := context.WithTimeout(ctx, llmCallTimeout)
+		resp, err := provider.GenerateContent(callCtx, messages, llmprovider.WithTools(c.tools))
+		cancel()
 		if err == nil {
 			return resp, nil
 		}

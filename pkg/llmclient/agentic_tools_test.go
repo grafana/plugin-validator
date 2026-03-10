@@ -3,6 +3,7 @@ package llmclient
 import (
 	"encoding/json"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -205,6 +206,52 @@ func TestGrep_ExitCodes(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGrep_ExtendedRegex(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "code.js"), []byte(
+		"import('module')\neval('code')\nnew Function('x')\nconst x = 42\n",
+	), 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "code.go"), []byte(
+		"package main\nfunc main() {\n\tfmt.Println(os.Open(\"file\"))\n}\n",
+	), 0644))
+	executor := newToolExecutor(dir)
+
+	// Escaped parens should match literal parens (fails with BRE, works with ERE)
+	result, err := executor.grep(map[string]interface{}{
+		"pattern": `import\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "import('module')")
+
+	// Alternation with | should work
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `eval\(|new Function\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "eval('code')")
+	require.Contains(t, result, "new Function('x')")
+
+	// Alternation with escaped dots and parens across files
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `os\.Open\(|import\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "os.Open")
+	require.Contains(t, result, "import(")
+
+	// Partial match: only one alternative matches
+	result, err = executor.grep(map[string]interface{}{
+		"pattern": `eval\(|syscall\.Exec\(`,
+		"path":    ".",
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "eval('code')")
+	require.NotContains(t, result, "syscall")
+}
+
 func TestGit_BlockedFlags(t *testing.T) {
 	dir := setupTestRepo(t)
 	executor := newToolExecutor(dir)
@@ -258,6 +305,46 @@ func TestGit_StripGitPrefix(t *testing.T) {
 		"args": "git",
 	})
 	require.ErrorContains(t, err, "empty git command")
+}
+
+func TestGit_QuotedPathspecs(t *testing.T) {
+	dir := t.TempDir()
+
+	execGit := func(args ...string) {
+		t.Helper()
+		cmd := exec.Command("git", args...)
+		cmd.Dir = dir
+		out, err := cmd.CombinedOutput()
+		require.NoError(t, err, "git %v failed: %s", args, out)
+	}
+
+	// Set up a real git repo with two commits
+	execGit("init")
+	execGit("config", "user.email", "test@test.com")
+	execGit("config", "user.name", "test")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n"), 0644))
+	execGit("add", ".")
+	execGit("commit", "-m", "init")
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "main.go"), []byte("package main\n\nfunc Hello() {}\n"), 0644))
+	execGit("add", ".")
+	execGit("commit", "-m", "add function")
+
+	executor := newToolExecutor(dir)
+
+	// LLMs send quoted pathspecs like: diff HEAD~1 -- "*.go"
+	// The quotes must be stripped before passing to exec.Command.
+	result, err := executor.git(map[string]interface{}{
+		"args": `diff HEAD~1 -- "*.go"`,
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "func Hello")
+
+	// :(exclude) pathspecs with quotes
+	result, err = executor.git(map[string]interface{}{
+		"args": `diff HEAD~1 -- "*.go" ":(exclude)*test*"`,
+	})
+	require.NoError(t, err)
+	require.Contains(t, result, "func Hello")
 }
 
 func TestGit_BlockedSubcommand(t *testing.T) {
