@@ -12,6 +12,22 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
+func TestGrafanaLabsPluginSkipped(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(`{"id": "grafana-test-panel", "info": {"links": []}}`),
+			archive.Analyzer:  filepath.Join("."),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestValidSponsorshipLink(t *testing.T) {
 	testCases := []struct {
 		name     string
