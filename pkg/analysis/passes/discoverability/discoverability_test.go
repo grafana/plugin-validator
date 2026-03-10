@@ -45,6 +45,21 @@ func TestEmptyKeyword(t *testing.T) {
 	require.Equal(t, interceptor.Diagnostics[0].Severity, analysis.Warning)
 }
 
+func TestGrafanaLabsPluginSkipped(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			metadata.Analyzer: []byte(`{"id": "grafana-test-panel", "info": {"description": "", "keywords": []}}`),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestDiscoverable(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{

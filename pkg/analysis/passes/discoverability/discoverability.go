@@ -34,6 +34,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if err := json.Unmarshal(metadataBody, &data); err != nil {
 		return nil, err
 	}
+	if data.IsGrafanaLabs() {
+		// Skip for Grafana Labs plugins, not needed
+		return nil, nil
+	}
 
 	if data.Info.Description == "" {
 		pass.ReportResult(
