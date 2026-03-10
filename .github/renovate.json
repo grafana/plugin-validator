@@ -24,6 +24,30 @@
       ],
       "groupName": "Dockerfile dependencies",
       "description": "Group all Dockerfile dependencies together"
+    },
+    {
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepNames": [
+        "go"
+      ],
+      "matchDepTypes": [
+        "golang"
+      ],
+      "rangeStrategy": "bump",
+      "groupName": "Go version",
+      "description": "Bump Go version in go.mod and group with Docker golang image"
+    },
+    {
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "matchDepNames": [
+        "golang"
+      ],
+      "groupName": "Go version",
+      "description": "Group golang Docker image with Go version updates"
     }
   ],
   "labels": [
