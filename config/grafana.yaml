@@ -1,0 +1,12 @@
+global:
+  enabled: true
+
+analyzers:
+  discoverability:
+    enabled: false
+  license:
+    enabled: false
+  org:
+    enabled: false
+  sponsorshiplink:
+    enabled: false

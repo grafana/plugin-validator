@@ -1,7 +1,6 @@
 package license
 
 import (
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 )
 
 var (
@@ -26,7 +24,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "license",
-	Requires: []*analysis.Analyzer{archive.Analyzer, metadata.Analyzer},
+	Requires: []*analysis.Analyzer{archive.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
 		licenseNotProvided,
@@ -55,19 +53,6 @@ var validLicensesRegex = []*regexp.Regexp{
 const minRequiredConfidenceLevel float32 = 0.9
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	md, ok := pass.ResultOf[metadata.Analyzer].([]byte)
-	if !ok {
-		return nil, nil
-	}
-	var data metadata.Metadata
-	if err := json.Unmarshal(md, &data); err != nil {
-		return nil, err
-	}
-	if data.IsGrafanaLabs() {
-		// Skip for Grafana Labs plugins, not needed
-		return nil, nil
-	}
-
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok {
 		return nil, nil

@@ -186,3 +186,29 @@ func isExcepted(pluginId string, cfg *AnalyzerConfig) bool {
 	}
 	return false
 }
+
+// MergeConfig merges an overlay config into a base config.
+// Overlay values take precedence only when explicitly set.
+func MergeConfig(base, overlay Config) Config {
+	if overlay.Global.Enabled {
+		base.Global.Enabled = overlay.Global.Enabled
+	}
+	if overlay.Global.Severity != "" {
+		base.Global.Severity = overlay.Global.Severity
+	}
+
+	if overlay.Analyzers == nil {
+		return base
+	}
+	if base.Analyzers == nil {
+		base.Analyzers = make(map[string]AnalyzerConfig)
+	}
+	for name, overlayCfg := range overlay.Analyzers {
+		if _, exists := base.Analyzers[name]; !exists {
+			base.Analyzers[name] = overlayCfg
+		}
+		// If the base already has config for this analyzer, don't override it.
+		// The explicit config takes precedence over the auto-detected one.
+	}
+	return base
+}

@@ -163,7 +163,7 @@ var OptionalQuestions = []llmvalidate.LLMQuestion{
 }
 
 func run(pass *analysis.Pass) (any, error) {
-	if os.Getenv("SKIP_LLM_REVIEW") != "" || geminiKey == "" {
+	if os.Getenv("SKIP_LLM_REVIEW") != "" {
 		return nil, nil
 	}
 
@@ -188,6 +188,10 @@ func run(pass *analysis.Pass) (any, error) {
 	// only run if sourcecode.Analyzer succeeded
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
 	if !ok {
+		return nil, nil
+	}
+
+	if geminiKey == "" {
 		return nil, nil
 	}
 

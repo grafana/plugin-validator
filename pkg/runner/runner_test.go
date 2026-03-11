@@ -563,3 +563,69 @@ func TestAnalyzerHasErrors(t *testing.T) {
 
 	assert.NoError(t, err)
 }
+
+func TestMergeConfig(t *testing.T) {
+	t.Run("overlay adds new analyzers", func(t *testing.T) {
+		enabled := true
+		disabled := false
+		base := Config{
+			Global: GlobalConfig{Enabled: true},
+			Analyzers: map[string]AnalyzerConfig{
+				"existing": {Enabled: &enabled},
+			},
+		}
+		overlay := Config{
+			Analyzers: map[string]AnalyzerConfig{
+				"new-analyzer": {Enabled: &disabled},
+			},
+		}
+		merged := MergeConfig(base, overlay)
+		assert.True(t, *merged.Analyzers["existing"].Enabled, "existing analyzer should remain enabled")
+		assert.False(t, *merged.Analyzers["new-analyzer"].Enabled, "new analyzer should be disabled from overlay")
+	})
+
+	t.Run("base takes precedence over overlay for existing analyzers", func(t *testing.T) {
+		enabled := true
+		disabled := false
+		base := Config{
+			Global: GlobalConfig{Enabled: true},
+			Analyzers: map[string]AnalyzerConfig{
+				"license": {Enabled: &enabled},
+			},
+		}
+		overlay := Config{
+			Analyzers: map[string]AnalyzerConfig{
+				"license": {Enabled: &disabled},
+			},
+		}
+		merged := MergeConfig(base, overlay)
+		assert.True(t, *merged.Analyzers["license"].Enabled, "base config should take precedence")
+	})
+
+	t.Run("nil base analyzers", func(t *testing.T) {
+		disabled := false
+		base := Config{
+			Global: GlobalConfig{Enabled: true},
+		}
+		overlay := Config{
+			Analyzers: map[string]AnalyzerConfig{
+				"org": {Enabled: &disabled},
+			},
+		}
+		merged := MergeConfig(base, overlay)
+		assert.False(t, *merged.Analyzers["org"].Enabled)
+	})
+
+	t.Run("nil overlay analyzers", func(t *testing.T) {
+		enabled := true
+		base := Config{
+			Global: GlobalConfig{Enabled: true},
+			Analyzers: map[string]AnalyzerConfig{
+				"existing": {Enabled: &enabled},
+			},
+		}
+		overlay := Config{}
+		merged := MergeConfig(base, overlay)
+		assert.True(t, *merged.Analyzers["existing"].Enabled)
+	})
+}

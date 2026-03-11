@@ -14,6 +14,7 @@ import (
 	"github.com/bmatcuk/doublestar/v4"
 	"gopkg.in/yaml.v3"
 
+	"github.com/grafana/plugin-validator/config"
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/output"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes"
@@ -21,6 +22,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/repotool"
 	"github.com/grafana/plugin-validator/pkg/runner"
+	"github.com/grafana/plugin-validator/pkg/utils"
 )
 
 func main() {
@@ -141,6 +143,20 @@ func main() {
 	}
 	if sourceCodeDirCleanup != nil {
 		defer sourceCodeDirCleanup()
+	}
+
+	// If no config file was explicitly passed, check if this is a Grafana Labs plugin
+	// and automatically apply the embedded Grafana-specific config.
+	if *configFlag == "" {
+		if md, err := utils.GetPluginMetadata(archiveDir); err == nil && md.IsGrafanaLabs() {
+			logme.Debugln("Detected Grafana Labs plugin, applying embedded grafana config")
+			var grafanaCfg runner.Config
+			if err := yaml.Unmarshal(config.GrafanaConfig, &grafanaCfg); err != nil {
+				logme.Errorln(fmt.Errorf("couldn't parse embedded grafana config: %w", err))
+				os.Exit(1)
+			}
+			cfg = runner.MergeConfig(cfg, grafanaCfg)
+		}
 	}
 
 	analyzers := passes.Analyzers

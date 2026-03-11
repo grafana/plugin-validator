@@ -11,21 +11,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
-func TestGrafanaLabsPluginSkipped(t *testing.T) {
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: filepath.Join("./"),
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			metadata.Analyzer: []byte(`{"id": "grafana-test-panel"}`),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
-
 func TestOrg(t *testing.T) {
 	const pluginId = "raintank-plugin-panel"
 	var interceptor testpassinterceptor.TestPassInterceptor
