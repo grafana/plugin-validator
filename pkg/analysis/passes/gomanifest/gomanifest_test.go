@@ -169,6 +169,23 @@ func TestNoBackend(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
+func TestManifestWithNodeModules(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node-modules-manifest", "dist"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node-modules-manifest", "pkg"),
+			metadata.Analyzer:   pluginJSONWithBackend,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestWindowsManifest(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{

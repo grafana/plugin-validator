@@ -158,6 +158,10 @@ func parseManifestFile(file string) (map[string]string, error) {
 		}
 		sha256sum := strings.TrimSpace(parsedLine[0])
 		fileName := normalizeFileName(strings.TrimSpace(parsedLine[1]))
+		// skip files in root node_modules directory
+		if strings.HasPrefix(fileName, "node_modules/") {
+			continue
+		}
 		// format the manifest fileName:sha256sum
 		manifest[fileName] = sha256sum
 	}
