@@ -158,8 +158,9 @@ func parseManifestFile(file string) (map[string]string, error) {
 		}
 		sha256sum := strings.TrimSpace(parsedLine[0])
 		fileName := normalizeFileName(strings.TrimSpace(parsedLine[1]))
-		// skip files in root node_modules directory
-		if strings.HasPrefix(fileName, "node_modules/") {
+		// skip known non-backend files that some published plugins
+		// include in their manifest
+		if isIgnoredManifestFile(fileName) {
 			continue
 		}
 		// format the manifest fileName:sha256sum
@@ -171,6 +172,22 @@ func parseManifestFile(file string) (map[string]string, error) {
 	}
 
 	return manifest, nil
+}
+
+// ignoredManifestFiles lists specific files that should be ignored when
+// validating the manifest. These are files that some published plugins
+// include in their manifest but are not part of the backend source code.
+var ignoredManifestFiles = []string{
+	"node_modules/flatted/golang/pkg/flatted/flatted.go",
+}
+
+func isIgnoredManifestFile(fileName string) bool {
+	for _, ignored := range ignoredManifestFiles {
+		if fileName == ignored {
+			return true
+		}
+	}
+	return false
 }
 
 func normalizeFileName(fileName string) string {
