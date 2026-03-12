@@ -242,7 +242,7 @@ Set one of the following environment variables to enable LLM-based analysis. The
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Anthropic | `claude-opus-4-6` |
 | `OPENAI_API_KEY` | OpenAI | `gpt-5.4` |
-| `GEMINI_API_KEY` | Google | `gemini-3-flash-preview` |
+| `GEMINI_API_KEY` | Google | `gemini-3.1-flash-lite-preview` |
 
 Example:
 

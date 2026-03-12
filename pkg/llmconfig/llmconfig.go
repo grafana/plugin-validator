@@ -17,7 +17,7 @@ var providerDefaults = []struct {
 }{
 	{"ANTHROPIC_API_KEY", "anthropic", "claude-opus-4-6"},
 	{"OPENAI_API_KEY", "openai", "gpt-5.4"},
-	{"GEMINI_API_KEY", "google", "gemini-3-flash-preview"},
+	{"GEMINI_API_KEY", "google", "gemini-3.1-flash-lite-preview"},
 }
 
 // Resolve returns the LLM provider configuration by checking environment
