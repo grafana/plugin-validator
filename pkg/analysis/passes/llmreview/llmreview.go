@@ -28,8 +28,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
-var llmCfg = llmconfig.Resolve()
-
 var (
 	llmIssueFound    = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
 	llmReviewSkipped = &analysis.Rule{
@@ -192,6 +190,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
+	llmCfg := llmconfig.Resolve()
 	if llmCfg == nil {
 		logme.Debugln("Skipping LLM review: no API key set (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
 		return nil, nil
