@@ -91,7 +91,6 @@ var Analyzer = &analysis.Analyzer{
 
 var (
 	agenticClient llmclient.AgenticClient
-	llmCfg        = llmconfig.Resolve()
 )
 
 func SetAgenticClient(client llmclient.AgenticClient) {
@@ -128,6 +127,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
+	llmCfg := llmconfig.Resolve()
 	if llmCfg == nil {
 		logme.Debugln("Skipping LLM code diff analysis: no API key set (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
 		return nil, nil
@@ -183,6 +183,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 		// Run LLM analysis
 		answers, err := runLLMAnalysis(
+			llmCfg,
 			versions.SubmittedGitHubVersion.Version,
 			versions.SubmittedGitHubVersion.CommitSHA,
 			versions.CurrentGrafanaVersion.Version,
@@ -294,6 +295,7 @@ func buildQuestionWithContext(question, currentCommit, newCommit string) string 
 }
 
 func runLLMAnalysis(
+	llmCfg *llmconfig.ProviderConfig,
 	newVersion, newCommit, currentVersion, currentCommit, repositoryPath string,
 ) ([]llmclient.AnswerSchema, error) {
 	systemPrompt, err := generateSystemPrompt(newVersion, newCommit, currentVersion, currentCommit)
