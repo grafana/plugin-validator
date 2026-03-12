@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
 	"github.com/grafana/plugin-validator/pkg/llmclient"
+	"github.com/grafana/plugin-validator/pkg/llmconfig"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
 )
@@ -84,16 +85,12 @@ var Analyzer = &analysis.Analyzer{
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Code Diff",
 		Description:  "",
-		Dependencies: "Google API Key with Generative AI access",
+		Dependencies: "API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY)",
 	},
 }
 
 var (
 	agenticClient llmclient.AgenticClient
-
-	defaultLLMProvider  = "google"
-	defaultLLMModel     = "gemini-3.1-flash-lite-preview"
-	defaultLLMAPIKeyEnv = "GEMINI_API_KEY"
 )
 
 func SetAgenticClient(client llmclient.AgenticClient) {
@@ -130,8 +127,9 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	if os.Getenv(defaultLLMAPIKeyEnv) == "" {
-		logme.Debugln("Skipping LLM code diff analysis:", defaultLLMAPIKeyEnv, "not set")
+	llmCfg := llmconfig.Resolve()
+	if llmCfg == nil {
+		logme.Debugln("Skipping LLM code diff analysis: no API key set (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
 		return nil, nil
 	}
 
@@ -185,6 +183,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 		// Run LLM analysis
 		answers, err := runLLMAnalysis(
+			llmCfg,
 			versions.SubmittedGitHubVersion.Version,
 			versions.SubmittedGitHubVersion.CommitSHA,
 			versions.CurrentGrafanaVersion.Version,
@@ -296,6 +295,7 @@ func buildQuestionWithContext(question, currentCommit, newCommit string) string 
 }
 
 func runLLMAnalysis(
+	llmCfg *llmconfig.ProviderConfig,
 	newVersion, newCommit, currentVersion, currentCommit, repositoryPath string,
 ) ([]llmclient.AnswerSchema, error) {
 	systemPrompt, err := generateSystemPrompt(newVersion, newCommit, currentVersion, currentCommit)
@@ -316,9 +316,9 @@ func runLLMAnalysis(
 	client := agenticClient
 	if client == nil {
 		client, err = llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
-			Provider:     defaultLLMProvider,
-			Model:        defaultLLMModel,
-			APIKey:       os.Getenv(defaultLLMAPIKeyEnv),
+			Provider:     llmCfg.Provider,
+			Model:        llmCfg.Model,
+			APIKey:       llmCfg.APIKey,
 			SystemPrompt: systemPrompt,
 		})
 		if err != nil {

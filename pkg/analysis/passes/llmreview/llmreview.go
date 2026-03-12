@@ -23,11 +23,10 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/trackingscripts"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
+	"github.com/grafana/plugin-validator/pkg/llmconfig"
 	"github.com/grafana/plugin-validator/pkg/llmvalidate"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
-
-var geminiKey = os.Getenv("GEMINI_API_KEY")
 
 var (
 	llmIssueFound    = &analysis.Rule{Name: "llm-issue-found", Severity: analysis.SuspectedProblem}
@@ -70,8 +69,8 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "LLM Review",
-		Description:  "Runs the code through Gemini LLM to check for security issues or disallowed usage.",
-		Dependencies: "Gemini API key",
+		Description:  "Runs the code through an LLM to check for security issues or disallowed usage.",
+		Dependencies: "API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY)",
 	},
 }
 
@@ -191,13 +190,15 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	if geminiKey == "" {
+	llmCfg := llmconfig.Resolve()
+	if llmCfg == nil {
+		logme.Debugln("Skipping LLM review: no API key set (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
 		return nil, nil
 	}
 
-	logme.Debugln("Starting to run Gemini Validations. This might take a while...")
+	logme.DebugFln("Starting LLM review using provider %s (%s). This might take a while...", llmCfg.Provider, llmCfg.Model)
 
-	llmClient, err := llmvalidate.New(context.Background(), "google", "gemini-3-flash-preview", geminiKey)
+	llmClient, err := llmvalidate.New(context.Background(), llmCfg.Provider, llmCfg.Model, llmCfg.APIKey)
 
 	if err != nil {
 		logme.DebugFln("Error initializing llm client: %v", err)
@@ -208,7 +209,7 @@ func run(pass *analysis.Pass) (any, error) {
 	var mandatoryAnswers []llmvalidate.LLMAnswer
 	mandatoryAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, Questions, []string{"src", "pkg"})
 	if err != nil {
-		logme.DebugFln("Error getting answers from Gemini LLM for mandatory questions: %v", err)
+		logme.DebugFln("Error getting answers from LLM for mandatory questions: %v", err)
 		return nil, nil
 	}
 
@@ -228,7 +229,7 @@ func run(pass *analysis.Pass) (any, error) {
 	var optionalAnswers []llmvalidate.LLMAnswer
 	optionalAnswers, err = llmClient.AskLLMAboutCode(sourceCodeDir, OptionalQuestions, []string{"src", "pkg"})
 	if err != nil {
-		logme.DebugFln("Error getting answers from Gemini LLM for optional questions: %v", err)
+		logme.DebugFln("Error getting answers from LLM for optional questions: %v", err)
 		return nil, nil
 	}
 
