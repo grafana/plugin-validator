@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/unsafesvg"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/virusscan"
 	"github.com/grafana/plugin-validator/pkg/llmclient"
+	"github.com/grafana/plugin-validator/pkg/llmconfig"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/versioncommitfinder"
 )
@@ -84,16 +85,13 @@ var Analyzer = &analysis.Analyzer{
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Code Diff",
 		Description:  "",
-		Dependencies: "Google API Key with Generative AI access",
+		Dependencies: "API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY)",
 	},
 }
 
 var (
 	agenticClient llmclient.AgenticClient
-
-	defaultLLMProvider  = "google"
-	defaultLLMModel     = "gemini-3.1-flash-lite-preview"
-	defaultLLMAPIKeyEnv = "GEMINI_API_KEY"
+	llmCfg        = llmconfig.Resolve()
 )
 
 func SetAgenticClient(client llmclient.AgenticClient) {
@@ -130,8 +128,8 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	if os.Getenv(defaultLLMAPIKeyEnv) == "" {
-		logme.Debugln("Skipping LLM code diff analysis:", defaultLLMAPIKeyEnv, "not set")
+	if llmCfg == nil {
+		logme.Debugln("Skipping LLM code diff analysis: no API key set (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)")
 		return nil, nil
 	}
 
@@ -316,9 +314,9 @@ func runLLMAnalysis(
 	client := agenticClient
 	if client == nil {
 		client, err = llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
-			Provider:     defaultLLMProvider,
-			Model:        defaultLLMModel,
-			APIKey:       os.Getenv(defaultLLMAPIKeyEnv),
+			Provider:     llmCfg.Provider,
+			Model:        llmCfg.Model,
+			APIKey:       llmCfg.APIKey,
 			SystemPrompt: systemPrompt,
 		})
 		if err != nil {

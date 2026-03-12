@@ -232,6 +232,26 @@ Locally:
 DEBUG=1 plugincheck2 -sourceCodeUri https://github.com/grafana/clock-panel/tree/v2.1.2 https://github.com/grafana/clock-panel/releases/download/v2.1.2/grafana-clock-panel-2.1.2.zip
 ```
 
+## LLM provider configuration
+
+The `llmreview` and `codediff` analyzers use an LLM to review plugin source code. Three providers are supported: **Anthropic**, **OpenAI**, and **Google (Gemini)**.
+
+Set one of the following environment variables to enable LLM-based analysis. The first key found (in the order below) is used:
+
+| Environment Variable | Provider | Default Model |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Anthropic | `claude-sonnet-4-5` |
+| `OPENAI_API_KEY` | OpenAI | `gpt-4o` |
+| `GEMINI_API_KEY` | Google | `gemini-3-flash-preview` |
+
+Example:
+
+```SHELL
+ANTHROPIC_API_KEY=sk-ant-... plugincheck2 -sourceCodeUri https://github.com/org/repo/tree/v1.0.0 plugin.zip
+```
+
+You can skip individual LLM analyzers with `SKIP_LLM_REVIEW=1` or `SKIP_LLM_CODEDIFF=1`.
+
 ## Security tools
 
 This validator makes uses of the following open source security tools:
@@ -265,7 +285,7 @@ Run "mage gen:readme" to regenerate this section.
 | Changelog (exists) / `changelog` | Ensures a `CHANGELOG.md` file exists within the zip file. | None |
 | Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
 | Circular Dependencies / `circulardependencies` | Ensures that there aren't any circular dependencies between plugins (`plugin.json`, `dependencies.plugins` field). | None |
-| Code Diff / `codediff` |  | Google API Key with Generative AI access |
+| Code Diff / `codediff` |  | API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY) |
 | Code Rules / `code-rules` | Checks for forbidden access to environment variables, file system or use of syscall module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
 | Developer Jargon / `jargon` | Generally discourages use of code jargon in the documentation. | None |
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
@@ -275,7 +295,7 @@ Run "mage gen:readme" to regenerate this section.
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
 | License Type / `license` | Checks the declared license is one of: BSD, MIT, Apache 2.0, LGPL3, GPL3, AGPL3. | None |
-| LLM Review / `llmreview` | Runs the code through Gemini LLM to check for security issues or disallowed usage. | Gemini API key |
+| LLM Review / `llmreview` | Runs the code through an LLM to check for security issues or disallowed usage. | API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY) |
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
 | Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |
 | Metadata / `metadata` | Checks that `plugin.json` exists and is valid. | None |
