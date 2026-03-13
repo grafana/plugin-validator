@@ -3,7 +3,6 @@ package llmvalidate
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -13,12 +12,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/danwakefield/fnmatch"
+	"github.com/grafana/plugin-validator/pkg/llmclient"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/prettyprint"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/anthropic"
-	"github.com/tmc/langchaingo/llms/googleai"
-	"github.com/tmc/langchaingo/llms/openai"
 )
 
 // these are not regular expressions
@@ -83,11 +79,19 @@ var extensionToFileType = map[string]string{
 	".go":  "go",
 }
 
+const reviewerSystemPrompt = `You are a source code reviewer. You are provided with source code repository information and files. You will answer questions only based on the context of the files provided.
+
+REVIEWER NOTE: Ignore code that exists only for testing or development:
+- Test files (*_test.go, *_spec.ts, etc.)
+- Development scripts and utilities
+- Dockerfiles, makefiles, bash scripts
+- Files clearly not part of the plugin
+
+Focus your review on production code that will run as part of a Grafana Plugin.`
+
 type Client struct {
-	llm       llms.Model
-	provider  string
-	modelName string
-	ctx       context.Context
+	agenticClient llmclient.AgenticClient
+	ctx           context.Context
 }
 
 type LLMQuestion struct {
@@ -120,117 +124,21 @@ func New(ctx context.Context, provider string, modelName string, apiKey string) 
 
 	logme.DebugFln("llmvalidate: Using provider %s with model %s", provider, modelName)
 
-	var llm llms.Model
-	var err error
-
-	switch provider {
-	case "google":
-		llm, err = googleai.New(
-			ctx,
-			googleai.WithAPIKey(apiKey),
-			googleai.WithDefaultModel(modelName),
-		)
-	case "anthropic":
-		llm, err = anthropic.New(
-			anthropic.WithToken(apiKey),
-			anthropic.WithModel(modelName),
-		)
-	case "openai":
-		llm, err = openai.New(
-			openai.WithToken(apiKey),
-			openai.WithModel(modelName),
-		)
-	default:
-		return nil, fmt.Errorf("unsupported provider: %s (supported: google, anthropic, openai)", provider)
-	}
-
+	agenticClient, err := llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
+		Model:        modelName,
+		Provider:     provider,
+		APIKey:       apiKey,
+		ToolSet:      llmclient.NoTools,
+		SystemPrompt: reviewerSystemPrompt,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create %s client: %w", provider, err)
+		return nil, fmt.Errorf("failed to create agentic client: %w", err)
 	}
 
 	return &Client{
-		llm:       llm,
-		provider:  provider,
-		modelName: modelName,
-		ctx:       ctx,
+		agenticClient: agenticClient,
+		ctx:           ctx,
 	}, nil
-}
-
-func createReplyQuestionTool() llms.Tool {
-	return llms.Tool{
-		Type: "function",
-		Function: &llms.FunctionDefinition{
-			Name:        "reply_question",
-			Description: "Reply to the code review question with structured information",
-			Parameters: map[string]interface{}{
-				"type": "object",
-				"properties": map[string]interface{}{
-					"question": map[string]interface{}{
-						"type":        "string",
-						"description": "The question being answered",
-					},
-					"answer": map[string]interface{}{
-						"type":        "string",
-						"description": "The full answer. Elaborate why yes or no",
-					},
-					"files": map[string]interface{}{
-						"type":        "array",
-						"items":       map[string]interface{}{"type": "string"},
-						"description": "Files related to the answer (optional)",
-					},
-					"short_answer": map[string]interface{}{
-						"type":        "boolean",
-						"description": "True or false",
-					},
-					"code_snippet": map[string]interface{}{
-						"type":        "string",
-						"description": "Code snippet as context (optional)",
-					},
-				},
-				"required": []string{"question", "answer", "short_answer"},
-			},
-		},
-	}
-}
-
-func extractAnswerFromToolCall(resp *llms.ContentResponse) (LLMAnswer, error) {
-	var answer LLMAnswer
-
-	if resp == nil {
-		return answer, fmt.Errorf("nil response")
-	}
-
-	if len(resp.Choices) == 0 {
-		return answer, fmt.Errorf("no choices in response")
-	}
-
-	choice := resp.Choices[0]
-
-	if len(choice.ToolCalls) == 0 {
-		return answer, fmt.Errorf("no tool calls found in response")
-	}
-
-	// Get first tool call
-	toolCall := choice.ToolCalls[0]
-
-	// Verify it's our tool
-	if toolCall.FunctionCall == nil {
-		return answer, fmt.Errorf("tool call has no function call")
-	}
-
-	if toolCall.FunctionCall.Name != "reply_question" {
-		return answer, fmt.Errorf("unexpected function call: %s", toolCall.FunctionCall.Name)
-	}
-
-	// Parse arguments (JSON string) into LLMAnswer
-	if err := json.Unmarshal([]byte(toolCall.FunctionCall.Arguments), &answer); err != nil {
-		return answer, fmt.Errorf("failed to unmarshal arguments: %w", err)
-	}
-
-	// Clean up code snippet
-	answer.CodeSnippet = mergeNewlines(answer.CodeSnippet)
-
-	return answer, nil
 }
 
 func (c *Client) AskLLMAboutCode(
@@ -272,77 +180,59 @@ func (c *Client) AskLLMAboutCode(
 	var answers []LLMAnswer = make([]LLMAnswer, 0, len(questions))
 
 	for _, question := range questions {
+		// Build the user message with files + question, matching the original format
+		userPrompt := fmt.Sprintf("%s\n\nAnswer this question based on the files: %s", filesPrompt, question.Question)
+
 		var answer LLMAnswer
-		var err error
+		var lastErr error
 
 		for retries := 3; retries > 0; retries-- {
-			answer, err = c.askModelQuestion(filesPrompt, question)
-			if err == nil {
-				break
+			// Call AgenticClient with a single question per call for isolation
+			agenticAnswers, err := c.agenticClient.CallLLM(c.ctx, []string{userPrompt}, absCodePath)
+			if err != nil {
+				lastErr = err
+				logme.DebugFln("Error calling LLM (retries left: %d): %v", retries-1, err)
+				continue
 			}
-			logme.DebugFln("Error generating answer: %v", err)
+
+			if len(agenticAnswers) == 0 {
+				lastErr = fmt.Errorf("No answer returned from LLM for question: %s", question.Question)
+				logme.DebugFln("No answer returned (retries left: %d)", retries-1)
+				continue
+			}
+
+			agenticAnswer := agenticAnswers[0]
+
+			// Check if the agentic client reported an error for this question
+			if agenticAnswer.Error != "" {
+				lastErr = fmt.Errorf("LLM error for question %q: %s", question.Question, agenticAnswer.Error)
+				logme.DebugFln("LLM error (retries left: %d): %s", retries-1, agenticAnswer.Error)
+				continue
+			}
+
+			answer = LLMAnswer{
+				Question:            agenticAnswer.Question,
+				Answer:              agenticAnswer.Answer,
+				ShortAnswer:         agenticAnswer.ShortAnswer,
+				Files:               agenticAnswer.Files,
+				CodeSnippet:         mergeNewlines(agenticAnswer.CodeSnippet),
+				ExpectedShortAnswer: question.ExpectedAnswer,
+			}
+			lastErr = nil
+			break
 		}
 
-		if err != nil {
-			return nil, fmt.Errorf("Failed to generate answer after 3 retries: %w", err)
+		if lastErr != nil {
+			return nil, fmt.Errorf("Failed to generate answer after 3 retries: %w", lastErr)
 		}
+
+		logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
 
 		answers = append(answers, answer)
 	}
 
 	return answers, nil
 
-}
-
-func (c *Client) askModelQuestion(
-	filesPrompt string,
-	question LLMQuestion,
-) (LLMAnswer, error) {
-	// Create system prompt
-	systemPrompt := `You are a source code reviewer. You are provided with source code repository information and files. You will answer questions only based on the context of the files provided.
-
-IMPORTANT: You MUST use the reply_question tool to provide your answer. Do not respond with plain text.
-
-REVIEWER NOTE: Ignore code that exists only for testing or development:
-- Test files (*_test.go, *_spec.ts, etc.)
-- Development scripts and utilities
-- Dockerfiles, makefiles, bash scripts
-- Files clearly not part of the plugin
-
-Focus your review on production code that will run as part of a Grafana Plugin.`
-
-	// Build prompt with files and question
-	userPrompt := fmt.Sprintf("%s\n\nAnswer this question based on the files: %s", filesPrompt, question.Question)
-
-	// Create message history
-	messageHistory := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, systemPrompt),
-		llms.TextParts(llms.ChatMessageTypeHuman, userPrompt),
-	}
-
-	// Generate response with tools
-	resp, err := c.llm.GenerateContent(
-		c.ctx,
-		messageHistory,
-		llms.WithTools([]llms.Tool{createReplyQuestionTool()}),
-	)
-	if err != nil {
-		logme.DebugFln("Error generating content: %v", err)
-		return LLMAnswer{}, err
-	}
-
-	// Extract answer from tool call
-	answer, err := extractAnswerFromToolCall(resp)
-	if err != nil {
-		return LLMAnswer{}, err
-	}
-
-	// Set expected answer from question
-	answer.ExpectedShortAnswer = question.ExpectedAnswer
-
-	logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))
-
-	return answer, nil
 }
 
 func getPromptContentForCode(codePath string, subPathsOnly []string) ([]string, error) {
