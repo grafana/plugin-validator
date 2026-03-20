@@ -679,3 +679,52 @@ func TestNoDirectCSSImportsGood(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
+
+func TestNoAPIDsQueryEndpoint(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "api-ds-query-endpoint-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, analysis.Error, interceptor.Diagnostics[0].Severity)
+	require.Equal(
+		t,
+		"Direct frontend usage of '/api/ds/query' is not permitted. Use Grafana runtime APIs getDataSourceSrv().get(...) and then query(...) instead of calling this endpoint directly.",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		"code-rules-no-api-ds-query-endpoint",
+		interceptor.Diagnostics[0].Name,
+	)
+}
+
+func TestNoAPIDsQueryEndpointGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "api-ds-query-endpoint-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
