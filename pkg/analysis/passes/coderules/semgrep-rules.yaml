@@ -331,3 +331,25 @@ rules:
     message: "Direct CSS imports and Emotion UI Global components are not permitted. Use CSS-in-JS solutions like styled-components or emotion's css function instead."
     languages: [javascript, typescript]
     severity: ERROR
+
+  - id: no-api-ds-query-endpoint
+    pattern-either:
+      - pattern-regex: /api/ds/query
+    paths:
+      include:
+        - "src/**/*.ts"
+        - "src/**/*.tsx"
+        - "src/**/*.js"
+        - "src/**/*.jsx"
+      exclude:
+        - "*.spec.ts"
+        - "*.spec.tsx"
+        - "*.test.ts"
+        - "*.test.tsx"
+        - "*.spec.js"
+        - "*.spec.jsx"
+        - "*.test.js"
+        - "*.test.jsx"
+    message: "Direct frontend usage of '/api/ds/query' is not permitted. Use Grafana runtime APIs getDataSourceSrv().get(...) and then query(...) instead of calling this endpoint directly."
+    languages: [javascript, typescript]
+    severity: ERROR
