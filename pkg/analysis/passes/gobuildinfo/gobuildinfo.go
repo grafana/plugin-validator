@@ -20,10 +20,6 @@ import (
 )
 
 var (
-	binarySourceCodeRequired = &analysis.Rule{
-		Name:     "binary-source-code-required",
-		Severity: analysis.Warning,
-	}
 	binaryNoBuildInfo = &analysis.Rule{
 		Name:     "binary-no-build-info",
 		Severity: analysis.Error,
@@ -38,7 +34,7 @@ var (
 	}
 	binaryCGOEnabled = &analysis.Rule{
 		Name:     "binary-cgo-enabled",
-		Severity: analysis.Warning,
+		Severity: analysis.Error,
 	}
 	// binary-build-info-json-plugin-id-mismatch: the pluginID field in the SDK's
 	// embedded buildInfoJSON does not match the plugin.json ID.
@@ -71,7 +67,6 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{archive.Analyzer, nestedmetadata.Analyzer, sourcecode.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
-		binarySourceCodeRequired,
 		binaryNoBuildInfo,
 		binaryDirtyBuild,
 		binaryPluginIDMismatch,
@@ -107,24 +102,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
-
-	hasBackend := false
-	for _, data := range metadatamap {
-		if data.Backend && data.Executable != "" {
-			hasBackend = true
-			break
-		}
-	}
-
-	if hasBackend && (!ok || sourceCodeDir == "") {
-		pass.ReportResult(
-			pass.AnalyzerName,
-			binarySourceCodeRequired,
-			"source code is required to validate backend binaries",
-			"Provide the plugin source code to enable backend binary validation checks.",
-		)
-		return nil, nil
-	}
 
 	if !ok || sourceCodeDir == "" {
 		return nil, nil
@@ -178,7 +155,7 @@ func checkBinary(pass *analysis.Pass, binaryPath, pluginID, pluginVersion string
 					pass.AnalyzerName,
 					binaryDirtyBuild,
 					fmt.Sprintf("%s: built from a dirty working tree", binaryName),
-					"The binary was built with uncommitted changes (vcs.modified=true). Binaries submitted for signing should be built from a clean git working tree.",
+					"The binary was built with uncommitted changes (vcs.modified=true). Binaries submitted for signing must be built from a clean git working tree. See https://grafana.com/developers/plugin-tools/publish-a-plugin/build-automation for more information.",
 				)
 			}
 		case "CGO_ENABLED":
@@ -187,7 +164,7 @@ func checkBinary(pass *analysis.Pass, binaryPath, pluginID, pluginVersion string
 					pass.AnalyzerName,
 					binaryCGOEnabled,
 					fmt.Sprintf("%s: built with CGO_ENABLED=1", binaryName),
-					"Building with CGO enabled makes builds harder to reproduce and verify. Consider building with CGO_ENABLED=0.",
+					"Grafana plugins must be built with CGO_ENABLED=0. CGO is not supported in the plugin runtime environment.",
 				)
 			}
 		case "-ldflags":
