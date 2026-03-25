@@ -14,7 +14,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.1
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-shellwords v1.0.12
-	github.com/modelcontextprotocol/go-sdk v1.3.1
+	github.com/modelcontextprotocol/go-sdk v1.4.1
 	github.com/openai/openai-go v1.12.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20251230224438-88c48750ddae
 	github.com/r3labs/diff/v3 v3.0.2
@@ -24,7 +24,7 @@ require (
 	github.com/tailscale/hujson v0.0.0-20250605163823-992244df8c5a
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.47.0
-	golang.org/x/mod v0.31.0
+	golang.org/x/mod v0.32.0
 	google.golang.org/genai v1.48.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -170,7 +170,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/secDre4mer/pkcs7 v0.0.0-20240322103146-665324a4461d // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
-	github.com/segmentio/encoding v0.5.3 // indirect
+	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/shogo82148/go-shuffle v1.1.1 // indirect
@@ -207,13 +207,13 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/net v0.48.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
 	golang.org/x/oauth2 v0.34.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/telemetry v0.0.0-20251203150158-8fff8a5912fc // indirect
+	golang.org/x/telemetry v0.0.0-20260109210033-bd525da824e2 // indirect
 	golang.org/x/text v0.33.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.40.0 // indirect
+	golang.org/x/tools v0.41.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.16.0 // indirect
 	google.golang.org/genproto v0.0.0-20250707201910-8d1bb00bc6a7 // indirect
