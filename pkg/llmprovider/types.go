@@ -86,6 +86,14 @@ type Usage struct {
 	InputTokens  int
 	OutputTokens int
 	TotalTokens  int
+
+	// CacheCreationInputTokens is the number of input tokens used to create
+	// a cache entry. Only populated by providers that support prompt caching
+	// (e.g. Anthropic). Zero for other providers.
+	CacheCreationInputTokens int
+	// CacheReadInputTokens is the number of input tokens read from cache.
+	// Only populated by providers that support prompt caching. Zero for others.
+	CacheReadInputTokens int
 }
 
 // Response is the result of a GenerateContent call.

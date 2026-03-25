@@ -96,7 +96,10 @@ func extractSystemAndMessages(messages []llmprovider.Message) ([]anthropic.TextB
 		case llmprovider.RoleSystem:
 			text := extractText(msg.Parts)
 			if text != "" {
-				system = append(system, anthropic.TextBlockParam{Text: text})
+				system = append(system, anthropic.TextBlockParam{
+					Text:         text,
+					CacheControl: anthropic.NewCacheControlEphemeralParam(),
+				})
 			}
 
 		case llmprovider.RoleHuman:
@@ -279,17 +282,23 @@ func fromAnthropicResponse(resp *anthropic.Message) *llmprovider.Response {
 		}
 	}
 
+	totalInput := resp.Usage.InputTokens + resp.Usage.CacheCreationInputTokens + resp.Usage.CacheReadInputTokens
+
 	choice.GenerationInfo["usage"] = map[string]any{
-		"input_tokens":  resp.Usage.InputTokens,
-		"output_tokens": resp.Usage.OutputTokens,
+		"input_tokens":                resp.Usage.InputTokens,
+		"output_tokens":               resp.Usage.OutputTokens,
+		"cache_creation_input_tokens": resp.Usage.CacheCreationInputTokens,
+		"cache_read_input_tokens":     resp.Usage.CacheReadInputTokens,
 	}
 
 	return &llmprovider.Response{
 		Choices: []*llmprovider.Choice{choice},
 		Usage: llmprovider.Usage{
-			InputTokens:  int(resp.Usage.InputTokens),
-			OutputTokens: int(resp.Usage.OutputTokens),
-			TotalTokens:  int(resp.Usage.InputTokens + resp.Usage.OutputTokens),
+			InputTokens:             int(resp.Usage.InputTokens),
+			OutputTokens:            int(resp.Usage.OutputTokens),
+			TotalTokens:             int(totalInput + resp.Usage.OutputTokens),
+			CacheCreationInputTokens: int(resp.Usage.CacheCreationInputTokens),
+			CacheReadInputTokens:    int(resp.Usage.CacheReadInputTokens),
 		},
 	}
 }

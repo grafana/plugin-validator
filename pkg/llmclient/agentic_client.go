@@ -195,9 +195,11 @@ func (c *agenticClientImpl) CallLLM(
 		}
 
 		debugLog(
-			"AgenticClient: accumulated context tokens after question %d: %d",
+			"AgenticClient: accumulated context tokens after question %d: %d (cache_create=%d, cache_read=%d)",
 			questionIndex+1,
 			usage.TotalTokens,
+			usage.CacheCreationInputTokens,
+			usage.CacheReadInputTokens,
 		)
 		if usage.TotalTokens > 100000 {
 			debugLog(
