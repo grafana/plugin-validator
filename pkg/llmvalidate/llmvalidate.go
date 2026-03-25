@@ -90,8 +90,10 @@ REVIEWER NOTE: Ignore code that exists only for testing or development:
 Focus your review on production code that will run as part of a Grafana Plugin.`
 
 type Client struct {
-	agenticClient llmclient.AgenticClient
-	ctx           context.Context
+	provider  string
+	modelName string
+	apiKey    string
+	ctx       context.Context
 }
 
 type LLMQuestion struct {
@@ -124,20 +126,11 @@ func New(ctx context.Context, provider string, modelName string, apiKey string) 
 
 	logme.DebugFln("llmvalidate: Using provider %s with model %s", provider, modelName)
 
-	agenticClient, err := llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
-		Model:        modelName,
-		Provider:     provider,
-		APIKey:       apiKey,
-		ToolSet:      llmclient.NoTools,
-		SystemPrompt: reviewerSystemPrompt,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create agentic client: %w", err)
-	}
-
 	return &Client{
-		agenticClient: agenticClient,
-		ctx:           ctx,
+		provider:  provider,
+		modelName: modelName,
+		apiKey:    apiKey,
+		ctx:       ctx,
 	}, nil
 }
 
@@ -173,22 +166,36 @@ func (c *Client) AskLLMAboutCode(
 	}
 
 	filesPrompt := fmt.Sprintf(
-		`The files in the repository are: %s `,
+		"The files in the repository are:\n%s",
 		strings.Join(codePrompt, "\n"),
 	)
+
+	// Combine reviewer instructions and file contents into the system prompt.
+	// This allows providers like Anthropic to cache the system prompt across
+	// multiple question calls, avoiding re-processing the file contents each time.
+	combinedSystemPrompt := fmt.Sprintf("%s\n\n%s", reviewerSystemPrompt, filesPrompt)
+
+	agenticClient, err := llmclient.NewAgenticClient(&llmclient.AgenticCallOptions{
+		Model:        c.modelName,
+		Provider:     c.provider,
+		APIKey:       c.apiKey,
+		ToolSet:      llmclient.NoTools,
+		SystemPrompt: combinedSystemPrompt,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create agentic client: %w", err)
+	}
 
 	var answers []LLMAnswer = make([]LLMAnswer, 0, len(questions))
 
 	for _, question := range questions {
-		// Build the user message with files + question, matching the original format
-		userPrompt := fmt.Sprintf("%s\n\nAnswer this question based on the files: %s", filesPrompt, question.Question)
+		userPrompt := fmt.Sprintf("Answer this question based on the source code files provided in the system prompt: %s", question.Question)
 
 		var answer LLMAnswer
 		var lastErr error
 
 		for retries := 3; retries > 0; retries-- {
-			// Call AgenticClient with a single question per call for isolation
-			agenticAnswers, err := c.agenticClient.CallLLM(c.ctx, []string{userPrompt}, absCodePath)
+			agenticAnswers, err := agenticClient.CallLLM(c.ctx, []string{userPrompt}, absCodePath)
 			if err != nil {
 				lastErr = err
 				logme.DebugFln("Error calling LLM (retries left: %d): %v", retries-1, err)

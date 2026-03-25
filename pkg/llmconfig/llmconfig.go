@@ -15,7 +15,7 @@ var providerDefaults = []struct {
 	Provider     string
 	DefaultModel string
 }{
-	{"ANTHROPIC_API_KEY", "anthropic", "claude-opus-4-6"},
+	{"ANTHROPIC_API_KEY", "anthropic", "claude-sonnet-4-6"},
 	{"OPENAI_API_KEY", "openai", "gpt-5.4"},
 	{"GEMINI_API_KEY", "google", "gemini-3.1-flash-lite-preview"},
 }
