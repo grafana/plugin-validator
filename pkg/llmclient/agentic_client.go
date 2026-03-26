@@ -23,7 +23,7 @@ const (
 	maxLLMRetries             = 3
 	maxConsecutiveNoTools     = 5
 	retryDelay                = 2 * time.Second
-	llmCallTimeout            = 20 * time.Second
+	llmCallTimeout            = 90 * time.Second
 
 	budgetNudgePrompt = `You have only %d tool calls remaining. Wrap up your investigation and call submit_answer now with whatever information you have gathered so far.`
 
