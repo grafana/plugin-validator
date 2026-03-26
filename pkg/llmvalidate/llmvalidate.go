@@ -191,46 +191,32 @@ func (c *Client) AskLLMAboutCode(
 	for _, question := range questions {
 		userPrompt := fmt.Sprintf("Answer this question based on the source code files provided in the system prompt: %s", question.Question)
 
-		var answer LLMAnswer
-		var lastErr error
-
-		for retries := 3; retries > 0; retries-- {
-			agenticAnswers, err := agenticClient.CallLLM(c.ctx, []string{userPrompt}, absCodePath)
-			if err != nil {
-				lastErr = err
-				logme.DebugFln("Error calling LLM (retries left: %d): %v", retries-1, err)
-				continue
-			}
-
-			if len(agenticAnswers) == 0 {
-				lastErr = fmt.Errorf("No answer returned from LLM for question: %s", question.Question)
-				logme.DebugFln("No answer returned (retries left: %d)", retries-1)
-				continue
-			}
-
-			agenticAnswer := agenticAnswers[0]
-
-			// Check if the agentic client reported an error for this question
-			if agenticAnswer.Error != "" {
-				lastErr = fmt.Errorf("LLM error for question %q: %s", question.Question, agenticAnswer.Error)
-				logme.DebugFln("LLM error (retries left: %d): %s", retries-1, agenticAnswer.Error)
-				continue
-			}
-
-			answer = LLMAnswer{
-				Question:            agenticAnswer.Question,
-				Answer:              agenticAnswer.Answer,
-				ShortAnswer:         agenticAnswer.ShortAnswer,
-				Files:               agenticAnswer.Files,
-				CodeSnippet:         mergeNewlines(agenticAnswer.CodeSnippet),
-				ExpectedShortAnswer: question.ExpectedAnswer,
-			}
-			lastErr = nil
-			break
+		agenticAnswers, err := agenticClient.CallLLM(c.ctx, []string{userPrompt}, absCodePath)
+		if err != nil {
+			logme.DebugFln("Error calling LLM for question %q: %v. Skipping.", question.Question, err)
+			continue
 		}
 
-		if lastErr != nil {
-			return nil, fmt.Errorf("Failed to generate answer after 3 retries: %w", lastErr)
+		if len(agenticAnswers) == 0 {
+			logme.DebugFln("No answer returned from LLM for question: %s. Skipping.", question.Question)
+			continue
+		}
+
+		agenticAnswer := agenticAnswers[0]
+
+		// Check if the agentic client reported an error for this question
+		if agenticAnswer.Error != "" {
+			logme.DebugFln("LLM error for question %q: %s. Skipping.", question.Question, agenticAnswer.Error)
+			continue
+		}
+
+		answer := LLMAnswer{
+			Question:            agenticAnswer.Question,
+			Answer:              agenticAnswer.Answer,
+			ShortAnswer:         agenticAnswer.ShortAnswer,
+			Files:               agenticAnswer.Files,
+			CodeSnippet:         mergeNewlines(agenticAnswer.CodeSnippet),
+			ExpectedShortAnswer: question.ExpectedAnswer,
 		}
 
 		logme.DebugFln("Answer: %v", prettyprint.SPrint(answer))

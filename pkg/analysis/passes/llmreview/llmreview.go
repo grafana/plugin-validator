@@ -34,6 +34,10 @@ var (
 		Name:     "llm-review-skipped",
 		Severity: analysis.SuspectedProblem,
 	}
+	llmReviewPassed = &analysis.Rule{
+		Name:     "llm-review-passed",
+		Severity: analysis.OK,
+	}
 )
 
 // blockingAnalyzers contains validators that, if they report errors, should cause
@@ -66,7 +70,7 @@ var Analyzer = &analysis.Analyzer{
 	Name:     "llmreview",
 	Requires: append([]*analysis.Analyzer{sourcecode.Analyzer}, blockingAnalyzers...),
 	Run:      run,
-	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped},
+	Rules:    []*analysis.Rule{llmIssueFound, llmReviewSkipped, llmReviewPassed},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "LLM Review",
 		Description:  "Runs the code through an LLM to check for security issues or disallowed usage.",
@@ -213,6 +217,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
+	issuesFound := 0
 	for _, answer := range mandatoryAnswers {
 		if answer.ShortAnswer != answer.ExpectedShortAnswer {
 			detail := buildDetailString(answer)
@@ -222,6 +227,7 @@ func run(pass *analysis.Pass) (any, error) {
 				fmt.Sprintf("LLM flagged: %s", answer.Question),
 				detail,
 			)
+			issuesFound++
 		}
 	}
 
@@ -242,7 +248,17 @@ func run(pass *analysis.Pass) (any, error) {
 				fmt.Sprintf("LLM suggestion: %s", answer.Question),
 				detail,
 			)
+			issuesFound++
 		}
+	}
+
+	if issuesFound == 0 && llmReviewPassed.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			llmReviewPassed,
+			"LLM review completed without concerns",
+			"",
+		)
 	}
 
 	return nil, nil
