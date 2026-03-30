@@ -80,71 +80,71 @@ var Analyzer = &analysis.Analyzer{
 
 var Questions = []llmvalidate.LLMQuestion{
 	{
-		Question:       "Only for go/golang code: Does this code directly read from or write to the file system? (Look for uses of os.Open, os.Create, ioutil.ReadFile, ioutil.WriteFile, etc.). Provide the specific code snippet if found.",
+		Question:       "Only for go/golang code: Does this code directly read from or write to the file system? (Look for os.Open, os.Create, ioutil.ReadFile, ioutil.WriteFile, etc.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code execute user input as code in a browser environment? (Look for eval(), new Function(), document.write() with unescaped content, innerHTML with script tags, etc.). Provide the specific code snippet if found.",
+		Question:       "Does this code execute user input as code in a browser environment? (Look for eval(), new Function(), document.write() with unescaped content, innerHTML with script tags, etc.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code execute user input as commands or code in the backend? (Look for exec.Command, syscall.Exec, template.Execute with user data, etc.). Provide the specific code snippet if found.",
+		Question:       "Only for go/golang code: Does this code execute user input as commands or code in the backend? (Look for exec.Command, syscall.Exec, template.Execute with user data, etc.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code introduce third-party analytics or tracking features? (Grafana's reportInteraction from @grafana/runtime is allowed, but external services like Google Analytics, Mixpanel, etc. are not). Provide the specific code snippet if found.",
+		Question:       "Does this code introduce third-party analytics or tracking features? (Grafana's reportInteraction from @grafana/runtime is allowed, but external services like Google Analytics, Mixpanel, etc. are not.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code modify or create properties on the global window object? (Look for direct assignments like window.customVariable = x, window.functionName = function(){}, or adding undeclared variables in global scope). Exclude standard browser API usage. Provide the specific code snippet if found.",
+		Question:       "Does this code modify or create properties on the global window object? (Look for direct assignments like window.customVariable = x, window.functionName = function(){}. Exclude standard browser API usage.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code introduce global CSS not scoped to components? (Emotion CSS and CSS modules are allowed, but look for direct style tags, global class definitions, or modification of document.styleSheets). Provide the specific code snippet if found.",
+		Question:       "Does this code introduce global CSS not scoped to components? (Emotion CSS and CSS modules are allowed. Look for direct style tags, global class definitions, or document.styleSheets modification.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code dynamically inject external third-party scripts? (Look for createElement('script'), setting src attributes to external domains, document.write with script tags, or dynamic import() from external sources). Provide the specific code snippet with the external URL if found.",
+		Question:       "Does this code dynamically inject external third-party scripts? (Look for createElement('script') with external src, document.write with script tags, or dynamic import() from external sources.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Are there any opened resources that are NOT properly closed? (Check for files, network connections, etc. that lack proper closure with defer, in finally blocks, or using 'with' statements). Identify any improperly closed resources with a code snippet. If there is no backend code reply negatively",
+		Question:       "Only for go/golang code: Are there any opened resources (files, connections) NOT properly closed with defer? If there is no backend code, answer No.",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for direct usage of document.querySelector(), document.getElementById(), document.getElementsByClassName(), etc. that aren't scoped to specific components or that bypass React refs). Component-scoped element access like useRef() or this.elementRef is acceptable. Provide the specific code snippet showing the global access if found.",
+		Question:       "Does this code use global DOM selectors outside of component lifecycle methods? (Look for document.querySelector(), document.getElementById(), etc. not scoped to components. useRef() and this.elementRef are acceptable.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code create HTTP clients without using github.com/grafana/grafana-plugin-sdk-go/backend/httpclient? (Look for direct creation of http.Client{}, http.NewRequest, calls to third-party NewClient/NewHTTPClient functions that don't accept or use the SDK's httpclient, or any other HTTP client initialization that doesn't use github.com/grafana/grafana-plugin-sdk-go/backend/httpclient. The httpclient from github.com/grafana/grafana-plugin-sdk-go/backend/httpclient should be used directly or passed to the HTTP client being created. This includes cases where third-party libraries create HTTP clients internally - those libraries should accept the SDK's httpclient as a parameter). Provide the specific code snippet if found.",
+		Question:       "Only for go/golang code: Does this code create HTTP clients without using github.com/grafana/grafana-plugin-sdk-go/backend/httpclient? (Look for direct http.Client{}, http.NewRequest, or third-party client creation that doesn't use or accept the SDK httpclient.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code log sensitive information such as credentials, tokens, passwords, API keys, request bodies, or full request/response objects at INFO level or higher? (These should use DEBUG level only). Provide the specific code snippet if found.",
+		Question:       "Does this code log sensitive information (credentials, tokens, passwords, API keys, request/response bodies) at INFO level or higher? (These should use DEBUG level only.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code use incorrect log formatting? (Look for patterns like `log.Info(\"message\", err)` instead of the correct `log.Info(\"message\", \"error\", err)` with key-value pairs, or logging that produces 'EXTRA_VALUE_AT_END' in output). Provide the specific code snippet if found.",
+		Question:       "Only for go/golang code: Does this code use incorrect log formatting? (Look for `log.Info(\"message\", err)` instead of `log.Info(\"message\", \"error\", err)` with key-value pairs.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code render user-supplied or dynamic content as HTML without sanitization? (Look for dangerouslySetInnerHTML without DOMPurify, d3.html() with user data, innerHTML assignments, or markdown-it with html:true without sanitization). Provide the specific code snippet if found.",
+		Question:       "Does this code render user-supplied or dynamic content as HTML without sanitization? (Look for dangerouslySetInnerHTML without DOMPurify, innerHTML assignments, or markdown-it with html:true without sanitization.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code use panic() for error handling instead of returning errors properly? (panic should only be used for truly unrecoverable situations, not for regular error handling). Provide the specific code snippet if found.",
+		Question:       "Only for go/golang code: Does this code use panic() for error handling instead of returning errors? (panic should only be used for truly unrecoverable situations.)",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Does this code use localStorage or sessionStorage with generic key names (not namespaced with the plugin ID) that could conflict with Grafana core or other plugins? Provide the specific code snippet if found.",
+		Question:       "Does this code use localStorage or sessionStorage with generic key names not namespaced with the plugin ID?",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "For plugins that have multiple plugin.json files: Are the grafanaDependency values inconsistent across them? (The grafanaDependency property must be consistent across all plugins). Provide the specific plugin.json files and their grafanaDependency values if found to be inconsistent.",
+		Question:       "For plugins with multiple plugin.json files: Are the grafanaDependency values inconsistent across them?",
 		ExpectedAnswer: false,
 	},
 	{
-		Question:       "Only for go/golang code: Does this code access attributes or methods of a returned value before checking if it is nil? (Code that accesses returned values must be moved after error/nil checks to prevent nil pointer dereference crashes. For example, if a function returns `(req *Request, err error)`, code accessing `req` should be after checking `if err != nil` or `if req == nil`). Provide the specific code snippet showing the unsafe access if found.",
+		Question:       "Only for go/golang code: Does this code access attributes or methods of a returned value before checking if it is nil? (e.g., accessing `req` before checking `if err != nil` or `if req == nil`.)",
 		ExpectedAnswer: false,
 	},
 }

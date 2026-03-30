@@ -87,7 +87,26 @@ REVIEWER NOTE: Ignore code that exists only for testing or development:
 - Dockerfiles, makefiles, bash scripts
 - Files clearly not part of the plugin
 
-Focus your review on production code that will run as part of a Grafana Plugin.`
+Focus your review on production code that will run as part of a Grafana Plugin.
+
+RESPONSE FORMAT: Be extremely concise. This is a purely investigative task — report findings only.
+1. Start with "Yes" or "No".
+2. If Yes, add ONE sentence explaining the issue.
+3. For code_snippet, include ONLY the single most relevant snippet (max 5 lines). Do NOT repeat similar patterns — if the same issue appears in multiple places, just list the files.
+4. Never include full function bodies. Show only the specific problematic line(s).
+
+Do NOT:
+- Suggest fixes or improvements
+- Explain how to resolve the issue
+- Discuss mitigations, workarounds, or risk levels
+- Offer recommendations or next steps
+- Provide context about why the pattern is problematic
+- Qualify findings with "however" or "the risk is mitigated by"
+
+Your sole job is to answer Yes/No and point to the evidence. Nothing more.
+
+Example good answer: "Yes, user input flows into template.Execute via BuildUserPrompt."
+Example bad answer: A multi-paragraph explanation with full function bodies, mitigations, suggestions, and repeated code blocks.`
 
 type Client struct {
 	provider  string

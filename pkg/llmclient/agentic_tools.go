@@ -135,7 +135,7 @@ func submitAnswerTool() llmprovider.Tool {
 				"properties": map[string]interface{}{
 					"answer": map[string]interface{}{
 						"type":        "string",
-						"description": "Your detailed answer explaining your findings",
+						"description": "A brief answer: start with Yes/No, then ONE sentence explaining the finding. Max 2-3 sentences total. Do not include code here (use code_snippet instead). Do not suggest fixes, mitigations, or recommendations — report findings only.",
 					},
 					"short_answer": map[string]interface{}{
 						"type":        "boolean",
@@ -148,7 +148,7 @@ func submitAnswerTool() llmprovider.Tool {
 					},
 					"code_snippet": map[string]interface{}{
 						"type":        "string",
-						"description": "A relevant code snippet. Pass an empty string if not relevant.",
+						"description": "The single most relevant code snippet (max 5 lines). Pick the clearest example if the issue appears in multiple places. Pass empty string if answer is No.",
 					},
 				},
 				"required":             []string{"answer", "short_answer", "files", "code_snippet"},
