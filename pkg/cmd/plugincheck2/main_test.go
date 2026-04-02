@@ -159,14 +159,6 @@ func TestIntegration(t *testing.T) {
 							Name:     "sponsorshiplink",
 						},
 					},
-					"provenance": {
-						{
-							Severity: "recommendation",
-							Title:    "No provenance attestation. This plugin was built without build verification",
-							Detail:   "Cannot verify plugin build. It is recommended to use a pipeline that supports provenance attestation, such as GitHub Actions. https://github.com/grafana/plugin-actions/tree/main/build-plugin",
-							Name:     "no-provenance-attestation",
-						},
-					},
 				},
 			},
 		},
