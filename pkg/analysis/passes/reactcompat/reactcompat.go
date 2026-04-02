@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -115,7 +116,8 @@ func run(pass *analysis.Pass) (any, error) {
 }
 
 // prepareTmpDir creates a temporary directory with a dist/ symlink pointing at
-// archiveDir. react-detect expects the plugin files to live under dist/.
+// archiveDir. The extracted archive has files at the root (module.js, plugin.json,
+// etc.) but react-detect expects them under a dist/ subdirectory.
 // The returned cleanup function removes the temp directory.
 func prepareTmpDir(archiveDir string) (string, func(), error) {
 	tmpDir, err := os.MkdirTemp("", "reactcompat-*")
@@ -175,6 +177,7 @@ func parseResults(data []byte) (*reactDetectOutput, error) {
 // reportIssues translates the react-detect output into pass diagnostics and
 // returns the total number of issues reported.
 func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
+	// react19Issue serves as the config gate for all dynamic react-19 rules.
 	if react19Issue.Disabled {
 		return 0
 	}
@@ -185,14 +188,20 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 
 	count := 0
 
-	for _, issues := range output.SourceCodeIssues {
-		for _, issue := range issues {
+	patterns := make([]string, 0, len(output.SourceCodeIssues))
+	for p := range output.SourceCodeIssues {
+		patterns = append(patterns, p)
+	}
+	slices.Sort(patterns)
+
+	for _, pattern := range patterns {
+		for _, issue := range output.SourceCodeIssues[pattern] {
 			rule := &analysis.Rule{
 				Name:     fmt.Sprintf("react-19-%s", issue.Pattern),
 				Severity: analysis.Warning,
 			}
 			detail := fmt.Sprintf(
-				"Detected in %s at line %d. %s See: %s",
+				"Detected in %s at line %d. %s See: %s Note: this may be a false positive.",
 				issue.Location.File,
 				issue.Location.Line,
 				issue.Fix.Description,
@@ -209,7 +218,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 			Severity: analysis.Warning,
 		}
 		detail := fmt.Sprintf(
-			"Affected packages: %s. See: %s",
+			"Affected packages: %s. See: %s Note: this may be a false positive.",
 			strings.Join(issue.PackageNames, ", "),
 			issue.Link,
 		)
