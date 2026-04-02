@@ -122,6 +122,7 @@ func TestReportIssuesSourceCode(t *testing.T) {
 	require.Contains(t, d.Detail, "10")
 	require.Contains(t, d.Detail, "Remove propTypes.")
 	require.Contains(t, d.Detail, "https://react.dev/upgrade")
+	require.Contains(t, d.Detail, "this may be a false positive")
 }
 
 // TestReportIssuesDependency verifies correct diagnostic generation for
@@ -152,6 +153,7 @@ func TestReportIssuesDependency(t *testing.T) {
 	require.Equal(t, "Depends on old react-dom", d.Title)
 	require.Contains(t, d.Detail, "react-dom, react")
 	require.Contains(t, d.Detail, "https://example.com/fix")
+	require.Contains(t, d.Detail, "this may be a false positive")
 }
 
 // TestReportIssuesNil verifies that a nil output produces no diagnostics.
