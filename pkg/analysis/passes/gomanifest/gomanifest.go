@@ -74,7 +74,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	goFiles, err = filterPluginGoFiles(sourceCodeDir, goFiles)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	if len(goFiles) == 0 {
