@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -69,6 +68,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	goFiles, err := doublestar.FilepathGlob(sourceCodeDir + "/**/*.go")
+	if err != nil {
+		return nil, nil
+	}
+
+	goFiles, err = filterPluginGoFiles(sourceCodeDir, goFiles)
 	if err != nil {
 		return nil, nil
 	}
@@ -159,9 +163,8 @@ func parseManifestFile(file string) (map[string]string, error) {
 		}
 		sha256sum := strings.TrimSpace(parsedLine[0])
 		fileName := normalizeFileName(strings.TrimSpace(parsedLine[1]))
-		// skip known non-backend files that some published plugins
-		// include in their manifest
-		if slices.Contains(ignoredManifestFiles, fileName) {
+		// skip non-plugin files that may exist in dependency folders
+		if isNodeModulesPath(fileName) {
 			continue
 		}
 		// format the manifest fileName:sha256sum
@@ -175,16 +178,35 @@ func parseManifestFile(file string) (map[string]string, error) {
 	return manifest, nil
 }
 
-// ignoredManifestFiles lists specific files that should be ignored when
-// validating the manifest. These are files that some published plugins
-// include in their manifest but are not part of the backend source code.
-var ignoredManifestFiles = []string{
-	"node_modules/flatted/golang/pkg/flatted/flatted.go",
-}
-
 func normalizeFileName(fileName string) string {
 	// takes a filename that might have windows or linux separators and converts them to a linux separator
 	return strings.Replace(fileName, "\\", "/", -1)
+}
+
+func isNodeModulesPath(fileName string) bool {
+	normalized := normalizeFileName(fileName)
+	return normalized == "node_modules" ||
+		strings.HasPrefix(normalized, "node_modules/") ||
+		strings.Contains(normalized, "/node_modules/")
+}
+
+func filterPluginGoFiles(sourceCodeDir string, goFiles []string) ([]string, error) {
+	filteredGoFiles := make([]string, 0, len(goFiles))
+
+	for _, goFilePath := range goFiles {
+		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
+		if err != nil {
+			return nil, err
+		}
+
+		if isNodeModulesPath(goFileRelativePath) {
+			continue
+		}
+
+		filteredGoFiles = append(filteredGoFiles, goFilePath)
+	}
+
+	return filteredGoFiles, nil
 }
 
 func verifyManifest(
