@@ -218,3 +218,41 @@ func TestWindowsLineEndingsManifest(t *testing.T) {
 	prettyprint.Print(interceptor.Diagnostics)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
+
+func TestIsNodeModulesPath(t *testing.T) {
+	testCases := []struct {
+		name     string
+		path     string
+		expected bool
+	}{
+		{name: "exact node_modules", path: "node_modules", expected: true},
+		{name: "root node_modules child", path: "node_modules/flatted/main.go", expected: true},
+		{name: "nested node_modules child", path: "src/node_modules/flatted/main.go", expected: true},
+		{name: "windows separators", path: `src\\node_modules\\flatted\\main.go`, expected: true},
+		{name: "similar but different directory name", path: "node_modules2/flatted/main.go", expected: false},
+		{name: "regular source path", path: "pkg/main.go", expected: false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, isNodeModulesPath(tc.path))
+		})
+	}
+}
+
+func TestFilterPluginGoFiles(t *testing.T) {
+	sourceCodeDir := filepath.Join("repo", "plugin")
+	goFiles := []string{
+		filepath.Join(sourceCodeDir, "pkg", "main.go"),
+		filepath.Join(sourceCodeDir, "pkg", "subdir", "worker.go"),
+		filepath.Join(sourceCodeDir, "node_modules", "flatted", "main.go"),
+		filepath.Join(sourceCodeDir, "src", "node_modules", "dep", "dep.go"),
+	}
+
+	filtered, err := filterPluginGoFiles(sourceCodeDir, goFiles)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		filepath.Join(sourceCodeDir, "pkg", "main.go"),
+		filepath.Join(sourceCodeDir, "pkg", "subdir", "worker.go"),
+	}, filtered)
+}
