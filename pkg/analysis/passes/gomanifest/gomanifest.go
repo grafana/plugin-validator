@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/bmatcuk/doublestar/v4"
@@ -163,8 +164,9 @@ func parseManifestFile(file string) (map[string]string, error) {
 		}
 		sha256sum := strings.TrimSpace(parsedLine[0])
 		fileName := normalizeFileName(strings.TrimSpace(parsedLine[1]))
-		// skip non-plugin files that may exist in dependency folders
-		if isNodeModulesPath(fileName) {
+		// skip known non-backend files that some published plugins
+		// include in their manifest
+		if slices.Contains(ignoredManifestFiles, fileName) {
 			continue
 		}
 		// format the manifest fileName:sha256sum
@@ -176,6 +178,13 @@ func parseManifestFile(file string) (map[string]string, error) {
 	}
 
 	return manifest, nil
+}
+
+// ignoredManifestFiles lists specific files that should be ignored when
+// validating the manifest. These are files that some published plugins
+// include in their manifest but are not part of the backend source code.
+var ignoredManifestFiles = []string{
+	"node_modules/flatted/golang/pkg/flatted/flatted.go",
 }
 
 func normalizeFileName(fileName string) string {

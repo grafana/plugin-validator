@@ -1,6 +1,7 @@
 package gomanifest
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -255,4 +256,38 @@ func TestFilterPluginGoFiles(t *testing.T) {
 		filepath.Join(sourceCodeDir, "pkg", "main.go"),
 		filepath.Join(sourceCodeDir, "pkg", "subdir", "worker.go"),
 	}, filtered)
+}
+
+func TestParseManifestFile_IgnoreListIsExplicit(t *testing.T) {
+	tempDir := t.TempDir()
+	manifestPath := filepath.Join(tempDir, "go_plugin_build_manifest")
+	manifestContent := "hash-main:pkg/main.go\n" +
+		"hash-ignored:node_modules/flatted/golang/pkg/flatted/flatted.go\n" +
+		"hash-nested:pkg/node_modules/unsafe.go\n"
+
+	require.NoError(t, os.WriteFile(manifestPath, []byte(manifestContent), 0o600))
+
+	manifest, err := parseManifestFile(manifestPath)
+	require.NoError(t, err)
+
+	_, hasIgnored := manifest["node_modules/flatted/golang/pkg/flatted/flatted.go"]
+	require.False(t, hasIgnored)
+	require.Equal(t, "hash-main", manifest["pkg/main.go"])
+	require.Equal(t, "hash-nested", manifest["pkg/node_modules/unsafe.go"])
+}
+
+func TestParseManifestFile_IgnoreListWorksWithWindowsSeparators(t *testing.T) {
+	tempDir := t.TempDir()
+	manifestPath := filepath.Join(tempDir, "go_plugin_build_manifest")
+	manifestContent := "hash-main:pkg\\main.go\n" +
+		"hash-ignored:node_modules\\flatted\\golang\\pkg\\flatted\\flatted.go\n"
+
+	require.NoError(t, os.WriteFile(manifestPath, []byte(manifestContent), 0o600))
+
+	manifest, err := parseManifestFile(manifestPath)
+	require.NoError(t, err)
+
+	_, hasIgnored := manifest["node_modules/flatted/golang/pkg/flatted/flatted.go"]
+	require.False(t, hasIgnored)
+	require.Equal(t, "hash-main", manifest["pkg/main.go"])
 }
