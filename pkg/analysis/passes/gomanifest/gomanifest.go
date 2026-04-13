@@ -73,6 +73,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	goFiles, err = filterPluginGoFiles(sourceCodeDir, goFiles)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(goFiles) == 0 {
 		// no go files found so we can't check the manifest
 		return nil, nil
@@ -185,6 +190,32 @@ var ignoredManifestFiles = []string{
 func normalizeFileName(fileName string) string {
 	// takes a filename that might have windows or linux separators and converts them to a linux separator
 	return strings.Replace(fileName, "\\", "/", -1)
+}
+
+func isNodeModulesPath(fileName string) bool {
+	normalized := normalizeFileName(fileName)
+	return normalized == "node_modules" ||
+		strings.HasPrefix(normalized, "node_modules/") ||
+		strings.Contains(normalized, "/node_modules/")
+}
+
+func filterPluginGoFiles(sourceCodeDir string, goFiles []string) ([]string, error) {
+	filteredGoFiles := make([]string, 0, len(goFiles))
+
+	for _, goFilePath := range goFiles {
+		goFileRelativePath, err := filepath.Rel(sourceCodeDir, goFilePath)
+		if err != nil {
+			return nil, err
+		}
+
+		if isNodeModulesPath(goFileRelativePath) {
+			continue
+		}
+
+		filteredGoFiles = append(filteredGoFiles, goFilePath)
+	}
+
+	return filteredGoFiles, nil
 }
 
 func verifyManifest(
