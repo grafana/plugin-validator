@@ -16,11 +16,48 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
+// boundedBuffer is an io.Writer that accumulates bytes up to `limit` and silently
+// discards anything beyond that. It reports writes as fully successful so the
+// subprocess never sees backpressure or broken pipes from buffer fullness.
+type boundedBuffer struct {
+	buf       bytes.Buffer
+	limit     int
+	truncated bool
+}
+
+func (b *boundedBuffer) Write(p []byte) (int, error) {
+	remaining := b.limit - b.buf.Len()
+	if remaining <= 0 {
+		b.truncated = true
+		return len(p), nil
+	}
+	if len(p) > remaining {
+		b.buf.Write(p[:remaining])
+		b.truncated = true
+		return len(p), nil
+	}
+	return b.buf.Write(p)
+}
+
+func (b *boundedBuffer) Bytes() []byte  { return b.buf.Bytes() }
+func (b *boundedBuffer) String() string { return b.buf.String() }
+
 const (
-	cliPackage    = "@grafana/plugin-docs-cli"
+	cliPackage = "@grafana/plugin-docs-cli"
+	// cliVersion pins the CLI so validation is reproducible across runs and can't be
+	// influenced by whatever version `latest` resolves to on a given day. Bump this
+	// deliberately when adopting new validation rules from the CLI.
+	cliVersion    = "0.0.10"
 	cliRunCommand = "validate"
 	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
 	runTimeout = 120 * time.Second
+	// waitDelay caps how long Wait blocks after the context is canceled, so grandchild
+	// processes spawned by npx (node, the CLI itself) can't keep the stdout/stderr pipes
+	// open forever and stall the validator run.
+	waitDelay = 5 * time.Second
+	// maxBufferBytes bounds stdout and stderr separately. A misbehaving CLI could otherwise
+	// emit enough output to OOM the validator host.
+	maxBufferBytes = 4 * 1024 * 1024
 )
 
 var (
@@ -76,11 +113,6 @@ type cliResult struct {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	if os.Getenv("SKIP_PLUGIN_DOCS_CLI") != "" {
-		logme.Debugln("SKIP_PLUGIN_DOCS_CLI set, skipping plugin docs validation")
-		return nil, nil
-	}
-
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
 	if !ok || sourceCodeDir == "" {
 		// no source code available - can't validate docs
@@ -109,11 +141,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage, cliRunCommand, "--json", "--strict")
+	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage+"@"+cliVersion, cliRunCommand, "--json", "--strict")
 	cmd.Dir = sourceCodeDir
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	cmd.WaitDelay = waitDelay
+	stdout := &boundedBuffer{limit: maxBufferBytes}
+	stderr := &boundedBuffer{limit: maxBufferBytes}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	runErr := cmd.Run()
 

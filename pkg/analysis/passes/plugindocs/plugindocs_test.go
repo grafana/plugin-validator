@@ -143,22 +143,3 @@ func TestSkipsWhenNoSourceCode(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
-
-// TestSkipsWhenEnvVarSet covers the operator escape hatch - SKIP_PLUGIN_DOCS_CLI=1 must
-// bypass everything, including plugins that have docsPath set.
-func TestSkipsWhenEnvVarSet(t *testing.T) {
-	t.Setenv("SKIP_PLUGIN_DOCS_CLI", "1")
-
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		RootDir: "./",
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer: filepath.Join("testdata", "with-docspath"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	_, err := Analyzer.Run(pass)
-	require.NoError(t, err)
-	require.Len(t, interceptor.Diagnostics, 0)
-}
