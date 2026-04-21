@@ -5,13 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
@@ -81,7 +80,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "plugindocs",
-	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
+	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer, sourcecode.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
 		pluginDocsError,
@@ -119,16 +118,16 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// hard gate: only run if the plugin has opted in via `docsPath` in src/plugin.json.
+	// hard gate: only run if the plugin has opted in via `docsPath` in plugin.json.
 	// this short-circuits before any external process is spawned for the ~99% of plugins
 	// that haven't opted into multi-page docs.
-	hasDocs, err := pluginHasDocsPath(sourceCodeDir)
-	if err != nil {
-		logme.Debugln("plugindocs: failed to inspect src/plugin.json, skipping:", err)
+	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
+	if !ok {
 		return nil, nil
 	}
-	if !hasDocs {
-		logme.Debugln("plugindocs: docsPath not set in src/plugin.json, skipping")
+	meta, ok := metadatamap[nestedmetadata.MainPluginJson]
+	if !ok || strings.TrimSpace(meta.DocsPath) == "" {
+		logme.Debugln("plugindocs: docsPath not set in plugin.json, skipping")
 		return nil, nil
 	}
 
@@ -173,28 +172,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	return nil, nil
 }
 
-// pluginHasDocsPath reports whether src/plugin.json exists and has a non-empty docsPath field.
-// returns (false, nil) when plugin.json is missing - a missing src/plugin.json means the
-// validator was invoked without source code, which is a skip condition, not an error.
-func pluginHasDocsPath(sourceCodeDir string) (bool, error) {
-	pluginJSONPath := filepath.Join(sourceCodeDir, "src", "plugin.json")
-	raw, err := os.ReadFile(pluginJSONPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil
-		}
-		return false, fmt.Errorf("read %s: %w", pluginJSONPath, err)
-	}
-
-	var parsed struct {
-		DocsPath string `json:"docsPath"`
-	}
-	if err := json.Unmarshal(raw, &parsed); err != nil {
-		return false, fmt.Errorf("parse %s: %w", pluginJSONPath, err)
-	}
-
-	return strings.TrimSpace(parsed.DocsPath) != "", nil
-}
 
 func ruleForSeverity(severity string) *analysis.Rule {
 	switch severity {

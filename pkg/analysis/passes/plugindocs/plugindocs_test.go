@@ -7,51 +7,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
-
-func TestPluginHasDocsPath(t *testing.T) {
-	tests := []struct {
-		name      string
-		sourceDir string
-		want      bool
-		expectErr bool
-	}{
-		{
-			name:      "docsPath set",
-			sourceDir: filepath.Join("testdata", "with-docspath"),
-			want:      true,
-		},
-		{
-			name:      "docsPath not present",
-			sourceDir: filepath.Join("testdata", "no-docspath"),
-			want:      false,
-		},
-		{
-			name:      "docsPath is empty string",
-			sourceDir: filepath.Join("testdata", "empty-docspath"),
-			want:      false,
-		},
-		{
-			name:      "plugin.json missing",
-			sourceDir: filepath.Join("testdata", "does-not-exist"),
-			want:      false,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			got, err := pluginHasDocsPath(tc.sourceDir)
-			if tc.expectErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			require.Equal(t, tc.want, got)
-		})
-	}
-}
 
 func TestRuleForSeverity(t *testing.T) {
 	require.Equal(t, pluginDocsError, ruleForSeverity("error"))
@@ -101,7 +61,10 @@ func TestSkipsWhenNoDocsPath(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer: filepath.Join("testdata", "no-docspath"),
+			sourcecode.Analyzer:     filepath.Join("testdata", "no-docspath"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{},
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -116,7 +79,28 @@ func TestSkipsWhenDocsPathIsEmpty(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer: filepath.Join("testdata", "empty-docspath"),
+			sourcecode.Analyzer:     filepath.Join("testdata", "empty-docspath"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: ""},
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestSkipsWhenDocsPathIsWhitespaceOnly(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: "./",
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer:     filepath.Join("testdata", "empty-docspath"),
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: "   "},
+			},
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
@@ -131,10 +115,31 @@ func TestSkipsWhenDocsPathIsEmpty(t *testing.T) {
 func TestSkipsWhenNoSourceCode(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
-		RootDir:  "./",
+		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			// sourcecode.Analyzer intentionally absent - matches how the runner records
 			// "no source code provided" (sourcecode.run returns (nil, nil) in that case).
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: "docs"},
+			},
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+// TestSkipsWhenNoMetadata covers the case where nestedmetadata did not produce a result
+// (e.g. archive was empty or invalid).
+func TestSkipsWhenNoMetadata(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: "./",
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "with-docspath"),
+			// nestedmetadata.Analyzer intentionally absent
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
