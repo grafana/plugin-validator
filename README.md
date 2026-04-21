@@ -308,6 +308,7 @@ Run "mage gen:readme" to regenerate this section.
 | No Tracking Scripts / `trackingscripts` | Detects if there are any known tracking scripts, which are not allowed. | None |
 | Organization (exists) / `org` | Verifies the org specified in the plugin ID exists. | None |
 | package.json / `packagejson` | Ensures that package.json exists and the version matches the plugin.json | None |
+| Plugin Docs / `plugindocs` | Runs the `@grafana/plugin-docs-cli validate` command to check multi-page documentation (only for plugins that set `docsPath` in `plugin.json`). | `node`, `npx` |
 | Plugin Name formatting / `pluginname` | Validates the plugin ID used conforms to our naming convention. | None |
 | Provenance attestation validation / `provenance` | Validates the provenance attestation if the plugin was built with a pipeline supporting provenance attestation (e.g Github Actions). | None |
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
