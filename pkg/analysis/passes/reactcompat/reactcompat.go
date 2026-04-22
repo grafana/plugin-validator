@@ -180,7 +180,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 				issue.Fix.Description,
 				issue.Link,
 			)
-			pass.ReportResult(pass.AnalyzerName, rule, issue.Problem, detail)
+			pass.ReportResult(pass.AnalyzerName, rule, "React 19 compatibility: "+issue.Problem, detail)
 			count++
 		}
 	}
@@ -195,7 +195,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 			strings.Join(issue.PackageNames, ", "),
 			issue.Link,
 		)
-		pass.ReportResult(pass.AnalyzerName, rule, issue.Problem, detail)
+		pass.ReportResult(pass.AnalyzerName, rule, "React 19 compatibility: "+issue.Problem, detail)
 		count++
 	}
 

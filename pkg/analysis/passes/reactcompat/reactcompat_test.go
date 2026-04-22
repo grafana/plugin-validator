@@ -116,7 +116,7 @@ func TestReportIssuesSourceCode(t *testing.T) {
 	d := interceptor.Diagnostics[0]
 	require.Equal(t, "react-19-usePropTypes", d.Name)
 	require.Equal(t, analysis.Warning, d.Severity)
-	require.Equal(t, "Uses deprecated propTypes", d.Title)
+	require.Equal(t, "React 19 compatibility: Uses deprecated propTypes", d.Title)
 	require.Contains(t, d.Detail, "module.js")
 	require.Contains(t, d.Detail, "10")
 	require.Contains(t, d.Detail, "Remove propTypes.")
@@ -149,7 +149,7 @@ func TestReportIssuesDependency(t *testing.T) {
 	d := interceptor.Diagnostics[0]
 	require.Equal(t, "react-19-dep-oldReactDom", d.Name)
 	require.Equal(t, analysis.Warning, d.Severity)
-	require.Equal(t, "Depends on old react-dom", d.Title)
+	require.Equal(t, "React 19 compatibility: Depends on old react-dom", d.Title)
 	require.Contains(t, d.Detail, "react-dom, react")
 	require.Contains(t, d.Detail, "https://example.com/fix")
 	require.Contains(t, d.Detail, "this may be a false positive")
