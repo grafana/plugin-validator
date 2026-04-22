@@ -1,7 +1,6 @@
 package reactcompat
 
 import (
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -168,9 +167,7 @@ func TestReportIssuesNil(t *testing.T) {
 // TestNpxNotAvailable verifies that the analyzer silently skips (nil, nil) when
 // npx is not found in PATH, producing no diagnostics.
 func TestNpxNotAvailable(t *testing.T) {
-	if _, err := exec.LookPath("npx"); err == nil {
-		t.Skip("npx is available in this environment; skipping npx-not-found test")
-	}
+	t.Setenv("PATH", "/nonexistent")
 
 	archiveDir := t.TempDir()
 	var interceptor testpassinterceptor.TestPassInterceptor
