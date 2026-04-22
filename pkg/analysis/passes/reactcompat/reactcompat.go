@@ -120,7 +120,8 @@ func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	// Dependency issues are intentionally included (no --skipDependencies).
 	args := []string{
 		"-y",
-		"@grafana/react-detect@latest",
+		// Pinned for reproducibility. Bump intentionally when adopting new detection rules.
+		"@grafana/react-detect@0.6.4",
 		"--json",
 		"--distDir", archiveDir,
 		"--skipBuildTooling",
