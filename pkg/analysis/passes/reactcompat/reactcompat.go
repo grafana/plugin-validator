@@ -35,8 +35,9 @@ var Analyzer = &analysis.Analyzer{
 	Run:      run,
 	Rules:    []*analysis.Rule{react19Issue, react19Compatible},
 	ReadmeInfo: analysis.ReadmeInfo{
-		Name:        "React 19 Compatibility",
-		Description: "Detects usage of React APIs removed or deprecated in React 19 using @grafana/react-detect.",
+		Name:         "React 19 Compatibility",
+		Description:  "Detects usage of React APIs removed or deprecated in React 19 using @grafana/react-detect.",
+		Dependencies: "[npx](https://docs.npmjs.com/cli/v10/commands/npx)",
 	},
 }
 
@@ -131,6 +132,9 @@ func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
+	if stderr.Len() > 0 {
+		logme.DebugFln("react-detect stderr: %s", stderr.String())
+	}
 	if err != nil {
 		return nil, fmt.Errorf("react-detect exited with error: %w (stderr: %s)", err, stderr.String())
 	}

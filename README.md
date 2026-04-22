@@ -311,7 +311,7 @@ Run "mage gen:readme" to regenerate this section.
 | Plugin Name formatting / `pluginname` | Validates the plugin ID used conforms to our naming convention. | None |
 | Provenance attestation validation / `provenance` | Validates the provenance attestation if the plugin was built with a pipeline supporting provenance attestation (e.g Github Actions). | None |
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
-| React 19 Compatibility / `reactcompat` | Detects usage of React APIs removed or deprecated in React 19 using @grafana/react-detect. | None |
+| React 19 Compatibility / `reactcompat` | Detects usage of React APIs removed or deprecated in React 19 using @grafana/react-detect. | [npx](https://docs.npmjs.com/cli/v10/commands/npx) |
 | Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
 | Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
 | Safe Links / `safelinks` | Checks that links from `plugin.json` are safe. | None |
