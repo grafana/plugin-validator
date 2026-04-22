@@ -28,7 +28,7 @@ var (
 
 // Analyzer checks for React 19 compatibility issues in the plugin bundle by
 // delegating to npx @grafana/react-detect. It silently skips if npx is not
-// available in PATH.
+// available in PATH, or if react-detect fails to run or returns unparseable output.
 var Analyzer = &analysis.Analyzer{
 	Name:     "reactcompat",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
