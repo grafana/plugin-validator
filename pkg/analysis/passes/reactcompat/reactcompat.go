@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -88,14 +86,7 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	logme.DebugFln("npx path: %s", npxPath)
 
-	tmpDir, cleanup, err := prepareTmpDir(archiveDir)
-	if err != nil {
-		logme.DebugFln("failed to prepare temp dir for react-detect: %v", err)
-		return nil, nil
-	}
-	defer cleanup()
-
-	output, err := runReactDetect(npxPath, tmpDir)
+	output, err := runReactDetect(npxPath, archiveDir)
 	if err != nil {
 		logme.DebugFln("react-detect failed: %v", err)
 		return nil, nil
@@ -115,40 +106,22 @@ func run(pass *analysis.Pass) (any, error) {
 	return nil, nil
 }
 
-// prepareTmpDir creates a temporary directory with a dist/ symlink pointing at
-// archiveDir. The extracted archive has files at the root (module.js, plugin.json,
-// etc.) but react-detect expects them under a dist/ subdirectory.
-// The returned cleanup function removes the temp directory.
-func prepareTmpDir(archiveDir string) (string, func(), error) {
-	tmpDir, err := os.MkdirTemp("", "reactcompat-*")
-	if err != nil {
-		return "", nil, fmt.Errorf("create temp dir: %w", err)
-	}
-
-	cleanup := func() { os.RemoveAll(tmpDir) }
-
-	distLink := filepath.Join(tmpDir, "dist")
-	if err := os.Symlink(archiveDir, distLink); err != nil {
-		cleanup()
-		return "", nil, fmt.Errorf("create dist symlink: %w", err)
-	}
-
-	return tmpDir, cleanup, nil
-}
-
 // runReactDetect shells out to react-detect and returns the parsed output.
-func runReactDetect(npxPath, pluginRoot string) (*reactDetectOutput, error) {
+// --distDir points react-detect directly at the extracted archive directory,
+// avoiding the need for a symlink or temp directory.
+func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	// --json: machine-readable output. --skipBuildTooling: avoid running bundlers.
 	// --noErrorExitCode: always exit 0 so we can parse partial output on warnings.
+	// --distDir: point at the extracted archive directly (available since v0.6.4).
 	// Dependency issues are intentionally included (no --skipDependencies).
 	args := []string{
 		"-y",
 		"@grafana/react-detect@latest",
 		"--json",
-		"--pluginRoot", pluginRoot,
+		"--distDir", archiveDir,
 		"--skipBuildTooling",
 		"--noErrorExitCode",
 	}

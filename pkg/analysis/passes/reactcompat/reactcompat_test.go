@@ -1,7 +1,6 @@
 package reactcompat
 
 import (
-	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
@@ -164,26 +163,6 @@ func TestReportIssuesNil(t *testing.T) {
 	count := reportIssues(pass, nil)
 	require.Equal(t, 0, count)
 	require.Len(t, interceptor.Diagnostics, 0)
-}
-
-// TestPrepareTmpDir verifies that prepareTmpDir creates the expected symlink
-// and that the cleanup function removes the directory.
-func TestPrepareTmpDir(t *testing.T) {
-	archiveDir := t.TempDir()
-
-	tmpDir, cleanup, err := prepareTmpDir(archiveDir)
-	require.NoError(t, err)
-	require.NotEmpty(t, tmpDir)
-
-	distLink := filepath.Join(tmpDir, "dist")
-	target, err := os.Readlink(distLink)
-	require.NoError(t, err)
-	require.Equal(t, archiveDir, target)
-
-	cleanup()
-
-	_, statErr := os.Stat(tmpDir)
-	require.True(t, os.IsNotExist(statErr), "temp dir should be removed after cleanup")
 }
 
 // TestNpxNotAvailable verifies that the analyzer silently skips (nil, nil) when
