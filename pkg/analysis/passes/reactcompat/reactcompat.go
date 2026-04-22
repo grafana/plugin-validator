@@ -27,8 +27,8 @@ var (
 )
 
 // Analyzer checks for React 19 compatibility issues in the plugin bundle by
-// delegating to npx @grafana/react-detect. It silently skips if npx is not
-// available in PATH, or if react-detect fails to run or returns unparseable output.
+// delegating to npx @grafana/react-detect. If npx is not available or
+// react-detect fails, a warning diagnostic is emitted explaining the skip.
 var Analyzer = &analysis.Analyzer{
 	Name:     "reactcompat",
 	Requires: []*analysis.Analyzer{archive.Analyzer},
@@ -83,6 +83,12 @@ func run(pass *analysis.Pass) (any, error) {
 	npxPath, err := exec.LookPath("npx")
 	if err != nil {
 		logme.DebugFln("npx not found in PATH, skipping react-detect")
+		pass.ReportResult(
+			pass.AnalyzerName,
+			react19Issue,
+			"React 19 compatibility: skipped (npx not found in PATH)",
+			"Install Node.js and npx to enable React 19 compatibility checks.",
+		)
 		return nil, nil
 	}
 	logme.DebugFln("npx path: %s", npxPath)
@@ -90,6 +96,12 @@ func run(pass *analysis.Pass) (any, error) {
 	output, err := runReactDetect(npxPath, archiveDir)
 	if err != nil {
 		logme.DebugFln("react-detect failed: %v", err)
+		pass.ReportResult(
+			pass.AnalyzerName,
+			react19Issue,
+			"React 19 compatibility: skipped (react-detect failed)",
+			fmt.Sprintf("react-detect could not be executed: %v", err),
+		)
 		return nil, nil
 	}
 
