@@ -164,8 +164,8 @@ func TestReportIssuesNil(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
-// TestNpxNotAvailable verifies that the analyzer reports a warning when
-// npx is not found in PATH.
+// TestNpxNotAvailable verifies that the analyzer silently skips when
+// npx is not found in PATH, producing no diagnostics.
 func TestNpxNotAvailable(t *testing.T) {
 	t.Setenv("PATH", "/nonexistent")
 
@@ -176,9 +176,7 @@ func TestNpxNotAvailable(t *testing.T) {
 	result, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	require.Nil(t, result)
-	require.Len(t, interceptor.Diagnostics, 1)
-	require.Equal(t, "react-19-issue", interceptor.Diagnostics[0].Name)
-	require.Contains(t, interceptor.Diagnostics[0].Title, "npx not found")
+	require.Len(t, interceptor.Diagnostics, 0)
 }
 
 // TestReportIssuesCombined verifies that multiple source code issue groups and a
