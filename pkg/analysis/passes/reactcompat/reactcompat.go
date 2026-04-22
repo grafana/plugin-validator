@@ -175,7 +175,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 		for _, issue := range output.SourceCodeIssues[pattern] {
 			rule := &analysis.Rule{
 				Name:     fmt.Sprintf("react-19-%s", issue.Pattern),
-				Severity: analysis.Warning,
+				Severity: react19Issue.Severity,
 			}
 			detail := fmt.Sprintf(
 				"Detected in %s at line %d. %s See: %s Note: this may be a false positive.",
@@ -192,7 +192,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 	for _, issue := range output.DependencyIssues {
 		rule := &analysis.Rule{
 			Name:     fmt.Sprintf("react-19-dep-%s", issue.Pattern),
-			Severity: analysis.Warning,
+			Severity: react19Issue.Severity,
 		}
 		detail := fmt.Sprintf(
 			"Affected packages: %s. See: %s Note: this may be a false positive.",
