@@ -10,6 +10,7 @@ type Metadata struct {
 	Backend      bool                 `json:"backend"`
 	Alerting     bool                 `json:"alerting"`
 	Dependencies MetadataDependencies `json:"dependencies"`
+	DocsPath     string               `json:"docsPath"`
 }
 
 type Info struct {

@@ -1,0 +1,236 @@
+package plugindocs
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"os/exec"
+	"strings"
+	"time"
+
+	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/logme"
+)
+
+// boundedBuffer is an io.Writer that accumulates bytes up to `limit` and silently
+// discards anything beyond that. It reports writes as fully successful so the
+// subprocess never sees backpressure or broken pipes from buffer fullness.
+type boundedBuffer struct {
+	buf       bytes.Buffer
+	limit     int
+	truncated bool
+}
+
+func (b *boundedBuffer) Write(p []byte) (int, error) {
+	remaining := b.limit - b.buf.Len()
+	if remaining <= 0 {
+		b.truncated = true
+		return len(p), nil
+	}
+	if len(p) > remaining {
+		b.buf.Write(p[:remaining])
+		b.truncated = true
+		return len(p), nil
+	}
+	return b.buf.Write(p)
+}
+
+func (b *boundedBuffer) Bytes() []byte  { return b.buf.Bytes() }
+func (b *boundedBuffer) String() string { return b.buf.String() }
+
+const (
+	cliPackage = "@grafana/plugin-docs-cli"
+	// cliVersion pins the CLI so validation is reproducible across runs and can't be
+	// influenced by whatever version `latest` resolves to on a given day. Bump this
+	// deliberately when adopting new validation rules from the CLI.
+	cliVersion    = "0.0.10"
+	cliRunCommand = "validate"
+	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
+	runTimeout = 120 * time.Second
+	// waitDelay caps how long Wait blocks after the context is canceled, so grandchild
+	// processes spawned by npx (node, the CLI itself) can't keep the stdout/stderr pipes
+	// open forever and stall the validator run.
+	waitDelay = 5 * time.Second
+	// maxBufferBytes bounds stdout and stderr separately. A misbehaving CLI could otherwise
+	// emit enough output to OOM the validator host.
+	maxBufferBytes = 4 * 1024 * 1024
+)
+
+var (
+	pluginDocsError = &analysis.Rule{
+		Name:     "plugin-docs-error",
+		Severity: analysis.Error,
+	}
+	pluginDocsWarning = &analysis.Rule{
+		Name:     "plugin-docs-warning",
+		Severity: analysis.Warning,
+	}
+	pluginDocsInfo = &analysis.Rule{
+		Name:     "plugin-docs-info",
+		Severity: analysis.Recommendation,
+	}
+	pluginDocsCliFailure = &analysis.Rule{
+		Name:     "plugin-docs-cli-failure",
+		Severity: analysis.Warning,
+	}
+)
+
+var Analyzer = &analysis.Analyzer{
+	Name:     "plugindocs",
+	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer, sourcecode.Analyzer},
+	Run:      run,
+	Rules: []*analysis.Rule{
+		pluginDocsError,
+		pluginDocsWarning,
+		pluginDocsInfo,
+		pluginDocsCliFailure,
+	},
+	ReadmeInfo: analysis.ReadmeInfo{
+		Name:         "Plugin Docs",
+		Description:  fmt.Sprintf("Runs the `%s validate` command to check multi-page documentation (only for plugins that set `docsPath` in `plugin.json`).", cliPackage),
+		Dependencies: "`node`, `npx`",
+	},
+}
+
+// cliDiagnostic mirrors the Diagnostic shape produced by `plugin-docs-cli validate --json`.
+// See plugin-tools/packages/plugin-docs-cli/src/validation/types.ts.
+type cliDiagnostic struct {
+	Rule     string `json:"rule"`
+	Severity string `json:"severity"`
+	File     string `json:"file,omitempty"`
+	Line     int    `json:"line,omitempty"`
+	Title    string `json:"title"`
+	Detail   string `json:"detail"`
+}
+
+type cliResult struct {
+	Valid       bool            `json:"valid"`
+	Diagnostics []cliDiagnostic `json:"diagnostics"`
+}
+
+func run(pass *analysis.Pass) (interface{}, error) {
+	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
+	if !ok || sourceCodeDir == "" {
+		// no source code available - can't validate docs
+		return nil, nil
+	}
+
+	// hard gate: only run if the plugin has opted in via `docsPath` in plugin.json.
+	// this short-circuits before any external process is spawned for the ~99% of plugins
+	// that haven't opted into multi-page docs.
+	metadatamap, ok := pass.ResultOf[nestedmetadata.Analyzer].(nestedmetadata.Metadatamap)
+	if !ok {
+		return nil, nil
+	}
+	meta, ok := metadatamap[nestedmetadata.MainPluginJson]
+	if !ok || strings.TrimSpace(meta.DocsPath) == "" {
+		logme.Debugln("plugindocs: docsPath not set in plugin.json, skipping")
+		return nil, nil
+	}
+
+	npxBin, err := exec.LookPath("npx")
+	if err != nil {
+		logme.Debugln("plugindocs: npx not found on PATH, skipping plugin docs validation")
+		return nil, nil
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage+"@"+cliVersion, cliRunCommand, "--json", "--strict")
+	cmd.Dir = sourceCodeDir
+	cmd.WaitDelay = waitDelay
+	stdout := &boundedBuffer{limit: maxBufferBytes}
+	stderr := &boundedBuffer{limit: maxBufferBytes}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+
+	runErr := cmd.Run()
+
+	// the CLI exits 1 when any `error` severity diagnostic is present, or when something
+	// goes wrong before validation (e.g. could not find src/plugin.json). distinguish by
+	// whether stdout contains parseable JSON.
+	var result cliResult
+	if jsonErr := json.Unmarshal(stdout.Bytes(), &result); jsonErr != nil {
+		reportCliFailure(pass, runErr, stderr.String(), stdout.String())
+		return nil, nil
+	}
+
+	for _, d := range result.Diagnostics {
+		rule := ruleForSeverity(d.Severity)
+		pass.ReportResult(
+			pass.AnalyzerName,
+			rule,
+			formatTitle(d),
+			d.Detail,
+		)
+	}
+
+	return nil, nil
+}
+
+
+func ruleForSeverity(severity string) *analysis.Rule {
+	switch severity {
+	case "error":
+		return pluginDocsError
+	case "warning":
+		return pluginDocsWarning
+	case "info":
+		return pluginDocsInfo
+	default:
+		// unknown severity from the CLI - surface it as a warning so it's visible
+		// without blocking publishing. log for debugging.
+		logme.DebugFln("plugindocs: unknown CLI severity %q, defaulting to warning", severity)
+		return pluginDocsWarning
+	}
+}
+
+// formatTitle composes a human-readable title that preserves the CLI rule name and
+// file:line origin, since a single generic validator rule wraps many CLI rules.
+func formatTitle(d cliDiagnostic) string {
+	var location string
+	if d.File != "" {
+		if d.Line > 0 {
+			location = fmt.Sprintf(" (%s:%d)", d.File, d.Line)
+		} else {
+			location = fmt.Sprintf(" (%s)", d.File)
+		}
+	}
+	return fmt.Sprintf("[%s] %s%s", d.Rule, d.Title, location)
+}
+
+func reportCliFailure(pass *analysis.Pass, runErr error, stderr, stdout string) {
+	var msg strings.Builder
+	msg.WriteString("Could not run `")
+	msg.WriteString(cliPackage)
+	msg.WriteString(" ")
+	msg.WriteString(cliRunCommand)
+	msg.WriteString("`.")
+	if runErr != nil {
+		msg.WriteString(" error: ")
+		msg.WriteString(runErr.Error())
+	}
+	detail := strings.TrimSpace(stderr)
+	if detail == "" {
+		detail = strings.TrimSpace(stdout)
+	}
+	if detail == "" {
+		detail = "No output captured from the CLI."
+	}
+	// bound the detail so a noisy CLI failure doesn't produce a multi-MB diagnostic.
+	const maxDetail = 4096
+	if len(detail) > maxDetail {
+		detail = detail[:maxDetail] + "...[truncated]"
+	}
+
+	pass.ReportResult(
+		pass.AnalyzerName,
+		pluginDocsCliFailure,
+		msg.String(),
+		detail,
+	)
+}

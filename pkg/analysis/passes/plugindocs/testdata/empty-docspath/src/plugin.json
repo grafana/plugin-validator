@@ -1,0 +1,6 @@
+{
+  "id": "test-plugin-empty-docspath",
+  "type": "datasource",
+  "name": "Test Plugin With Empty Docs",
+  "docsPath": ""
+}
