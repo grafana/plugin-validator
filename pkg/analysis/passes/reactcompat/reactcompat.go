@@ -15,6 +15,10 @@ import (
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
 
+// reactDetectVersion is the pinned version of @grafana/react-detect.
+// Bump intentionally when adopting new detection rules.
+const reactDetectVersion = "0.6.4"
+
 var (
 	react19Issue = &analysis.Rule{
 		Name:     "react-19-issue",
@@ -128,8 +132,7 @@ func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	// Dependency issues are intentionally included (no --skipDependencies).
 	args := []string{
 		"-y",
-		// Pinned for reproducibility. Bump intentionally when adopting new detection rules.
-		"@grafana/react-detect@0.6.4",
+		"@grafana/react-detect@" + reactDetectVersion,
 		"--json",
 		"--distDir", archiveDir,
 		"--skipBuildTooling",
