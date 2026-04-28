@@ -728,3 +728,52 @@ func TestNoAPIDsQueryEndpointGood(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
+
+func TestBackendDatasourceShouldNotImplementTestDatasource(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "backend-datasource-testdatasource-bad"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, analysis.Error, interceptor.Diagnostics[0].Severity)
+	require.Equal(
+		t,
+		"Backend datasources (classes extending DataSourceWithBackend) must not implement testDatasource(). Remove this method and rely on backend health checks.",
+		interceptor.Diagnostics[0].Title,
+	)
+	require.Equal(
+		t,
+		"code-rules-backend-datasource-should-not-implement-testdatasource",
+		interceptor.Diagnostics[0].Name,
+	)
+}
+
+func TestBackendDatasourceWithoutTestDatasourceGood(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "backend-datasource-testdatasource-good"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}

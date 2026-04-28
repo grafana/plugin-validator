@@ -353,3 +353,12 @@ rules:
     message: "Direct frontend usage of '/api/ds/query' is not permitted. Use Grafana runtime APIs getDataSourceSrv().get(...) and then query(...) instead of calling this endpoint directly."
     languages: [javascript, typescript]
     severity: ERROR
+
+  - id: backend-datasource-should-not-implement-testdatasource
+    pattern-regex: (?s)class\s+\w+\s+extends\s+DataSourceWithBackend(?:<[^>]+>)?\s*\{.*?\btestDatasource\s*\(
+    paths:
+      include:
+        - "**/datasource.ts"
+    message: "Backend datasources (classes extending DataSourceWithBackend) must not implement testDatasource(). Remove this method and rely on backend health checks."
+    languages: [typescript]
+    severity: ERROR
