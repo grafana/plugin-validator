@@ -50,6 +50,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
+          # Override the parsed tag with the bare semver so GoReleaser's
+          # validation passes; the actual GitHub release tag is set via
+          # `release.tag` in .goreleaser.yaml.
+          GORELEASER_CURRENT_TAG: v${{ env.RELEASE_VERSION }}
 
   release-to-npm:
     runs-on: ubuntu-latest

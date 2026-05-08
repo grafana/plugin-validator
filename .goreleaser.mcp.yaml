@@ -35,3 +35,7 @@ checksum:
 
 changelog:
   disable: true
+
+release:
+  mode: keep-existing
+  tag: "mcp/v{{ .Version }}"
