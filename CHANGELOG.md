@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.0...plugin-validator/v0.42.1) (2026-05-08)
+
+
+### 🐛 Bug Fixes
+
+* **ci:** handle release-please prefixed tags in goreleaser publish ([#575](https://github.com/grafana/plugin-validator/issues/575)) ([e33c65a](https://github.com/grafana/plugin-validator/commit/e33c65a023b9fba37f347b9b32b5b5bb692057f9))
+
 ## [0.42.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.41.0...plugin-validator/v0.42.0) (2026-05-08)
 
 
