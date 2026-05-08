@@ -1,0 +1,64 @@
+name: Tag on version bump
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+
+jobs:
+  tag:
+    runs-on: ubuntu-arm64-small
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@a37de51f3d713a30a9e4b21bcdfbd38170020593 # v1.3.0
+        with:
+          repo_secrets: |
+            GITHUB_APP_ID=plugins-platform-bot-app:app_id
+            GITHUB_APP_PRIVATE_KEY=plugins-platform-bot-app:app_pem
+          export_env: false
+
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        with:
+          app-id: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_ID }}
+          private-key: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 2
+          token: ${{ steps.generate_token.outputs.token }}
+          persist-credentials: true
+
+      - name: Setup Git
+        run: |
+          git config user.name 'grafana-plugins-platform-bot[bot]'
+          git config user.email '144369747+grafana-plugins-platform-bot[bot]@users.noreply.github.com'
+
+      - name: Tag if version changed
+        run: |
+          NEW_VERSION=$(jq -r .version package.json)
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            PREV_VERSION=$(git show HEAD~1:package.json 2>/dev/null | jq -r .version)
+          else
+            PREV_VERSION=""
+          fi
+          if [ "$NEW_VERSION" = "$PREV_VERSION" ]; then
+            echo "Version unchanged ($NEW_VERSION). Nothing to do."
+            exit 0
+          fi
+          TAG="v$NEW_VERSION"
+          if git ls-remote --exit-code --tags origin "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists. Skipping."
+            exit 0
+          fi
+          echo "Creating and pushing tag $TAG"
+          git tag "$TAG"
+          git push origin "$TAG"

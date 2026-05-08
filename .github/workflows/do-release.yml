@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      pull-requests: write
 
     steps:
       - id: get-secrets
@@ -35,6 +36,7 @@ jobs:
           app-id: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_ID }}
           private-key: ${{ fromJSON(steps.get-secrets.outputs.secrets).GITHUB_APP_PRIVATE_KEY }}
           permission-contents: write
+          permission-pull-requests: write
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -46,14 +48,35 @@ jobs:
           git config user.name 'grafana-plugins-platform-bot[bot]'
           git config user.email '144369747+grafana-plugins-platform-bot[bot]@users.noreply.github.com'
 
-      - name: bump version
-        run: npm version ${INPUT_VERSION}
+      - name: Bump version
+        id: bump
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          NEW_VERSION=$(npm version "$INPUT_VERSION" --no-git-tag-version)
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "branch=release/bump-$NEW_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Push latest version
-        run: git push origin main
+      - name: Commit and push branch
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+        run: |
+          git switch -c "$BRANCH"
+          git add package.json package-lock.json
+          git commit -m "chore: release $NEW_VERSION"
+          git push origin "$BRANCH"
 
-      - name: Push tags
-        run: git push origin --tags
+      - name: Open PR
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+          BRANCH: ${{ steps.bump.outputs.branch }}
+        run: |
+          gh pr create \
+            --base main \
+            --head "$BRANCH" \
+            --title "chore: release $NEW_VERSION" \
+            --body "Automated version bump to \`$NEW_VERSION\`.
+
+          Once this PR is merged, the **Tag on version bump** workflow will create the \`$NEW_VERSION\` tag, which triggers the release pipeline (GitHub Release, npm, Docker)."

@@ -19,7 +19,9 @@ Use the ["Bump Version and release"](https://github.com/grafana/plugin-validator
 
 ### What happens after the workflow runs?
 
-The workflow bumps the version in `package.json`, commits to `main`, and pushes a `v*` tag. The tag push automatically triggers the ["Create release and publish"](https://github.com/grafana/plugin-validator/actions/workflows/release.yml) workflow, which:
+The workflow bumps the version in `package.json` on a new branch and opens a pull request titled `chore: release vX.Y.Z`. **Review and squash-merge the PR** to continue the release.
+
+When the PR merges, the ["Tag on version bump"](https://github.com/grafana/plugin-validator/actions/workflows/tag-on-version-bump.yml) workflow detects the version change and pushes a `v*` tag. The tag push automatically triggers the ["Create release and publish"](https://github.com/grafana/plugin-validator/actions/workflows/release.yml) workflow, which:
 
 1. Builds binaries via GoReleaser (Linux, Windows, Darwin) and creates a **GitHub Release**
 2. Publishes to **npm** (`@grafana/plugin-validator`)
