@@ -19,10 +19,11 @@ builds:
       - CGO_ENABLED=0
 
 archives:
-  - formats: [ tar.gz ]
+  - formats: [tar.gz]
+    name_template: "plugin-validator_{{ .Env.RELEASE_VERSION }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        formats: [ zip ]
+        formats: [zip]
 
 checksum:
   name_template: "checksums.txt"

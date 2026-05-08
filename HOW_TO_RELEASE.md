@@ -1,49 +1,47 @@
 # How to release a new version
 
-**IMPORTANT:** Do not push release tags manually. The entire release process is automated via GitHub Actions.
+**IMPORTANT:** Releases are driven by [release-please](https://github.com/googleapis/release-please-action) on top of [conventional commits](https://www.conventionalcommits.org/). You don't bump versions or push tags manually.
 
-## Plugin Validator
+## How it works
 
-Use the ["Bump Version and release"](https://github.com/grafana/plugin-validator/actions/workflows/do-release.yml) workflow:
+The [Release Please](https://github.com/grafana/plugin-validator/actions/workflows/release-please.yml) workflow runs on every push to `main`. It looks at the conventional commits since the last release and maintains an open release PR per package (one for the validator, one for the MCP server).
 
-1. Click **"Run workflow"**
-2. Keep branch: `main`
-3. Select the semver type: `patch`, `minor`, or `major`
-4. Click **"Run workflow"**
+When you merge a release PR:
 
-### Which semver type to choose?
+1. release-please creates the version tag and a GitHub Release with the changelog body.
+2. The tag push triggers the corresponding publish workflow.
 
-- **patch** -- bug fixes, dependency updates, documentation changes
-- **minor** -- new features (e.g. adding a new validator)
-- **major** -- breaking changes to the CLI interface, output format, or public API
+| Package | Tag format | Triggered workflow | Publishes to |
+| --- | --- | --- | --- |
+| Plugin Validator (root) | `plugin-validator/v*` | [Create release and publish](https://github.com/grafana/plugin-validator/actions/workflows/release.yml) | GitHub Release assets (GoReleaser), npm `@grafana/plugin-validator`, Docker `grafana/plugin-validator-cli` |
+| MCP Server | `mcp/v*` | [Create MCP release and publish](https://github.com/grafana/plugin-validator/actions/workflows/release-mcp.yml) | GitHub Release assets (GoReleaser), npm `@grafana/plugin-validator-mcp` |
 
-### What happens after the workflow runs?
+GoReleaser runs after release-please with the default `release.mode: keep-existing`, so it preserves the changelog body release-please put on the release and only attaches the binary assets.
 
-The workflow bumps the version in `package.json`, commits to `main`, and pushes a `v*` tag. The tag push automatically triggers the ["Create release and publish"](https://github.com/grafana/plugin-validator/actions/workflows/release.yml) workflow, which:
+## Cutting a release
 
-1. Builds binaries via GoReleaser (Linux, Windows, Darwin) and creates a **GitHub Release**
-2. Publishes to **npm** (`@grafana/plugin-validator`)
-3. Pushes a **Docker image** to `grafana/plugin-validator-cli` (tagged with the version and `latest`)
+1. Make sure your changes have landed on `main` with conventional commit messages (`feat:`, `fix:`, `chore:`, etc.). The bump type follows the commit types: `feat` → minor, `fix` → patch, `feat!` / `BREAKING CHANGE` → major.
+2. Open the release PR for the package you want to ship (titled `chore(plugin-validator): release X.Y.Z` or `chore(mcp): release X.Y.Z`). Review the proposed changelog and version bump.
+3. Squash-merge the release PR. The publish workflow runs automatically.
 
-## MCP Server
+If no release PR exists, the **Release Please** workflow can also be triggered manually from the Actions tab — it'll open one based on the current state of `main`.
 
-The MCP server has its own, independent release track. Use the ["Release MCP Server"](https://github.com/grafana/plugin-validator/actions/workflows/do-release-mcp.yml) workflow:
+## Conventional commit cheat sheet
 
-1. Click **"Run workflow"**
-2. Keep branch: `main`
-3. Select the semver type: `patch`, `minor`, or `major`
-4. Click **"Run workflow"**
+Use these prefixes; release-please groups them in the changelog:
 
-This bumps the version in `mcp-package/package.json`, commits to `main`, and pushes a `mcp/v*` tag. The tag push automatically triggers the ["Create MCP release and publish"](https://github.com/grafana/plugin-validator/actions/workflows/release-mcp.yml) workflow, which:
+- `feat:` -- new feature (minor bump)
+- `fix:` -- bug fix (patch bump)
+- `feat!:` / footer `BREAKING CHANGE:` -- breaking change (major bump)
+- `docs:`, `style:`, `refactor:`, `perf:`, `test:`, `build:`, `ci:`, `chore:`, `revert:` -- recorded in the changelog without changing the version (unless paired with `!` or `BREAKING CHANGE`)
 
-1. Builds binaries via GoReleaser (Linux, Windows, Darwin -- both amd64 and arm64) and creates a **GitHub Release**
-2. Publishes to **npm** (`@grafana/plugin-validator-mcp`)
+For MCP-server-only changes, scope your commit (e.g. `feat(mcp): add new tool`) and modify files under `mcp-package/` -- release-please uses paths to decide which package's version to bump.
 
 ## Permissions
 
 > [!NOTE]
-> For security purposes, external contributors don't usually have permissions to create new releases.
+> External contributors don't usually have permission to merge release PRs. Ask a maintainer.
 
-## GitHub or NPM tokens expiration
+## Token expirations
 
-GitHub and NPM tokens are required to auto-publish. These tokens eventually expire. If there's an error pushing tags to GitHub or updates to npm, review the token expiration. See the [secrets usage table](https://grafana.github.io/grafana-catalog-team/secrets-rotation/secrets-usage-table/) for details on which secrets are used and who owns them.
+The publish workflows use the `plugins-platform-bot-app` GitHub App and an npm token; both can expire. If a publish step fails with an auth error, check the [secrets usage table](https://grafana.github.io/grafana-catalog-team/secrets-rotation/secrets-usage-table/).

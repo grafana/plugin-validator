@@ -24,7 +24,7 @@
   "bin": "./bin/index.js",
   "binWrapper": {
     "name": "plugincheck2",
-    "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
+    "urlTemplate": "https://github.com/grafana/plugin-validator/releases/download/plugin-validator/v{{version}}/plugin-validator_{{version}}_{{platform}}_{{arch}}.tar.gz"
   },
   "dependencies": {
     "tar": "^7.4.3"

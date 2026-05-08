@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "changelog-sections": [
+    { "section": "🎉 Features", "type": "feat" },
+    { "section": "🐛 Bug Fixes", "type": "fix" },
+    { "section": "📝 Documentation", "type": "docs" },
+    { "section": "💄 Styles", "type": "style" },
+    { "section": "♻️ Code Refactoring", "type": "refactor" },
+    { "section": "⚡ Performance Improvements", "type": "perf" },
+    { "section": "✅ Tests", "type": "test" },
+    { "section": "🏗️ Builds", "type": "build" },
+    { "section": "🤖 Continuous Integrations", "type": "ci" },
+    { "section": "🔧 Chores", "type": "chore" },
+    { "section": "⏪ Reverts", "type": "revert" }
+  ],
+  "draft-pull-request": false,
+  "include-v-in-tag": true,
+  "packages": {
+    ".": {
+      "package-name": "plugin-validator",
+      "release-type": "node",
+      "exclude-paths": ["mcp-package"],
+      "bootstrap-sha": "627dd9babe0a4244226ed98208aeccbd319a572f"
+    },
+    "mcp-package": {
+      "package-name": "mcp",
+      "release-type": "node"
+    }
+  },
+  "tag-separator": "/",
+  "separate-pull-requests": true
+}
