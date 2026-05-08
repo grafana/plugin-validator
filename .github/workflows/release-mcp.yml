@@ -45,13 +45,14 @@ jobs:
         with:
           distribution: goreleaser
           version: latest
-          args: release --clean --config .goreleaser.mcp.yaml
+          # release-please tags look like `mcp/v0.1.2`, which GoReleaser's
+          # validate pipe can't parse as semver. Skip it; the archive name
+          # template uses `MCP_VERSION` directly and `release.mode:
+          # keep-existing` preserves release-please's notes.
+          args: release --clean --config .goreleaser.mcp.yaml --skip=validate
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-          # Override the parsed tag with the bare semver so GoReleaser's
-          # validation passes; the actual GitHub release tag is set via
-          # `release.tag` in .goreleaser.mcp.yaml.
-          GORELEASER_CURRENT_TAG: v${{ env.MCP_VERSION }}
+          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
           MCP_VERSION: ${{ env.MCP_VERSION }}
 
   release-mcp-to-npm:

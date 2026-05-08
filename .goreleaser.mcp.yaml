@@ -38,4 +38,3 @@ changelog:
 
 release:
   mode: keep-existing
-  tag: "mcp/v{{ .Version }}"
