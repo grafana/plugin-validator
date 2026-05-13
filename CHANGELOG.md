@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.1...plugin-validator/v0.42.2) (2026-05-08)
+
+
+### 🔧 Chores
+
+* migrate codeowners to @grafana/grafana-catalog ([#572](https://github.com/grafana/plugin-validator/issues/572)) ([93d60a1](https://github.com/grafana/plugin-validator/commit/93d60a1cee8c0d9b9173edc6bfc825c9314512e0))
+
 ## [0.42.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.0...plugin-validator/v0.42.1) (2026-05-08)
 
 
