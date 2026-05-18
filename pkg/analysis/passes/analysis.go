@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/codediff"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/coderules"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/gobuildinfo"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/grafanadependency"
@@ -69,6 +70,7 @@ var Analyzers = []*analysis.Analyzer{
 	checksum.Analyzer,
 	coderules.Analyzer,
 	discoverability.Analyzer,
+	gobuildinfo.Analyzer,
 	gomanifest.Analyzer,
 	gosec.Analyzer,
 	includesnested.Analyzer,
