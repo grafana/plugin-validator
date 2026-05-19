@@ -71,6 +71,20 @@ func TestWrongWebpackContent(t *testing.T) {
 	require.Equal(t, "non-standard frontend build tooling", interceptor.Diagnostics[0].Title)
 }
 
+func TestValidBackendLowercaseMagefile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "valid-backend-lowercase-magefile"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestMissingMagefile(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{

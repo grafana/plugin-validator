@@ -73,15 +73,15 @@ func checkMagefile(pass *analysis.Pass, sourceCodeDir string) {
 		return
 	}
 
-	magefilePath := filepath.Join(sourceCodeDir, "Magefile.go")
-	if _, err := os.Stat(magefilePath); os.IsNotExist(err) {
+	matches, _ := filepath.Glob(filepath.Join(sourceCodeDir, "[Mm]agefile.go"))
+	if len(matches) == 0 {
 		pass.ReportResult(pass.AnalyzerName, nonStandardBackendBuildTooling,
 			"non-standard backend build tooling",
 			"The plugin does not appear to use Grafana's standard backend build tooling. Please use create-plugin to scaffold your plugin: https://grafana.com/developers/plugin-tools/")
 		return
 	}
 
-	b, err := os.ReadFile(magefilePath)
+	b, err := os.ReadFile(matches[0])
 	if err != nil {
 		return
 	}
