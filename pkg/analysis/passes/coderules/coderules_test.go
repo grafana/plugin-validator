@@ -617,6 +617,56 @@ func TestTsIgnoreSuppressGood(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
+// TestRuleExceptionSuppressesDiagnostic verifies that run() uses the pre-registered
+// rule pointer from semgrepRulesMap, so that when initAnalyzers() marks a rule as
+// Disabled (e.g. due to a per-rule exception in the config), the diagnostic is suppressed.
+// The test first confirms the violation is reported normally, then disables the rule via
+// the pre-registered pointer (as initAnalyzers() would) and confirms it is gone.
+func TestRuleExceptionSuppressesDiagnostic(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+
+	ruleName := "code-rules-no-direct-css-imports"
+	resultOf := map[*analysis.Analyzer]interface{}{
+		sourcecode.Analyzer: filepath.Join("testdata", "no-direct-css-imports"),
+	}
+
+	// First: confirm the violation is reported when the rule is enabled.
+	var withRule testpassinterceptor.TestPassInterceptor
+	_, err := Analyzer.Run(&analysis.Pass{
+		RootDir:  filepath.Join("./"),
+		ResultOf: resultOf,
+		Report:   withRule.ReportInterceptor(),
+	})
+	require.NoError(t, err)
+	require.Greater(t, len(withRule.Diagnostics), 0, "expected violations before disabling rule")
+	ruleNames := make([]string, 0, len(withRule.Diagnostics))
+	for _, d := range withRule.Diagnostics {
+		ruleNames = append(ruleNames, d.Name)
+	}
+	require.Contains(t, ruleNames, ruleName, "expected %q diagnostic before disabling", ruleName)
+
+	// Now disable the rule via the pre-registered pointer, as initAnalyzers() does.
+	rule, ok := semgrepRulesMap[ruleName]
+	require.True(t, ok, "rule %q must be pre-registered in semgrepRulesMap", ruleName)
+	rule.Disabled = true
+	defer func() { rule.Disabled = false }()
+
+	// Confirm the diagnostic is now suppressed.
+	var withException testpassinterceptor.TestPassInterceptor
+	_, err = Analyzer.Run(&analysis.Pass{
+		RootDir:  filepath.Join("./"),
+		ResultOf: resultOf,
+		Report:   withException.ReportInterceptor(),
+	})
+	require.NoError(t, err)
+	for _, d := range withException.Diagnostics {
+		require.NotEqual(t, ruleName, d.Name, "disabled rule %q must not produce diagnostics", ruleName)
+	}
+}
+
 func TestNoDirectCSSImports(t *testing.T) {
 	if !isSemgrepInstalled() {
 		t.Skip("semgrep not installed, skipping test")
