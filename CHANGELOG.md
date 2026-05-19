@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.2...plugin-validator/v0.42.3) (2026-05-19)
+
+
+### 🤖 Continuous Integrations
+
+* use GATB for release and release-mcp GitHub tokens ([#588](https://github.com/grafana/plugin-validator/issues/588)) ([8f563f6](https://github.com/grafana/plugin-validator/commit/8f563f60449c61dee8b65c7dcbed6132ba686b98))
+
 ## [0.42.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.1...plugin-validator/v0.42.2) (2026-05-19)
 
 
