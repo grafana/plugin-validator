@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.42.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.1...plugin-validator/v0.42.2) (2026-05-19)
+
+
+### 🐛 Bug Fixes
+
+* accept lowercase magefile.go in backend build tooling check ([#585](https://github.com/grafana/plugin-validator/issues/585)) ([cfafb01](https://github.com/grafana/plugin-validator/commit/cfafb019d39365c13435b1375c2138bac5dd9d56))
+* code-rules per-rule exceptions and severity config not applied ([#582](https://github.com/grafana/plugin-validator/issues/582)) ([a8e1a2c](https://github.com/grafana/plugin-validator/commit/a8e1a2c9b204efaf5f16a15147379e6c6a1b1d63))
+
+
+### 🤖 Continuous Integrations
+
+* use GATB for release-please GitHub token ([#584](https://github.com/grafana/plugin-validator/issues/584)) ([6d1dd2a](https://github.com/grafana/plugin-validator/commit/6d1dd2acdd88f9d53ac290312613fc336a512124))
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/go-git/go-git/v5 to v5.19.0 [security] ([#579](https://github.com/grafana/plugin-validator/issues/579)) ([54685dd](https://github.com/grafana/plugin-validator/commit/54685dd038d99eeff93bde8134b53afe1e131333))
+* Disable install scripts in package manager configs ([#581](https://github.com/grafana/plugin-validator/issues/581)) ([2e92589](https://github.com/grafana/plugin-validator/commit/2e92589c88d448805b1bc282ca8c6ad9bf1b0f2d))
+* migrate codeowners to @grafana/grafana-catalog ([#572](https://github.com/grafana/plugin-validator/issues/572)) ([93d60a1](https://github.com/grafana/plugin-validator/commit/93d60a1cee8c0d9b9173edc6bfc825c9314512e0))
+
 ## [0.42.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.0...plugin-validator/v0.42.1) (2026-05-08)
 
 
