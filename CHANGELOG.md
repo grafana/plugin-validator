@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.3...plugin-validator/v0.42.4) (2026-05-20)
+
+
+### 🔧 Chores
+
+* **deps:** pin npm dependencies to exact lockfile versions ([#583](https://github.com/grafana/plugin-validator/issues/583)) ([cce23b6](https://github.com/grafana/plugin-validator/commit/cce23b6ee29757ec2ad266946ad09ab3d24371bb))
+
 ## [0.42.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.2...plugin-validator/v0.42.3) (2026-05-19)
 
 
