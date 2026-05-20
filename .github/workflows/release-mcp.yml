@@ -26,7 +26,7 @@ jobs:
         id: generate_token
         uses: grafana/shared-workflows/actions/create-github-app-token@259ba21cb3ff07724f331e26d926d655d24b317b # create-github-app-token/v0.2.3
         with:
-          github_app: plugins-platform-bot-app
+          github_app: grafana-plugins-platform-bot
 
       - name: Extract MCP version
         run: echo "MCP_VERSION=${GITHUB_REF_NAME#mcp/v}" >> $GITHUB_ENV
