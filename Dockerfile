@@ -18,7 +18,7 @@ RUN freshclam
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION} && \
+    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/${GOLANGCI_LINT_VERSION}/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION} && \
     curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION} && \
     python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
