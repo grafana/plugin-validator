@@ -141,6 +141,14 @@ func TestIntegration(t *testing.T) {
 							Name:     "code-diff-skipped",
 						},
 					},
+					"reactcompat": {
+						{
+							Severity: "warning",
+							Title:    "React 19 compatibility: Prop types removed in favour of typescript or other type-checking solution",
+							Detail:   "Affected packages: react-table-6. See: https://react.dev/blog/2024/04/25/react-19-upgrade-guide#removed-deprecated-react-apis Note: this may be a false positive.",
+							Name:     "react-19-dep-propTypes",
+						},
+					},
 				},
 			},
 		},
@@ -157,6 +165,14 @@ func TestIntegration(t *testing.T) {
 							Title:    "You can include a sponsorship link if you want users to support your work",
 							Detail:   "Consider to add a sponsorship link in your plugin.json file (Info.Links section: with Name: 'sponsor' or Name: 'sponsorship'), which will be shown on the plugin details page to allow users to support your work if they wish.",
 							Name:     "sponsorshiplink",
+						},
+					},
+					"reactcompat": {
+						{
+							Severity: "warning",
+							Title:    "React 19 compatibility: Default props removed from function components",
+							Detail:   "Detected in src/components/extended/Space.tsx at line 21. Use ES6 default parameters or pass default values to dependencies to keep consistent behavior See: https://react.dev/blog/2024/04/25/react-19-upgrade-guide#removed-deprecated-react-apis Note: this may be a false positive.",
+							Name:     "react-19-defaultProps",
 						},
 					},
 				},
