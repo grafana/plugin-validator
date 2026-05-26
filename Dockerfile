@@ -1,10 +1,14 @@
-ARG GOLANGCI_LINT_VERSION=v2.5.0
+ARG GOLANGCI_LINT_VERSION=v2.12.2
+# SHA256 of golangci-lint-${GOLANGCI_LINT_VERSION#v}-linux-amd64.tar.gz from the upstream checksums file.
+# Update whenever GOLANGCI_LINT_VERSION changes.
+ARG GOLANGCI_LINT_SHA256=8df580d2670fed8fa984aac0507099af8df275e665215f5c7a2ae3943893a553
 ARG GOSEC_VERSION=v2.22.8
 ARG SEMGREP_VERSION=1.84.1
 
-FROM golang:1.25-alpine3.23@sha256:8d22e29d960bc50cd025d93d5b7c7d220b1ee9aa7a239b3c8f55a57e987e8d45 AS builder
+FROM golang:1.26.3-alpine3.23@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS builder
 
 ARG GOLANGCI_LINT_VERSION
+ARG GOLANGCI_LINT_SHA256
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
@@ -23,8 +27,16 @@ RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
     go run bootstrap.go
 
-RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
-    sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION}
+# Install golangci-lint by downloading the binary directly + verifying the sha256.
+# The upstream install.sh has had recurring checksum-validation bugs; downloading
+# the tarball ourselves is more reliable.
+RUN set -eux; \
+    VER="${GOLANGCI_LINT_VERSION#v}"; \
+    curl -sSfL "https://github.com/golangci/golangci-lint/releases/download/${GOLANGCI_LINT_VERSION}/golangci-lint-${VER}-linux-amd64.tar.gz" -o /tmp/golangci-lint.tar.gz; \
+    echo "${GOLANGCI_LINT_SHA256}  /tmp/golangci-lint.tar.gz" | sha256sum -c; \
+    tar -xzf /tmp/golangci-lint.tar.gz -C /tmp; \
+    mv "/tmp/golangci-lint-${VER}-linux-amd64/golangci-lint" "$(go env GOPATH)/bin/golangci-lint"; \
+    rm -rf /tmp/golangci-lint.tar.gz "/tmp/golangci-lint-${VER}-linux-amd64"
 
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | \
     sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
