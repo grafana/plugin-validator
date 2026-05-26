@@ -108,7 +108,7 @@ func TestReportIssuesSourceCode(t *testing.T) {
 		},
 	}
 
-	count := reportIssues(pass, output)
+	count := reportIssues(pass, output, "")
 	require.Equal(t, 1, count)
 	require.Len(t, interceptor.Diagnostics, 1)
 
@@ -141,7 +141,7 @@ func TestReportIssuesDependency(t *testing.T) {
 		},
 	}
 
-	count := reportIssues(pass, output)
+	count := reportIssues(pass, output, "")
 	require.Equal(t, 1, count)
 	require.Len(t, interceptor.Diagnostics, 1)
 
@@ -159,7 +159,7 @@ func TestReportIssuesNil(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := newPass(&interceptor, "/some/archive/dir")
 
-	count := reportIssues(pass, nil)
+	count := reportIssues(pass, nil, "")
 	require.Equal(t, 0, count)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
@@ -219,7 +219,7 @@ func TestReportIssuesCombined(t *testing.T) {
 		},
 	}
 
-	count := reportIssues(pass, output)
+	count := reportIssues(pass, output, "")
 	require.Equal(t, 3, count)
 	require.Len(t, interceptor.Diagnostics, 3)
 

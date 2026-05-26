@@ -2,7 +2,7 @@ ARG GOLANGCI_LINT_VERSION=v2.5.0
 ARG GOSEC_VERSION=v2.22.8
 ARG SEMGREP_VERSION=1.84.1
 
-FROM golang:1.25-alpine3.22@sha256:fa3380ab0d73b706e6b07d2a306a4dc68f20bfc1437a6a6c47c8f88fe4af6f75 AS builder
+FROM golang:1.25-alpine3.23@sha256:8d22e29d960bc50cd025d93d5b7c7d220b1ee9aa7a239b3c8f55a57e987e8d45 AS builder
 
 ARG GOLANGCI_LINT_VERSION
 ARG GOSEC_VERSION
@@ -11,27 +11,36 @@ ARG SEMGREP_VERSION
 WORKDIR /go/src/github.com/grafana/plugin-validator
 ADD . /go/src/github.com/grafana/plugin-validator
 
-RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav
+# nodejs/npm are required by the reactcompat analyzer (npx @grafana/react-detect).
+# Pinned to Node 24.x to match the version used in release workflows.
+RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.14.1-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
+# Split into separate layers so each network operation is independently
+# cacheable and surfaces its own failure (instead of being lost in a 4-in-1 step).
 RUN git clone https://github.com/magefile/mage --depth 1 && \
     cd mage && \
-    go run bootstrap.go && \
-    curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION} && \
-    curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION} && \
-    python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
+    go run bootstrap.go
+
+RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | \
+    sh -s -- -b $(go env GOPATH)/bin ${GOLANGCI_LINT_VERSION}
+
+RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | \
+    sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
+
+RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
 RUN mage -v build:lint
 
 RUN mage -v build:ci
 
-FROM alpine:3.22@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
 
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
-RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs npm
+RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.14.1-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 

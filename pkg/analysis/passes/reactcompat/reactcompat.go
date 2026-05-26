@@ -96,6 +96,11 @@ func run(pass *analysis.Pass) (any, error) {
 	output, err := runReactDetect(npxPath, archiveDir)
 	if err != nil {
 		logme.DebugFln("react-detect failed: %v", err)
+		// Missing source maps is not a tool failure — it just means there's
+		// nothing to analyze (e.g. unbuilt plugin or empty archive). Skip silently.
+		if strings.Contains(err.Error(), "No source map files found") {
+			return nil, nil
+		}
 		pass.ReportResult(
 			pass.AnalyzerName,
 			react19Issue,
@@ -105,7 +110,7 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 
-	issueCount := reportIssues(pass, output)
+	issueCount := reportIssues(pass, output, archiveDir)
 
 	if issueCount == 0 && react19Compatible.ReportAll {
 		pass.ReportResult(
@@ -120,27 +125,30 @@ func run(pass *analysis.Pass) (any, error) {
 }
 
 // runReactDetect shells out to react-detect and returns the parsed output.
-// --distDir points react-detect directly at the extracted archive directory,
-// avoiding the need for a symlink or temp directory.
+// The command's cwd is set to archiveDir so that react-detect resolves
+// source-map-relative paths against the archive (yielding paths like
+// <archiveDir>/src/...) rather than against the caller's cwd. The archive
+// prefix is stripped later in reportIssues for reproducible output.
 func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
 	// --json: machine-readable output. --skipBuildTooling: avoid running bundlers.
 	// --noErrorExitCode: always exit 0 so we can parse partial output on warnings.
-	// --distDir: point at the extracted archive directly (available since v0.6.4).
+	// --distDir: "." because we set cmd.Dir = archiveDir below.
 	// Dependency issues are intentionally included (no --skipDependencies).
 	args := []string{
 		"-y",
 		"@grafana/react-detect@" + reactDetectVersion,
 		"--json",
-		"--distDir", archiveDir,
+		"--distDir", ".",
 		"--skipBuildTooling",
 		"--noErrorExitCode",
 	}
 	logme.DebugFln("running react-detect with args: %v", args)
 
 	cmd := exec.CommandContext(ctx, npxPath, args...)
+	cmd.Dir = archiveDir
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
@@ -148,7 +156,9 @@ func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 		logme.DebugFln("react-detect stderr: %s", stderr.String())
 	}
 	if err != nil {
-		return nil, fmt.Errorf("react-detect exited with error: %w (stderr: %s)", err, stderr.String())
+		// react-detect writes user-facing errors to stdout, not stderr, so include
+		// both streams in the wrapped error for downstream detection.
+		return nil, fmt.Errorf("react-detect exited with error: %w (stdout: %s) (stderr: %s)", err, string(out), stderr.String())
 	}
 
 	return parseResults(out)
@@ -164,8 +174,9 @@ func parseResults(data []byte) (*reactDetectOutput, error) {
 }
 
 // reportIssues translates the react-detect output into pass diagnostics and
-// returns the total number of issues reported.
-func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
+// returns the total number of issues reported. archiveDir is stripped from
+// reported file paths so output is reproducible across machines.
+func reportIssues(pass *analysis.Pass, output *reactDetectOutput, archiveDir string) int {
 	// react19Issue serves as the config gate for all dynamic react-19 rules.
 	if react19Issue.Disabled {
 		return 0
@@ -191,7 +202,7 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 			}
 			detail := fmt.Sprintf(
 				"Detected in %s at line %d. %s See: %s Note: this may be a false positive.",
-				issue.Location.File,
+				relativeToArchive(issue.Location.File, archiveDir),
 				issue.Location.Line,
 				issue.Fix.Description,
 				issue.Link,
@@ -216,4 +227,18 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput) int {
 	}
 
 	return count
+}
+
+// relativeToArchive strips the archive directory prefix from a file path
+// emitted by react-detect, so reported paths are reproducible across machines.
+// Falls back to the original path if it doesn't share the archive prefix.
+func relativeToArchive(file, archiveDir string) string {
+	if archiveDir == "" {
+		return file
+	}
+	prefix := strings.TrimRight(archiveDir, "/") + "/"
+	if strings.HasPrefix(file, prefix) {
+		return strings.TrimPrefix(file, prefix)
+	}
+	return file
 }
