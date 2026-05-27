@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/discoverability"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gomanifest"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/gosec"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/govulncheck"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/grafanadependency"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/includesnested"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/jargon"
@@ -71,6 +72,7 @@ var Analyzers = []*analysis.Analyzer{
 	discoverability.Analyzer,
 	gomanifest.Analyzer,
 	gosec.Analyzer,
+	govulncheck.Analyzer,
 	includesnested.Analyzer,
 	jargon.Analyzer,
 	jssourcemap.Analyzer,

@@ -8,3 +8,5 @@ analyzers:
     enabled: false
   brokenlinks:
     enabled: false
+  govulncheck:
+    enabled: false
