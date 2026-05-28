@@ -64,6 +64,16 @@ jobs:
       - run: npm install
       - run: npm stage publish
 
+      - name: Notify Slack about staged npm package
+        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        with:
+          method: chat.postMessage
+          payload: |
+            {
+              "channel": "C031SLFH6G0",
+              "text": "📦 `@grafana/plugin-validator` has been staged for npm publishing from tag `${{ github.ref_name }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
+            }
+
   release-to-dockerhub:
     runs-on: ubuntu-x64
     # this job doesn't really need the github release, but it is a fast
