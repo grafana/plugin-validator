@@ -82,11 +82,13 @@ jobs:
         run: |
           echo "version=$(jq -r .version package.json)" >> "$GITHUB_OUTPUT"
 
-      - id: push-to-dockerhub
+      - id: push-to-gar
         uses: grafana/shared-workflows/actions/docker-build-push-image@21ae57f82e5256e5a418406388926d4ba24bccf2 # docker-build-push-image/v0.3.2
         with:
-          dockerhub-repository: grafana/plugin-validator-cli
-          registries: dockerhub
+          registries: gar
+          gar-environment: prod
+          gar-repository: dockerhub-plugin-validator-prod-mirror
+          gar-image: plugin-validator-cli
           context: .
           tags: |-
             "v${{ steps.get_version.outputs.version }}"
