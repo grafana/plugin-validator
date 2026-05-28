@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.5...plugin-validator/v0.42.6) (2026-05-28)
+
+
+### 🐛 Bug Fixes
+
+* **security/medium:** update module github.com/go-git/go-git/v5 to v5.19.1 [security] ([#597](https://github.com/grafana/plugin-validator/issues/597)) ([70c4c80](https://github.com/grafana/plugin-validator/commit/70c4c8038433a056ecfb06a544e8a5154faef29a))
+
+
+### 🔧 Chores
+
+* **deps:** bump step-security/harden-runner to v2.16.0 ([#595](https://github.com/grafana/plugin-validator/issues/595)) ([a7f5763](https://github.com/grafana/plugin-validator/commit/a7f57637d6e8c9b38efaa71c471bb05a91fafbb7))
+
 ## [0.42.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.4...plugin-validator/v0.42.5) (2026-05-28)
 
 
