@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.4...plugin-validator/v0.42.5) (2026-05-28)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** remediate CVEs in Go stdlib and dependencies ([#594](https://github.com/grafana/plugin-validator/issues/594)) ([a5b8dad](https://github.com/grafana/plugin-validator/commit/a5b8dadd419da7a4e6d2f252a38f24d6e631b2f5))
+
 ## [0.42.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.3...plugin-validator/v0.42.4) (2026-05-20)
 
 
