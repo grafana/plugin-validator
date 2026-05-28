@@ -62,7 +62,7 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: npm install
-      - run: npm publish
+      - run: npm stage publish
 
   release-to-dockerhub:
     runs-on: ubuntu-x64

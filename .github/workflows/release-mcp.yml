@@ -61,4 +61,4 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: cd mcp-package && npm install
-      - run: cd mcp-package && npm publish
+      - run: cd mcp-package && npm stage publish
