@@ -61,4 +61,14 @@ jobs:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
       - run: cd mcp-package && npm install
-      - run: cd mcp-package && npm publish
+      - run: cd mcp-package && npm stage publish
+
+      - name: Notify Slack about staged npm package
+        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        with:
+          method: chat.postMessage
+          payload: |
+            {
+              "channel": "C031SLFH6G0",
+              "text": "📦 `@grafana/plugin-validator-mcp` has been staged for npm publishing from tag `${{ github.ref_name }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
+            }
