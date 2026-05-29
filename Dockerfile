@@ -3,6 +3,7 @@ ARG GOLANGCI_LINT_VERSION=v2.12.2
 # Update whenever GOLANGCI_LINT_VERSION changes.
 ARG GOLANGCI_LINT_SHA256=8df580d2670fed8fa984aac0507099af8df275e665215f5c7a2ae3943893a553
 ARG GOSEC_VERSION=v2.22.8
+ARG GOVULNCHECK_VERSION=v1.1.4
 ARG SEMGREP_VERSION=1.84.1
 
 FROM golang:1.26.3-alpine3.23@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS builder
@@ -10,6 +11,7 @@ FROM golang:1.26.3-alpine3.23@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a28
 ARG GOLANGCI_LINT_VERSION
 ARG GOLANGCI_LINT_SHA256
 ARG GOSEC_VERSION
+ARG GOVULNCHECK_VERSION
 ARG SEMGREP_VERSION
 
 WORKDIR /go/src/github.com/grafana/plugin-validator
@@ -41,6 +43,11 @@ RUN set -eux; \
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | \
     sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
 
+# govulncheck is distributed as a Go module — install with `go install` rather
+# than a binary tarball. Pinned version is fixed via the ARG above.
+RUN go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && \
+    mv "$(go env GOPATH)/bin/govulncheck" /usr/local/bin/govulncheck
+
 RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
 RUN mage -v build:lint
@@ -52,11 +59,15 @@ FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a50
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
-RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.14.1-r0 npm
+# govulncheck source mode shells out to the Go command to load packages.
+RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.14.1-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
+
+# govulncheck is built in the builder stage; copy the static binary in.
+COPY --from=builder /usr/local/bin/govulncheck /usr/local/bin/govulncheck
 
 # install semgrep
 RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir

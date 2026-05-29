@@ -259,6 +259,7 @@ This validator makes uses of the following open source security tools:
 - [osv-scanner](https://github.com/google/osv-scanner)
 - [semgrep](https://github.com/returntocorp/semgrep)
 - [gosec](https://github.com/securego/gosec)
+- [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
 
 If you run the validator locally or via NPX you can benefit from installing these tools in your system to make them part of your validation checks.
 
@@ -291,6 +292,7 @@ Run "mage gen:readme" to regenerate this section.
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
 | Go Manifest / `go-manifest` | Validates the build manifest. | None |
 | Go Security Checker / `go-sec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
+| Go Vulnerability Checker / `govulncheck` | Scans Go backend source and plugin backend binaries for known vulnerabilities (govulncheck). | [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck), `sourceCodeUri` for source scans |
 | JS Source Map / `jsMap` | Checks for required `module.js.map` file(s) in archive. | `sourceCodeUri` |
 | Legacy Grafana Toolkit usage / `legacybuilder` | Detects the usage of the not longer supported Grafana Toolkit. | None |
 | Legacy Platform / `legacyplatform` | Detects use of Angular which is deprecated. | None |
