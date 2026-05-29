@@ -65,13 +65,30 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	if ok && sourceCodeDir != "" {
 		moduleDirs, err := goModuleDirs(sourceCodeDir)
 		if err != nil {
-			return nil, err
+			// Report as a diagnostic instead of returning an error: returning
+			// an error here aborts the whole validator and skips every other
+			// analyzer. Skip the source scan and continue with binary scans.
+			scanFailures++
+			pass.ReportResult(
+				pass.AnalyzerName,
+				govulncheckScanFailed,
+				"govulncheck source scan failed",
+				scanFailureDetail(sourceCodeDir, "", err),
+			)
+			moduleDirs = nil
 		}
 		sourceFindings := make(map[string]struct{})
 		for _, moduleDir := range moduleDirs {
 			stdout, ok, failureDetail, err := runGovulncheckJSON(govulncheckBin, moduleDir, moduleDir, "-json", "./...")
 			if err != nil {
-				return nil, err
+				scanFailures++
+				pass.ReportResult(
+					pass.AnalyzerName,
+					govulncheckScanFailed,
+					"govulncheck source scan failed",
+					scanFailureDetail(moduleDir, "", err),
+				)
+				continue
 			}
 			if !ok {
 				scanFailures++
@@ -81,16 +98,23 @@ func run(pass *analysis.Pass) (interface{}, error) {
 					"govulncheck source scan failed",
 					failureDetail,
 				)
-			} else {
-				scansPerformed++
-				osvIDs, err := parseCalledFindings(bytes.NewReader(stdout))
-				if err != nil {
-					logme.Errorln("Error parsing govulncheck source output", "error", err)
-					return nil, err
-				}
-				for id := range osvIDs {
-					sourceFindings[id] = struct{}{}
-				}
+				continue
+			}
+			scansPerformed++
+			osvIDs, err := parseCalledFindings(bytes.NewReader(stdout))
+			if err != nil {
+				logme.Errorln("Error parsing govulncheck source output", "error", err)
+				scanFailures++
+				pass.ReportResult(
+					pass.AnalyzerName,
+					govulncheckScanFailed,
+					"govulncheck source scan failed",
+					scanFailureDetail(moduleDir, "", err),
+				)
+				continue
+			}
+			for id := range osvIDs {
+				sourceFindings[id] = struct{}{}
 			}
 		}
 		findingsReported += len(sourceFindings)
@@ -98,7 +122,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	binaryFindings := make(map[string]map[string]struct{})
-	binaryPaths, err := backendBinaries(pass)
+	binaryPaths, err := getBackendBinaries(pass)
 	if err != nil {
 		pass.ReportResult(
 			pass.AnalyzerName,
@@ -111,7 +135,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	for _, binaryPath := range binaryPaths {
 		stdout, ok, failureDetail, err := runGovulncheckJSON(govulncheckBin, "", filepath.Base(binaryPath), "-mode=binary", "-json", binaryPath)
 		if err != nil {
-			return nil, err
+			scanFailures++
+			pass.ReportResult(
+				pass.AnalyzerName,
+				govulncheckScanFailed,
+				fmt.Sprintf("govulncheck binary scan failed for %s", filepath.Base(binaryPath)),
+				scanFailureDetail(filepath.Base(binaryPath), "", err),
+			)
+			continue
 		}
 		if !ok {
 			scanFailures++
@@ -127,7 +158,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		osvIDs, err := parseAllFindings(bytes.NewReader(stdout))
 		if err != nil {
 			logme.Errorln("Error parsing govulncheck binary output", "error", err)
-			return nil, err
+			scanFailures++
+			pass.ReportResult(
+				pass.AnalyzerName,
+				govulncheckScanFailed,
+				fmt.Sprintf("govulncheck binary scan failed for %s", filepath.Base(binaryPath)),
+				scanFailureDetail(filepath.Base(binaryPath), "", err),
+			)
+			continue
 		}
 		for id := range osvIDs {
 			if binaryFindings[id] == nil {
@@ -283,7 +321,7 @@ func goModuleDirs(sourceCodeDir string) ([]string, error) {
 	return moduleDirs, nil
 }
 
-func backendBinaries(pass *analysis.Pass) ([]string, error) {
+func getBackendBinaries(pass *analysis.Pass) ([]string, error) {
 	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
 	if !ok || archiveDir == "" {
 		return nil, nil
