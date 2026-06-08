@@ -40,5 +40,6 @@ jobs:
           tags: |-
             "test-pr"
           push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # No type=gha build cache: this PR validation build must not seed a
+          # shared cache that a publishing build could later consume (cache
+          # poisoning), and the type=gha backend was failing to import anyway.

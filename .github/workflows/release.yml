@@ -136,5 +136,6 @@ jobs:
             "v${{ steps.get_version.outputs.version }}"
             "latest"
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # No type=gha build cache on this publishing build: a cache seeded
+          # from a less-trusted context (e.g. a PR) must not be able to
+          # influence the published image (cache poisoning).
