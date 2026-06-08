@@ -47,12 +47,7 @@ RUN mage -v build:lint
 
 RUN mage -v build:ci
 
-# TODO: revert to alpine:3.23 (latest, currently 3.23.4 @sha256:5b10f432…) once
-# the self-hosted runner's Docker Hub pull-through mirror is repaired. Pinned to
-# 3.23.3 because the mirror serves a corrupted/truncated copy of 3.23.4's rootfs
-# layer (0 bytes / "unexpected EOF"); the layer is intact on docker.io. 3.23.3
-# is a different build (different layer blob) so the mirror fetches it cleanly.
-FROM alpine:3.23.3@sha256:25109184c71bdad752c8312a8623239686a9a2071e8825f20acb8f2198c3f659
+FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
 
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
