@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.7...plugin-validator/v0.42.8) (2026-06-08)
+
+
+### 🐛 Bug Fixes
+
+* **release:** adopt release-please draft, drop goreleaser changelog, fix npm publish ([#606](https://github.com/grafana/plugin-validator/issues/606)) ([ba93911](https://github.com/grafana/plugin-validator/commit/ba93911102d017d2fb318df70861cdb76f92d627))
+
 ## [0.42.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.6...plugin-validator/v0.42.7) (2026-06-08)
 
 
