@@ -37,4 +37,9 @@ changelog:
   disable: true
 
 release:
-  mode: keep-existing
+  # See .goreleaser.yaml for the rationale: release-please creates a draft
+  # release, GoReleaser uploads assets to it and then publishes it, so the
+  # binaries are attached before GitHub's immutable releases lock it.
+  mode: keep-existing # keep release-please's changelog notes
+  use_existing_draft: true # adopt the draft release-please created (GoReleaser >= v2.5)
+  replace_existing_artifacts: true # make re-runs idempotent (handles 422 already-exists)

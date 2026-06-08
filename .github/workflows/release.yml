@@ -1,9 +1,32 @@
 name: Create release and publish to github, npm and docker hub
 
+# Reusable workflow invoked by release-please.yml once a plugin-validator
+# release has been drafted. It is NOT triggered by tag pushes: with GitHub's
+# immutable releases enabled, release-please creates the GitHub release as a
+# *draft* (which does not push a git tag and does not fire a `release` event),
+# so GoReleaser is driven from release-please's outputs instead. GoReleaser
+# adopts the draft, uploads the binaries, and then publishes it.
 on: # zizmor: ignore[cache-poisoning]
-  push:
-    tags:
-      - 'plugin-validator/v[0-9]*'
+  workflow_call:
+    inputs:
+      tag_name:
+        description: Release tag, e.g. plugin-validator/v0.42.7
+        required: true
+        type: string
+      sha:
+        description: Commit SHA the release points at
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Release tag, e.g. plugin-validator/v0.42.7
+        required: true
+        type: string
+      sha:
+        description: Commit SHA the release points at
+        required: true
+        type: string
 
 jobs:
   release-to-github:
@@ -14,6 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: ${{ inputs.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -30,7 +54,9 @@ jobs:
           github_app: grafana-plugins-platform-bot
 
       - name: Extract release version
-        run: echo "RELEASE_VERSION=${GITHUB_REF_NAME#plugin-validator/v}" >> "$GITHUB_ENV"
+        env:
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: echo "RELEASE_VERSION=${TAG_NAME#plugin-validator/v}" >> "$GITHUB_ENV"
 
       - uses: goreleaser/goreleaser-action@e435ccd777264be153ace6237001ef4d979d3a7a # v6.4.0
         with:
@@ -44,7 +70,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           RELEASE_VERSION: ${{ env.RELEASE_VERSION }}
-          GORELEASER_CURRENT_TAG: ${{ github.ref_name }}
+          GORELEASER_CURRENT_TAG: ${{ inputs.tag_name }}
 
   release-to-npm:
     runs-on: ubuntu-latest
@@ -55,6 +81,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: ${{ inputs.sha }}
           persist-credentials: false
 
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
@@ -71,7 +98,7 @@ jobs:
           payload: |
             {
               "channel": "C031SLFH6G0",
-              "text": "📦 `@grafana/plugin-validator` has been staged for npm publishing from tag `${{ github.ref_name }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
+              "text": "📦 `@grafana/plugin-validator` has been staged for npm publishing from tag `${{ inputs.tag_name }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
             }
 
   release-to-dockerhub:
@@ -85,6 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: ${{ inputs.sha }}
           persist-credentials: false
 
       - name: Get version from package.json
