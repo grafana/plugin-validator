@@ -64,7 +64,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: ./.github/workflows/release.yml
+    # Trusted same-repo reusable workflow; its steps authenticate via inherited
+    # org/OIDC context and reference no plaintext secrets, so inheriting is safe.
+    uses: ./.github/workflows/release.yml # zizmor: ignore[secrets-inherit]
     with:
       tag_name: ${{ needs.release-please.outputs.pv_tag_name }}
       sha: ${{ needs.release-please.outputs.pv_sha }}
@@ -77,7 +79,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: ./.github/workflows/release-mcp.yml
+    # Trusted same-repo reusable workflow; its steps authenticate via inherited
+    # org/OIDC context and reference no plaintext secrets, so inheriting is safe.
+    uses: ./.github/workflows/release-mcp.yml # zizmor: ignore[secrets-inherit]
     with:
       tag_name: ${{ needs.release-please.outputs.mcp_tag_name }}
       sha: ${{ needs.release-please.outputs.mcp_sha }}

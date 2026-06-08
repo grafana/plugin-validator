@@ -46,6 +46,10 @@ jobs:
         with:
           go-version-file: go.mod
           check-latest: true
+          # This is a publishing workflow; disable the Go cache so a cache
+          # entry poisoned from a less-trusted context can't influence the
+          # released binaries (zizmor cache-poisoning).
+          cache: false
 
       - name: Generate token
         id: generate_token
