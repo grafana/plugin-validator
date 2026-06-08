@@ -36,7 +36,14 @@ changelog:
       - "^docs:"
       - "^test:"
 release:
-  mode: keep-existing
+  # release-please creates a *draft* GitHub release (with the changelog notes).
+  # GitHub's immutable releases lock a release the moment it is published, so
+  # assets must be attached while it is still a draft. GoReleaser adopts that
+  # draft, uploads the binaries, and then publishes it (draft defaults to
+  # false), which is the only upload order GitHub's immutable releases allow.
+  mode: keep-existing # keep release-please's changelog notes
+  use_existing_draft: true # adopt the draft release-please created (GoReleaser >= v2.5)
+  replace_existing_artifacts: true # make re-runs idempotent (handles 422 already-exists)
 # The lines beneath this are called `modelines`. See `:help modeline`
 # Feel free to remove those if you don't want/use them.
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json

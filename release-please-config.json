@@ -20,11 +20,13 @@
       "package-name": "plugin-validator",
       "release-type": "node",
       "exclude-paths": ["mcp-package"],
-      "bootstrap-sha": "627dd9babe0a4244226ed98208aeccbd319a572f"
+      "bootstrap-sha": "627dd9babe0a4244226ed98208aeccbd319a572f",
+      "draft": true
     },
     "mcp-package": {
       "package-name": "mcp",
-      "release-type": "node"
+      "release-type": "node",
+      "draft": true
     }
   },
   "tag-separator": "/",

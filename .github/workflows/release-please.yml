@@ -1,8 +1,15 @@
 # Creates release PRs, tags, and GitHub Releases for plugin-validator and the
 # MCP server using release-please. Conventional commits on `main` drive the
-# version bumps and changelog content. The post-tag publish workflows
-# (release.yml, release-mcp.yml) handle GoReleaser builds, npm publishing, and
-# Docker image push.
+# version bumps and changelog content.
+#
+# release-please creates the GitHub Releases as *drafts* (see "draft": true in
+# release-please-config.json) because GitHub's immutable releases lock a release
+# the instant it is published, and GoReleaser needs to attach the binaries
+# first. A draft release neither pushes a git tag nor fires a `release` event,
+# so the publish workflows (release.yml, release-mcp.yml) can no longer be
+# triggered by a tag push — they are reusable workflows invoked here, gated on
+# release-please's per-package `release_created` outputs. GoReleaser then adopts
+# the draft, uploads the artifacts, and publishes it.
 name: Release Please
 
 on:
@@ -21,6 +28,13 @@ jobs:
       contents: write # create releases and tags
       pull-requests: write # create release PRs
       id-token: write
+    outputs:
+      pv_release_created: ${{ steps.release.outputs['.--release_created'] }}
+      pv_tag_name: ${{ steps.release.outputs['.--tag_name'] }}
+      pv_sha: ${{ steps.release.outputs['.--sha'] }}
+      mcp_release_created: ${{ steps.release.outputs['mcp-package--release_created'] }}
+      mcp_tag_name: ${{ steps.release.outputs['mcp-package--tag_name'] }}
+      mcp_sha: ${{ steps.release.outputs['mcp-package--sha'] }}
     steps:
       - name: Generate GitHub token
         id: generate-github-token
@@ -40,3 +54,35 @@ jobs:
           manifest-file: .release-please-manifest.json
           target-branch: ${{ github.ref_name }}
           token: ${{ steps.generate-github-token.outputs.token }}
+
+  # Build binaries, upload them to the drafted plugin-validator release, and
+  # publish it. Only runs on the push that merges the plugin-validator release
+  # PR (when release-please reports a release was created).
+  release-plugin-validator:
+    needs: release-please
+    if: needs.release-please.outputs.pv_release_created == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    # Trusted same-repo reusable workflow; its steps authenticate via inherited
+    # org/OIDC context and reference no plaintext secrets, so inheriting is safe.
+    uses: ./.github/workflows/release.yml # zizmor: ignore[secrets-inherit]
+    with:
+      tag_name: ${{ needs.release-please.outputs.pv_tag_name }}
+      sha: ${{ needs.release-please.outputs.pv_sha }}
+    secrets: inherit
+
+  # Same as above, for the MCP server release.
+  release-mcp:
+    needs: release-please
+    if: needs.release-please.outputs.mcp_release_created == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    # Trusted same-repo reusable workflow; its steps authenticate via inherited
+    # org/OIDC context and reference no plaintext secrets, so inheriting is safe.
+    uses: ./.github/workflows/release-mcp.yml # zizmor: ignore[secrets-inherit]
+    with:
+      tag_name: ${{ needs.release-please.outputs.mcp_tag_name }}
+      sha: ${{ needs.release-please.outputs.mcp_sha }}
+    secrets: inherit
