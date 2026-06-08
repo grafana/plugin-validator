@@ -29,9 +29,12 @@ jobs:
       pull-requests: write # create release PRs
       id-token: write
     outputs:
-      pv_release_created: ${{ steps.release.outputs['.--release_created'] }}
-      pv_tag_name: ${{ steps.release.outputs['.--tag_name'] }}
-      pv_sha: ${{ steps.release.outputs['.--sha'] }}
+      # plugin-validator is the root component (path "."), so release-please-action
+      # emits its outputs UN-prefixed (release_created/tag_name/sha) — not
+      # ".--release_created". Only non-root packages get the "<path>--" prefix.
+      pv_release_created: ${{ steps.release.outputs.release_created }}
+      pv_tag_name: ${{ steps.release.outputs.tag_name }}
+      pv_sha: ${{ steps.release.outputs.sha }}
       mcp_release_created: ${{ steps.release.outputs['mcp-package--release_created'] }}
       mcp_tag_name: ${{ steps.release.outputs['mcp-package--tag_name'] }}
       mcp_sha: ${{ steps.release.outputs['mcp-package--sha'] }}
