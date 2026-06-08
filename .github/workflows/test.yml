@@ -40,6 +40,9 @@ jobs:
           tags: |-
             "test-pr"
           push: false
-          # No type=gha build cache: this PR validation build must not seed a
-          # shared cache that a publishing build could later consume (cache
-          # poisoning), and the type=gha backend was failing to import anyway.
+          # Disable the build cache (the action defaults cache-from/to to
+          # type=gha): this PR validation build must not seed a shared cache a
+          # publishing build could later consume (cache poisoning), and the
+          # type=gha backend was failing to import anyway.
+          cache-from: ""
+          cache-to: ""
