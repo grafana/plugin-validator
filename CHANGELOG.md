@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.6...plugin-validator/v0.42.7) (2026-06-08)
+
+
+### 🐛 Bug Fixes
+
+* **release:** attach binaries to immutable releases via draft-then-publish ([#602](https://github.com/grafana/plugin-validator/issues/602)) ([2120434](https://github.com/grafana/plugin-validator/commit/2120434122ff3d9eca1baddc3e70638f39ca2742))
+
 ## [0.42.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.5...plugin-validator/v0.42.6) (2026-05-28)
 
 
