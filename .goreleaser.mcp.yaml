@@ -40,6 +40,11 @@ release:
   # See .goreleaser.yaml for the rationale: release-please creates a draft
   # release, GoReleaser uploads assets to it and then publishes it, so the
   # binaries are attached before GitHub's immutable releases lock it.
+  #
+  # name_template must equal release-please's release name ("<package-name>:
+  # v<version>") so use_existing_draft adopts the draft instead of creating a
+  # duplicate release.
+  name_template: "mcp: v{{ .Env.MCP_VERSION }}"
   mode: keep-existing # keep release-please's changelog notes
   use_existing_draft: true # adopt the draft release-please created (GoReleaser >= v2.5)
   replace_existing_artifacts: true # make re-runs idempotent (handles 422 already-exists)

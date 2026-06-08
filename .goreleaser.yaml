@@ -30,17 +30,22 @@ checksum:
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
+  # release-please owns the changelog/release notes. GoReleaser's own changelog
+  # can't determine a "previous tag" from the non-semver plugin-validator/v* tags
+  # (we pass --skip=validate), so it would dump a huge commit range. Disable it.
+  disable: true
 release:
   # release-please creates a *draft* GitHub release (with the changelog notes).
   # GitHub's immutable releases lock a release the moment it is published, so
   # assets must be attached while it is still a draft. GoReleaser adopts that
   # draft, uploads the binaries, and then publishes it (draft defaults to
   # false), which is the only upload order GitHub's immutable releases allow.
+  #
+  # use_existing_draft matches the draft by release NAME (name_template), so this
+  # must equal release-please's release name ("<package-name>: v<version>") or
+  # GoReleaser won't find the draft and will create a duplicate release with its
+  # own notes instead of keeping release-please's.
+  name_template: "plugin-validator: v{{ .Env.RELEASE_VERSION }}"
   mode: keep-existing # keep release-please's changelog notes
   use_existing_draft: true # adopt the draft release-please created (GoReleaser >= v2.5)
   replace_existing_artifacts: true # make re-runs idempotent (handles 422 already-exists)
