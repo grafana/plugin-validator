@@ -1,7 +1,9 @@
 name: Test Slack notification
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - fix-npm-stage-publishing
 
 jobs:
   test-slack:
