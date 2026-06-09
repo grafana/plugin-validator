@@ -16,6 +16,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set fake tag name
+        run: echo "TAG_NAME=plugin-validator/v0.42.9" >> "$GITHUB_ENV"
+
       - name: Notify Slack about staged npm package
         uses: grafana/shared-workflows/actions/send-slack-message@952ec381447a2002ff76103395d37bf8b4c7c3f5 # send-slack-message/v3.0.1
         with:
@@ -23,5 +26,5 @@ jobs:
           payload: |
             {
               "channel": "C031SLFH6G0",
-              "text": "🧪 TEST: This is a test notification for staged npm publishing workflow. Please ignore."
+              "text": "📦 TEST: This is a test notification for staged npm publishing workflow. Please ignore.`@grafana/plugin-validator` has been staged for npm publishing from tag `${{ env.TAG_NAME }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
             }
