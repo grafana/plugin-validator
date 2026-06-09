@@ -62,7 +62,45 @@ jobs:
           TAG_NAME: ${{ inputs.tag_name }}
         run: echo "RELEASE_VERSION=${TAG_NAME#plugin-validator/v}" >> "$GITHUB_ENV"
 
+      - name: Ensure a single release-please draft to adopt
+        env:
+          # gh reads the token from GH_TOKEN. The App has contents:read, which is
+          # required to see *draft* releases — they are not returned to anonymous
+          # callers.
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ inputs.tag_name }}
+        run: |
+          # GoReleaser adopts release-please's *draft* release (use_existing_draft
+          # in .goreleaser.yaml). If that draft is missing at runtime, GoReleaser
+          # silently creates a brand-new release instead — which is how a
+          # failed/retried publish produced two releases for the same tag (an
+          # orphaned draft plus a published release with no notes). Decide before
+          # handing off to GoReleaser:
+          #   * a published (non-draft) release already exists -> the publish
+          #     already happened; skip GoReleaser so a re-run can't duplicate it.
+          #   * exactly one draft exists -> proceed; GoReleaser adopts it.
+          #   * zero (or multiple) drafts -> fail fast instead of guessing.
+          # Releases are returned newest-first, so the just-created ones are on
+          # the first page. gh's built-in --jq reads $TAG_NAME via jq's `env`.
+          published="$(gh api "repos/${GH_REPO}/releases?per_page=100" \
+            --jq '[.[] | select(.tag_name == env.TAG_NAME and (.draft | not))] | length')"
+          drafts="$(gh api "repos/${GH_REPO}/releases?per_page=100" \
+            --jq '[.[] | select(.tag_name == env.TAG_NAME and .draft)] | length')"
+          echo "For ${TAG_NAME}: drafts=${drafts}, published=${published}"
+          if [ "$published" -gt 0 ]; then
+            echo "::warning::A published release for ${TAG_NAME} already exists; skipping GoReleaser to avoid creating a duplicate."
+            echo "skip_goreleaser=true" >> "$GITHUB_ENV"
+          elif [ "$drafts" -eq 0 ]; then
+            echo "::error::No release-please draft found for ${TAG_NAME}; refusing to let GoReleaser create a new release."
+            exit 1
+          elif [ "$drafts" -gt 1 ]; then
+            echo "::error::Found ${drafts} draft releases for ${TAG_NAME}; resolve the duplicates before publishing."
+            exit 1
+          fi
+
       - uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7.2.2
+        if: env.skip_goreleaser != 'true'
         with:
           distribution: goreleaser
           version: latest
