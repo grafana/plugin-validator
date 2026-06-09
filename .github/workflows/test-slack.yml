@@ -1,0 +1,25 @@
+name: Test Slack notification
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-slack:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Notify Slack about staged npm package
+        uses: grafana/shared-workflows/actions/send-slack-message@952ec381447a2002ff76103395d37bf8b4c7c3f5 # send-slack-message/v3.0.1
+        with:
+          method: chat.postMessage
+          payload: |
+            {
+              "channel": "C031SLFH6G0",
+              "text": "🧪 TEST: This is a test notification for staged npm publishing workflow. Please ignore."
+            }

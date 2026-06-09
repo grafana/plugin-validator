@@ -99,7 +99,7 @@ jobs:
       - run: npm stage publish
 
       - name: Notify Slack about staged npm package
-        uses: grafana/shared-workflows/actions/send-slack-message@eb1fbd807f87aea8f40ff08dc9cd02872cad55b3 # send-slack-message/v2.0.5
+        uses: grafana/shared-workflows/actions/send-slack-message@952ec381447a2002ff76103395d37bf8b4c7c3f5 # send-slack-message/v3.0.1
         with:
           method: chat.postMessage
           payload: |
