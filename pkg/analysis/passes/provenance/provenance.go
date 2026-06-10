@@ -70,6 +70,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	owner := matches[1]
+	repo := matches[2]
 	ctx, canc := context.WithTimeout(context.Background(), time.Second*30)
 	defer canc()
 
@@ -77,6 +78,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		ctx,
 		pass.CheckParams.ArchiveFile,
 		owner,
+		repo,
 	)
 	if err != nil || !hasGithubProvenanceAttestationPipeline {
 		message := "Cannot verify plugin build provenance attestation."
@@ -106,13 +108,19 @@ func hasGithubProvenanceAttestationPipeline(
 	ctx context.Context,
 	assetPath string,
 	owner string,
+	repo string,
 ) (bool, error) {
 	sha256sum, err := getFileSha256(assetPath)
 	if err != nil {
 		return false, err
 	}
 
-	url := fmt.Sprintf("https://api.github.com/users/%s/attestations/sha256:%s", owner, sha256sum)
+	url := fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/attestations/sha256:%s",
+		owner,
+		repo,
+		sha256sum,
+	)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
