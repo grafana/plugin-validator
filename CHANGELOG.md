@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.42.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.8...plugin-validator/v0.42.9) (2026-06-10)
+
+
+### 🐛 Bug Fixes
+
+* **provenance:** use repo-scoped attestation endpoint ([#612](https://github.com/grafana/plugin-validator/issues/612)) ([79811ac](https://github.com/grafana/plugin-validator/commit/79811ac8489ba6206adcf6135f50301bcae212f9))
+* **release:** guard publish job against duplicate GitHub releases ([#610](https://github.com/grafana/plugin-validator/issues/610)) ([d576630](https://github.com/grafana/plugin-validator/commit/d576630af254e5ec6af3fa71c088a9c4f9b2d3d0))
+
+
+### 🔧 Chores
+
+* **ci:** bump release-please-action to v5.0.0 ([#609](https://github.com/grafana/plugin-validator/issues/609)) ([ee6c419](https://github.com/grafana/plugin-validator/commit/ee6c419edbb7977e360289be2ae4785123b457ac))
+
 ## [0.42.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.7...plugin-validator/v0.42.8) (2026-06-08)
 
 
