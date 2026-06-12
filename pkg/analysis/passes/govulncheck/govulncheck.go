@@ -13,6 +13,8 @@ import (
 	"sort"
 	"strings"
 
+	"golang.org/x/mod/semver"
+
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
@@ -37,6 +39,13 @@ var Analyzer = &analysis.Analyzer{
 		Description:  "Scans Go backend source and plugin backend binaries for known vulnerabilities (govulncheck).",
 		Dependencies: "[govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck), `sourceCodeUri` for source scans",
 	},
+}
+
+type vulnInfo struct {
+	id           string
+	summary      string
+	module       string
+	fixedVersion string
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
@@ -77,7 +86,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			)
 			moduleDirs = nil
 		}
-		sourceFindings := make(map[string]struct{})
+		sourceFindings := make(map[string]*vulnInfo)
 		for _, moduleDir := range moduleDirs {
 			stdout, ok, failureDetail, err := runGovulncheckJSON(govulncheckBin, moduleDir, moduleDir, "-json", "./...")
 			if err != nil {
@@ -101,7 +110,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				continue
 			}
 			scansPerformed++
-			osvIDs, err := parseCalledFindings(bytes.NewReader(stdout))
+			vulns, err := parseCalledFindings(bytes.NewReader(stdout))
 			if err != nil {
 				logme.Errorln("Error parsing govulncheck source output", "error", err)
 				scanFailures++
@@ -113,15 +122,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				)
 				continue
 			}
-			for id := range osvIDs {
-				sourceFindings[id] = struct{}{}
+			for id, info := range vulns {
+				if sourceFindings[id] == nil {
+					sourceFindings[id] = info
+				}
 			}
 		}
 		findingsReported += len(sourceFindings)
 		reportSourceFindings(pass, sourceFindings)
 	}
 
-	binaryFindings := make(map[string]map[string]struct{})
+	binaryFindings := make(map[string]*vulnInfo)
 	binaryPaths, err := getBackendBinaries(pass)
 	if err != nil {
 		pass.ReportResult(
@@ -155,7 +166,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			continue
 		}
 		scansPerformed++
-		osvIDs, err := parseAllFindings(bytes.NewReader(stdout))
+		vulns, err := parseAllFindings(bytes.NewReader(stdout))
 		if err != nil {
 			logme.Errorln("Error parsing govulncheck binary output", "error", err)
 			scanFailures++
@@ -167,11 +178,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			)
 			continue
 		}
-		for id := range osvIDs {
+		for id, info := range vulns {
 			if binaryFindings[id] == nil {
-				binaryFindings[id] = make(map[string]struct{})
+				binaryFindings[id] = info
 			}
-			binaryFindings[id][filepath.Base(binaryPath)] = struct{}{}
 		}
 	}
 	findingsReported += len(binaryFindings)
@@ -214,12 +224,12 @@ func runGovulncheckJSON(govulncheckBin, dir, target string, args ...string) ([]b
 }
 
 // parseCalledFindings decodes the govulncheck `-json` NDJSON stream and
-// returns the set of OSV IDs whose Finding contains a call-site frame
-// (i.e. the vulnerable symbol is reachable from user code, not merely
-// present in a transitive dependency).
-func parseCalledFindings(r io.Reader) (map[string]struct{}, error) {
+// returns vulns whose Finding contains a call-site frame (i.e. the vulnerable
+// symbol is reachable from user code, not merely present in a transitive dep).
+func parseCalledFindings(r io.Reader) (map[string]*vulnInfo, error) {
 	dec := json.NewDecoder(r)
-	called := make(map[string]struct{})
+	summaries := make(map[string]string)
+	called := make(map[string]*vulnInfo)
 	for {
 		var msg Message
 		if err := dec.Decode(&msg); err != nil {
@@ -227,20 +237,36 @@ func parseCalledFindings(r io.Reader) (map[string]struct{}, error) {
 				break
 			}
 			return nil, err
+		}
+		if msg.OSV != nil && msg.OSV.ID != "" {
+			summaries[msg.OSV.ID] = msg.OSV.Summary
 		}
 		if msg.Finding == nil || msg.Finding.OSV == "" {
 			continue
 		}
 		if isCalled(msg.Finding) {
-			called[msg.Finding.OSV] = struct{}{}
+			id := msg.Finding.OSV
+			if called[id] == nil {
+				called[id] = &vulnInfo{id: id}
+			}
+			if semver.Compare(msg.Finding.FixedVersion, called[id].fixedVersion) > 0 {
+				called[id].fixedVersion = msg.Finding.FixedVersion
+			}
+			if called[id].module == "" {
+				called[id].module = firstModule(msg.Finding.Trace)
+			}
 		}
+	}
+	for id, info := range called {
+		info.summary = summaries[id]
 	}
 	return called, nil
 }
 
-func parseAllFindings(r io.Reader) (map[string]struct{}, error) {
+func parseAllFindings(r io.Reader) (map[string]*vulnInfo, error) {
 	dec := json.NewDecoder(r)
-	found := make(map[string]struct{})
+	summaries := make(map[string]string)
+	found := make(map[string]*vulnInfo)
 	for {
 		var msg Message
 		if err := dec.Decode(&msg); err != nil {
@@ -249,10 +275,25 @@ func parseAllFindings(r io.Reader) (map[string]struct{}, error) {
 			}
 			return nil, err
 		}
+		if msg.OSV != nil && msg.OSV.ID != "" {
+			summaries[msg.OSV.ID] = msg.OSV.Summary
+		}
 		if msg.Finding == nil || msg.Finding.OSV == "" {
 			continue
 		}
-		found[msg.Finding.OSV] = struct{}{}
+		id := msg.Finding.OSV
+		if found[id] == nil {
+			found[id] = &vulnInfo{id: id}
+		}
+		if semver.Compare(msg.Finding.FixedVersion, found[id].fixedVersion) > 0 {
+			found[id].fixedVersion = msg.Finding.FixedVersion
+		}
+		if found[id].module == "" {
+			found[id].module = firstModule(msg.Finding.Trace)
+		}
+	}
+	for id, info := range found {
+		info.summary = summaries[id]
 	}
 	return found, nil
 }
@@ -382,50 +423,142 @@ func isGoBinaryCandidate(path string) (bool, error) {
 	return false, fmt.Errorf("%s is not a Go binary: %w", path, err)
 }
 
-func reportSourceFindings(pass *analysis.Pass, osvIDs map[string]struct{}) {
-	if len(osvIDs) == 0 {
+func reportSourceFindings(pass *analysis.Pass, findings map[string]*vulnInfo) {
+	if len(findings) == 0 {
 		return
 	}
-	ids := sortedKeys(osvIDs)
+	modGroups, stdlibGroup := splitGroups(groupByDep(findings))
+	var lines []string
+	if stdlibGroup != nil {
+		lines = append(lines, "Update Go toolchain to "+goToolchainVersion(stdlibGroup.fixedVersion)+" or later ("+strings.Join(stdlibGroup.ids, ", ")+")")
+	}
+	if len(modGroups) > 0 {
+		if len(lines) > 0 {
+			lines = append(lines, "")
+		}
+		lines = append(lines, "Update the following dependencies:")
+		for _, g := range modGroups {
+			lines = append(lines, "• "+depVersion(g)+" ("+strings.Join(g.ids, ", ")+")")
+		}
+	}
+	if len(lines) > 0 {
+		lines = append(lines, "")
+	}
+	lines = append(lines, "Run `govulncheck ./...` in your plugin source for full details.")
 	pass.ReportResult(
 		pass.AnalyzerName,
 		govulncheckIssueFound,
-		fmt.Sprintf("govulncheck source scan reports %d reachable vulnerabilit%s", len(ids), pluralY(len(ids))),
-		fmt.Sprintf(
-			"Run govulncheck https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck in your plugin source to see details. Reachable OSV IDs: %s",
-			strings.Join(ids, ", "),
-		),
+		fmt.Sprintf("govulncheck source scan reports %d reachable vulnerabilit%s", len(findings), pluralY(len(findings))),
+		strings.Join(lines, "\n"),
 	)
 }
 
-func reportBinaryFindings(pass *analysis.Pass, binaryFindings map[string]map[string]struct{}) {
-	if len(binaryFindings) == 0 {
+func reportBinaryFindings(pass *analysis.Pass, findings map[string]*vulnInfo) {
+	if len(findings) == 0 {
 		return
 	}
-	ids := make([]string, 0, len(binaryFindings))
-	for id := range binaryFindings {
-		ids = append(ids, id)
+	modGroups, stdlibGroup := splitGroups(groupByDep(findings))
+	var lines []string
+	if stdlibGroup != nil {
+		lines = append(lines, "Update Go toolchain to "+goToolchainVersion(stdlibGroup.fixedVersion)+" or later ("+strings.Join(stdlibGroup.ids, ", ")+")")
 	}
-	sort.Strings(ids)
-
-	parts := make([]string, 0, len(ids))
-	for _, id := range ids {
-		parts = append(parts, fmt.Sprintf("%s (%s)", id, strings.Join(sortedKeys(binaryFindings[id]), ", ")))
+	if len(modGroups) > 0 {
+		if len(lines) > 0 {
+			lines = append(lines, "")
+		}
+		lines = append(lines, "Update the following dependencies:")
+		for _, g := range modGroups {
+			lines = append(lines, "• "+depVersion(g)+" ("+strings.Join(g.ids, ", ")+")")
+		}
 	}
-
 	pass.ReportResult(
 		pass.AnalyzerName,
 		govulncheckIssueFound,
-		fmt.Sprintf("govulncheck binary scan reports %d vulnerabilit%s", len(ids), pluralY(len(ids))),
-		"Detected OSV IDs in backend binaries: "+strings.Join(parts, "; "),
+		fmt.Sprintf("govulncheck binary scan reports %d vulnerabilit%s", len(findings), pluralY(len(findings))),
+		strings.Join(lines, "\n"),
 	)
 }
 
-func sortedKeys(values map[string]struct{}) []string {
-	keys := make([]string, 0, len(values))
-	for value := range values {
-		keys = append(keys, value)
+type depGroup struct {
+	module       string
+	fixedVersion string
+	ids          []string
+}
+
+// groupByDep groups vulns by their vulnerable module, taking the maximum fix
+// version per module so the user sees one upgrade target per dependency.
+func groupByDep(findings map[string]*vulnInfo) []depGroup {
+	byModule := make(map[string]*depGroup)
+	for _, info := range findings {
+		mod := info.module
+		if mod == "" || mod == "std" {
+			mod = "stdlib"
+		}
+		g, ok := byModule[mod]
+		if !ok {
+			byModule[mod] = &depGroup{module: mod, fixedVersion: info.fixedVersion, ids: []string{info.id}}
+			continue
+		}
+		if semver.Compare(info.fixedVersion, g.fixedVersion) > 0 {
+			g.fixedVersion = info.fixedVersion
+		}
+		g.ids = append(g.ids, info.id)
 	}
-	sort.Strings(keys)
-	return keys
+	groups := make([]depGroup, 0, len(byModule))
+	for _, g := range byModule {
+		sort.Strings(g.ids)
+		groups = append(groups, *g)
+	}
+	// Non-stdlib modules alphabetically first, stdlib last.
+	sort.Slice(groups, func(i, j int) bool {
+		if groups[i].module == "stdlib" {
+			return false
+		}
+		if groups[j].module == "stdlib" {
+			return true
+		}
+		return groups[i].module < groups[j].module
+	})
+	return groups
+}
+
+// goToolchainVersion strips the "v" prefix from a Go stdlib fix version for
+// go.mod-compatible display (e.g. "v1.26.4" → "1.26.4"). Returns
+// "unknown" when no fixed version is available so the output is never blank.
+func goToolchainVersion(fixedVersion string) string {
+	v := strings.TrimPrefix(fixedVersion, "v")
+	if v == "" {
+		return "unknown"
+	}
+	return v
+}
+
+// depVersion formats a module dep group for display, e.g. "golang.org/x/net v0.55.0".
+// Falls back to "<module> (no fixed version)" when fixedVersion is absent.
+func depVersion(g depGroup) string {
+	if g.fixedVersion == "" {
+		return g.module + " (no fixed version available)"
+	}
+	return g.module + " " + g.fixedVersion
+}
+
+// splitGroups separates module dep groups from the stdlib group.
+func splitGroups(groups []depGroup) (modGroups []depGroup, stdlib *depGroup) {
+	for i := range groups {
+		if groups[i].module == "stdlib" {
+			stdlib = &groups[i]
+		} else {
+			modGroups = append(modGroups, groups[i])
+		}
+	}
+	return
+}
+
+func firstModule(trace []Frame) string {
+	for _, f := range trace {
+		if f.Module != "" {
+			return f.Module
+		}
+	}
+	return ""
 }

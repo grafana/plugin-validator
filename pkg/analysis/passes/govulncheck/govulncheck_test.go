@@ -81,6 +81,77 @@ func TestParseCalledFindings_CountsPositionInAnyTraceFrame(t *testing.T) {
 	}
 }
 
+func TestParseCalledFindings_CapturesSummaryAndFixedVersion(t *testing.T) {
+	got, err := parseCalledFindings(strings.NewReader(sampleNDJSON))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	info, ok := got["GO-2024-AAAA"]
+	if !ok {
+		t.Fatalf("expected GO-2024-AAAA in result")
+	}
+	if info.summary != "Some vuln in pkg/foo" {
+		t.Errorf("expected summary %q, got %q", "Some vuln in pkg/foo", info.summary)
+	}
+	if info.fixedVersion != "v1.2.3" {
+		t.Errorf("expected fixedVersion %q, got %q", "v1.2.3", info.fixedVersion)
+	}
+	if info.module != "example.com/foo" {
+		t.Errorf("expected module %q, got %q", "example.com/foo", info.module)
+	}
+}
+
+func TestRun_BinaryDetailContainsSummaryAndFixHint(t *testing.T) {
+	binDir := t.TempDir()
+	fakeGovulncheck := filepath.Join(binDir, "govulncheck")
+	err := os.WriteFile(fakeGovulncheck, []byte(`#!/bin/sh
+printf '{"osv":{"id":"GO-2024-BIN","summary":"dangerous syscall usage"}}\n'
+printf '{"finding":{"osv":"GO-2024-BIN","fixed_version":"v2.0.0","trace":[{"module":"example.com/mod","version":"v1.2.3"}]}}\n'
+`), 0o755)
+	if err != nil {
+		t.Fatalf("write fake govulncheck: %v", err)
+	}
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	archiveDir := t.TempDir()
+	writeCurrentTestBinary(t, filepath.Join(archiveDir, "test-plugin_linux_amd64"))
+
+	var diagnostics []analysis.Diagnostic
+	pass := &analysis.Pass{
+		AnalyzerName: Analyzer.Name,
+		ResultOf: map[*analysis.Analyzer]any{
+			archive.Analyzer: archiveDir,
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{Executable: "test-plugin"},
+			},
+		},
+		Report: func(_ string, d analysis.Diagnostic) {
+			diagnostics = append(diagnostics, d)
+		},
+	}
+
+	_, err = Analyzer.Run(pass)
+	if err != nil {
+		t.Fatalf("run returned error: %v", err)
+	}
+	if len(diagnostics) != 1 {
+		t.Fatalf("expected 1 diagnostic, got %d", len(diagnostics))
+	}
+	detail := diagnostics[0].Detail
+	if !strings.Contains(detail, "GO-2024-BIN") {
+		t.Errorf("expected OSV ID in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "example.com/mod") {
+		t.Errorf("expected module path in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "v2.0.0") {
+		t.Errorf("expected fixed version in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "Update the following dependencies") {
+		t.Errorf("expected dependencies section in detail, got %q", detail)
+	}
+}
+
 func TestRun_SkipsSilentlyWhenGovulncheckNotInstalled(t *testing.T) {
 	t.Setenv("PATH", t.TempDir())
 
@@ -230,8 +301,8 @@ printf '{"finding":{"osv":"GO-2024-BIN","trace":[{"module":"example.com/mod","ve
 	if !strings.Contains(diagnostics[0].Title, "binary scan reports 1") {
 		t.Fatalf("expected binary scan title, got %q", diagnostics[0].Title)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-BIN") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-BIN") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
@@ -274,8 +345,8 @@ printf '{"finding":{"osv":"GO-2024-EXACT","trace":[{"module":"example.com/mod","
 	if diagnostics[0].Name != govulncheckIssueFound.Name {
 		t.Fatalf("expected %q diagnostic, got %q", govulncheckIssueFound.Name, diagnostics[0].Name)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-EXACT") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-EXACT") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
@@ -321,8 +392,8 @@ printf '{"finding":{"osv":"GO-2024-DECOY","trace":[{"module":"example.com/mod","
 	if diagnostics[0].Name != govulncheckIssueFound.Name {
 		t.Fatalf("expected %q diagnostic, got %q", govulncheckIssueFound.Name, diagnostics[0].Name)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-DECOY") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-DECOY") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
