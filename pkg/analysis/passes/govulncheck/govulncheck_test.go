@@ -14,15 +14,18 @@ import (
 )
 
 // Sample drawn from real `govulncheck -json` output. NDJSON: one Message per line.
-// Two distinct findings: GO-2024-AAAA is "called" (has a frame with a Position
-// in user code), GO-2024-BBBB is module-level only (no Position). Only the
-// first should be counted.
+// Two distinct findings: GO-2024-AAAA is "called" — its trace is ordered
+// vulnerable-symbol-first (example.com/foo) → plugin entry point last
+// (example.com/plugin), matching govulncheck's frame ordering, with the
+// user-code Position on the entry frame. The two frames use distinct modules
+// so the test pins firstModule to trace[0] (the dependency). GO-2024-BBBB is
+// module-level only (no Position). Only the first should be counted.
 const sampleNDJSON = `
 {"config":{"protocol_version":"v1.0.0","scanner_name":"govulncheck","scanner_version":"v1.1.4","db":"https://vuln.go.dev","go_version":"go1.26.3","scan_level":"symbol"}}
 {"progress":{"message":"Scanning your code and 42 packages across 3 dependent modules for known vulnerabilities..."}}
 {"osv":{"id":"GO-2024-AAAA","summary":"Some vuln in pkg/foo"}}
 {"osv":{"id":"GO-2024-BBBB","summary":"Module-only finding"}}
-{"finding":{"osv":"GO-2024-AAAA","fixed_version":"v1.2.3","trace":[{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"Vulnerable","position":{"filename":"/src/plugin/main.go","line":42}},{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"main"}]}}
+{"finding":{"osv":"GO-2024-AAAA","fixed_version":"v1.2.3","trace":[{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"Vulnerable"},{"module":"example.com/plugin","package":"example.com/plugin","function":"main","position":{"filename":"/src/plugin/main.go","line":42}}]}}
 {"finding":{"osv":"GO-2024-BBBB","fixed_version":"v2.0.0","trace":[{"module":"example.com/bar","version":"v0.1.0"}]}}
 `
 
@@ -93,7 +96,9 @@ func TestParseCalledFindings_CapturesFixedVersionAndModule(t *testing.T) {
 	if info.fixedVersion != "v1.2.3" {
 		t.Errorf("expected fixedVersion %q, got %q", "v1.2.3", info.fixedVersion)
 	}
-	// Trace is root-first; lastModule returns the last frame's module.
+	// firstModule returns trace[0].Module — the vulnerable dependency
+	// (example.com/foo), not the plugin's own entry-point module
+	// (example.com/plugin) which appears last in the trace.
 	if info.module != "example.com/foo" {
 		t.Errorf("expected module %q, got %q", "example.com/foo", info.module)
 	}
