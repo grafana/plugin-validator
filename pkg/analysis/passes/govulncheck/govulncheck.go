@@ -43,7 +43,6 @@ var Analyzer = &analysis.Analyzer{
 
 type vulnInfo struct {
 	id           string
-	summary      string
 	module       string
 	fixedVersion string
 }
@@ -123,7 +122,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 				continue
 			}
 			for id, info := range vulns {
-				if sourceFindings[id] == nil {
+				if sourceFindings[id] == nil || semver.Compare(info.fixedVersion, sourceFindings[id].fixedVersion) > 0 {
 					sourceFindings[id] = info
 				}
 			}
@@ -228,7 +227,6 @@ func runGovulncheckJSON(govulncheckBin, dir, target string, args ...string) ([]b
 // symbol is reachable from user code, not merely present in a transitive dep).
 func parseCalledFindings(r io.Reader) (map[string]*vulnInfo, error) {
 	dec := json.NewDecoder(r)
-	summaries := make(map[string]string)
 	called := make(map[string]*vulnInfo)
 	for {
 		var msg Message
@@ -237,9 +235,6 @@ func parseCalledFindings(r io.Reader) (map[string]*vulnInfo, error) {
 				break
 			}
 			return nil, err
-		}
-		if msg.OSV != nil && msg.OSV.ID != "" {
-			summaries[msg.OSV.ID] = msg.OSV.Summary
 		}
 		if msg.Finding == nil || msg.Finding.OSV == "" {
 			continue
@@ -257,15 +252,11 @@ func parseCalledFindings(r io.Reader) (map[string]*vulnInfo, error) {
 			}
 		}
 	}
-	for id, info := range called {
-		info.summary = summaries[id]
-	}
 	return called, nil
 }
 
 func parseAllFindings(r io.Reader) (map[string]*vulnInfo, error) {
 	dec := json.NewDecoder(r)
-	summaries := make(map[string]string)
 	found := make(map[string]*vulnInfo)
 	for {
 		var msg Message
@@ -274,9 +265,6 @@ func parseAllFindings(r io.Reader) (map[string]*vulnInfo, error) {
 				break
 			}
 			return nil, err
-		}
-		if msg.OSV != nil && msg.OSV.ID != "" {
-			summaries[msg.OSV.ID] = msg.OSV.Summary
 		}
 		if msg.Finding == nil || msg.Finding.OSV == "" {
 			continue
@@ -291,9 +279,6 @@ func parseAllFindings(r io.Reader) (map[string]*vulnInfo, error) {
 		if found[id].module == "" {
 			found[id].module = firstModule(msg.Finding.Trace)
 		}
-	}
-	for id, info := range found {
-		info.summary = summaries[id]
 	}
 	return found, nil
 }
@@ -554,6 +539,9 @@ func splitGroups(groups []depGroup) (modGroups []depGroup, stdlib *depGroup) {
 	return
 }
 
+// firstModule returns the first non-empty module in the trace. The govulncheck
+// trace is ordered vulnerable-symbol-first → entry-point-last, so the first
+// frame's module is the vulnerable dependency.
 func firstModule(trace []Frame) string {
 	for _, f := range trace {
 		if f.Module != "" {
