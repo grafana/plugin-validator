@@ -1,6 +1,7 @@
 package coderules
 
 import (
+	"bytes"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -102,13 +103,19 @@ func run(pass *analysis.Pass) (any, error) {
 
 	semgrepPath, err := getSemgrepPath()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: getSemgrepPath failed: %v\n", err)
 		return nil, nil
 	}
 
 	logme.DebugFln("semgrep path: %s", semgrepPath)
 
+	// DEBUG: capture semgrep version to confirm which binary/env is in use.
+	verOut, verErr := exec.Command(semgrepPath, "--version").CombinedOutput()
+	fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: semgrep path=%s version=%q verErr=%v\n", semgrepPath, strings.TrimSpace(string(verOut)), verErr)
+
 	semgrepRulesPath, cleanup, err := getSemgrepRulesPath()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: getSemgrepRulesPath failed: %v\n", err)
 		return nil, nil
 	}
 	if cleanup != nil {
@@ -128,7 +135,12 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	logme.DebugFln("semgrep args: %v", semGrepArgs)
 	cmd := exec.Command(semgrepPath, semGrepArgs...)
+	var stderrBuf bytes.Buffer
+	cmd.Stderr = &stderrBuf
 	out, err := cmd.Output()
+	// DEBUG: surface exactly what semgrep returned on the CI runner.
+	fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: dir=%s rules=%s err=%v stdoutLen=%d stderr=%q stdoutHead=%q\n",
+		sourceCodeDir, semgrepRulesPath, err, len(out), truncForLog(stderrBuf.String()), truncForLog(string(out)))
 	if err != nil {
 		return nil, nil
 	}
@@ -136,8 +148,10 @@ func run(pass *analysis.Pass) (any, error) {
 	var semgrepResults SemgrepResults
 	err = json.Unmarshal(out, &semgrepResults)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: json.Unmarshal failed: %v\n", err)
 		return nil, nil
 	}
+	fmt.Fprintf(os.Stderr, "DEBUG-CODERULES: parsed %d semgrep results\n", len(semgrepResults.Results))
 
 	violations := 0
 
@@ -209,6 +223,15 @@ func run(pass *analysis.Pass) (any, error) {
 	// no need to return anything
 	return nil, nil
 
+}
+
+// truncForLog caps debug strings so CI logs stay readable.
+func truncForLog(s string) string {
+	const max = 2000
+	if len(s) > max {
+		return s[:max] + "...(truncated)"
+	}
+	return s
 }
 
 func getSemgrepPath() (string, error) {
