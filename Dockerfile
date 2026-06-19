@@ -54,13 +54,13 @@ RUN mage -v build:lint
 
 RUN mage -v build:ci
 
-FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
+FROM golang:1.26.4-alpine3.24@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648
 
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
 # govulncheck source mode shells out to the Go command to load packages.
-RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.14.1-r0 npm
+RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.16.0-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
