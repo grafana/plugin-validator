@@ -4,7 +4,7 @@ ARG GOLANGCI_LINT_VERSION=v2.12.2
 ARG GOLANGCI_LINT_SHA256=8df580d2670fed8fa984aac0507099af8df275e665215f5c7a2ae3943893a553
 ARG GOSEC_VERSION=v2.22.8
 ARG GOVULNCHECK_VERSION=v1.1.4
-ARG SEMGREP_VERSION=1.167.0
+ARG SEMGREP_VERSION=1.84.1
 
 FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS builder
 
@@ -48,7 +48,12 @@ RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh
 RUN go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && \
     mv "$(go env GOPATH)/bin/govulncheck" /usr/local/bin/govulncheck
 
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
+# setuptools<81 provides pkg_resources, which semgrep 1.84.1 imports but
+# Python 3.14 (alpine 3.24) no longer bundles. semgrep is pinned to the
+# 1.84.x line on purpose: its OCaml 4 core runs in the restricted buildkit
+# sandbox, whereas the OCaml 5 core in newer semgrep crashes there
+# ("Failed to allocate signal stack for domain 0").
+RUN python3 -m pip install "setuptools<81" semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
 RUN mage -v build:lint
 
@@ -70,7 +75,7 @@ RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh
 COPY --from=builder /usr/local/bin/govulncheck /usr/local/bin/govulncheck
 
 # install semgrep
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
+RUN python3 -m pip install "setuptools<81" semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
 
 
 WORKDIR /app
