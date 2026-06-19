@@ -6,7 +6,7 @@ ARG GOSEC_VERSION=v2.22.8
 ARG GOVULNCHECK_VERSION=v1.1.4
 ARG SEMGREP_VERSION=1.84.1
 
-FROM golang:1.26.4-alpine3.23@sha256:f23e8b227fb4493eabe03bede4d5a32d04092da71962f1fb79b5f7d1e6c2a17f AS builder
+FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS builder
 
 ARG GOLANGCI_LINT_VERSION
 ARG GOLANGCI_LINT_SHA256
@@ -19,7 +19,7 @@ ADD . /go/src/github.com/grafana/plugin-validator
 
 # nodejs/npm are required by the reactcompat analyzer (npx @grafana/react-detect).
 # Pinned to Node 24.x to match the version used in release workflows.
-RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.14.1-r0 npm
+RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.16.0-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
