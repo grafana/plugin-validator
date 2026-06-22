@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.42.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.9...plugin-validator/v0.42.10) (2026-06-22)
+
+
+### 🐛 Bug Fixes
+
+* **security/medium/:** update security tar to v7.5.16 [security] ([#616](https://github.com/grafana/plugin-validator/issues/616)) ([2d11dc6](https://github.com/grafana/plugin-validator/commit/2d11dc6a356cb800d93e857cfe95ee2a20db87ea))
+
+
+### 🔧 Chores
+
+* bump osv-scanner to v2.4.0 and go to 1.26.4 ([#618](https://github.com/grafana/plugin-validator/issues/618)) ([9017a5a](https://github.com/grafana/plugin-validator/commit/9017a5aaf942bce84254bbe06bca92ea53809b96))
+
 ## [0.42.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.8...plugin-validator/v0.42.9) (2026-06-10)
 
 
