@@ -6,7 +6,7 @@ ARG GOSEC_VERSION=v2.22.8
 ARG GOVULNCHECK_VERSION=v1.1.4
 ARG SEMGREP_VERSION=1.84.1
 
-FROM golang:1.26.3-alpine3.23@sha256:91eda9776261207ea25fd06b5b7fed8d397dd2c0a283e77f2ab6e91bfa71079d AS builder
+FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS builder
 
 ARG GOLANGCI_LINT_VERSION
 ARG GOLANGCI_LINT_SHA256
@@ -19,7 +19,7 @@ ADD . /go/src/github.com/grafana/plugin-validator
 
 # nodejs/npm are required by the reactcompat analyzer (npx @grafana/react-detect).
 # Pinned to Node 24.x to match the version used in release workflows.
-RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.14.1-r0 npm
+RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.16.0-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
@@ -48,19 +48,24 @@ RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh
 RUN go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION} && \
     mv "$(go env GOPATH)/bin/govulncheck" /usr/local/bin/govulncheck
 
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
+# setuptools<81 provides pkg_resources, which semgrep 1.84.1 imports but
+# Python 3.14 (alpine 3.24) no longer bundles. semgrep is pinned to the
+# 1.84.x line on purpose: its OCaml 4 core runs in the restricted buildkit
+# sandbox, whereas the OCaml 5 core in newer semgrep crashes there
+# ("Failed to allocate signal stack for domain 0").
+RUN python3 -m pip install "setuptools<81" semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages
 
 RUN mage -v build:lint
 
 RUN mage -v build:ci
 
-FROM alpine:3.23@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11
+FROM golang:1.26-alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648
 
 ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
 # govulncheck source mode shells out to the Go command to load packages.
-RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.14.1-r0 npm
+RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.16.0-r0 npm
 RUN update-ca-certificates
 RUN freshclam
 
@@ -70,7 +75,7 @@ RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh
 COPY --from=builder /usr/local/bin/govulncheck /usr/local/bin/govulncheck
 
 # install semgrep
-RUN python3 -m pip install semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
+RUN python3 -m pip install "setuptools<81" semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
 
 
 WORKDIR /app
