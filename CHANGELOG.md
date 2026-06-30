@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.11](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.10...plugin-validator/v0.42.11) (2026-06-30)
+
+
+### 🐛 Bug Fixes
+
+* update pinned Alpine nodejs package ([#621](https://github.com/grafana/plugin-validator/issues/621)) ([b827083](https://github.com/grafana/plugin-validator/commit/b827083eaa737d2a627b12ccbc645767c6db8757))
+
 ## [0.42.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.42.9...plugin-validator/v0.42.10) (2026-06-22)
 
 
