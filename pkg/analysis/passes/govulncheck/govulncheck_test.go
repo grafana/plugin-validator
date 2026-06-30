@@ -14,15 +14,18 @@ import (
 )
 
 // Sample drawn from real `govulncheck -json` output. NDJSON: one Message per line.
-// Two distinct findings: GO-2024-AAAA is "called" (has a frame with a Position
-// in user code), GO-2024-BBBB is module-level only (no Position). Only the
-// first should be counted.
+// Two distinct findings: GO-2024-AAAA is "called" — its trace is ordered
+// vulnerable-symbol-first (example.com/foo) → plugin entry point last
+// (example.com/plugin), matching govulncheck's frame ordering, with the
+// user-code Position on the entry frame. The two frames use distinct modules
+// so the test pins firstModule to trace[0] (the dependency). GO-2024-BBBB is
+// module-level only (no Position). Only the first should be counted.
 const sampleNDJSON = `
 {"config":{"protocol_version":"v1.0.0","scanner_name":"govulncheck","scanner_version":"v1.1.4","db":"https://vuln.go.dev","go_version":"go1.26.3","scan_level":"symbol"}}
 {"progress":{"message":"Scanning your code and 42 packages across 3 dependent modules for known vulnerabilities..."}}
 {"osv":{"id":"GO-2024-AAAA","summary":"Some vuln in pkg/foo"}}
 {"osv":{"id":"GO-2024-BBBB","summary":"Module-only finding"}}
-{"finding":{"osv":"GO-2024-AAAA","fixed_version":"v1.2.3","trace":[{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"Vulnerable","position":{"filename":"/src/plugin/main.go","line":42}},{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"main"}]}}
+{"finding":{"osv":"GO-2024-AAAA","fixed_version":"v1.2.3","trace":[{"module":"example.com/foo","version":"v1.2.0","package":"example.com/foo","function":"Vulnerable"},{"module":"example.com/plugin","package":"example.com/plugin","function":"main","position":{"filename":"/src/plugin/main.go","line":42}}]}}
 {"finding":{"osv":"GO-2024-BBBB","fixed_version":"v2.0.0","trace":[{"module":"example.com/bar","version":"v0.1.0"}]}}
 `
 
@@ -78,6 +81,77 @@ func TestParseCalledFindings_CountsPositionInAnyTraceFrame(t *testing.T) {
 	}
 	if _, ok := got["GO-2024-ORDER"]; !ok {
 		t.Fatalf("expected GO-2024-ORDER in called set, got %v", got)
+	}
+}
+
+func TestParseCalledFindings_CapturesFixedVersionAndModule(t *testing.T) {
+	got, err := parseCalledFindings(strings.NewReader(sampleNDJSON))
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	info, ok := got["GO-2024-AAAA"]
+	if !ok {
+		t.Fatalf("expected GO-2024-AAAA in result")
+	}
+	if info.fixedVersion != "v1.2.3" {
+		t.Errorf("expected fixedVersion %q, got %q", "v1.2.3", info.fixedVersion)
+	}
+	// firstModule returns trace[0].Module — the vulnerable dependency
+	// (example.com/foo), not the plugin's own entry-point module
+	// (example.com/plugin) which appears last in the trace.
+	if info.module != "example.com/foo" {
+		t.Errorf("expected module %q, got %q", "example.com/foo", info.module)
+	}
+}
+
+func TestRun_BinaryDetailContainsSummaryAndFixHint(t *testing.T) {
+	binDir := t.TempDir()
+	fakeGovulncheck := filepath.Join(binDir, "govulncheck")
+	err := os.WriteFile(fakeGovulncheck, []byte(`#!/bin/sh
+printf '{"osv":{"id":"GO-2024-BIN","summary":"dangerous syscall usage"}}\n'
+printf '{"finding":{"osv":"GO-2024-BIN","fixed_version":"v2.0.0","trace":[{"module":"example.com/mod","version":"v1.2.3"}]}}\n'
+`), 0o755)
+	if err != nil {
+		t.Fatalf("write fake govulncheck: %v", err)
+	}
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	archiveDir := t.TempDir()
+	writeCurrentTestBinary(t, filepath.Join(archiveDir, "test-plugin_linux_amd64"))
+
+	var diagnostics []analysis.Diagnostic
+	pass := &analysis.Pass{
+		AnalyzerName: Analyzer.Name,
+		ResultOf: map[*analysis.Analyzer]any{
+			archive.Analyzer: archiveDir,
+			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
+				nestedmetadata.MainPluginJson: metadata.Metadata{Executable: "test-plugin"},
+			},
+		},
+		Report: func(_ string, d analysis.Diagnostic) {
+			diagnostics = append(diagnostics, d)
+		},
+	}
+
+	_, err = Analyzer.Run(pass)
+	if err != nil {
+		t.Fatalf("run returned error: %v", err)
+	}
+	if len(diagnostics) != 1 {
+		t.Fatalf("expected 1 diagnostic, got %d", len(diagnostics))
+	}
+	detail := diagnostics[0].Detail
+	if !strings.Contains(detail, "GO-2024-BIN") {
+		t.Errorf("expected OSV ID in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "example.com/mod") {
+		t.Errorf("expected module path in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "v2.0.0") {
+		t.Errorf("expected fixed version in detail, got %q", detail)
+	}
+	if !strings.Contains(detail, "Update the following dependencies") {
+		t.Errorf("expected dependencies section in detail, got %q", detail)
 	}
 }
 
@@ -230,8 +304,8 @@ printf '{"finding":{"osv":"GO-2024-BIN","trace":[{"module":"example.com/mod","ve
 	if !strings.Contains(diagnostics[0].Title, "binary scan reports 1") {
 		t.Fatalf("expected binary scan title, got %q", diagnostics[0].Title)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-BIN") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-BIN") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
@@ -274,8 +348,8 @@ printf '{"finding":{"osv":"GO-2024-EXACT","trace":[{"module":"example.com/mod","
 	if diagnostics[0].Name != govulncheckIssueFound.Name {
 		t.Fatalf("expected %q diagnostic, got %q", govulncheckIssueFound.Name, diagnostics[0].Name)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-EXACT") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-EXACT") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
@@ -321,8 +395,8 @@ printf '{"finding":{"osv":"GO-2024-DECOY","trace":[{"module":"example.com/mod","
 	if diagnostics[0].Name != govulncheckIssueFound.Name {
 		t.Fatalf("expected %q diagnostic, got %q", govulncheckIssueFound.Name, diagnostics[0].Name)
 	}
-	if !strings.Contains(diagnostics[0].Detail, "GO-2024-DECOY") || !strings.Contains(diagnostics[0].Detail, binaryName) {
-		t.Fatalf("expected OSV and binary name in detail, got %q", diagnostics[0].Detail)
+	if !strings.Contains(diagnostics[0].Detail, "GO-2024-DECOY") {
+		t.Fatalf("expected OSV ID in detail, got %q", diagnostics[0].Detail)
 	}
 }
 
@@ -400,6 +474,78 @@ printf '{"finding":{"osv":"GO-2024-NESTED","trace":[{"package":"p","function":"A
 	}
 	if !strings.Contains(diagnostics[0].Detail, "GO-2024-NESTED") {
 		t.Fatalf("expected OSV in detail, got %q", diagnostics[0].Detail)
+	}
+}
+
+func TestRun_SourceDetailFormatWithCalledVulns(t *testing.T) {
+	binDir := t.TempDir()
+	fakeGovulncheck := filepath.Join(binDir, "govulncheck")
+	// Three findings: two called (stdlib + third-party), one module-only.
+	// Traces are vulnerable-symbol-first per the govulncheck spec: the dep
+	// frame is first (with Position showing the call site in user code), and
+	// the user entry point is last (no Position). The module-only finding has
+	// no Position in any frame so isCalled() returns false — it must not
+	// appear in the output.
+	err := os.WriteFile(fakeGovulncheck, []byte(`#!/bin/sh
+printf '{"finding":{"osv":"GO-2024-SRC-STD","fixed_version":"v1.26.0","trace":[{"module":"stdlib","version":"v1.24.0","package":"net/http","function":"Handle","position":{"filename":"/src/main.go","line":10}},{"module":"example.com/plugin","function":"main"}]}}\n'
+printf '{"finding":{"osv":"GO-2024-SRC-MOD","fixed_version":"v2.0.0","trace":[{"module":"example.com/vuln","version":"v1.0.0","package":"example.com/vuln","function":"Exec","position":{"filename":"/src/main.go","line":20}},{"module":"example.com/plugin","function":"run"}]}}\n'
+printf '{"finding":{"osv":"GO-2024-SRC-SKIP","fixed_version":"v3.0.0","trace":[{"module":"example.com/other","version":"v2.0.0"}]}}\n'
+`), 0o755)
+	if err != nil {
+		t.Fatalf("write fake govulncheck: %v", err)
+	}
+	t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	sourceDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(sourceDir, "go.mod"), []byte("module example.com/plugin\n\ngo 1.22\n"), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
+	}
+
+	var diagnostics []analysis.Diagnostic
+	pass := &analysis.Pass{
+		AnalyzerName: Analyzer.Name,
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: sourceDir,
+		},
+		Report: func(_ string, d analysis.Diagnostic) {
+			diagnostics = append(diagnostics, d)
+		},
+	}
+
+	_, err = Analyzer.Run(pass)
+	if err != nil {
+		t.Fatalf("run returned error: %v", err)
+	}
+	if len(diagnostics) != 1 {
+		t.Fatalf("expected 1 diagnostic, got %d (%v)", len(diagnostics), diagnostics)
+	}
+	d := diagnostics[0]
+	if d.Name != govulncheckIssueFound.Name {
+		t.Fatalf("expected %q diagnostic, got %q", govulncheckIssueFound.Name, d.Name)
+	}
+	if !strings.Contains(d.Title, "source scan reports 2 reachable") {
+		t.Errorf("expected title to report 2 reachable vulns, got %q", d.Title)
+	}
+	if !strings.Contains(d.Detail, "Update Go toolchain to 1.26.0 or later") {
+		t.Errorf("expected toolchain section in detail, got %q", d.Detail)
+	}
+	if !strings.Contains(d.Detail, "GO-2024-SRC-STD") {
+		t.Errorf("expected stdlib OSV in toolchain section, got %q", d.Detail)
+	}
+	if !strings.Contains(d.Detail, "Update the following dependencies:") {
+		t.Errorf("expected dependencies section in detail, got %q", d.Detail)
+	}
+	if !strings.Contains(d.Detail, "example.com/vuln v2.0.0") {
+		t.Errorf("expected module and version in detail, got %q", d.Detail)
+	}
+	if !strings.Contains(d.Detail, "GO-2024-SRC-MOD") {
+		t.Errorf("expected module OSV in dependencies section, got %q", d.Detail)
+	}
+	if strings.Contains(d.Detail, "GO-2024-SRC-SKIP") {
+		t.Errorf("module-only finding should be excluded, got %q", d.Detail)
+	}
+	if !strings.Contains(d.Detail, "Run `govulncheck ./...`") {
+		t.Errorf("expected govulncheck hint in detail, got %q", d.Detail)
 	}
 }
 
