@@ -57,6 +57,10 @@ jobs:
           manifest-file: .release-please-manifest.json
           target-branch: ${{ github.ref_name }}
           token: ${{ steps.generate-github-token.outputs.token }}
+          # On a release PR merge, release-please must still create the draft
+          # GitHub Release for GoReleaser to adopt, but it must not calculate
+          # the next release PR before GoReleaser publishes the draft/tag.
+          skip-github-pull-request: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore(main): release ') }}"
 
   # Build binaries, upload them to the drafted plugin-validator release, and
   # publish it. Only runs on the push that merges the plugin-validator release
