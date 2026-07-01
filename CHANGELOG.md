@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.44.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.0...plugin-validator/v0.44.1) (2026-06-30)
+
+
+### 🐛 Bug Fixes
+
+* **release:** skip next release PR on release merges ([#626](https://github.com/grafana/plugin-validator/issues/626)) ([4391208](https://github.com/grafana/plugin-validator/commit/439120857f5379b2d85788e76b9e7c290c68aaa6))
+
 ## [0.44.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.43.0...plugin-validator/v0.44.0) (2026-06-30)
 
 
