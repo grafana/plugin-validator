@@ -15,7 +15,7 @@ require (
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-shellwords v1.0.13
 	github.com/modelcontextprotocol/go-sdk v1.6.1
-	github.com/openai/openai-go v1.12.0
+	github.com/openai/openai-go/v3 v3.41.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20260424063704-83285ce2a866
 	github.com/r3labs/diff/v3 v3.0.2
 	github.com/smartystreets/goconvey v1.8.1
@@ -157,7 +157,7 @@ require (
 	github.com/segmentio/encoding v0.5.4 // indirect
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
-	github.com/shogo82148/go-shuffle v1.1.1 // indirect
+	github.com/shogo82148/go-shuffle v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/thoas/go-funk v0.9.3 // indirect
