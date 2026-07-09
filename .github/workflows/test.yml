@@ -7,7 +7,7 @@ on:
       - renovate/*
 
 jobs:
-  test-mcp-server:
+  test:
     runs-on: ubuntu-x64
     permissions:
       contents: read
@@ -20,8 +20,27 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Run MCP server tests
-        run: go test -v ./pkg/cmd/mcpserver/...
+      # node is needed for the passes that shell out to npx
+      # (reactcompat, plugindocs) and for the MCP server tests.
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.13"
+
+      # semgrep backs the coderules pass; its tests skip when the binary
+      # is missing, so install it to keep them in the run.
+      - name: Install semgrep
+        run: python3 -m pip install semgrep
+
+      # The plugincheck2 integration tests run the built binary from bin/.
+      - name: Build plugincheck2
+        run: go build -o bin/linux_amd64/plugincheck2 ./pkg/cmd/plugincheck2
+
+      - name: Run tests
+        run: go test ./pkg/...
 
   test-docker-build:
     runs-on: ubuntu-x64
