@@ -35,6 +35,17 @@ jobs:
       - name: Install semgrep
         run: python3 -m pip install semgrep
 
+      # The plugincheck2 integration tests run in parallel and each one
+      # shells out to `npx @grafana/react-detect`. Concurrent cold-cache
+      # npx runs corrupt npm's _npx cache (TAR_ENTRY_ERROR, exit 127), so
+      # fetch the pinned version once up front. The version is read from
+      # the Go constant so it can't drift.
+      - name: Warm the react-detect npx cache
+        run: |
+          version="$(grep -o 'reactDetectVersion = "[^"]*"' pkg/analysis/passes/reactcompat/reactcompat.go | cut -d'"' -f2)"
+          cd "$(mktemp -d)"
+          npx -y "@grafana/react-detect@${version}" --help >/dev/null 2>&1 || true
+
       # The plugincheck2 integration tests run the built binary from bin/.
       - name: Build plugincheck2
         run: go build -o bin/linux_amd64/plugincheck2 ./pkg/cmd/plugincheck2
