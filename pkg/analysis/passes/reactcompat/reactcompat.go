@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strings"
 	"time"
@@ -231,14 +232,23 @@ func reportIssues(pass *analysis.Pass, output *reactDetectOutput, archiveDir str
 
 // relativeToArchive strips the archive directory prefix from a file path
 // emitted by react-detect, so reported paths are reproducible across machines.
-// Falls back to the original path if it doesn't share the archive prefix.
+// react-detect may report paths with symlinks resolved (on macOS the temp dir
+// /var/folders/... resolves to /private/var/folders/...), so the resolved
+// archiveDir is tried as well. Falls back to the original path if it doesn't
+// share the archive prefix.
 func relativeToArchive(file, archiveDir string) string {
 	if archiveDir == "" {
 		return file
 	}
-	prefix := strings.TrimRight(archiveDir, "/") + "/"
-	if strings.HasPrefix(file, prefix) {
-		return strings.TrimPrefix(file, prefix)
+	dirs := []string{archiveDir}
+	if resolved, err := filepath.EvalSymlinks(archiveDir); err == nil && resolved != archiveDir {
+		dirs = append(dirs, resolved)
+	}
+	for _, dir := range dirs {
+		prefix := strings.TrimRight(dir, "/") + "/"
+		if rel, ok := strings.CutPrefix(file, prefix); ok {
+			return rel
+		}
 	}
 	return file
 }

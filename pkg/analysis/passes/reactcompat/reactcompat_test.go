@@ -1,6 +1,7 @@
 package reactcompat
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -247,4 +248,23 @@ func TestNoArchiveDir(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, result)
 	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+// TestRelativeToArchiveSymlinkedDir verifies that paths reported with the
+// archive dir's symlinks resolved (e.g. macOS /var/folders -> /private/var)
+// are still made relative.
+func TestRelativeToArchiveSymlinkedDir(t *testing.T) {
+	base := t.TempDir()
+	target := filepath.Join(base, "target")
+	require.NoError(t, os.Mkdir(target, 0o755))
+	link := filepath.Join(base, "link")
+	require.NoError(t, os.Symlink(target, link))
+
+	resolved, err := filepath.EvalSymlinks(link)
+	require.NoError(t, err)
+
+	require.Equal(t, "src/module.ts", relativeToArchive(resolved+"/src/module.ts", link))
+	require.Equal(t, "src/module.ts", relativeToArchive(link+"/src/module.ts", link))
+	require.Equal(t, "/elsewhere/src/module.ts", relativeToArchive("/elsewhere/src/module.ts", link))
+	require.Equal(t, "/abs/path.ts", relativeToArchive("/abs/path.ts", ""))
 }
