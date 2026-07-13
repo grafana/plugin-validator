@@ -1,7 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>grafana/grafana-community-team//renovate/renovate"
+    "github>grafana/grafana-catalog-team//renovate/renovate"
+  ],
+  "ignorePresets": [
+    "github>grafana/grafana-renovate-config//presets/base",
+    "github>grafana/grafana-renovate-config//presets/automerge",
+    "github>grafana/grafana-renovate-config//presets/labels",
+    "github>grafana/grafana-renovate-config//presets/npm"
   ],
   "packageRules": [
     {
@@ -54,6 +60,9 @@
     "dependencies"
   ],
   "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    ".config/**",
     "**/testdata/**"
   ]
 }
