@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.44.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.1...plugin-validator/v0.44.2) (2026-07-13)
+
+
+### 🐛 Bug Fixes
+
+* **deps:** update dependency tar to v7.5.19 ([#636](https://github.com/grafana/plugin-validator/issues/636)) ([253ec89](https://github.com/grafana/plugin-validator/commit/253ec89736a03443d28061b9286dcfdd8865c4e6))
+
+
+### 🤖 Continuous Integrations
+
+* run the full test suite on pull requests ([#628](https://github.com/grafana/plugin-validator/issues/628)) ([503efa8](https://github.com/grafana/plugin-validator/commit/503efa8fdf57e4c9ed1a8678d43cc0669f78618c))
+
+
+### 🔧 Chores
+
+* **deps:** update github actions ([#632](https://github.com/grafana/plugin-validator/issues/632)) ([c1ac252](https://github.com/grafana/plugin-validator/commit/c1ac2525e3001d03a56b94632206853aa5b52c60))
+* **deps:** update GitHub Actions to v0.3.4 ([421bbda](https://github.com/grafana/plugin-validator/commit/421bbda548a5c98c884c649d0b8104a4815cbcdd))
+* **deps:** update GitHub Actions to v3.0.2 ([6309615](https://github.com/grafana/plugin-validator/commit/6309615ef3ed5e0412e4a149f040655189f0b256))
+* **deps:** update grafana/shared-workflows/build-push-to-dockerhub action to v0.4.2 ([#633](https://github.com/grafana/plugin-validator/issues/633)) ([2d56ac3](https://github.com/grafana/plugin-validator/commit/2d56ac3c222435ac192ea93729ffbd710411d515))
+* **deps:** update grafana/shared-workflows/docker-build-push-image action to v0.3.4 ([#634](https://github.com/grafana/plugin-validator/issues/634)) ([421bbda](https://github.com/grafana/plugin-validator/commit/421bbda548a5c98c884c649d0b8104a4815cbcdd))
+* **deps:** update grafana/shared-workflows/send-slack-message action to v3.0.2 ([#635](https://github.com/grafana/plugin-validator/issues/635)) ([6309615](https://github.com/grafana/plugin-validator/commit/6309615ef3ed5e0412e4a149f040655189f0b256))
+* update Grafana plugin schema ([#630](https://github.com/grafana/plugin-validator/issues/630)) ([c5c6291](https://github.com/grafana/plugin-validator/commit/c5c62911772be0102b0c462059d911a88e686ddb))
+
 ## [0.44.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.0...plugin-validator/v0.44.1) (2026-06-30)
 
 
