@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.45.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.2...plugin-validator/v0.45.0) (2026-07-14)
+
+
+### 🎉 Features
+
+* **backendbinary:** require a linux/amd64 backend binary ([#642](https://github.com/grafana/plugin-validator/issues/642)) ([2731b6c](https://github.com/grafana/plugin-validator/commit/2731b6cd25fd892f48407caedf89cd0db39edf28))
+
+
+### 🔧 Chores
+
+* **deps:** update go dependencies ([f05622a](https://github.com/grafana/plugin-validator/commit/f05622a1ff4a5bc4aa7ce18e0a2824ee8b9458aa))
+* **deps:** update go dependencies (major) ([#641](https://github.com/grafana/plugin-validator/issues/641)) ([f05622a](https://github.com/grafana/plugin-validator/commit/f05622a1ff4a5bc4aa7ce18e0a2824ee8b9458aa))
+* **deps:** update go version ([#638](https://github.com/grafana/plugin-validator/issues/638)) ([760db43](https://github.com/grafana/plugin-validator/commit/760db433215db026baf27fd383ef57e781c3f849))
+* **deps:** update grafana/shared-workflows/create-github-app-token action to v0.3.1 ([#639](https://github.com/grafana/plugin-validator/issues/639)) ([5a31496](https://github.com/grafana/plugin-validator/commit/5a31496fb6f9fde4b6812d3e9c0517d7f6d64f9d))
+* **renovate:** extend shared grafana-catalog-team preset ([#631](https://github.com/grafana/plugin-validator/issues/631)) ([75dbbf0](https://github.com/grafana/plugin-validator/commit/75dbbf0b5fd4260ee33b0a9213c56ed33686d7f6))
+
 ## [0.44.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.1...plugin-validator/v0.44.2) (2026-07-13)
 
 
