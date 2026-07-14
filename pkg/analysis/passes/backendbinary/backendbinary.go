@@ -1,6 +1,7 @@
 package backendbinary
 
 import (
+	"debug/buildinfo"
 	"fmt"
 	"path/filepath"
 
@@ -25,6 +26,10 @@ var (
 		Name:     "alerting-found-but-backend-false",
 		Severity: analysis.Error,
 	}
+	backendBinaryNotLinuxAmd64 = &analysis.Rule{
+		Name:     "backend-binary-not-linux-amd64",
+		Severity: analysis.Error,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -35,6 +40,7 @@ var Analyzer = &analysis.Analyzer{
 		backendBinaryMissing,
 		backendFoundButNotDeclared,
 		alertingFoundButBackendFalse,
+		backendBinaryNotLinuxAmd64,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Backend Binary",
@@ -99,7 +105,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 		// no executable in plugin.json skipping other checks
 		if data.Executable == "" {
-			return nil, nil
+			continue
 		}
 
 		executable := data.Executable
@@ -129,7 +135,47 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			)
 			return nil, nil
 		}
+
+		// backend true with binaries found but none targeting linux/amd64
+		if data.Backend && len(foundBinaries) > 0 && !hasLinuxAmd64Binary(foundBinaries) {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				backendBinaryNotLinuxAmd64,
+				"Missing linux/amd64 backend binary",
+				fmt.Sprintf(
+					"You have declared a backend component in %s but none of the backend binaries target linux/amd64. Grafana requires a linux/amd64 backend binary. Please include one.",
+					pluginJsonPath,
+				),
+			)
+			return nil, nil
+		}
 	}
 
 	return nil, nil
+}
+
+// hasLinuxAmd64Binary reports whether any of the given binaries is a Go binary
+// built for linux/amd64, determined from the embedded build info (GOOS/GOARCH)
+// rather than the file name.
+func hasLinuxAmd64Binary(binaries []string) bool {
+	for _, binaryPath := range binaries {
+		info, err := buildinfo.ReadFile(binaryPath)
+		if err != nil {
+			logme.Debugln("Could not read build info for", binaryPath, err)
+			continue
+		}
+		var goos, goarch string
+		for _, setting := range info.Settings {
+			switch setting.Key {
+			case "GOOS":
+				goos = setting.Value
+			case "GOARCH":
+				goarch = setting.Value
+			}
+		}
+		if goos == "linux" && goarch == "amd64" {
+			return true
+		}
+	}
+	return false
 }
