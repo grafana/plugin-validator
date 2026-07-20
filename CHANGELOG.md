@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.45.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.0...plugin-validator/v0.45.1) (2026-07-20)
+
+
+### 🔧 Chores
+
+* **deps:** update actions/setup-node action to v6.5.0 ([#647](https://github.com/grafana/plugin-validator/issues/647)) ([5acc73f](https://github.com/grafana/plugin-validator/commit/5acc73f5e1ca898b05203b498cc718ca9c4dc581))
+* **deps:** update dependency tar to v7.5.20 ([#644](https://github.com/grafana/plugin-validator/issues/644)) ([d60a9b8](https://github.com/grafana/plugin-validator/commit/d60a9b8743f4ccacbaa7904567fc34ccfa2d66b2))
+* **deps:** update github actions to v7 ([#640](https://github.com/grafana/plugin-validator/issues/640)) ([d7d9fbd](https://github.com/grafana/plugin-validator/commit/d7d9fbd40dd703f7ae71abebe2f85cfaa4057ba1))
+* **deps:** update go dependencies ([a4c971f](https://github.com/grafana/plugin-validator/commit/a4c971f139b7d7f47539d7c53fafdc2639de9f39))
+* **deps:** update go dependencies (major) ([#643](https://github.com/grafana/plugin-validator/issues/643)) ([a4c971f](https://github.com/grafana/plugin-validator/commit/a4c971f139b7d7f47539d7c53fafdc2639de9f39))
+
 ## [0.45.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.44.2...plugin-validator/v0.45.0) (2026-07-14)
 
 
