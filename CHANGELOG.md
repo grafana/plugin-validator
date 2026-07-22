@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.45.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.1...plugin-validator/v0.45.2) (2026-07-22)
+
+
+### 🐛 Bug Fixes
+
+* **security/high/:** update module google.golang.org/grpc to v1.82.1 [security] ([#652](https://github.com/grafana/plugin-validator/issues/652)) ([058f7fa](https://github.com/grafana/plugin-validator/commit/058f7fa3086b5b1a8b6b439fcb436cbcb3f5adeb))
+* **security/unknown/:** update module golang.org/x/net to v0.56.0 [security] ([#650](https://github.com/grafana/plugin-validator/issues/650)) ([3c4e594](https://github.com/grafana/plugin-validator/commit/3c4e5944d004a2d465460ad827af77171a8c4b21))
+
 ## [0.45.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.0...plugin-validator/v0.45.1) (2026-07-20)
 
 
