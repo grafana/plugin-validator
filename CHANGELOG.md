@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.45.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.2...plugin-validator/v0.45.3) (2026-07-27)
+
+
+### 🐛 Bug Fixes
+
+* **security/medium/:** update dependency tar to v7.5.21 [security] ([#657](https://github.com/grafana/plugin-validator/issues/657)) ([74f70af](https://github.com/grafana/plugin-validator/commit/74f70af1f707b8eb84674ab9880af76fc51b7dff))
+* **security/unknown/:** update module go.opentelemetry.io/otel to v1.44.0 [security] ([#658](https://github.com/grafana/plugin-validator/issues/658)) ([52a4a2d](https://github.com/grafana/plugin-validator/commit/52a4a2d4c9fb375758939b0e35e6da4c1539b861))
+* **security/unknown/:** update module golang.org/x/text to v0.39.0 [security] ([#651](https://github.com/grafana/plugin-validator/issues/651)) ([58d980e](https://github.com/grafana/plugin-validator/commit/58d980e491ac2ee5260fd43c650ee84a7ea4269f))
+
+
+### 🔧 Chores
+
+* **deps:** update actions/checkout action to v7.0.1 ([#659](https://github.com/grafana/plugin-validator/issues/659)) ([a7a188a](https://github.com/grafana/plugin-validator/commit/a7a188a858690a0a94005c2209da810f6d160453))
+* **deps:** update actions/setup-python action to v7 ([#655](https://github.com/grafana/plugin-validator/issues/655)) ([36787e9](https://github.com/grafana/plugin-validator/commit/36787e996ef37379edee3600bdc28f621850ffa9))
+
 ## [0.45.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.1...plugin-validator/v0.45.2) (2026-07-22)
 
 
