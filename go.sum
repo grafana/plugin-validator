@@ -61,8 +61,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 h1:0CwZNZbxp69SHPd
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/ayoubfaouzi/pkcs7 v0.2.3 h1:XGCYHteXgclHnNlPdCF8aFyoUKwP9VhLQp+VX+hBZ3U=
 github.com/ayoubfaouzi/pkcs7 v0.2.3/go.mod h1:u1EPWZOeIdVRo6C0/FVjB91Nsletw+8vZeAaAmeyJvQ=
-github.com/bazelbuild/buildtools v0.0.0-20260319080235-05d2ebe49b0f h1:khsR2MoXO+WButt3L5nnkAOGO17BAr0G/pGHZczF5/E=
-github.com/bazelbuild/buildtools v0.0.0-20260319080235-05d2ebe49b0f/go.mod h1:PLNUetjLa77TCCziPsz0EI8a6CUxgC+1jgmWv0H25tg=
+github.com/bazelbuild/buildtools v0.0.0-20260716142318-04cf7de1434f h1:2mT6QcXmMFtvg7bezs1Fef7nnpJyeCmfWoWNjwtvNZ4=
+github.com/bazelbuild/buildtools v0.0.0-20260716142318-04cf7de1434f/go.mod h1:PLNUetjLa77TCCziPsz0EI8a6CUxgC+1jgmWv0H25tg=
 github.com/bmatcuk/doublestar/v4 v4.9.2 h1:b0mc6WyRSYLjzofB2v/0cuDUZ+MqoGyH3r0dVij35GI=
 github.com/bmatcuk/doublestar/v4 v4.9.2/go.mod h1:xBQ8jztBU6kakFMg+8WGxn0c6z1fTSPVIjEY1Wr7jzc=
 github.com/bradleyjkemp/cupaloy/v2 v2.8.0 h1:any4BmKE+jGIaMpnU8YgH/I2LPiLBufr6oMMlVBbn9M=

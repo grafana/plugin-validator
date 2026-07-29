@@ -67,7 +67,7 @@ require (
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/anchore/go-lzo v0.1.0 // indirect
 	github.com/ayoubfaouzi/pkcs7 v0.2.3 // indirect
-	github.com/bazelbuild/buildtools v0.0.0-20260319080235-05d2ebe49b0f // indirect
+	github.com/bazelbuild/buildtools v0.0.0-20260716142318-04cf7de1434f // indirect
 	github.com/canonical/chisel-manifest v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
