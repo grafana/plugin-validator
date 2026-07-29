@@ -37,7 +37,7 @@ require (
 	github.com/anchore/go-struct-converter v0.1.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
-	github.com/ianlancetaylor/demangle v0.0.0-20260505044615-1ff4bf46051f // indirect
+	github.com/ianlancetaylor/demangle v0.0.0-20260724033716-83e58baca724 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.7.10 // indirect
 	github.com/mattn/go-runewidth v0.0.23 // indirect
 	github.com/package-url/packageurl-go v0.1.6 // indirect
