@@ -11,49 +11,22 @@
   ],
   "packageRules": [
     {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "groupName": "GitHub Actions",
-      "description": "Group GitHub Actions updates"
-    },
-    {
-      "matchManagers": [
-        "gomod"
-      ],
-      "groupName": "Go dependencies",
-      "description": "Group all Go module dependencies together"
-    },
-    {
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "groupName": "Dockerfile dependencies",
-      "description": "Group all Dockerfile dependencies together"
-    },
-    {
-      "matchManagers": [
-        "gomod"
-      ],
-      "matchDepNames": [
-        "go"
-      ],
-      "matchDepTypes": [
-        "golang"
-      ],
+      "matchDepNames": ["go", "golang"],
       "rangeStrategy": "bump",
       "groupName": "Go version",
-      "description": "Bump Go version in go.mod and group with Docker golang image"
+      "description": "The go directive in go.mod and the golang Docker image are the same version bump, so they move together"
     },
     {
-      "matchManagers": [
-        "dockerfile"
-      ],
-      "matchDepNames": [
-        "golang"
-      ],
-      "groupName": "Go version",
-      "description": "Group golang Docker image with Go version updates"
+      "description": "Automerge: minor/major updates need an approval from the Claude gate workflow before GitHub auto-merge fires",
+      "matchUpdateTypes": ["minor", "major"],
+      "automerge": true,
+      "addLabels": ["claude-gate"]
+    },
+    {
+      "description": "Automerge: clear-cut updates get a direct bot approval, required CI checks still gate the merge",
+      "matchUpdateTypes": ["patch", "pin", "digest", "lockFileMaintenance"],
+      "automerge": true,
+      "addLabels": ["automerge-direct"]
     }
   ],
   "labels": [
