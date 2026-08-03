@@ -298,8 +298,8 @@ github.com/mattn/go-isatty v0.0.22 h1:j8l17JJ9i6VGPUFUYoTUKPSgKe/83EYU2zBC7YNKMw
 github.com/mattn/go-isatty v0.0.22/go.mod h1:ZXfXG4SQHsB/w3ZeOYbR0PrPwLy+n6xiMrJlRFqopa4=
 github.com/mattn/go-runewidth v0.0.27 h1:Feg/Oou5zI/wnpgDF6omIU0OokC9GxLC/WRknhVlIR0=
 github.com/mattn/go-runewidth v0.0.27/go.mod h1:3qAiGCV4Koz/yuveO58qUefmUTRm8r0IGEXZ9jeHp/8=
-github.com/mattn/go-shellwords v1.0.13 h1:DC0OMEpGjm6LfNFU4ckYcvbQKyp2vE8atyFGXNtDcf4=
-github.com/mattn/go-shellwords v1.0.13/go.mod h1:EZzvwXDESEeg03EKmM+RmDnNOPKG4lLtQsUlTZDWQ8Y=
+github.com/mattn/go-shellwords v1.0.14 h1:yUKzIgsCnosndOASY6/enly1EAuaXeFSQ7cdyA3OuYg=
+github.com/mattn/go-shellwords v1.0.14/go.mod h1:EZzvwXDESEeg03EKmM+RmDnNOPKG4lLtQsUlTZDWQ8Y=
 github.com/maxatome/go-testdeep v1.14.0 h1:rRlLv1+kI8eOI3OaBXZwb3O7xY3exRzdW5QyX48g9wI=
 github.com/maxatome/go-testdeep v1.14.0/go.mod h1:lPZc/HAcJMP92l7yI6TRz1aZN5URwUBUAfUNvrclaNM=
 github.com/micromdm/plist v0.2.2 h1:a5Yt/coion6hwVEW0da8a5P8IyAchXZ6eC+oBA0uJW8=
