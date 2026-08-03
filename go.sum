@@ -20,8 +20,8 @@ deps.dev/util/pypi v0.0.0-20260422013440-90c27f84dd6f h1:hOkMV3kN25Ya1KQt8wAjCXB
 deps.dev/util/pypi v0.0.0-20260422013440-90c27f84dd6f/go.mod h1:qmA0z/Lsfa1FMtuLd9JmVZLMHR3GBX/EmbM6z1X3EDU=
 deps.dev/util/resolve v0.0.0-20260727054525-2946ae4a6141 h1:d9WOtqC8tF8hfBBt14AfWACsr9/j0Zstgph6np5IBvI=
 deps.dev/util/resolve v0.0.0-20260727054525-2946ae4a6141/go.mod h1:C3geprbQ5N3gqIJZl6bsPmG9p6xbRSJAjq07Qm9Fwnw=
-deps.dev/util/semver v0.0.0-20260529052642-cf1e78d92744 h1:Yg6n3A1/2vjSzdCm3Dz66FzwW+InVa6oWfpHs6ACZj0=
-deps.dev/util/semver v0.0.0-20260529052642-cf1e78d92744/go.mod h1:jjJweVqtuMQ7Q4zlTQ/kCHpboojkRvpMYlhy/c93DVU=
+deps.dev/util/semver v0.0.0-20260727054525-2946ae4a6141 h1:ZQY7wh3yBPpxAYfi5M4qq1a4ZJ5Z85KbJCL+awX7snA=
+deps.dev/util/semver v0.0.0-20260727054525-2946ae4a6141/go.mod h1:jjJweVqtuMQ7Q4zlTQ/kCHpboojkRvpMYlhy/c93DVU=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEKWjV8V+WSxDXJ4NFATAsZjh8iIbsQIg=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
