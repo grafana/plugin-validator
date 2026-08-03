@@ -11,7 +11,7 @@ require (
 	github.com/go-enry/go-license-detector/v4 v4.3.1
 	github.com/google/osv-scanner/v2 v2.4.0
 	github.com/hashicorp/go-version v1.8.0
-	github.com/jarcoal/httpmock v1.4.1
+	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.15.0
 	github.com/mattn/go-shellwords v1.0.13
 	github.com/modelcontextprotocol/go-sdk v1.6.1
