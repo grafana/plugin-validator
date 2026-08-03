@@ -18,8 +18,10 @@ WORKDIR /go/src/github.com/grafana/plugin-validator
 ADD . /go/src/github.com/grafana/plugin-validator
 
 # nodejs/npm are required by the reactcompat analyzer (npx @grafana/react-detect).
-# Pinned to Node 24.x to match the version used in release workflows.
-RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav nodejs=24.17.0-r0 npm
+# Pinned to Node 24.x to match the version used in release workflows. Fuzzy pin
+# (=~24) because Alpine drops old package revisions from its repo, so an exact
+# pin breaks every time Alpine bumps nodejs within the branch.
+RUN apk add --no-cache git ca-certificates curl python3 python3-dev py3-pip clamav 'nodejs=~24' npm
 RUN update-ca-certificates
 RUN freshclam
 
@@ -65,7 +67,7 @@ ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
 # govulncheck source mode shells out to the Go command to load packages.
-RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav nodejs=24.17.0-r0 npm
+RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav 'nodejs=~24' npm
 RUN update-ca-certificates
 RUN freshclam
 
