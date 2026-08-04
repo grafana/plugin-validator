@@ -100,6 +100,6 @@ jobs:
           method: chat.postMessage
           payload: |
             {
-              "channel": "C031SLFH6G0",
+              "channel": "C0BNRK96T24",
               "text": "📦 `@grafana/plugin-validator-mcp` has been staged for npm publishing from tag `${{ inputs.tag_name }}`. Please review and approve at https://www.npmjs.com/settings/grafanabot/staged-packages"
             }
