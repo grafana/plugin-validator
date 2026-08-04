@@ -158,8 +158,8 @@ github.com/ekzhu/minhash-lsh v0.0.0-20190924033628-faac2c6342f8 h1:+Tje+xk1lmGKS
 github.com/ekzhu/minhash-lsh v0.0.0-20190924033628-faac2c6342f8/go.mod h1:yEtCVi+QamvzjEH4U/m6ZGkALIkF2xfQnFp0BcKmIOk=
 github.com/elazarl/goproxy v1.7.2 h1:Y2o6urb7Eule09PjlhQRGNsqRfPmYI3KKQLFpCAV3+o=
 github.com/elazarl/goproxy v1.7.2/go.mod h1:82vkLNir0ALaW14Rc399OTTjyNREgmdL2cVoIbS6XaE=
-github.com/elliotwutingfeng/asciiset v0.0.0-20260712024715-af198af8b1d6 h1:OfdOIpBLAeNDV4KXFX94vnk7Pqf6uT9blDNb6Y57DyM=
-github.com/elliotwutingfeng/asciiset v0.0.0-20260712024715-af198af8b1d6/go.mod h1:GLo/8fDswSAniFG+BFIaiSPcK610jyzgEhWYPQwuQdw=
+github.com/elliotwutingfeng/asciiset v0.0.0-20260801111138-45c5fff54b41 h1:k6IHOr6orJ0s8nQ0b8QmuO8RVj0K3WYruDcQfcdqm8g=
+github.com/elliotwutingfeng/asciiset v0.0.0-20260801111138-45c5fff54b41/go.mod h1:GLo/8fDswSAniFG+BFIaiSPcK610jyzgEhWYPQwuQdw=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
 github.com/erikvarga/go-rpmdb v0.0.0-20250523120114-a15a62cd4593 h1:cIQ/Ziclb/qreqg1nqGEtH4V9UJCTaNSKz9gBRaeZlA=
