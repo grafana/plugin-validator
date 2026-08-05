@@ -5,7 +5,7 @@ go 1.26.5
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/anthropics/anthropic-sdk-go v1.26.0
-	github.com/bmatcuk/doublestar/v4 v4.9.2
+	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/fatih/color v1.18.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
