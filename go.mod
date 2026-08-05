@@ -95,7 +95,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/edsrzf/mmap-go v1.2.0 // indirect
 	github.com/ekzhu/minhash-lsh v0.0.0-20190924033628-faac2c6342f8 // indirect
-	github.com/elliotwutingfeng/asciiset v0.0.0-20260712024715-af198af8b1d6 // indirect
+	github.com/elliotwutingfeng/asciiset v0.0.0-20260801111138-45c5fff54b41 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/erikvarga/go-rpmdb v0.0.0-20250523120114-a15a62cd4593 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
