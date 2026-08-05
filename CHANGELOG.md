@@ -1,5 +1,67 @@
 # Changelog
 
+## [0.45.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.3...plugin-validator/v0.45.4) (2026-08-05)
+
+
+### 🐛 Bug Fixes
+
+* **docker:** widen alpine nodejs pin to major version ([#683](https://github.com/grafana/plugin-validator/issues/683)) ([29c3af9](https://github.com/grafana/plugin-validator/commit/29c3af98a9dea2e5ca25836804ad441f5c23bcb9))
+* **security/unknown/:** update module github.com/klauspost/compress to v1.18.7 [security] ([#660](https://github.com/grafana/plugin-validator/issues/660)) ([8c8930c](https://github.com/grafana/plugin-validator/commit/8c8930ca2845c4264e22c5b39e829f8a30b83acf))
+
+
+### 🤖 Continuous Integrations
+
+* approve renovate updates on a schedule so auto-merge can fire ([#662](https://github.com/grafana/plugin-validator/issues/662)) ([c043f3d](https://github.com/grafana/plugin-validator/commit/c043f3d844d86d470b1e6db2f1d4cce68835b4e9))
+
+
+### 🔧 Chores
+
+* **ci:** post release notifications to #grafana-catalog-ci ([#704](https://github.com/grafana/plugin-validator/issues/704)) ([f8c97bb](https://github.com/grafana/plugin-validator/commit/f8c97bbf498af42f28312fbb9b1f24e79ff5bf60))
+* **deps:** update dependency tar to v7.5.22 ([#661](https://github.com/grafana/plugin-validator/issues/661)) ([754173f](https://github.com/grafana/plugin-validator/commit/754173f0d3fa69cec56552db4b6a86747feb2312))
+* **deps:** update deps.dev/api/v3alpha digest to 2946ae4 ([#670](https://github.com/grafana/plugin-validator/issues/670)) ([0f5909e](https://github.com/grafana/plugin-validator/commit/0f5909eb929651f0eea09a397a794aefcf36dc9c))
+* **deps:** update deps.dev/util/maven digest to 2946ae4 ([#680](https://github.com/grafana/plugin-validator/issues/680)) ([bf07899](https://github.com/grafana/plugin-validator/commit/bf07899ef454631e5e5f99e127c84ee12bc643e7))
+* **deps:** update deps.dev/util/pypi digest to 2946ae4 ([#675](https://github.com/grafana/plugin-validator/issues/675)) ([3b1b947](https://github.com/grafana/plugin-validator/commit/3b1b947bb4f0de2be086770a38281836c8fce6ff))
+* **deps:** update deps.dev/util/resolve digest to 2946ae4 ([#676](https://github.com/grafana/plugin-validator/issues/676)) ([700a5da](https://github.com/grafana/plugin-validator/commit/700a5daaf7d1ca2a0310693c8a402e927205be06))
+* **deps:** update deps.dev/util/semver digest to 2946ae4 ([#677](https://github.com/grafana/plugin-validator/issues/677)) ([7cbc60d](https://github.com/grafana/plugin-validator/commit/7cbc60dbafe78603b4ecdc1f0d2657d8d5b72da6))
+* **deps:** update github.com/bazelbuild/buildtools digest to 04cf7de ([#665](https://github.com/grafana/plugin-validator/issues/665)) ([a4739a1](https://github.com/grafana/plugin-validator/commit/a4739a1e7b880e19bf5d1ab0cceb337ecfb269ab))
+* **deps:** update github.com/elliotwutingfeng/asciiset digest to 45c5fff ([#710](https://github.com/grafana/plugin-validator/issues/710)) ([0a593f2](https://github.com/grafana/plugin-validator/commit/0a593f2ec473ff3965e6dd83e0f5a1975664a73a))
+* **deps:** update github.com/elliotwutingfeng/asciiset digest to af198af ([#666](https://github.com/grafana/plugin-validator/issues/666)) ([f9cfdcc](https://github.com/grafana/plugin-validator/commit/f9cfdcc1937d4b278f0b1f774c6ad0aa25223d0a))
+* **deps:** update github.com/ianlancetaylor/demangle digest to 83e58ba ([#667](https://github.com/grafana/plugin-validator/issues/667)) ([0c0bee5](https://github.com/grafana/plugin-validator/commit/0c0bee516a4484dd3bcb1c3b25e4e1b9b79829ad))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 9509daa ([#684](https://github.com/grafana/plugin-validator/issues/684)) ([9837b74](https://github.com/grafana/plugin-validator/commit/9837b74de989e678a298ecbac17d8cd6ab56cf86))
+* **deps:** update github.com/planetscale/vtprotobuf digest to 8ae5a48 ([#668](https://github.com/grafana/plugin-validator/issues/668)) ([3b33b17](https://github.com/grafana/plugin-validator/commit/3b33b17de8efcf5a7e22f41c0b38957b2ba5ea3c))
+* **deps:** update github.com/tailscale/hujson digest to b80ff77 ([#681](https://github.com/grafana/plugin-validator/issues/681)) ([f7edf97](https://github.com/grafana/plugin-validator/commit/f7edf97cdc4133f52668a994dd3a5f5f257a5e2c))
+* **deps:** update golang.org/x/exp digest to b88d891 ([#685](https://github.com/grafana/plugin-validator/issues/685)) ([ff81892](https://github.com/grafana/plugin-validator/commit/ff81892cecd312ea69287db9ccdc0bc5ff72dc9d))
+* **deps:** update golang.org/x/telemetry digest to bdb8988 ([#669](https://github.com/grafana/plugin-validator/issues/669)) ([377572d](https://github.com/grafana/plugin-validator/commit/377572d32d2fc238a1e3ba5fe2683f65a7189951))
+* **deps:** update google.golang.org/genproto digest to 8efbd57 ([#686](https://github.com/grafana/plugin-validator/issues/686)) ([dbf9039](https://github.com/grafana/plugin-validator/commit/dbf9039323426517ba75443b8d0a4c58928ce96f))
+* **deps:** update google.golang.org/genproto/googleapis/api digest to 8efbd57 ([#687](https://github.com/grafana/plugin-validator/issues/687)) ([29ab212](https://github.com/grafana/plugin-validator/commit/29ab2129ed6aec530f77a29f2c34619f252d03d9))
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to 8efbd57 ([#688](https://github.com/grafana/plugin-validator/issues/688)) ([191dc43](https://github.com/grafana/plugin-validator/commit/191dc4360c1ac68dce396a24938fee33d556a8ff))
+* **deps:** update module cloud.google.com/go/auth to v0.22.0 ([#702](https://github.com/grafana/plugin-validator/issues/702)) ([8be6051](https://github.com/grafana/plugin-validator/commit/8be60513017b6b4d996eccfe622104f4b6a111f2))
+* **deps:** update module deps.dev/api/v3 to v3.0.0-20260727054525-2946ae4a6141 ([#682](https://github.com/grafana/plugin-validator/issues/682)) ([9cb0bfc](https://github.com/grafana/plugin-validator/commit/9cb0bfc224b8e82cac92e065a9829a9bbe980acb))
+* **deps:** update module github.com/anchore/go-lzo to v0.1.1 ([#671](https://github.com/grafana/plugin-validator/issues/671)) ([d41e294](https://github.com/grafana/plugin-validator/commit/d41e29443843ed6cecf3928b31867c1bec522315))
+* **deps:** update module github.com/bmatcuk/doublestar/v4 to v4.10.0 ([#706](https://github.com/grafana/plugin-validator/issues/706)) ([4ef4408](https://github.com/grafana/plugin-validator/commit/4ef44087ffc9e3776615b35694128054ff07b431))
+* **deps:** update module github.com/cloudflare/circl to v1.6.4 ([#672](https://github.com/grafana/plugin-validator/issues/672)) ([10435d3](https://github.com/grafana/plugin-validator/commit/10435d336a35fe5179d2ddbd9c4fb4a3e48f802d))
+* **deps:** update module github.com/compose-spec/compose-go/v2 to v2.14.0 ([#707](https://github.com/grafana/plugin-validator/issues/707)) ([08e214d](https://github.com/grafana/plugin-validator/commit/08e214da4ba0f2694bea552cd2a970293f1a0f43))
+* **deps:** update module github.com/containerd/typeurl/v2 to v2.3.0 ([#708](https://github.com/grafana/plugin-validator/issues/708)) ([84950b3](https://github.com/grafana/plugin-validator/commit/84950b362363ccf488d3e12831a9c387a80a8841))
+* **deps:** update module github.com/cyphar/filepath-securejoin to v0.7.0 ([#709](https://github.com/grafana/plugin-validator/issues/709)) ([a414de7](https://github.com/grafana/plugin-validator/commit/a414de75e99f36491bbbcfc16f5bbfc8729b145d))
+* **deps:** update module github.com/docker/cli to v29.7.1+incompatible ([#712](https://github.com/grafana/plugin-validator/issues/712)) ([5a650a2](https://github.com/grafana/plugin-validator/commit/5a650a2e698e7e0a3d26dc942308b023ec649e00))
+* **deps:** update module github.com/docker/docker-credential-helpers to v0.9.8 ([#673](https://github.com/grafana/plugin-validator/issues/673)) ([a11ae29](https://github.com/grafana/plugin-validator/commit/a11ae2945953a654b183c858092cf762a8c7e663))
+* **deps:** update module github.com/go-git/go-billy/v5 to v5.9.1 ([#674](https://github.com/grafana/plugin-validator/issues/674)) ([28959e9](https://github.com/grafana/plugin-validator/commit/28959e99bbe41fcb4dc12cdd5910b7928473d5c2))
+* **deps:** update module github.com/go-git/go-git/v5 to v5.19.2 ([#689](https://github.com/grafana/plugin-validator/issues/689)) ([5178db5](https://github.com/grafana/plugin-validator/commit/5178db584d134f0d497c65aaa91de84318cd1dc4))
+* **deps:** update module github.com/go-logr/logr to v1.4.4 ([#678](https://github.com/grafana/plugin-validator/issues/678)) ([4a7b1db](https://github.com/grafana/plugin-validator/commit/4a7b1dbdbf4679c2081007a5e0175425be6a25c7))
+* **deps:** update module github.com/googleapis/enterprise-certificate-proxy to v0.3.19 ([#679](https://github.com/grafana/plugin-validator/issues/679)) ([8ef12b3](https://github.com/grafana/plugin-validator/commit/8ef12b3e37bb3b9c249a1a41e8a6ffe505cc7c54))
+* **deps:** update module github.com/jarcoal/httpmock to v1.4.2 ([#690](https://github.com/grafana/plugin-validator/issues/690)) ([d4c5263](https://github.com/grafana/plugin-validator/commit/d4c5263dee1471f5c52f76665c1114a4739eb7ea))
+* **deps:** update module github.com/mattn/go-colorable to v0.1.15 ([#691](https://github.com/grafana/plugin-validator/issues/691)) ([66a0442](https://github.com/grafana/plugin-validator/commit/66a04423aa38b7c1037d96df23c25bf1f5e7fa98))
+* **deps:** update module github.com/mattn/go-isatty to v0.0.24 ([#692](https://github.com/grafana/plugin-validator/issues/692)) ([9ff89da](https://github.com/grafana/plugin-validator/commit/9ff89da7e9937815ce909b5253a1c6888de77c4d))
+* **deps:** update module github.com/mattn/go-runewidth to v0.0.27 ([#693](https://github.com/grafana/plugin-validator/issues/693)) ([a406c4b](https://github.com/grafana/plugin-validator/commit/a406c4b55bed0510944faea477ec8ead37b6141d))
+* **deps:** update module github.com/mattn/go-shellwords to v1.0.14 ([#694](https://github.com/grafana/plugin-validator/issues/694)) ([e9f53ec](https://github.com/grafana/plugin-validator/commit/e9f53ecc05eb4fcfb1b7e8dfe384f0e8b9964a2f))
+* **deps:** update module github.com/owenrumney/go-sarif/v3 to v3.3.1 ([#695](https://github.com/grafana/plugin-validator/issues/695)) ([9dbc3ea](https://github.com/grafana/plugin-validator/commit/9dbc3ea3252cd4a60819ef3b4598e9b45c212f55))
+* **deps:** update module github.com/pierrec/lz4/v4 to v4.1.27 ([#696](https://github.com/grafana/plugin-validator/issues/696)) ([8cc23b1](https://github.com/grafana/plugin-validator/commit/8cc23b184fcc7850182e865bfca8fa5143828408))
+* **deps:** update module github.com/saferwall/pe to v1.6.5 ([#697](https://github.com/grafana/plugin-validator/issues/697)) ([9b8c31d](https://github.com/grafana/plugin-validator/commit/9b8c31d1fa001fbc2025010af782bf6c933dcdca))
+* **deps:** update module github.com/skeema/knownhosts to v1.3.2 ([#698](https://github.com/grafana/plugin-validator/issues/698)) ([1f1b351](https://github.com/grafana/plugin-validator/commit/1f1b3515d8e2a4e5520ca141aca0d584d7dddc19))
+* **deps:** update module github.com/ulikunitz/xz to v0.5.16 ([#699](https://github.com/grafana/plugin-validator/issues/699)) ([7211db4](https://github.com/grafana/plugin-validator/commit/7211db40f755e8372153394cdc15f2072d4aebbd))
+* **deps:** update module go.yaml.in/yaml/v4 to v4.0.0-rc.6 ([#700](https://github.com/grafana/plugin-validator/issues/700)) ([db841d6](https://github.com/grafana/plugin-validator/commit/db841d6797ec65c13fdf165883ee52c487f5d456))
+* **deps:** update module gopkg.in/ini.v1 to v1.67.3 ([#701](https://github.com/grafana/plugin-validator/issues/701)) ([e7e9a94](https://github.com/grafana/plugin-validator/commit/e7e9a946c68bdd7b616da2250d74597672ff4c97))
+
 ## [0.45.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.2...plugin-validator/v0.45.3) (2026-07-27)
 
 
