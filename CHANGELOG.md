@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.4...plugin-validator/v0.45.5) (2026-08-05)
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.61.0 ([#705](https://github.com/grafana/plugin-validator/issues/705)) ([b4b7068](https://github.com/grafana/plugin-validator/commit/b4b70683cf736356297fd1ad1b58a1c6a7ca6239))
+
 ## [0.45.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.3...plugin-validator/v0.45.4) (2026-08-05)
 
 
