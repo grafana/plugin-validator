@@ -63,6 +63,9 @@ require (
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect
+	github.com/Velocidex/json v0.0.0-20220224052537-92f3c0326e5a // indirect
+	github.com/Velocidex/ordereddict v0.0.0-20230909174157-2aa49cc5d11d // indirect
+	github.com/Velocidex/yaml/v2 v2.2.8 // indirect
 	github.com/aead/serpent v0.0.0-20160714141033-fba169763ea6 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/anchore/go-lzo v0.1.1 // indirect
@@ -216,6 +219,6 @@ require (
 	modernc.org/sqlite v1.50.1 // indirect
 	osv.dev/bindings/go v0.0.0-20260512064147-daa692bbd4ed // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
-	www.velocidex.com/golang/go-ntfs v0.2.0 // indirect
+	www.velocidex.com/golang/go-ntfs v0.2.1 // indirect
 	www.velocidex.com/golang/regparser v0.0.0-20250203141505-31e704a67ef7 // indirect
 )
