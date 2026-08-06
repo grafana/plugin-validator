@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.45.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.5...plugin-validator/v0.45.6) (2026-08-06)
+
+
+### 🤖 Continuous Integrations
+
+* **renovate-approve:** label needs-human verdicts for filtering ([#714](https://github.com/grafana/plugin-validator/issues/714)) ([b15aca8](https://github.com/grafana/plugin-validator/commit/b15aca8fb7afa9873aca502c2ce0188f03f6d96e))
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/buger/jsonparser to v1.6.1 ([#718](https://github.com/grafana/plugin-validator/issues/718)) ([7753dac](https://github.com/grafana/plugin-validator/commit/7753dac48a8a24ea55821d82b95315e376671379))
+* **deps:** update module github.com/docker/go-connections to v0.8.1 ([#719](https://github.com/grafana/plugin-validator/issues/719)) ([0f203aa](https://github.com/grafana/plugin-validator/commit/0f203aa71151372f9e994f64592b90b78016da2f))
+* **deps:** update module github.com/fatih/color to v1.19.0 ([#720](https://github.com/grafana/plugin-validator/issues/720)) ([7a60dbf](https://github.com/grafana/plugin-validator/commit/7a60dbf6e952e8112a62c642d709642c938057aa))
+* **deps:** update module www.velocidex.com/golang/go-ntfs to v0.2.1 ([#717](https://github.com/grafana/plugin-validator/issues/717)) ([a4dd686](https://github.com/grafana/plugin-validator/commit/a4dd686e567bdc52e1b6be84adef5312e8eab34e))
+
 ## [0.45.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.4...plugin-validator/v0.45.5) (2026-08-05)
 
 
