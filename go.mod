@@ -38,7 +38,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20260724033716-83e58baca724 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.7.10 // indirect
+	github.com/jedib0t/go-pretty/v6 v6.8.3 // indirect
 	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/package-url/packageurl-go v0.1.6 // indirect
 	github.com/smarty/assertions v1.16.0 // indirect
