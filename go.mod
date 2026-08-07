@@ -91,7 +91,6 @@ require (
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/docker/cli v29.7.1+incompatible // indirect
 	github.com/docker/distribution v2.8.3+incompatible // indirect
-	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.8 // indirect
 	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
@@ -117,7 +116,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.20.7 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
-	github.com/google/osv-scalibr v0.4.6-0.20260612031204-164402d9140e // indirect
+	github.com/google/osv-scalibr v0.4.6-0.20260807144754-05a624cf9fa6 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.19 // indirect
@@ -141,6 +140,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/buildkit v0.30.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
+	github.com/moby/moby/api v1.55.0 // indirect
+	github.com/moby/moby/client v0.5.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
