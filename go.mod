@@ -12,7 +12,7 @@ require (
 	github.com/google/osv-scanner/v2 v2.5.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/jarcoal/httpmock v1.4.2
-	github.com/magefile/mage v1.15.0
+	github.com/magefile/mage v1.17.2
 	github.com/mattn/go-shellwords v1.0.14
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/openai/openai-go v1.12.0
