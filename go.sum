@@ -18,8 +18,8 @@ deps.dev/util/pypi v0.0.0-20260811035547-133c155ce203 h1:HPREIBIq+lr3j7vknt5MBUC
 deps.dev/util/pypi v0.0.0-20260811035547-133c155ce203/go.mod h1:qmA0z/Lsfa1FMtuLd9JmVZLMHR3GBX/EmbM6z1X3EDU=
 deps.dev/util/resolve v0.0.0-20260727054525-2946ae4a6141 h1:d9WOtqC8tF8hfBBt14AfWACsr9/j0Zstgph6np5IBvI=
 deps.dev/util/resolve v0.0.0-20260727054525-2946ae4a6141/go.mod h1:C3geprbQ5N3gqIJZl6bsPmG9p6xbRSJAjq07Qm9Fwnw=
-deps.dev/util/semver v0.0.0-20260727054525-2946ae4a6141 h1:ZQY7wh3yBPpxAYfi5M4qq1a4ZJ5Z85KbJCL+awX7snA=
-deps.dev/util/semver v0.0.0-20260727054525-2946ae4a6141/go.mod h1:jjJweVqtuMQ7Q4zlTQ/kCHpboojkRvpMYlhy/c93DVU=
+deps.dev/util/semver v0.0.0-20260811035547-133c155ce203 h1:zxJ3QFqcN6l+4Nt/8vnfN7HTp2HhW+Q42tcfIXgG0Rg=
+deps.dev/util/semver v0.0.0-20260811035547-133c155ce203/go.mod h1:jjJweVqtuMQ7Q4zlTQ/kCHpboojkRvpMYlhy/c93DVU=
 github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk=
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/CycloneDX/cyclonedx-go v0.11.0 h1:GokP8FiRC+foiuwWhSSLpSD5H4hSWtGnR3wo7apkBFI=
