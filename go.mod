@@ -58,7 +58,7 @@ require (
 	deps.dev/api/v3alpha v0.0.0-20260811035547-133c155ce203 // indirect
 	deps.dev/util/maven v0.0.0-20260727054525-2946ae4a6141 // indirect
 	deps.dev/util/pypi v0.0.0-20260811035547-133c155ce203 // indirect
-	deps.dev/util/resolve v0.0.0-20260727054525-2946ae4a6141 // indirect
+	deps.dev/util/resolve v0.0.0-20260811035547-133c155ce203 // indirect
 	deps.dev/util/semver v0.0.0-20260811035547-133c155ce203 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
 	github.com/Microsoft/go-winio v0.6.3-0.20260107145400-75610162e7da // indirect
