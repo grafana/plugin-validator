@@ -44,7 +44,7 @@ require (
 	github.com/smarty/assertions v1.16.0 // indirect
 	github.com/spdx/gordf v0.0.0-20250128162952-000978ccd6fb // indirect
 	github.com/spdx/tools-golang v0.5.7 // indirect
-	golang.org/x/exp v0.0.0-20260727155853-b88d891fe743 // indirect
+	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/vuln v1.6.0 // indirect
 )
