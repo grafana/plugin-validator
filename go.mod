@@ -46,7 +46,7 @@ require (
 	github.com/spdx/tools-golang v0.5.7 // indirect
 	golang.org/x/exp v0.0.0-20260813180055-c1d0aacb2297 // indirect
 	golang.org/x/sync v0.22.0 // indirect
-	golang.org/x/vuln v1.6.0 // indirect
+	golang.org/x/vuln v1.7.0 // indirect
 )
 
 require (
