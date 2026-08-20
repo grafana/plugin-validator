@@ -9,7 +9,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/fatih/color v1.19.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/google/osv-scanner/v2 v2.5.0
+	github.com/google/osv-scanner/v2 v2.5.1
 	github.com/hashicorp/go-version v1.9.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.17.2
@@ -113,7 +113,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.21.9 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
-	github.com/google/osv-scalibr v0.5.2 // indirect
+	github.com/google/osv-scalibr v0.5.3-0.20260814002154-23fa66ca68dd // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.20 // indirect
