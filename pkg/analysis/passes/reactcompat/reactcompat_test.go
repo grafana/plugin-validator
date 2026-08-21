@@ -1,8 +1,10 @@
 package reactcompat
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -86,6 +88,21 @@ func TestParseResultsEmpty(t *testing.T) {
 func TestParseResultsMalformed(t *testing.T) {
 	_, err := parseResults([]byte(`not valid json {{{`))
 	require.Error(t, err)
+}
+
+func TestParseResultsRejectsJSONWithoutResultFields(t *testing.T) {
+	for _, payload := range []string{
+		`null`,
+		`{}`,
+		`{"error":"No source map files found"}`,
+		`{"sourceCodeIssues":null,"dependencyIssues":[]}`,
+		`{"sourceCodeIssues":{},"dependencyIssues":null}`,
+	} {
+		t.Run(payload, func(t *testing.T) {
+			_, err := parseResults([]byte(payload))
+			require.Error(t, err)
+		})
+	}
 }
 
 // TestReportIssuesSourceCode verifies correct diagnostic generation for source
@@ -178,6 +195,121 @@ func TestNpxNotAvailable(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, result)
 	require.Len(t, interceptor.Diagnostics, 0)
+}
+
+func TestRunBoundsReactDetectOutput(t *testing.T) {
+	issues := make([]sourceCodeIssue, 500)
+	for i := range issues {
+		issues[i] = sourceCodeIssue{
+			Pattern:  "usePropTypes",
+			Severity: "critical",
+			Location: location{File: "module.js", Line: i + 1, Column: 1},
+			Problem:  "Uses deprecated propTypes " + strings.Repeat("detail ", 20),
+			Fix:      fix{Description: "Remove propTypes usage."},
+			Link:     "https://react.dev/upgrade",
+		}
+	}
+	largeValidOutput, err := json.Marshal(reactDetectOutput{
+		SourceCodeIssues: map[string][]sourceCodeIssue{"usePropTypes": issues},
+		DependencyIssues: []dependencyIssue{},
+	})
+	require.NoError(t, err)
+	smallValidOutput, err := json.Marshal(reactDetectOutput{
+		SourceCodeIssues: map[string][]sourceCodeIssue{"usePropTypes": issues[:2]},
+		DependencyIssues: []dependencyIssue{},
+	})
+	require.NoError(t, err)
+
+	tests := []struct {
+		name        string
+		stdout      []byte
+		stderr      []byte
+		killed      bool
+		valid       bool
+		totalIssues int
+		truncated   bool
+	}{
+		{name: "small valid output and zero exit", stdout: smallValidOutput, valid: true, totalIssues: 2},
+		{name: "small valid output and killed", stdout: smallValidOutput, killed: true, valid: true, totalIssues: 2},
+		{name: "small invalid output and killed", stdout: []byte("complete invalid output"), killed: true},
+		{name: "large valid output and zero exit", stdout: largeValidOutput, valid: true, totalIssues: len(issues), truncated: true},
+		{name: "large valid output and killed", stdout: largeValidOutput, killed: true, valid: true, totalIssues: len(issues), truncated: true},
+		{
+			name:      "large invalid output and killed",
+			stdout:    []byte(strings.Repeat("invalid output\n", 5000)),
+			stderr:    []byte(strings.Repeat("stderr context\n", 5000)),
+			killed:    true,
+			truncated: true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			binDir := t.TempDir()
+			stdoutFile := filepath.Join(t.TempDir(), "stdout")
+			stderrFile := filepath.Join(t.TempDir(), "stderr")
+			require.NoError(t, os.WriteFile(stdoutFile, tc.stdout, 0o600))
+			require.NoError(t, os.WriteFile(stderrFile, tc.stderr, 0o600))
+
+			termination := "exit 0\n"
+			if tc.killed {
+				termination = "kill -KILL $$\n"
+			}
+			fakeNpx := filepath.Join(binDir, "npx")
+			script := `#!/bin/sh
+/bin/cat "$REACT_DETECT_TEST_STDOUT"
+/bin/cat "$REACT_DETECT_TEST_STDERR" >&2
+` + termination
+			require.NoError(t, os.WriteFile(fakeNpx, []byte(script), 0o755))
+			t.Setenv("REACT_DETECT_TEST_STDOUT", stdoutFile)
+			t.Setenv("REACT_DETECT_TEST_STDERR", stderrFile)
+			t.Setenv("PATH", binDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+			var interceptor testpassinterceptor.TestPassInterceptor
+			result, runErr := Analyzer.Run(newPass(&interceptor, t.TempDir()))
+			require.NoError(t, runErr)
+			require.Nil(t, result)
+
+			serialized, marshalErr := json.Marshal(interceptor.Diagnostics)
+			require.NoError(t, marshalErr)
+			require.LessOrEqual(t, len(serialized), maxReportBytes)
+
+			var details strings.Builder
+			issueReports := 0
+			for _, diagnostic := range interceptor.Diagnostics {
+				details.WriteString(diagnostic.Detail)
+				if strings.HasPrefix(diagnostic.Title, "React 19 compatibility: Uses deprecated propTypes") {
+					issueReports++
+				}
+			}
+
+			if tc.valid {
+				require.NotContains(t, details.String(), "signal: killed")
+				if tc.truncated {
+					require.Positive(t, issueReports)
+					require.Less(t, issueReports, tc.totalIssues)
+					require.Contains(t, details.String(), "issues were omitted")
+				} else {
+					require.Equal(t, tc.totalIssues, issueReports)
+					require.NotContains(t, details.String(), "issues were omitted")
+				}
+				return
+			}
+
+			require.Zero(t, issueReports)
+			require.Contains(t, details.String(), "signal: killed")
+			require.Contains(t, details.String(), "invalid output")
+			if len(tc.stderr) > 0 {
+				require.Contains(t, details.String(), "stderr context")
+			}
+			if tc.truncated {
+				require.Contains(t, details.String(), "truncated")
+			} else {
+				require.Contains(t, details.String(), string(tc.stdout))
+				require.NotContains(t, details.String(), "truncated")
+			}
+		})
+	}
 }
 
 // TestReportIssuesCombined verifies that multiple source code issue groups and a
