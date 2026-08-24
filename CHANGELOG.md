@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.45.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.6...plugin-validator/v0.45.7) (2026-08-24)
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/bazelbuild/buildtools digest to 5d08cfd ([#774](https://github.com/grafana/plugin-validator/issues/774)) ([a61f9b1](https://github.com/grafana/plugin-validator/commit/a61f9b16fe40eb5148a4e13ea8e8e29c82cdf7da))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 3ead7d9 ([#775](https://github.com/grafana/plugin-validator/issues/775)) ([6b43624](https://github.com/grafana/plugin-validator/commit/6b43624bf513afa372bcbad5eb693229f4f2138f))
+* **deps:** update golang.org/x/exp digest to ca53665 ([#776](https://github.com/grafana/plugin-validator/issues/776)) ([473532e](https://github.com/grafana/plugin-validator/commit/473532ef5fc0ff1063b4f1310ff5d99b559f6e2e))
+* **deps:** update google.golang.org/genproto digest to 08b0e42 ([#777](https://github.com/grafana/plugin-validator/issues/777)) ([1735f91](https://github.com/grafana/plugin-validator/commit/1735f91aaca3da79d49d2f84f79ad5119f82d980))
+
 ## [0.45.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.5...plugin-validator/v0.45.6) (2026-08-21)
 
 
