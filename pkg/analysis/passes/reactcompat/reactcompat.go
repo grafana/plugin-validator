@@ -389,6 +389,7 @@ func issueDiagnostics(output *reactDetectOutput, archiveDir string) []analysis.D
 	}
 
 	var diagnostics []analysis.Diagnostic
+	seenFiles := make(map[string]struct{})
 	patterns := make([]string, 0, len(output.SourceCodeIssues))
 	for pattern := range output.SourceCodeIssues {
 		patterns = append(patterns, pattern)
@@ -397,13 +398,19 @@ func issueDiagnostics(output *reactDetectOutput, archiveDir string) []analysis.D
 
 	for _, pattern := range patterns {
 		for _, issue := range output.SourceCodeIssues[pattern] {
+			file := relativeToArchive(issue.Location.File, archiveDir)
+			if _, seen := seenFiles[file]; seen {
+				continue
+			}
+			seenFiles[file] = struct{}{}
+
 			diagnostics = append(diagnostics, analysis.Diagnostic{
 				Name:     fmt.Sprintf("react-19-%s", issue.Pattern),
 				Severity: react19Issue.Severity,
 				Title:    "React 19 compatibility: " + issue.Problem,
 				Detail: fmt.Sprintf(
 					"Detected in %s at line %d. %s See: %s Note: this may be a false positive.",
-					relativeToArchive(issue.Location.File, archiveDir),
+					file,
 					issue.Location.Line,
 					issue.Fix.Description,
 					issue.Link,

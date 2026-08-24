@@ -2,6 +2,7 @@ package reactcompat
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -141,6 +142,46 @@ func TestReportIssuesSourceCode(t *testing.T) {
 	require.Contains(t, d.Detail, "this may be a false positive")
 }
 
+func TestReportIssuesKeepsFirstIssuePerFile(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := newPass(&interceptor, "/some/archive/dir")
+
+	output := &reactDetectOutput{
+		SourceCodeIssues: map[string][]sourceCodeIssue{
+			"usePropTypes": {
+				{
+					Pattern:  "usePropTypes",
+					Location: location{File: "module.js", Line: 10},
+					Problem:  "Uses deprecated propTypes",
+					Fix:      fix{Description: "Remove propTypes."},
+					Link:     "https://react.dev/upgrade",
+				},
+				{
+					Pattern:  "usePropTypes",
+					Location: location{File: "module.js", Line: 20},
+					Problem:  "Uses deprecated propTypes",
+					Fix:      fix{Description: "Remove propTypes."},
+					Link:     "https://react.dev/upgrade",
+				},
+				{
+					Pattern:  "usePropTypes",
+					Location: location{File: "other.js", Line: 30},
+					Problem:  "Uses deprecated propTypes",
+					Fix:      fix{Description: "Remove propTypes."},
+					Link:     "https://react.dev/upgrade",
+				},
+			},
+		},
+	}
+
+	count := reportIssues(pass, output, "")
+	require.Equal(t, 2, count)
+	require.Len(t, interceptor.Diagnostics, 2)
+	require.Contains(t, interceptor.Diagnostics[0].Detail, "Detected in module.js at line 10.")
+	require.NotContains(t, interceptor.Diagnostics[0].Detail, "line 20")
+	require.Contains(t, interceptor.Diagnostics[1].Detail, "Detected in other.js at line 30.")
+}
+
 // TestReportIssuesDependency verifies correct diagnostic generation for
 // dependency issues.
 func TestReportIssuesDependency(t *testing.T) {
@@ -203,7 +244,7 @@ func TestRunBoundsReactDetectOutput(t *testing.T) {
 		issues[i] = sourceCodeIssue{
 			Pattern:  "usePropTypes",
 			Severity: "critical",
-			Location: location{File: "module.js", Line: i + 1, Column: 1},
+			Location: location{File: fmt.Sprintf("module-%d.js", i), Line: i + 1, Column: 1},
 			Problem:  "Uses deprecated propTypes " + strings.Repeat("detail ", 20),
 			Fix:      fix{Description: "Remove propTypes usage."},
 			Link:     "https://react.dev/upgrade",

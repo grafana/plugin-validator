@@ -20,3 +20,4 @@ pkg/analysis/passes/sdkusage/testdata/sdk-2-months-old/go.sum
 pkg/analysis/passes/sdkusage/testdata/sdk-5-months-old/go.sum
 pkg/analysis/passes/sdkusage/testdata/validgomod/go.sum
 
+/mise.toml
