@@ -90,6 +90,44 @@ require (
 	}, packageNames(filtered))
 }
 
+func TestFilterGoModPackagesAllFiltered(t *testing.T) {
+	goMod := `module example.com/plugin
+
+go 1.22
+
+require (
+	github.com/grafana/grafana-plugin-sdk-go v0.250.0
+	github.com/getkin/kin-openapi v0.124.0 // indirect
+)
+`
+	sdkGoMod := []byte(`module github.com/grafana/grafana-plugin-sdk-go
+
+go 1.21
+
+require (
+	github.com/getkin/kin-openapi v0.124.0
+)
+`)
+
+	goModPath := filepath.Join(t.TempDir(), "go.mod")
+	require.NoError(t, os.WriteFile(goModPath, []byte(goMod), 0o600))
+
+	actualFetch := fetchGrafanaSDKGoMod
+	t.Cleanup(func() { fetchGrafanaSDKGoMod = actualFetch })
+	fetchGrafanaSDKGoMod = func(version string) ([]byte, error) {
+		require.Equal(t, "v0.250.0", version)
+		return sdkGoMod, nil
+	}
+
+	source := vulnerabilityResults("github.com/getkin/kin-openapi", "v0.124.0")
+
+	filtered := FilterOSVResults(source, goModPath)
+
+	// every finding is SDK-owned, so the results slice must be empty so the
+	// downstream analyzer can report a clean pass (len(Results) == 0)
+	require.Empty(t, filtered.Results)
+}
+
 func TestFilterGoModPackagesFailsOpen(t *testing.T) {
 	goMod := `module example.com/plugin
 

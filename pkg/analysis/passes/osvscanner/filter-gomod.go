@@ -85,10 +85,10 @@ func filterGoModResults(source models.VulnerabilityResults, goModPath string) mo
 	sdkRequirements := goModuleRequirements(sdkMod)
 
 	filtered := source
-	filtered.Results = make([]models.PackageSource, len(source.Results))
-	for resultIndex, result := range source.Results {
-		filtered.Results[resultIndex] = result
-		filtered.Results[resultIndex].Packages = nil
+	filtered.Results = make([]models.PackageSource, 0, len(source.Results))
+	for _, result := range source.Results {
+		filteredResult := result
+		filteredResult.Packages = nil
 
 		for _, vulnerablePackage := range result.Packages {
 			name := vulnerablePackage.Package.Name
@@ -104,10 +104,15 @@ func filterGoModResults(source models.VulnerabilityResults, goModPath string) mo
 				logme.DebugFln("excluded Grafana Go SDK dependency: %s@%s", name, vulnerablePackage.Package.Version)
 				continue
 			}
-			filtered.Results[resultIndex].Packages = append(
-				filtered.Results[resultIndex].Packages,
+			filteredResult.Packages = append(
+				filteredResult.Packages,
 				vulnerablePackage,
 			)
+		}
+		// drop result entries with no remaining findings so downstream can
+		// recognize a fully-filtered scan as passing (len(Results) == 0)
+		if len(filteredResult.Packages) > 0 {
+			filtered.Results = append(filtered.Results, filteredResult)
 		}
 	}
 	return filtered
