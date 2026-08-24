@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.7...plugin-validator/v0.45.8) (2026-08-24)
+
+
+### 🐛 Bug Fixes
+
+* **reactcompat:** group issues by file ([#780](https://github.com/grafana/plugin-validator/issues/780)) ([25bfea1](https://github.com/grafana/plugin-validator/commit/25bfea1e6b3e6f2b6373241119a6b7f22ae4388f))
+
 ## [0.45.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.6...plugin-validator/v0.45.7) (2026-08-24)
 
 
