@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.45.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.8...plugin-validator/v0.45.9) (2026-08-25)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.199 ([#785](https://github.com/grafana/plugin-validator/issues/785)) ([ff899f0](https://github.com/grafana/plugin-validator/commit/ff899f02d03bc41334bad4daa63c1229e93faf3f))
+* **deps:** update github.com/google/osv-scalibr digest to 73d42b5 ([#783](https://github.com/grafana/plugin-validator/issues/783)) ([b15c225](https://github.com/grafana/plugin-validator/commit/b15c22505f427dc8d8a4727f895d51e00809b7bb))
+* **deps:** update google.golang.org/genproto/googleapis/api digest to 08b0e42 ([#778](https://github.com/grafana/plugin-validator/issues/778)) ([dba4dad](https://github.com/grafana/plugin-validator/commit/dba4dad76a91ac1516adc80270ea4e2738680080))
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to 08b0e42 ([#784](https://github.com/grafana/plugin-validator/issues/784)) ([39eac42](https://github.com/grafana/plugin-validator/commit/39eac423824d3d326a19ed52cb25f5f73ccae140))
+* **deps:** update module cloud.google.com/go/auth to v0.23.2 ([#786](https://github.com/grafana/plugin-validator/issues/786)) ([dccdbb3](https://github.com/grafana/plugin-validator/commit/dccdbb306cc907f14101058a2743a24ec135b377))
+* **deps:** update module github.com/mattn/go-runewidth to v0.0.28 ([#787](https://github.com/grafana/plugin-validator/issues/787)) ([e058b5c](https://github.com/grafana/plugin-validator/commit/e058b5c30428b3b345f981118eaacb15c7412da2))
+
 ## [0.45.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.7...plugin-validator/v0.45.8) (2026-08-24)
 
 
