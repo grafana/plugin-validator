@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.45.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.9...plugin-validator/v0.45.10) (2026-08-27)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.201 ([#794](https://github.com/grafana/plugin-validator/issues/794)) ([eabeaf0](https://github.com/grafana/plugin-validator/commit/eabeaf006ee8a63be0068bba84e40fa41d5d6d89))
+* **deps:** update github.com/google/osv-scalibr digest to e8af798 ([#799](https://github.com/grafana/plugin-validator/issues/799)) ([e1f594f](https://github.com/grafana/plugin-validator/commit/e1f594f768114a4e516dd188ce1cd9aae485c5b3))
+* **deps:** update github.com/google/osv-scalibr digest to ed4e865 ([#788](https://github.com/grafana/plugin-validator/issues/788)) ([ad46091](https://github.com/grafana/plugin-validator/commit/ad46091af3f01a623a51f9a23af5e37e32a6bc64))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.66.0 ([#802](https://github.com/grafana/plugin-validator/issues/802)) ([0acc65f](https://github.com/grafana/plugin-validator/commit/0acc65fa0a758e2b9f4fe96774499850432d56f3))
+* **deps:** update module github.com/cyclonedx/cyclonedx-go to v0.12.0 ([#803](https://github.com/grafana/plugin-validator/issues/803)) ([87d4546](https://github.com/grafana/plugin-validator/commit/87d4546c31de35ba0ea5d5d39b8f17054d461fce))
+* **deps:** update module github.com/montanaflynn/stats to v0.12.4 ([#789](https://github.com/grafana/plugin-validator/issues/789)) ([3e3a51c](https://github.com/grafana/plugin-validator/commit/3e3a51cc6f07711152149a3d24395b6324cad224))
+* **deps:** update module github.com/package-url/packageurl-go to v0.1.7 ([#790](https://github.com/grafana/plugin-validator/issues/790)) ([7c4b493](https://github.com/grafana/plugin-validator/commit/7c4b493ccdf1715ebd3f6f1c9b561d3fe3df2890))
+* **deps:** update module github.com/pandatix/go-cvss to v0.6.4 ([#791](https://github.com/grafana/plugin-validator/issues/791)) ([a60a8bf](https://github.com/grafana/plugin-validator/commit/a60a8bfc4222340cf18fe19a69648670ee1aaddb))
+* **deps:** update module github.com/pierrec/lz4/v4 to v4.1.29 ([#792](https://github.com/grafana/plugin-validator/issues/792)) ([c5b282d](https://github.com/grafana/plugin-validator/commit/c5b282dd7ae088c4e6e390614559a096202b72c4))
+* **deps:** update module github.com/sirupsen/logrus to v1.10.1 ([#795](https://github.com/grafana/plugin-validator/issues/795)) ([0be621e](https://github.com/grafana/plugin-validator/commit/0be621e2237e8b5f6ea7357452f023d1a19ba58a))
+* **deps:** update module google.golang.org/grpc to v1.83.1 ([#796](https://github.com/grafana/plugin-validator/issues/796)) ([54abbe3](https://github.com/grafana/plugin-validator/commit/54abbe3c5a19a6a6dd30f669fce34b0e9a2573d4))
+* **deps:** update module modernc.org/libc to v1.75.4 ([#797](https://github.com/grafana/plugin-validator/issues/797)) ([8dbb6ae](https://github.com/grafana/plugin-validator/commit/8dbb6ae9796be530c95da7e19ee48f4de834f626))
+* **deps:** update module modernc.org/libc to v1.75.5 ([#800](https://github.com/grafana/plugin-validator/issues/800)) ([3146298](https://github.com/grafana/plugin-validator/commit/31462983892b53616092fc189332e97d590dad80))
+* **deps:** update module modernc.org/memory to v1.12.1 ([#798](https://github.com/grafana/plugin-validator/issues/798)) ([aacf9fd](https://github.com/grafana/plugin-validator/commit/aacf9fd9d9d8ee7bbf0352720e19e2cae4ce98ab))
+
 ## [0.45.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.45.8...plugin-validator/v0.45.9) (2026-08-25)
 
 
