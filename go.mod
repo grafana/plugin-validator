@@ -56,7 +56,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.9.0 // indirect
 	deps.dev/api/v3 v3.0.0-20260811035547-133c155ce203 // indirect
 	deps.dev/api/v3alpha v0.0.0-20260827000537-dc936a45c657 // indirect
-	deps.dev/util/maven v0.0.0-20260811035547-133c155ce203 // indirect
+	deps.dev/util/maven v0.0.0-20260827000537-dc936a45c657 // indirect
 	deps.dev/util/pypi v0.0.0-20260827000537-dc936a45c657 // indirect
 	deps.dev/util/resolve v0.0.0-20260827000537-dc936a45c657 // indirect
 	deps.dev/util/semver v0.0.0-20260827000537-dc936a45c657 // indirect
