@@ -16,7 +16,7 @@ require (
 	github.com/mattn/go-shellwords v1.0.14
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/openai/openai-go v1.12.0
-	github.com/ossf/osv-schema/bindings/go v0.0.0-20260819011252-3ead7d920ad9
+	github.com/ossf/osv-schema/bindings/go v0.0.0-20260826042146-06a397801cdb
 	github.com/r3labs/diff/v3 v3.0.2
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e
