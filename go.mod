@@ -71,7 +71,7 @@ require (
 	github.com/anchore/go-lzo v0.1.1 // indirect
 	github.com/ayoubfaouzi/pkcs7 v0.2.3 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
-	github.com/bazelbuild/buildtools v0.0.0-20260819135130-5d08cfd22031 // indirect
+	github.com/bazelbuild/buildtools v0.0.0-20260826221324-7cca172268c7 // indirect
 	github.com/buger/jsonparser v1.6.1 // indirect
 	github.com/canonical/chisel-manifest v1.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
