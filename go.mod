@@ -88,7 +88,7 @@ require (
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/djherbis/times v1.6.0 // indirect
 	github.com/docker/cli v29.7.2+incompatible // indirect
-	github.com/docker/docker-credential-helpers v0.9.8 // indirect
+	github.com/docker/docker-credential-helpers v0.9.9 // indirect
 	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dsoprea/go-exfat v0.0.0-20190906070738-5e932fbdb589 // indirect
