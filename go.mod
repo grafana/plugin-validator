@@ -111,7 +111,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/go-containerregistry v0.21.9 // indirect
+	github.com/google/go-containerregistry v0.22.0 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/google/osv-scalibr v0.5.3-0.20260901171403-428be47409d3 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
