@@ -46,7 +46,7 @@ const (
 	// cliVersion pins the CLI so validation is reproducible across runs and can't be
 	// influenced by whatever version `latest` resolves to on a given day. Bump this
 	// deliberately when adopting new validation rules from the CLI.
-	cliVersion    = "0.0.10"
+	cliVersion    = "0.2.2"
 	cliRunCommand = "validate"
 	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
 	runTimeout = 120 * time.Second
