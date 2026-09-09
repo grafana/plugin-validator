@@ -67,7 +67,12 @@ ARG GOSEC_VERSION
 ARG SEMGREP_VERSION
 
 # govulncheck source mode shells out to the Go command to load packages.
-RUN apk add --no-cache git go ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav 'nodejs=~24' npm
+# Use the base image's own pinned toolchain (/usr/local/go/bin) rather than
+# apk's `go` package, which floats to whatever version is current in Alpine's
+# repo and can drift ahead of the toolchain govulncheck was built with,
+# causing "source-processing packages" / "go list" version-mismatch failures.
+ENV PATH="/usr/local/go/bin:${PATH}"
+RUN apk add --no-cache git ca-certificates curl wget python3 python3-dev py3-pip alpine-sdk clamav 'nodejs=~24' npm
 RUN update-ca-certificates
 RUN freshclam
 
