@@ -84,6 +84,7 @@ RUN freshclam
 RUN curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b /usr/local/bin ${GOSEC_VERSION}
 
 COPY --from=govulncheck /go/bin/govulncheck /usr/local/bin/govulncheck
+COPY --from=govulncheck /tmp/govulncheck-probe.sh /usr/local/libexec/govulncheck-probe.sh
 
 # install semgrep
 RUN python3 -m pip install "setuptools<81" semgrep==${SEMGREP_VERSION} --ignore-installed --break-system-packages --no-cache-dir
