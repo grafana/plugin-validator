@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.0...plugin-validator/v0.49.1) (2026-09-10)
+
+
+### 🐛 Bug Fixes
+
+* align Go scanner toolchains ([#856](https://github.com/grafana/plugin-validator/issues/856)) ([8126c2e](https://github.com/grafana/plugin-validator/commit/8126c2e5b4e846c38d8f6c7f0973fb1d224740ec))
+
 ## [0.49.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.48.0...plugin-validator/v0.49.0) (2026-09-10)
 
 
