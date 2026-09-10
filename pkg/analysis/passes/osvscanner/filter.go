@@ -11,9 +11,8 @@ import (
 )
 
 func FilterOSVResults(source models.VulnerabilityResults, lockFile string) models.VulnerabilityResults {
-	// not filtering go.mod yet
 	if strings.HasSuffix(lockFile, "go.mod") {
-		return source
+		return filterGoModResults(source, lockFile)
 	}
 	var filtered models.VulnerabilityResults
 	// this expects a single result, with multiple packages since we are scanning a single file per-run
