@@ -103,7 +103,8 @@ jobs:
         if: env.skip_goreleaser != 'true'
         with:
           distribution: goreleaser
-          version: latest
+          # Temporary pin until the missing-tag regression in v2.18.1 is released.
+          version: v2.18.0
           # release-please tags look like `plugin-validator/v0.42.0`, which
           # GoReleaser's validate pipe can't parse as semver. Skip it; the
           # archive name template uses `RELEASE_VERSION` directly and
