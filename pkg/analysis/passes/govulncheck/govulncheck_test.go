@@ -55,6 +55,72 @@ func TestParseCalledFindings_EmptyStream(t *testing.T) {
 	}
 }
 
+func TestGoRequirementDetail_ReportsHigherRequirement(t *testing.T) {
+	stderr := "go: module example.com/dependency requires go >= 1.28 (running go 1.27.1; GOTOOLCHAIN=local)"
+	got := goRequirementDetail(stderr, "go1.27.1")
+	want := "Plugin source requires Go 1.28 or later; this validator supports Go 1.27.1."
+	if got != want {
+		t.Fatalf("goRequirementDetail() = %q, want %q", got, want)
+	}
+}
+
+func TestGoRequirementDetail_IgnoresSupportedRequirement(t *testing.T) {
+	stderr := "go: module example.com/dependency requires go >= 1.27"
+	if got := goRequirementDetail(stderr, "go1.27.1"); got != "" {
+		t.Fatalf("goRequirementDetail() = %q, want empty", got)
+	}
+}
+
+func TestWithLocalToolchain_ReplacesExistingValue(t *testing.T) {
+	got := withLocalToolchain([]string{"PATH=/bin", "GOTOOLCHAIN=auto"})
+	if strings.Join(got, "\x00") != "PATH=/bin\x00GOTOOLCHAIN=local" {
+		t.Fatalf("withLocalToolchain() = %q", got)
+	}
+}
+
+func TestRunGovulncheckJSON_UsesLocalToolchainForFutureGoDirective(t *testing.T) {
+	const futureGoVersion = "99.0.0"
+
+	binDir := t.TempDir()
+	fakeGovulncheck := filepath.Join(binDir, "govulncheck")
+	envFile := filepath.Join(t.TempDir(), "toolchain")
+	script := "#!/bin/sh\nprintf '%s' \"$GOTOOLCHAIN\" > \"$GOTOOLCHAIN_FILE\"\nexec go list ./...\n"
+	if err := os.WriteFile(fakeGovulncheck, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake govulncheck: %v", err)
+	}
+
+	sourceDir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(sourceDir, "go.mod"), []byte("module example.com/future\n\ngo " + futureGoVersion + "\n"), 0o644); err != nil {
+		t.Fatalf("write go.mod: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "main.go"), []byte("package future\n"), 0o644); err != nil {
+		t.Fatalf("write main.go: %v", err)
+	}
+
+	t.Setenv("GOTOOLCHAIN", "auto")
+	t.Setenv("GOTOOLCHAIN_FILE", envFile)
+	_, ok, detail, err := runGovulncheckJSON(fakeGovulncheck, sourceDir, sourceDir, "-json", "./...")
+	if err != nil {
+		t.Fatalf("runGovulncheckJSON() error = %v", err)
+	}
+	if ok {
+		t.Fatal("runGovulncheckJSON() reported success for an unsupported Go directive")
+	}
+	if !strings.Contains(detail, "Plugin source requires Go "+futureGoVersion+" or later") {
+		t.Fatalf("runGovulncheckJSON() detail = %q", detail)
+	}
+	if !strings.Contains(detail, "this validator supports Go "+strings.TrimPrefix(localGoVersion(), "go")) {
+		t.Fatalf("runGovulncheckJSON() reported the wrong running Go version: %q", detail)
+	}
+	toolchain, err := os.ReadFile(envFile)
+	if err != nil {
+		t.Fatalf("read toolchain marker: %v", err)
+	}
+	if string(toolchain) != "local" {
+		t.Fatalf("scanner received GOTOOLCHAIN=%q, want local", toolchain)
+	}
+}
+
 func TestParseCalledFindings_DedupesSameOSV(t *testing.T) {
 	// Two findings for the same OSV (different call sites) should collapse
 	// into a single entry in the result set.

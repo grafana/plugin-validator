@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -23,6 +24,9 @@ import (
 )
 
 var (
+	goRequirementRE = regexp.MustCompile(`requires go >= (?:go)?([0-9]+(?:\.[0-9]+){1,2})`)
+	goVersionRE     = regexp.MustCompile(`go([0-9]+(?:\.[0-9]+){1,2})`)
+
 	govulncheckNotInstalled  = &analysis.Rule{Name: "govulncheck-not-installed", Severity: analysis.Warning}
 	govulncheckScanFailed    = &analysis.Rule{Name: "govulncheck-scan-failed", Severity: analysis.Error}
 	govulncheckIssueFound    = &analysis.Rule{Name: "govulncheck-issue-found", Severity: analysis.Warning}
@@ -201,6 +205,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func runGovulncheckJSON(govulncheckBin, dir, target string, args ...string) ([]byte, bool, string, error) {
 	cmd := exec.Command(govulncheckBin, args...)
 	cmd.Dir = dir
+	cmd.Env = withLocalToolchain(os.Environ())
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -216,6 +221,9 @@ func runGovulncheckJSON(govulncheckBin, dir, target string, args ...string) ([]b
 		}
 		if exitErr.ExitCode() != 3 {
 			logme.DebugFln("govulncheck scan failed for %s: %v (stderr: %s)", target, err, stderr.String())
+			if detail := goRequirementDetail(stderr.String(), localGoVersion()); detail != "" {
+				return nil, false, detail, nil
+			}
 			return nil, false, scanFailureDetail(target, stderr.String(), err), nil
 		}
 	}
@@ -300,6 +308,44 @@ func pluralY(n int) string {
 		return "y"
 	}
 	return "ies"
+}
+
+func withLocalToolchain(env []string) []string {
+	for i, value := range env {
+		if strings.HasPrefix(value, "GOTOOLCHAIN=") {
+			env[i] = "GOTOOLCHAIN=local"
+			return env
+		}
+	}
+	return append(env, "GOTOOLCHAIN=local")
+}
+
+func localGoVersion() string {
+	cmd := exec.Command("go", "version")
+	cmd.Env = withLocalToolchain(os.Environ())
+	output, err := cmd.Output()
+	if err != nil {
+		return ""
+	}
+	matches := goVersionRE.FindStringSubmatch(string(output))
+	if len(matches) == 0 {
+		return ""
+	}
+	return "go" + matches[1]
+}
+
+func goRequirementDetail(stderr, supportedVersion string) string {
+	matches := goRequirementRE.FindStringSubmatch(stderr)
+	if len(matches) == 0 {
+		return ""
+	}
+
+	required := "v" + matches[1]
+	supported := strings.TrimPrefix(supportedVersion, "go")
+	if supported == "" || semver.Compare("v"+supported, required) >= 0 {
+		return ""
+	}
+	return fmt.Sprintf("Plugin source requires Go %s or later; this validator supports Go %s.", matches[1], supported)
 }
 
 func scanFailureDetail(target, stderr string, err error) string {

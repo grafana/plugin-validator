@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -54,7 +55,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	// run gosec
+	sourceCodeDir, err = filepath.Abs(sourceCodeDir)
+	if err != nil {
+		return nil, err
+	}
+
+	// gosec resolves relative file paths against the module root.
 	goSecCommand := exec.Command(
 		goSecBin,
 		"-quiet",
@@ -62,7 +68,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		targetSeverity,
 		"-fmt",
 		"json",
-		"-r",
+		filepath.Join(sourceCodeDir, "..."),
 	)
 	goSecCommand.Dir = sourceCodeDir
 	goSecOutput, err := goSecCommand.Output()
