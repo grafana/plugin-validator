@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
 
 var (
@@ -209,7 +210,7 @@ func runGovulncheckJSON(govulncheckBin, dir, target string, args ...string) ([]b
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	err := cmd.Run()
+	err := scanprocess.Run(cmd)
 	if err != nil {
 		// Some govulncheck versions exit 3 when vulnerabilities are found.
 		// Other non-zero exits are scanner failures, such as package loading

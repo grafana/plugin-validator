@@ -17,6 +17,7 @@ var (
 )
 
 type Pass struct {
+	Analyzer     *Analyzer
 	AnalyzerName string
 	RootDir      string
 	CheckParams  CheckParams
