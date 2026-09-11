@@ -81,11 +81,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	logme.DebugFln("Will run clamav on %s", archiveDir)
 
-	err = runClamavScan(clamavBin, archiveDir, "archive", pass)
-	if err != nil {
-		pass.ReportIncomplete(err.Error())
-		return nil, nil
-	}
+	runClamavScan(clamavBin, archiveDir, "archive", pass)
 
 	// scan the source code
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
@@ -94,47 +90,43 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	logme.DebugFln("Will run clamav on %s", archiveDir)
+	logme.DebugFln("Will run clamav on %s", sourceCodeDir)
 
-	err = runClamavScan(clamavBin, sourceCodeDir, "source code", pass)
-	if err != nil {
-		pass.ReportIncomplete(err.Error())
-		return nil, nil
-	}
+	runClamavScan(clamavBin, sourceCodeDir, "source code", pass)
 
 	return nil, nil
 }
 
-func runClamavScan(clamavBin string, path string, entityName string, pass *analysis.Pass) error {
+func runClamavScan(clamavBin string, path string, entityName string, pass *analysis.Pass) {
 	clamavCommand := exec.Command(clamavBin, "-r", path)
-	clamavOutput, err := scanprocess.CombinedOutput(clamavCommand)
-
-	// Exit 1 means malware was found. Other failures must never become a clean scan.
-	var exitErr *exec.ExitError
-	if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
-		return fmt.Errorf("ClamAV %s scan failed: %w", entityName, err)
-	}
-
-	scanSummary, err := parseClamAv(string(clamavOutput))
-	if err != nil {
-		return fmt.Errorf("ClamAV %s scan output is incomplete: %w", entityName, err)
-	}
-	if exitErr != nil && scanSummary.InfectedFiles == 0 {
-		return fmt.Errorf("ClamAV %s scan exited with findings but reported no infected files", entityName)
-	}
-
-	if scanSummary.InfectedFiles > 0 {
+	clamavOutput, runErr := scanprocess.CombinedOutput(clamavCommand)
+	scanSummary, parseErr := parseClamAv(string(clamavOutput))
+	// Preserve positive findings even when ClamAV later fails or loses its summary.
+	infectedFiles := max(scanSummary.InfectedFiles, len(scanSummary.FoundFiles))
+	if infectedFiles > 0 {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			virusScanFailed,
 			fmt.Sprintf(
 				"ClamAV found %d infected file(s) inside your %s",
-				scanSummary.InfectedFiles, entityName,
+				infectedFiles, entityName,
 			),
 			fmt.Sprintf("Files found by ClamAV: %s", strings.Join(scanSummary.FoundFiles, ", ")),
 		)
-	} else {
-		if virusScanPassed.ReportAll {
+	}
+
+	// Exit 1 means malware was found. Report execution failures as diagnostics
+	// and let the remaining scans run.
+	var exitErr *exec.ExitError
+	switch {
+	case runErr != nil && (!errors.As(runErr, &exitErr) || exitErr.ExitCode() != 1):
+		pass.ReportIncomplete(fmt.Sprintf("ClamAV %s scan failed: %v", entityName, runErr))
+	case parseErr != nil:
+		pass.ReportIncomplete(fmt.Sprintf("ClamAV %s scan output is incomplete: %v", entityName, parseErr))
+	case exitErr != nil && infectedFiles == 0:
+		pass.ReportIncomplete(fmt.Sprintf("ClamAV %s scan exited with findings but reported no infected files", entityName))
+	default:
+		if infectedFiles == 0 && virusScanPassed.ReportAll {
 			pass.ReportResult(
 				pass.AnalyzerName,
 				virusScanPassed,
@@ -143,7 +135,6 @@ func runClamavScan(clamavBin string, path string, entityName string, pass *analy
 			)
 		}
 	}
-	return nil
 }
 
 func parseClamAv(output string) (ClamAvScanSummary, error) {

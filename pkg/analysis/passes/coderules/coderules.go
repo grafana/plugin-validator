@@ -147,6 +147,8 @@ func run(pass *analysis.Pass) (any, error) {
 		return nil, nil
 	}
 	if len(semgrepResults.Errors) > 0 {
+		// Errors describe incomplete analysis (for example parsing failures or OOM).
+		// Findings are separate entries in Results and are still reported below.
 		detail := fmt.Sprintf("Semgrep reported %d scan errors: %s", len(semgrepResults.Errors), semgrepResults.Errors[0].Message)
 		if len(detail) > 2048 {
 			detail = detail[:2048]

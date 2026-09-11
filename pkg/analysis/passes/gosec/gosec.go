@@ -84,6 +84,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	if len(goSecOutput) == 0 {
+		// With -quiet, a successful scan without findings deliberately emits nothing.
+		if err == nil {
+			return nil, nil
+		}
 		pass.ReportIncomplete("gosec returned an empty report")
 		return nil, nil
 	}
@@ -91,6 +95,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	var goSectResults Result
 	err = json.Unmarshal(goSecOutput, &goSectResults)
 	if err != nil {
+		logme.Errorln("Error unmarshalling gosec output", "error", err)
 		pass.ReportIncomplete("Could not decode gosec output: " + err.Error())
 		return nil, nil
 	}

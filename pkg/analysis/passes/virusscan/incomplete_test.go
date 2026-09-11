@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,6 +41,38 @@ func TestScanExecutionFailures(t *testing.T) {
 				for _, diagnostic := range diagnostics {
 					require.NotEqual(t, "scan-incomplete", diagnostic.Name)
 				}
+			}
+		})
+	}
+}
+
+func TestPartialFindingsSurviveFailureAndSourceScanContinues(t *testing.T) {
+	for _, output := range []string{
+		"infected.js: Test-Signature FOUND\n----------- SCAN SUMMARY -----------\nInfected files: 1",
+		"infected.js: Test-Signature FOUND",
+	} {
+		t.Run(output, func(t *testing.T) {
+			directory := t.TempDir()
+			script := "#!/bin/sh\nprintf '%s\\n' '" + output + "'\nexit 2\n"
+			require.NoError(t, os.WriteFile(filepath.Join(directory, "clamscan"), []byte(script), 0755))
+			t.Setenv("PATH", directory)
+			t.Setenv("SKIP_CLAMAV", "")
+			var diagnostics []analysis.Diagnostic
+			pass := &analysis.Pass{
+				AnalyzerName: Analyzer.Name,
+				ResultOf:     map[*analysis.Analyzer]any{archive.Analyzer: directory, sourcecode.Analyzer: directory},
+				Report:       func(_ string, d analysis.Diagnostic) { diagnostics = append(diagnostics, d) },
+			}
+			_, err := run(pass)
+			require.NoError(t, err)
+			require.Len(t, diagnostics, 4)
+			for index, entity := range []string{"archive", "source code"} {
+				finding, failure := diagnostics[index*2], diagnostics[index*2+1]
+				require.Equal(t, "virus-scan-failed", finding.Name)
+				require.Contains(t, finding.Detail, "infected.js")
+				require.Contains(t, finding.Title, entity)
+				require.Equal(t, "scan-incomplete", failure.Name)
+				require.Contains(t, failure.Detail, "ClamAV "+entity+" scan failed")
 			}
 		})
 	}

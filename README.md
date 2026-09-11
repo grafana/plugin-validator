@@ -415,22 +415,6 @@ global:
   reportAll: true
 ```
 
-### Scanner diagnostics
-
-The validator writes structured lifecycle events to stderr with the prefix
-`PLUGIN_VALIDATOR_EVENT `. These events identify analyzer and scanner start/end,
-elapsed milliseconds, process exit code and, on Linux/macOS, the OS-reported
-`process_peak_rss_bytes`. They do not include command arguments or source content.
-Peak RSS is a process high-water mark, not aggregate process-tree memory. If the
-whole container is killed, the last start event identifies the active scanner,
-but no finish event or peak measurement can be emitted.
-
-Semgrep, ClamAV and gosec execution failures produce a `scan-incomplete` error
-diagnostic. Partial Semgrep scans and incomplete ClamAV summaries also produce
-this diagnostic instead of a clean scan. Finding severity overrides do not
-downgrade execution failures. Explicitly disabled analyzers remain disabled.
-Missing optional tools and explicit scan skips retain their existing behavior.
-
 ## Getting Help
 
 - :open_book: Check out our plugin [documentation](https://grafana.com/developers/plugin-tools).
