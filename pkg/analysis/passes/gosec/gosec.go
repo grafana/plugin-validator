@@ -2,6 +2,7 @@ package gosec
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os/exec"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
 
 var (
@@ -71,28 +73,26 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		filepath.Join(sourceCodeDir, "..."),
 	)
 	goSecCommand.Dir = sourceCodeDir
-	goSecOutput, err := goSecCommand.Output()
+	goSecOutput, err := scanprocess.Output(goSecCommand)
 	if err != nil {
-		// gosec exits 1 if it finds issues. If there's an error other than an exit error, return it
-		_, ok = err.(*exec.ExitError)
-		if !ok {
-			logme.ErrorF("Error running gosec: %v", err)
-			return nil, err
+		// Exit 1 reports findings. A signal or another exit code means the scan failed.
+		var exitErr *exec.ExitError
+		if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
+			pass.ReportIncomplete("gosec execution failed: " + err.Error())
+			return nil, nil
 		}
 	}
 
 	if len(goSecOutput) == 0 {
-		logme.Debugln("gosec output is empty, skipping gosec report")
+		pass.ReportIncomplete("gosec returned an empty report")
 		return nil, nil
 	}
 
 	var goSectResults Result
 	err = json.Unmarshal(goSecOutput, &goSectResults)
 	if err != nil {
-		fmt.Println("Error running gosec", err)
-		logme.Errorln("Error unmarshalling gosec output", "error", err)
-		// breaking the validator to notify the user that the gosec output is not as expected
-		return nil, err
+		pass.ReportIncomplete("Could not decode gosec output: " + err.Error())
+		return nil, nil
 	}
 
 	count := 0

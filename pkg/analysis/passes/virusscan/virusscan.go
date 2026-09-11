@@ -2,6 +2,7 @@ package virusscan
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
 
 var (
@@ -81,7 +83,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	err = runClamavScan(clamavBin, archiveDir, "archive", pass)
 	if err != nil {
-		logme.Debugln("clamav failed, skipping virus scan", err)
+		pass.ReportIncomplete(err.Error())
 		return nil, nil
 	}
 
@@ -96,7 +98,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	err = runClamavScan(clamavBin, sourceCodeDir, "source code", pass)
 	if err != nil {
-		logme.Debugln("clamav failed, skipping virus scan", err)
+		pass.ReportIncomplete(err.Error())
 		return nil, nil
 	}
 
@@ -105,18 +107,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 func runClamavScan(clamavBin string, path string, entityName string, pass *analysis.Pass) error {
 	clamavCommand := exec.Command(clamavBin, "-r", path)
-	clamavOutput, err := clamavCommand.CombinedOutput()
+	clamavOutput, err := scanprocess.CombinedOutput(clamavCommand)
 
-	// clamav exits 1 if it finds issues. Only failing if the output is empty
-	if err != nil && len(clamavOutput) == 0 {
-		logme.Debugln("clamav failed, skipping virus scan", err)
-		return nil
+	// Exit 1 means malware was found. Other failures must never become a clean scan.
+	var exitErr *exec.ExitError
+	if err != nil && (!errors.As(err, &exitErr) || exitErr.ExitCode() != 1) {
+		return fmt.Errorf("ClamAV %s scan failed: %w", entityName, err)
 	}
 
 	scanSummary, err := parseClamAv(string(clamavOutput))
 	if err != nil {
-		logme.Debugln("error parsing clamav output, skipping virus scan", err)
-		return nil
+		return fmt.Errorf("ClamAV %s scan output is incomplete: %w", entityName, err)
+	}
+	if exitErr != nil && scanSummary.InfectedFiles == 0 {
+		return fmt.Errorf("ClamAV %s scan exited with findings but reported no infected files", entityName)
 	}
 
 	if scanSummary.InfectedFiles > 0 {
@@ -147,6 +151,7 @@ func parseClamAv(output string) (ClamAvScanSummary, error) {
 
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	summarySection := false
+	foundInfectedCount := false
 
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -182,6 +187,7 @@ func parseClamAv(output string) (ClamAvScanSummary, error) {
 					return scanSummary, fmt.Errorf("error parsing Scanned files: %w", err)
 				}
 			case "Infected files":
+				foundInfectedCount = true
 				var err error
 				scanSummary.InfectedFiles, err = strconv.Atoi(value)
 				if err != nil {
@@ -214,6 +220,9 @@ func parseClamAv(output string) (ClamAvScanSummary, error) {
 
 	if err := scanner.Err(); err != nil {
 		return scanSummary, fmt.Errorf("error scanning input: %w", err)
+	}
+	if !summarySection || !foundInfectedCount {
+		return scanSummary, fmt.Errorf("missing scan summary or infected file count")
 	}
 
 	return scanSummary, nil

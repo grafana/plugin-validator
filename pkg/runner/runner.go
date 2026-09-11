@@ -3,9 +3,11 @@ package runner
 import (
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 	"github.com/grafana/plugin-validator/pkg/utils"
 )
 
@@ -86,7 +88,15 @@ func Check(
 		}
 
 		pass.AnalyzerName = currentAnalyzer.Name
+		pass.Analyzer = currentAnalyzer
+		scanprocess.Emit(scanprocess.Event{Event: "analyzer_started", Analyzer: currentAnalyzer.Name})
+		started := time.Now()
 		res, err := currentAnalyzer.Run(pass)
+		if err != nil {
+			pass.ReportIncomplete(err.Error())
+		}
+		incomplete := slices.ContainsFunc(diagnostics[currentAnalyzer.Name], func(d analysis.Diagnostic) bool { return d.Name == "scan-incomplete" })
+		scanprocess.Emit(scanprocess.Event{Event: "analyzer_finished", Analyzer: currentAnalyzer.Name, DurationMS: time.Since(started).Milliseconds(), Failed: err != nil || incomplete})
 		if err != nil {
 			return err
 		}
