@@ -1,8 +1,16 @@
-package analysis
+package analysis_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
+	"github.com/stretchr/testify/require"
+)
 
 func TestDisabledAnalyzerDoesNotReportIncomplete(t *testing.T) {
-	pass := &Pass{Analyzer: &Analyzer{Rules: []*Rule{{Disabled: true}}}, Report: func(string, Diagnostic) { t.Fatal("disabled analyzer reported an execution failure") }}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{Analyzer: &analysis.Analyzer{Rules: []*analysis.Rule{{Disabled: true}}}, Report: interceptor.ReportInterceptor()}
 	pass.ReportIncomplete("failed")
+	require.Empty(t, interceptor.Diagnostics)
 }

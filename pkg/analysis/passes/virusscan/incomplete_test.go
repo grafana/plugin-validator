@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
+	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,15 +31,15 @@ func TestScanExecutionFailures(t *testing.T) {
 			require.NoError(t, os.WriteFile(filepath.Join(directory, "clamscan"), []byte(script), 0755))
 			t.Setenv("PATH", directory)
 			t.Setenv("SKIP_CLAMAV", "")
-			var diagnostics []analysis.Diagnostic
-			pass := &analysis.Pass{AnalyzerName: Analyzer.Name, ResultOf: map[*analysis.Analyzer]any{archive.Analyzer: directory}, Report: func(_ string, d analysis.Diagnostic) { diagnostics = append(diagnostics, d) }}
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pass := &analysis.Pass{AnalyzerName: Analyzer.Name, ResultOf: map[*analysis.Analyzer]any{archive.Analyzer: directory}, Report: interceptor.ReportInterceptor()}
 			_, err := run(pass)
 			require.NoError(t, err)
 			if tc.incomplete {
-				require.Len(t, diagnostics, 1)
-				require.Equal(t, "scan-incomplete", diagnostics[0].Name)
+				require.Len(t, interceptor.Diagnostics, 1)
+				require.Equal(t, "scan-incomplete", interceptor.Diagnostics[0].Name)
 			} else {
-				for _, diagnostic := range diagnostics {
+				for _, diagnostic := range interceptor.Diagnostics {
 					require.NotEqual(t, "scan-incomplete", diagnostic.Name)
 				}
 			}
@@ -57,17 +58,17 @@ func TestPartialFindingsSurviveFailureAndSourceScanContinues(t *testing.T) {
 			require.NoError(t, os.WriteFile(filepath.Join(directory, "clamscan"), []byte(script), 0755))
 			t.Setenv("PATH", directory)
 			t.Setenv("SKIP_CLAMAV", "")
-			var diagnostics []analysis.Diagnostic
+			var interceptor testpassinterceptor.TestPassInterceptor
 			pass := &analysis.Pass{
 				AnalyzerName: Analyzer.Name,
 				ResultOf:     map[*analysis.Analyzer]any{archive.Analyzer: directory, sourcecode.Analyzer: directory},
-				Report:       func(_ string, d analysis.Diagnostic) { diagnostics = append(diagnostics, d) },
+				Report:       interceptor.ReportInterceptor(),
 			}
 			_, err := run(pass)
 			require.NoError(t, err)
-			require.Len(t, diagnostics, 4)
+			require.Len(t, interceptor.Diagnostics, 4)
 			for index, entity := range []string{"archive", "source code"} {
-				finding, failure := diagnostics[index*2], diagnostics[index*2+1]
+				finding, failure := interceptor.Diagnostics[index*2], interceptor.Diagnostics[index*2+1]
 				require.Equal(t, "virus-scan-failed", finding.Name)
 				require.Contains(t, finding.Detail, "infected.js")
 				require.Contains(t, finding.Title, entity)

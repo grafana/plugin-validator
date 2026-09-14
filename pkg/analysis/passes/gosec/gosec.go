@@ -78,12 +78,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		// Exit 1 reports findings. A signal or another exit code means the scan failed.
 		var exitErr *exec.ExitError
 		if !errors.As(err, &exitErr) || exitErr.ExitCode() != 1 {
+			logme.ErrorF("Error running gosec: %v", err)
 			pass.ReportIncomplete("gosec execution failed: " + err.Error())
 			return nil, nil
 		}
 	}
 
 	if len(goSecOutput) == 0 {
+		logme.Debugln("gosec output is empty, skipping gosec report")
 		// With -quiet, a successful scan without findings deliberately emits nothing.
 		if err == nil {
 			return nil, nil
