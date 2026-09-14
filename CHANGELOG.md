@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.49.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.1...plugin-validator/v0.49.2) (2026-09-14)
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/moby/buildkit to v0.33.0 ([#859](https://github.com/grafana/plugin-validator/issues/859)) ([a13f90c](https://github.com/grafana/plugin-validator/commit/a13f90ca643be8856dacf9120d2c4dd8ed6424d8))
+* **deps:** update module github.com/moby/moby/api to v1.56.0 ([#860](https://github.com/grafana/plugin-validator/issues/860)) ([6558275](https://github.com/grafana/plugin-validator/commit/655827519e4e47f8cdf8eedd742f7f497fa86535))
+* **deps:** update module github.com/moby/moby/client to v0.6.0 ([#861](https://github.com/grafana/plugin-validator/issues/861)) ([c1f471f](https://github.com/grafana/plugin-validator/commit/c1f471f17cbd792f7a055ea8f1a9a8f9dbfa9199))
+* **deps:** update module golang.org/x/mod to v0.41.0 ([#862](https://github.com/grafana/plugin-validator/issues/862)) ([b1647d6](https://github.com/grafana/plugin-validator/commit/b1647d6690ac994fd2250c32524e2021a1cc5bf4))
+* **deps:** update module golang.org/x/oauth2 to v0.37.0 ([#863](https://github.com/grafana/plugin-validator/issues/863)) ([45301e9](https://github.com/grafana/plugin-validator/commit/45301e96f094cf9eb7d6cbffae289dd9fda81cb9))
+
 ## [0.49.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.0...plugin-validator/v0.49.1) (2026-09-10)
 
 
