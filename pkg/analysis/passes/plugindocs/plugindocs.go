@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
 
 // boundedBuffer is an io.Writer that accumulates bytes up to `limit` and silently
@@ -148,7 +149,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
-	runErr := cmd.Run()
+	runErr := scanprocess.Run(cmd)
 
 	// the CLI exits 1 when any `error` severity diagnostic is present, or when something
 	// goes wrong before validation (e.g. could not find src/plugin.json). distinguish by
@@ -171,7 +172,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	return nil, nil
 }
-
 
 func ruleForSeverity(severity string) *analysis.Rule {
 	switch severity {

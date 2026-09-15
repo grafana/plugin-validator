@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
 
 const (
@@ -183,7 +184,7 @@ func runReactDetect(npxPath, archiveDir string) (*reactDetectOutput, error) {
 	stderr := &cappedBuffer{limit: maxStderrCaptureBytes}
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
-	err := cmd.Run()
+	err := scanprocess.Run(cmd)
 	out := stdout.Bytes()
 	if len(stderr.Bytes()) > 0 {
 		logme.DebugFln("react-detect stderr: %s", streamPreview(stderr.Bytes(), maxDebugStreamPreviewBytes))

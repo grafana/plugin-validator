@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
+	"github.com/grafana/plugin-validator/pkg/scanprocess"
 	"gopkg.in/yaml.v3"
 )
 
@@ -109,6 +110,7 @@ func run(pass *analysis.Pass) (any, error) {
 
 	semgrepRulesPath, cleanup, err := getSemgrepRulesPath()
 	if err != nil {
+		pass.ReportIncomplete("Could not prepare Semgrep rules: " + err.Error())
 		return nil, nil
 	}
 	if cleanup != nil {
@@ -128,15 +130,30 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 	logme.DebugFln("semgrep args: %v", semGrepArgs)
 	cmd := exec.Command(semgrepPath, semGrepArgs...)
-	out, err := cmd.Output()
+	out, err := scanprocess.Output(cmd)
 	if err != nil {
+		pass.ReportIncomplete("Semgrep execution failed: " + err.Error())
 		return nil, nil
 	}
 	// unmarshal semgrep output
 	var semgrepResults SemgrepResults
 	err = json.Unmarshal(out, &semgrepResults)
 	if err != nil {
+		pass.ReportIncomplete("Could not decode Semgrep output: " + err.Error())
 		return nil, nil
+	}
+	if semgrepResults.Results == nil {
+		pass.ReportIncomplete("Semgrep output is missing scan results")
+		return nil, nil
+	}
+	if len(semgrepResults.Errors) > 0 {
+		// Errors describe incomplete analysis (for example parsing failures or OOM).
+		// Findings are separate entries in Results and are still reported below.
+		detail := fmt.Sprintf("Semgrep reported %d scan errors: %s", len(semgrepResults.Errors), semgrepResults.Errors[0].Message)
+		if len(detail) > 2048 {
+			detail = detail[:2048]
+		}
+		pass.ReportIncomplete(detail)
 	}
 
 	violations := 0
@@ -196,7 +213,7 @@ func run(pass *analysis.Pass) (any, error) {
 		violations++
 	}
 
-	if violations == 0 && noCodeRulesViolations.ReportAll {
+	if violations == 0 && len(semgrepResults.Errors) == 0 && noCodeRulesViolations.ReportAll {
 		noCodeRulesViolations.Severity = analysis.OK
 		pass.ReportResult(
 			pass.AnalyzerName,

@@ -1,6 +1,7 @@
 package coderules
 
 type SemgrepError struct {
+	Message string `json:"message"`
 }
 
 type SemgrepResult struct {
