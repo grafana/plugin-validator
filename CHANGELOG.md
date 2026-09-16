@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.49.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.2...plugin-validator/v0.49.3) (2026-09-15)
+
+
+### 🐛 Bug Fixes
+
+* log scanner memory and report incomplete scans ([#858](https://github.com/grafana/plugin-validator/issues/858)) ([3ae8142](https://github.com/grafana/plugin-validator/commit/3ae814261eec61941eb8f41bd425603df7df9702))
+
+
+### 🔧 Chores
+
+* **deps:** update golang.org/x/exp digest to 85c1c22 ([#865](https://github.com/grafana/plugin-validator/issues/865)) ([3fab8f3](https://github.com/grafana/plugin-validator/commit/3fab8f3f0c1d2f61355261f0f81939158d3bc10b))
+* **deps:** update golang.org/x/telemetry digest to 15ceca2 ([#866](https://github.com/grafana/plugin-validator/issues/866)) ([769ec96](https://github.com/grafana/plugin-validator/commit/769ec96d6d7952286434c425321140e90c815668))
+* **deps:** update module github.com/googleapis/enterprise-certificate-proxy to v0.3.22 ([#867](https://github.com/grafana/plugin-validator/issues/867)) ([b07e135](https://github.com/grafana/plugin-validator/commit/b07e135471754a4bab2219ebe0340e87b54529ef))
+* **deps:** update module github.com/mattn/go-runewidth to v0.0.30 ([#868](https://github.com/grafana/plugin-validator/issues/868)) ([ad172d7](https://github.com/grafana/plugin-validator/commit/ad172d75a563d0567e04f211cdcc8de72083a4ff))
+
 ## [0.49.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.1...plugin-validator/v0.49.2) (2026-09-14)
 
 
