@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.49.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.3...plugin-validator/v0.49.4) (2026-09-16)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.223 ([#875](https://github.com/grafana/plugin-validator/issues/875)) ([dc095c7](https://github.com/grafana/plugin-validator/commit/dc095c7fec2f4590cfcc7d227717e20d0add2bec))
+* **deps:** update github.com/google/osv-scalibr digest to 6d76062 ([#871](https://github.com/grafana/plugin-validator/issues/871)) ([a6ce3c6](https://github.com/grafana/plugin-validator/commit/a6ce3c60107d08991f015cefd1961542745b8887))
+* **deps:** update google.golang.org/genproto digest to f61a6ca ([#872](https://github.com/grafana/plugin-validator/issues/872)) ([225e380](https://github.com/grafana/plugin-validator/commit/225e3807d8e38a6771744f174807766e9fbbad81))
+* **deps:** update google.golang.org/genproto/googleapis/api digest to f61a6ca ([#873](https://github.com/grafana/plugin-validator/issues/873)) ([de57c5e](https://github.com/grafana/plugin-validator/commit/de57c5e9cea8ede0de0317e9fbb66e0b9026311f))
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to f61a6ca ([#874](https://github.com/grafana/plugin-validator/issues/874)) ([4848f28](https://github.com/grafana/plugin-validator/commit/4848f283d19f95627048ef24dfa0f6c4461fab71))
+
 ## [0.49.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.2...plugin-validator/v0.49.3) (2026-09-15)
 
 
