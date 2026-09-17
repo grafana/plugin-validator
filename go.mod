@@ -13,7 +13,7 @@ require (
 	github.com/hashicorp/go-version v1.9.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.17.2
-	github.com/mattn/go-shellwords v1.0.14
+	github.com/mattn/go-shellwords v1.0.15
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/openai/openai-go v1.12.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20260902031056-b388a18021a3
