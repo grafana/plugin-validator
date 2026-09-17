@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.49.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.4...plugin-validator/v0.49.5) (2026-09-17)
+
+
+### 🐛 Bug Fixes
+
+* **osvscanner:** filter Grafana Go SDK dependencies ([#664](https://github.com/grafana/plugin-validator/issues/664)) ([10e2816](https://github.com/grafana/plugin-validator/commit/10e2816ea6f085126db0b4f4f2909dba5bed90c6))
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/google/osv-scalibr digest to b663f58 ([#878](https://github.com/grafana/plugin-validator/issues/878)) ([2afc381](https://github.com/grafana/plugin-validator/commit/2afc381e5c67fe39c66a08b632014ad4c7245329))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.72.0 ([#881](https://github.com/grafana/plugin-validator/issues/881)) ([5cfb83a](https://github.com/grafana/plugin-validator/commit/5cfb83abd1818d50aa75480b7ede0f92d2c158ac))
+* **deps:** update module github.com/google/osv-scanner/v2 to v2.6.0 ([#882](https://github.com/grafana/plugin-validator/issues/882)) ([4625544](https://github.com/grafana/plugin-validator/commit/462554453d5cced88614558e1576e4345620a9f1))
+* **deps:** update module github.com/mattn/go-shellwords to v1.0.15 ([#879](https://github.com/grafana/plugin-validator/issues/879)) ([5e9f85e](https://github.com/grafana/plugin-validator/commit/5e9f85ea037be1bb6bf9da1200a4865eff1538cd))
+* **deps:** update module github.com/montanaflynn/stats to v0.12.6 ([#880](https://github.com/grafana/plugin-validator/issues/880)) ([133e4ce](https://github.com/grafana/plugin-validator/commit/133e4ceb1154a19da0a1bbb20fb4e134b2329bd1))
+
 ## [0.49.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.3...plugin-validator/v0.49.4) (2026-09-16)
 
 
