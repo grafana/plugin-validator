@@ -9,7 +9,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/fatih/color v1.19.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/google/osv-scanner/v2 v2.5.1
+	github.com/google/osv-scanner/v2 v2.6.0
 	github.com/hashicorp/go-version v1.9.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.17.2
