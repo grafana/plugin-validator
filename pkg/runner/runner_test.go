@@ -46,7 +46,6 @@ var tests = []struct {
 		"plugin.json: description is empty",
 		"plugin.json: keywords are empty",
 		"CHANGELOG.md is empty",
-		"You can include a sponsorship link if you want users to support your work",
 		"plugin.json: plugin id should follow the format org-name-type",
 		"LLM review skipped due to errors in metadatavalid",
 		"Code diff skipped due to errors in metadatavalid",
