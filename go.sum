@@ -8,8 +8,8 @@ cloud.google.com/go/compute/metadata v0.9.0 h1:pDUj4QMoPejqq20dK0Pg2N4yG9zIkYGdB
 cloud.google.com/go/compute/metadata v0.9.0/go.mod h1:E0bWwX5wTnLPedCKqk3pJmVgCBSM6qQI1yTBdEb3C10=
 dario.cat/mergo v1.0.2 h1:85+piFYR1tMbRrLcDwR18y4UKJ3aH1Tbzi24VRW1TK8=
 dario.cat/mergo v1.0.2/go.mod h1:E/hbnu0NxMFBjpMIE34DRGLWqDy0g5FuKDhCb31ngxA=
-deps.dev/api/v3 v3.0.0-20260827000537-dc936a45c657 h1:2LTjiWHsdqVdk71Fg3PmHZhGgxS+kZngXlLyEZWwzEM=
-deps.dev/api/v3 v3.0.0-20260827000537-dc936a45c657/go.mod h1:FgTfOQ+48N7mQVyNUIrqIfF6Rqc908ePHxK/Rm/WlUY=
+deps.dev/api/v3 v3.0.0-20260914234406-fe0055f3c598 h1:PwuzeEpeKaoKGvls32kP/4gY9zpWLKxtk1u6aJhel3k=
+deps.dev/api/v3 v3.0.0-20260914234406-fe0055f3c598/go.mod h1:4gTfgGz5TAqN7uyQN0q6zBY3cMO3+4k/keIUtBEY/bc=
 deps.dev/api/v3alpha v0.0.0-20260914234406-fe0055f3c598 h1:TmYdUBbjI4FV7ZCjXwUwEe0eukGMbw8UdhOb0j0iUho=
 deps.dev/api/v3alpha v0.0.0-20260914234406-fe0055f3c598/go.mod h1:DmMNfpTqxzZawMRQqDHNDNXFgM5LMzhGGdzf1Ax6htA=
 deps.dev/util/maven v0.0.0-20260914234406-fe0055f3c598 h1:ce5oLFtmAzYHpPHKuxXseUBDRW9J+ZPDwnDS74ABT4g=
