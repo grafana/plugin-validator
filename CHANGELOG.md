@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.49.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.5...plugin-validator/v0.49.6) (2026-09-22)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.231 ([#892](https://github.com/grafana/plugin-validator/issues/892)) ([4228e7e](https://github.com/grafana/plugin-validator/commit/4228e7e7c11777f24a451735442d8825e69ade97))
+* **deps:** update deps.dev/api/v3alpha digest to fe0055f ([#884](https://github.com/grafana/plugin-validator/issues/884)) ([b16a81c](https://github.com/grafana/plugin-validator/commit/b16a81c7868e1b1de71251c97044e5bd979f5611))
+* **deps:** update deps.dev/util/maven digest to fe0055f ([#885](https://github.com/grafana/plugin-validator/issues/885)) ([894b5aa](https://github.com/grafana/plugin-validator/commit/894b5aa59cb8d95490e9152657673dc49c937e30))
+* **deps:** update deps.dev/util/pypi digest to fe0055f ([#886](https://github.com/grafana/plugin-validator/issues/886)) ([f063ed2](https://github.com/grafana/plugin-validator/commit/f063ed2e2d4ca505807f87a1da3b605d52062eac))
+* **deps:** update deps.dev/util/resolve digest to fe0055f ([#887](https://github.com/grafana/plugin-validator/issues/887)) ([4006b16](https://github.com/grafana/plugin-validator/commit/4006b163cf665996a070360670550baf907dce79))
+* **deps:** update deps.dev/util/semver digest to fe0055f ([#888](https://github.com/grafana/plugin-validator/issues/888)) ([d12e518](https://github.com/grafana/plugin-validator/commit/d12e518e87c48df492a9b4640b3694b35ad8a81b))
+* **deps:** update github.com/microsoft/go-winio digest to 526e22f ([#891](https://github.com/grafana/plugin-validator/issues/891)) ([062eb1f](https://github.com/grafana/plugin-validator/commit/062eb1fdb50de32c62f968eb87ba307d337fe559))
+* **deps:** update module cloud.google.com/go/auth to v0.23.3 ([#893](https://github.com/grafana/plugin-validator/issues/893)) ([e97e72a](https://github.com/grafana/plugin-validator/commit/e97e72acda6c65886f919cfc4f2d757681bebf51))
+* **deps:** update module cloud.google.com/go/compute/metadata to v0.9.1 ([#894](https://github.com/grafana/plugin-validator/issues/894)) ([9640472](https://github.com/grafana/plugin-validator/commit/96404725c9c22124d5a52a947f84aec7a1bcd23c))
+* **deps:** update module deps.dev/api/v3 to v3.0.0-20260914234406-fe0055f3c598 ([#895](https://github.com/grafana/plugin-validator/issues/895)) ([3303707](https://github.com/grafana/plugin-validator/commit/33037071577eed0823525524fef168fe978de7be))
+
 ## [0.49.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.4...plugin-validator/v0.49.5) (2026-09-17)
 
 
