@@ -40,31 +40,31 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
-	checkWebpack(pass, sourceCodeDir)
+	checkBundlerConfig(pass, sourceCodeDir)
 	checkMagefile(pass, sourceCodeDir)
 
 	return nil, nil
 }
 
-func checkWebpack(pass *analysis.Pass, sourceCodeDir string) {
-	webpackPath := filepath.Join(sourceCodeDir, ".config", "webpack", "webpack.config.ts")
-	if _, err := os.Stat(webpackPath); os.IsNotExist(err) {
-		pass.ReportResult(pass.AnalyzerName, nonStandardFrontendBuildTooling,
-			"non-standard frontend build tooling",
-			"The plugin does not appear to use Grafana's standard frontend build tooling. Please use create-plugin to scaffold your plugin: https://grafana.com/developers/plugin-tools/")
-		return
+func checkBundlerConfig(pass *analysis.Pass, sourceCodeDir string) {
+	configPaths := []string{
+		filepath.Join(sourceCodeDir, ".config", "webpack", "webpack.config.ts"),
+		filepath.Join(sourceCodeDir, ".config", "rspack", "rspack.config.ts"),
 	}
 
-	b, err := os.ReadFile(webpackPath)
-	if err != nil {
-		return
+	for _, configPath := range configPaths {
+		b, err := os.ReadFile(configPath)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(string(b), "@grafana/create-plugin") {
+			return
+		}
 	}
 
-	if !strings.Contains(string(b), "@grafana/create-plugin") {
-		pass.ReportResult(pass.AnalyzerName, nonStandardFrontendBuildTooling,
-			"non-standard frontend build tooling",
-			"The plugin does not appear to use Grafana's standard frontend build tooling. Please use create-plugin to scaffold your plugin: https://grafana.com/developers/plugin-tools/")
-	}
+	pass.ReportResult(pass.AnalyzerName, nonStandardFrontendBuildTooling,
+		"non-standard frontend build tooling",
+		"The plugin does not appear to use Grafana's standard frontend build tooling. Please use create-plugin to scaffold your plugin: https://grafana.com/developers/plugin-tools/")
 }
 
 func checkMagefile(pass *analysis.Pass, sourceCodeDir string) {
