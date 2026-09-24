@@ -14,7 +14,7 @@ require (
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.17.2
 	github.com/mattn/go-shellwords v1.0.15
-	github.com/modelcontextprotocol/go-sdk v1.7.0
+	github.com/modelcontextprotocol/go-sdk v1.8.0
 	github.com/openai/openai-go v1.12.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20260902031056-b388a18021a3
 	github.com/r3labs/diff/v3 v3.0.2
