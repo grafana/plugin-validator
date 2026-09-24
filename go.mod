@@ -45,7 +45,7 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/CycloneDX/cyclonedx-go v0.12.0 // indirect
 	github.com/GehirnInc/crypt v0.0.0-20230320061759-8cc1b52080c5 // indirect
-	github.com/Microsoft/go-winio v0.6.3-0.20260917205003-526e22f39a0a // indirect
+	github.com/Microsoft/go-winio v0.6.3-0.20260924034217-30935276391b // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
 	github.com/Velocidex/json v0.0.0-20220224052537-92f3c0326e5a // indirect
 	github.com/Velocidex/ordereddict v0.0.0-20250821063524-02dc06e46238 // indirect
