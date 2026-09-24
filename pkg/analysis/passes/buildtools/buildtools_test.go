@@ -25,6 +25,20 @@ func TestValidFrontend(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
+func TestValidFrontendRspack(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "valid-frontend-rspack"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 0)
+}
+
 func TestValidBackend(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
@@ -61,6 +75,22 @@ func TestWrongWebpackContent(t *testing.T) {
 		RootDir: filepath.Join("./"),
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			sourcecode.Analyzer: filepath.Join("testdata", "wrong-webpack-content"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(t, analysis.Error, interceptor.Diagnostics[0].Severity)
+	require.Equal(t, "non-standard frontend build tooling", interceptor.Diagnostics[0].Title)
+}
+
+func TestWrongRspackContent(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			sourcecode.Analyzer: filepath.Join("testdata", "wrong-rspack-content"),
 		},
 		Report: interceptor.ReportInterceptor(),
 	}
