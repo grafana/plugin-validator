@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.49.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.6...plugin-validator/v0.49.7) (2026-09-24)
+
+
+### 🐛 Bug Fixes
+
+* **buildtools:** accept rspack config as standard frontend build tooling ([#906](https://github.com/grafana/plugin-validator/issues/906)) ([54fa313](https://github.com/grafana/plugin-validator/commit/54fa3133dc6b71d08da2e9b11b7d42a26dcf1b2c))
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/bmatcuk/doublestar/v4 to v4.10.1 ([#899](https://github.com/grafana/plugin-validator/issues/899)) ([5cb0367](https://github.com/grafana/plugin-validator/commit/5cb03673f30d841c25e273c569fbae55710d1754))
+* **deps:** update module github.com/docker/cli to v29.8.1+incompatible ([#900](https://github.com/grafana/plugin-validator/issues/900)) ([72d63f5](https://github.com/grafana/plugin-validator/commit/72d63f56934f9c3872bbff2bd9cc4a9b73b7389d))
+* **deps:** update module github.com/google/s2a-go to v0.1.10 ([#901](https://github.com/grafana/plugin-validator/issues/901)) ([7a565fb](https://github.com/grafana/plugin-validator/commit/7a565fb67a92b7414897865a5898016cea7dba05))
+* **deps:** update module github.com/pierrec/lz4/v4 to v4.1.30 ([#902](https://github.com/grafana/plugin-validator/issues/902)) ([29d880c](https://github.com/grafana/plugin-validator/commit/29d880cbdf9fdafd0de9933eb95bb8d78099e16c))
+* **deps:** update module github.com/ulikunitz/xz to v0.5.17 ([#903](https://github.com/grafana/plugin-validator/issues/903)) ([8664ce2](https://github.com/grafana/plugin-validator/commit/8664ce2507e3b342ad3125853e96e2315516c757))
+* **deps:** update module golang.org/x/vuln to v1.8.0 ([#905](https://github.com/grafana/plugin-validator/issues/905)) ([e81a772](https://github.com/grafana/plugin-validator/commit/e81a7729acafa0f16f762c02bfe81738bfb29716))
+
 ## [0.49.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.5...plugin-validator/v0.49.6) (2026-09-22)
 
 
