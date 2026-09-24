@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.49.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.7...plugin-validator/v0.49.8) (2026-09-24)
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/microsoft/go-winio digest to 3093527 ([#907](https://github.com/grafana/plugin-validator/issues/907)) ([8cd71a6](https://github.com/grafana/plugin-validator/commit/8cd71a66f832ea248c125e1733bd9a45c27d5430))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.74.0 ([#909](https://github.com/grafana/plugin-validator/issues/909)) ([d36a8c1](https://github.com/grafana/plugin-validator/commit/d36a8c163ff8699a61d38a8f0c405c6e7bed2d6b))
+* **deps:** update module github.com/dustin/go-humanize to v1.1.0 ([#910](https://github.com/grafana/plugin-validator/issues/910)) ([317053b](https://github.com/grafana/plugin-validator/commit/317053bfcf5fc44ba6635e7fffd2c3c926741cf3))
+* **deps:** update module github.com/modelcontextprotocol/go-sdk to v1.8.0 ([#911](https://github.com/grafana/plugin-validator/issues/911)) ([c557208](https://github.com/grafana/plugin-validator/commit/c5572081da9a5e71a946079e9ccc10dbe8d45e6a))
+* **deps:** update module github.com/montanaflynn/stats to v0.12.7 ([#908](https://github.com/grafana/plugin-validator/issues/908)) ([0129d0d](https://github.com/grafana/plugin-validator/commit/0129d0d1806edded2d1689e74999236852eeeb36))
+
 ## [0.49.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.6...plugin-validator/v0.49.7) (2026-09-24)
 
 
