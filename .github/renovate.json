@@ -11,6 +11,11 @@
   ],
   "packageRules": [
     {
+      "description": "go-diskfs 1.8.0 changed fat32 ReadDir to return []fs.DirEntry, which breaks osv-scalibr (pulled in by osv-scanner). Lift once osv-scalibr supports go-diskfs 1.8+.",
+      "matchPackageNames": ["github.com/diskfs/go-diskfs"],
+      "allowedVersions": "<1.8.0"
+    },
+    {
       "matchDepNames": ["go", "golang"],
       "rangeStrategy": "bump",
       "groupName": "Go version",
