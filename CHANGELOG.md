@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.49.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.8...plugin-validator/v0.49.9) (2026-09-28)
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/microsoft/go-winio digest to 7e8af9b ([#915](https://github.com/grafana/plugin-validator/issues/915)) ([9ec8d48](https://github.com/grafana/plugin-validator/commit/9ec8d4871eeab9cf4dd89f24fbec83ca06affbee))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 8e3305d ([#916](https://github.com/grafana/plugin-validator/issues/916)) ([333e01d](https://github.com/grafana/plugin-validator/commit/333e01d3c3fc3ebf9953f4393900bafd2ba0feef))
+* **deps:** update golang:1.27.1-alpine docker digest to 8a5910f ([#917](https://github.com/grafana/plugin-validator/issues/917)) ([5e12607](https://github.com/grafana/plugin-validator/commit/5e1260736e56b7660a68dfff06a74559bcaae86a))
+* **deps:** update golang.org/x/telemetry digest to ed294f9 ([#918](https://github.com/grafana/plugin-validator/issues/918)) ([9c7c8b8](https://github.com/grafana/plugin-validator/commit/9c7c8b82feb096b74a8cb6fe5abbd8f2b6a8b61d))
+* **deps:** update google.golang.org/genproto digest to b142276 ([#919](https://github.com/grafana/plugin-validator/issues/919)) ([ad86d98](https://github.com/grafana/plugin-validator/commit/ad86d989109a42238c688de7fc88f3801745a25f))
+* **deps:** update module google.golang.org/api to v0.298.0 ([0a0a075](https://github.com/grafana/plugin-validator/commit/0a0a075516d4eb831460a4ae1d9348a67df318cb))
+* **deps:** update module google.golang.org/api to v0.299.0 ([#914](https://github.com/grafana/plugin-validator/issues/914)) ([0a0a075](https://github.com/grafana/plugin-validator/commit/0a0a075516d4eb831460a4ae1d9348a67df318cb))
+* **renovate:** cap go-diskfs below 1.8.0 ([#898](https://github.com/grafana/plugin-validator/issues/898)) ([00a8bf1](https://github.com/grafana/plugin-validator/commit/00a8bf188a4421f96c87fbfc501a5751a89e5e8b))
+
 ## [0.49.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.7...plugin-validator/v0.49.8) (2026-09-24)
 
 
