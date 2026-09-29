@@ -62,7 +62,7 @@ jobs:
         with:
           distribution: goreleaser
           # Temporary pin until the missing-tag regression in v2.18.1 is released.
-          version: v2.18.0
+          version: v2.18.2
           # release-please tags look like `mcp/v0.1.2`, which GoReleaser's
           # validate pipe can't parse as semver. Skip it; the archive name
           # template uses `MCP_VERSION` directly and `release.mode:
