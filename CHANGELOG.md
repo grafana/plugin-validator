@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.49.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.9...plugin-validator/v0.49.10) (2026-09-29)
+
+
+### 🔧 Chores
+
+* **deps:** lock file maintenance ([#925](https://github.com/grafana/plugin-validator/issues/925)) ([2fa146d](https://github.com/grafana/plugin-validator/commit/2fa146d73fae0bbfbd78b1b9b7540003339097f1))
+* **deps:** update anthropics/claude-code-action action to v1.0.235 ([#920](https://github.com/grafana/plugin-validator/issues/920)) ([bdae430](https://github.com/grafana/plugin-validator/commit/bdae43023ce96a733a9126b81fec5fa770f67678))
+* **deps:** update dependency goreleaser/goreleaser to v2.18.2 ([#921](https://github.com/grafana/plugin-validator/issues/921)) ([d7a94f6](https://github.com/grafana/plugin-validator/commit/d7a94f683454ba5779aa9d79c468b148baa803d1))
+* **deps:** update module github.com/bmatcuk/doublestar/v4 to v4.10.2 ([#922](https://github.com/grafana/plugin-validator/issues/922)) ([0e1b003](https://github.com/grafana/plugin-validator/commit/0e1b00382793a4af9892cfd94b4959af0a1708b8))
+* **deps:** update module github.com/google/osv-scalibr to v0.5.3 ([#923](https://github.com/grafana/plugin-validator/issues/923)) ([1c674f5](https://github.com/grafana/plugin-validator/commit/1c674f5aecbebf236e124d62b13a6382bdc2962a))
+* **deps:** update module github.com/klauspost/compress to v1.20.1 ([#924](https://github.com/grafana/plugin-validator/issues/924)) ([2cf5401](https://github.com/grafana/plugin-validator/commit/2cf540120b5bd93d9cc495557d4db236ac7f3f26))
+
 ## [0.49.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.8...plugin-validator/v0.49.9) (2026-09-28)
 
 
