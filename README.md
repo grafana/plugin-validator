@@ -290,6 +290,7 @@ Run "mage gen:readme" to regenerate this section.
 | Code Rules / `code-rules` | Checks for forbidden access to environment variables, file system or use of syscall module. | [semgrep](https://github.com/returntocorp/semgrep), `sourceCodeUri` |
 | Developer Jargon / `jargon` | Generally discourages use of code jargon in the documentation. | None |
 | Discoverability / `discoverability` | Warns about missing keywords and description that are used for plugin indexing in the catalog. | None |
+| Go Build Info / `gobuildinfo` | Validates embedded Go build metadata in backend plugin binaries. | None |
 | Go Manifest / `go-manifest` | Validates the build manifest. | None |
 | Go Security Checker / `go-sec` | Inspects source code for security problems by scanning the Go AST. | [gosec](https://github.com/securego/gosec), `sourceCodeUri` |
 | Go Vulnerability Checker / `govulncheck` | Scans Go backend source and plugin backend binaries for known vulnerabilities (govulncheck). | [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck), `sourceCodeUri` for source scans |
