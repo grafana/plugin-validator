@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.49.11](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.10...plugin-validator/v0.49.11) (2026-10-01)
+
+
+### 🐛 Bug Fixes
+
+* **gosec:** skip sources without Go files ([#940](https://github.com/grafana/plugin-validator/issues/940)) ([251c890](https://github.com/grafana/plugin-validator/commit/251c8902c6a5023c82d0d117aa2780462b729120))
+
+
+### 🔧 Chores
+
+* **deps:** update deps.dev/api/v3alpha digest to 0e158e8 ([#935](https://github.com/grafana/plugin-validator/issues/935)) ([397e81f](https://github.com/grafana/plugin-validator/commit/397e81faf7c7a2eadc7c7ae5de8d0fd1f1ca79ab))
+* **deps:** update deps.dev/util/maven digest to 0e158e8 ([#936](https://github.com/grafana/plugin-validator/issues/936)) ([eeb02a9](https://github.com/grafana/plugin-validator/commit/eeb02a9f9031ad6af7c47644201fd3d3cda7ecbf))
+* **deps:** update module cloud.google.com/go/auth to v0.24.0 ([#928](https://github.com/grafana/plugin-validator/issues/928)) ([26cb9f7](https://github.com/grafana/plugin-validator/commit/26cb9f7774dfa98d488990ba82337667b1ddd90c))
+* **deps:** update module cloud.google.com/go/compute/metadata to v0.10.0 ([#929](https://github.com/grafana/plugin-validator/issues/929)) ([20c1573](https://github.com/grafana/plugin-validator/commit/20c1573edc8d55ed4ac9637f6ac7fca27030b2e0))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.75.0 ([#930](https://github.com/grafana/plugin-validator/issues/930)) ([80e3dd1](https://github.com/grafana/plugin-validator/commit/80e3dd1006f6b33236ec7cf308651dfa66cb1890))
+* **deps:** update module github.com/googleapis/gax-go/v2 to v2.26.2 ([#931](https://github.com/grafana/plugin-validator/issues/931)) ([e68a634](https://github.com/grafana/plugin-validator/commit/e68a634dd8e8372f88f1f4990e8a91179edb80ef))
+* **deps:** update module github.com/pb33f/ordered-map/v2 to v2.3.2 ([#927](https://github.com/grafana/plugin-validator/issues/927)) ([60aba01](https://github.com/grafana/plugin-validator/commit/60aba019c16af97242bb1cb55b77b8ef8f4d9d28))
+* **deps:** update module github.com/pierrec/lz4/v4 to v4.1.31 ([#937](https://github.com/grafana/plugin-validator/issues/937)) ([ca7f9c1](https://github.com/grafana/plugin-validator/commit/ca7f9c1693aa55684ebc820c712c00b1ce618050))
+* **deps:** update module github.com/protonmail/go-crypto to v1.5.1 ([#939](https://github.com/grafana/plugin-validator/issues/939)) ([b34a160](https://github.com/grafana/plugin-validator/commit/b34a16086845912016fbadd145c45535c663f457))
+* **deps:** update module github.com/tidwall/pretty to v1.2.2 ([#938](https://github.com/grafana/plugin-validator/issues/938)) ([cdb05d5](https://github.com/grafana/plugin-validator/commit/cdb05d57b8aa14e37d444683e04c9cbced616521))
+
 ## [0.49.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.9...plugin-validator/v0.49.10) (2026-09-29)
 
 
