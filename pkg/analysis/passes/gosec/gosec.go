@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -60,6 +61,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	sourceCodeDir, err = filepath.Abs(sourceCodeDir)
 	if err != nil {
 		return nil, err
+	}
+
+	// gosec exits 1 without output when it finds no Go files, which is indistinguishable from a failed scan.
+	hasGo, err := hasGoFiles(sourceCodeDir)
+	if err != nil {
+		pass.ReportIncomplete("Could not inspect source code for Go files: " + err.Error())
+		return nil, nil
+	}
+	if !hasGo {
+		logme.Debugln("no Go files in source code, skipping gosec analysis")
+		return nil, nil
 	}
 
 	// gosec resolves relative file paths against the module root.
@@ -131,4 +143,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func hasGoFiles(dir string) (bool, error) {
+	found := false
+	err := filepath.WalkDir(dir, func(_ string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || filepath.Ext(d.Name()) != ".go" {
+			return nil
+		}
+
+		found = true
+		return fs.SkipAll
+	})
+	return found, err
 }
