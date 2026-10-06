@@ -339,8 +339,8 @@ github.com/opencontainers/image-spec v1.1.1 h1:y0fUlFfIZhPF1W537XOLg0/fcx6zcHCJw
 github.com/opencontainers/image-spec v1.1.1/go.mod h1:qpqAh3Dmcf36wStyyWU+kCeDgrGnAve2nCC8+7h8Q0M=
 github.com/opencontainers/runtime-spec v1.3.0 h1:YZupQUdctfhpZy3TM39nN9Ika5CBWT5diQ8ibYCRkxg=
 github.com/opencontainers/runtime-spec v1.3.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
-github.com/ossf/osv-schema/bindings/go v0.0.0-20260924053548-8e3305dedc07 h1:iSGN4UeIRS7B8jKaOsisArXvD7poOLUgEwcAIHuvTC4=
-github.com/ossf/osv-schema/bindings/go v0.0.0-20260924053548-8e3305dedc07/go.mod h1:aW9XJyUJfg0r+HogMGMagTt4hF6ibBkH/FZenG/KiyE=
+github.com/ossf/osv-schema/bindings/go v0.0.0-20261001234421-2780d2ad3f89 h1:jIvLC4mVdU9fcRVDRhkQmXxe6Ze90uja+10LZwsZuOk=
+github.com/ossf/osv-schema/bindings/go v0.0.0-20261001234421-2780d2ad3f89/go.mod h1:aW9XJyUJfg0r+HogMGMagTt4hF6ibBkH/FZenG/KiyE=
 github.com/owenrumney/go-sarif/v3 v3.3.1 h1:bKY8YnWcY8zYTiGVObC5wZLlfEvMkCxK9XMGXBbzEtQ=
 github.com/owenrumney/go-sarif/v3 v3.3.1/go.mod h1:72MaugkExDexbSauRuPq6BvUAAqAX0TwoNYMIQyZCMw=
 github.com/package-url/packageurl-go v0.1.7 h1:iFWg6tzAjLA6F/qX3M5nZaiMHJgc+p2zxVyr/fY+sZY=
