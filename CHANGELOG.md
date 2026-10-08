@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.49.13](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.12...plugin-validator/v0.49.13) (2026-10-07)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.241 ([#954](https://github.com/grafana/plugin-validator/issues/954)) ([1f94dc1](https://github.com/grafana/plugin-validator/commit/1f94dc1033c7f223b8fd3a48652886a1fd131f3e))
+* **deps:** update module github.com/docker/cli to v29.8.2+incompatible ([#955](https://github.com/grafana/plugin-validator/issues/955)) ([340dfdd](https://github.com/grafana/plugin-validator/commit/340dfdda9b3c45ac85efa7ba70d57475325328f6))
+* **deps:** update module github.com/go-git/go-billy/v5 to v5.9.2 ([#956](https://github.com/grafana/plugin-validator/issues/956)) ([2772d03](https://github.com/grafana/plugin-validator/commit/2772d0338769980616e1be185c31c57ac7162b77))
+* **deps:** update module github.com/google/s2a-go to v0.1.11 ([#957](https://github.com/grafana/plugin-validator/issues/957)) ([d05d54e](https://github.com/grafana/plugin-validator/commit/d05d54e1d2df2fcf77eea67bf9b037ea708fece7))
+* **deps:** update module github.com/mattn/go-shellwords to v1.0.16 ([#958](https://github.com/grafana/plugin-validator/issues/958)) ([b63d7ae](https://github.com/grafana/plugin-validator/commit/b63d7aeedbec14e6092eb7ca96a9b195e3a2a083))
+
 ## [0.49.12](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.11...plugin-validator/v0.49.12) (2026-10-07)
 
 
