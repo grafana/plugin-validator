@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.49.14](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.13...plugin-validator/v0.49.14) (2026-10-09)
+
+
+### 🐛 Bug Fixes
+
+* **security/unknown/:** update module golang.org/x/net to v0.60.0 [security] ([#972](https://github.com/grafana/plugin-validator/issues/972)) ([5b62140](https://github.com/grafana/plugin-validator/commit/5b621407f4606365cc05db77436e39e56a991363))
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.78.0 ([#968](https://github.com/grafana/plugin-validator/issues/968)) ([f93e26e](https://github.com/grafana/plugin-validator/commit/f93e26e69cb33087e1b83569ec3afc1e10092fb3))
+* **deps:** update module github.com/compose-spec/compose-go/v2 to v2.16.1 ([#969](https://github.com/grafana/plugin-validator/issues/969)) ([4d9cc7d](https://github.com/grafana/plugin-validator/commit/4d9cc7d29dac2af6d64200e0ef63d193e992bc0b))
+* **deps:** update module github.com/go-git/go-git/v5 to v5.19.3 ([#966](https://github.com/grafana/plugin-validator/issues/966)) ([1af4dc3](https://github.com/grafana/plugin-validator/commit/1af4dc35c2b9c83ffc09d231e8b869986c2b54b1))
+* **deps:** update module github.com/moby/buildkit to v0.33.1 ([#960](https://github.com/grafana/plugin-validator/issues/960)) ([455d5b6](https://github.com/grafana/plugin-validator/commit/455d5b618452e01e4f1ee73f89c436aceb8dd130))
+* **deps:** update module github.com/moby/moby/client to v0.6.1 ([#962](https://github.com/grafana/plugin-validator/issues/962)) ([f7b92ab](https://github.com/grafana/plugin-validator/commit/f7b92aba52df3e0a37785713e7890c669f15870c))
+* **deps:** update module github.com/ncruces/go-strftime to v1.1.0 ([#970](https://github.com/grafana/plugin-validator/issues/970)) ([db4d92c](https://github.com/grafana/plugin-validator/commit/db4d92c7ef1fe8947b39315844cab0191173a7c0))
+* **deps:** update module github.com/pb33f/go-yaml to v0.1.1 ([#963](https://github.com/grafana/plugin-validator/issues/963)) ([7319907](https://github.com/grafana/plugin-validator/commit/73199075bbe5d71b2d0ebea9c287f91deb9432b6))
+* **deps:** update module github.com/pierrec/lz4/v4 to v4.1.33 ([#964](https://github.com/grafana/plugin-validator/issues/964)) ([90ec8f2](https://github.com/grafana/plugin-validator/commit/90ec8f2250cfefef938ca039d843ab18013924aa))
+* **deps:** update module github.com/pjbgf/sha1cd to v0.7.0 ([#971](https://github.com/grafana/plugin-validator/issues/971)) ([dc34c4c](https://github.com/grafana/plugin-validator/commit/dc34c4cfa9898875f126f7351d934bd7b94651fe))
+* **deps:** update module github.com/protonmail/go-crypto to v1.5.2 ([#967](https://github.com/grafana/plugin-validator/issues/967)) ([1e08ce1](https://github.com/grafana/plugin-validator/commit/1e08ce1d997b9290253e52fa334e0e432481a89b))
+
 ## [0.49.13](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.12...plugin-validator/v0.49.13) (2026-10-07)
 
 
