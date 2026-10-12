@@ -44,7 +44,13 @@ var (
 		Name:     "osv-scanner-low-severity-vulnerabilities-detected",
 		Severity: analysis.Warning,
 	}
+	osvScannerConfigIgnored = &analysis.Rule{
+		Name:     "osv-scanner-config-ignored",
+		Severity: analysis.Warning,
+	}
 )
+
+const sourceConfigName = "osv-scanner.toml"
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "osv-scanner",
@@ -55,6 +61,7 @@ var Analyzer = &analysis.Analyzer{
 		osvScannerHighSeverityDetected,
 		osvScannerModerateSeverityDetected,
 		osvScannerLowSeverityDetected,
+		osvScannerConfigIgnored,
 		scanningFailure,
 		scanningParseFailure,
 		scanningSucceeded,
@@ -85,6 +92,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
 	if !ok || sourceCodeDir == "" {
 		return nil, nil
+	}
+
+	if _, err := os.Stat(filepath.Join(sourceCodeDir, sourceConfigName)); err == nil {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			osvScannerConfigIgnored,
+			fmt.Sprintf("%s is ignored", sourceConfigName),
+			fmt.Sprintf("The validator scans dependencies with its own configuration. Ignore and override entries in %s are not applied.", sourceConfigName))
 	}
 
 	// check for the different files we check for and run scanner on each
@@ -210,7 +225,8 @@ var doScanInternal = func(lockPath string) (models.VulnerabilityResults, error) 
 		lockPath,
 	} // your real code
 	vulnResult, err := osvscanner.DoScan(osvscanner.ScannerActions{
-		LockfilePaths: flagged,
+		LockfilePaths:      flagged,
+		ConfigOverridePath: os.DevNull,
 	})
 
 	// logme.DebugFln("%+v", vulnResult)

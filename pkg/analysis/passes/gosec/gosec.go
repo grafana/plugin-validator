@@ -78,6 +78,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecCommand := exec.Command(
 		goSecBin,
 		"-quiet",
+		"-nosec",
 		"-severity",
 		targetSeverity,
 		"-fmt",
