@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,9 +28,7 @@ func TestMarketplaceBuildSignals(t *testing.T) {
 		goos          string
 		goarch        string
 		tags          string
-		includeMarker bool
-		wantRule      string
-		wantDetail    string
+		wantRejection bool
 	}{
 		{
 			name:   "readable metadata without tags",
@@ -39,29 +36,25 @@ func TestMarketplaceBuildSignals(t *testing.T) {
 			goarch: "amd64",
 		},
 		{
-			name:       "tag only",
-			goos:       "darwin",
-			goarch:     "arm64",
-			tags:       marketplaceDevelopmentTag,
-			wantRule:   marketplaceDevelopmentBuild.Name,
-			wantDetail: "build tag",
-		},
-		{
-			name:          "marker only",
-			goos:          "windows",
-			goarch:        "amd64",
-			includeMarker: true,
-			wantRule:      marketplaceDevelopmentBuild.Name,
-			wantDetail:    "development marker",
-		},
-		{
-			name:          "tag and marker",
+			name:          "linux tag among other tags",
 			goos:          "linux",
 			goarch:        "arm64",
 			tags:          "other," + marketplaceDevelopmentTag,
-			includeMarker: true,
-			wantRule:      marketplaceDevelopmentBuild.Name,
-			wantDetail:    " and ",
+			wantRejection: true,
+		},
+		{
+			name:          "darwin tag",
+			goos:          "darwin",
+			goarch:        "arm64",
+			tags:          marketplaceDevelopmentTag,
+			wantRejection: true,
+		},
+		{
+			name:          "windows tag",
+			goos:          "windows",
+			goarch:        "amd64",
+			tags:          marketplaceDevelopmentTag,
+			wantRejection: true,
 		},
 		{
 			name:   "tag prefix is not an exact match",
@@ -75,53 +68,46 @@ func TestMarketplaceBuildSignals(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			archiveDir := t.TempDir()
 			binaryPath := filepath.Join(archiveDir, executableName(test.goos, test.goarch))
-			buildTestBinary(t, binaryPath, test.goos, test.goarch, test.tags, test.includeMarker)
+			buildTestBinary(t, binaryPath, test.goos, test.goarch, test.tags)
+
+			if test.tags == "" {
+				info, err := buildinfo.ReadFile(binaryPath)
+				require.NoError(t, err)
+				for _, setting := range info.Settings {
+					require.NotEqual(t, "-tags", setting.Key)
+				}
+			}
 
 			diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
 				nestedmetadata.MainPluginJson: backendMetadata("marketplace_test"),
 			})
-			if test.wantRule == "" {
+			if !test.wantRejection {
 				require.Empty(t, diagnostics)
 				return
 			}
 			require.Len(t, diagnostics, 1)
-			require.Equal(t, test.wantRule, diagnostics[0].Name)
-			require.Contains(t, diagnostics[0].Detail, test.wantDetail)
+			require.Equal(t, marketplaceDevelopmentBuild.Name, diagnostics[0].Name)
+			require.Equal(t, analysis.Error, diagnostics[0].Severity)
+			require.Contains(t, diagnostics[0].Detail, `"marketplace_dev" build tag`)
 		})
 	}
 }
 
-func TestUnreadableBuildMetadata(t *testing.T) {
-	t.Run("without marker requires manual review", func(t *testing.T) {
-		archiveDir := t.TempDir()
-		require.NoError(t, os.WriteFile(
-			filepath.Join(archiveDir, "marketplace_test_linux_amd64"),
-			[]byte("not a Go executable"),
-			0o755,
-		))
+func TestUnreadableBuildMetadataRequiresManualReview(t *testing.T) {
+	archiveDir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(archiveDir, "marketplace_test_linux_amd64"),
+		[]byte("not a Go executable"),
+		0o755,
+	))
 
-		diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
-			nestedmetadata.MainPluginJson: backendMetadata("marketplace_test"),
-		})
-		require.Len(t, diagnostics, 1)
-		require.Equal(t, marketplaceBuildUnverified.Name, diagnostics[0].Name)
+	diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
+		nestedmetadata.MainPluginJson: backendMetadata("marketplace_test"),
 	})
-
-	t.Run("marker still rejects", func(t *testing.T) {
-		archiveDir := t.TempDir()
-		require.NoError(t, os.WriteFile(
-			filepath.Join(archiveDir, "marketplace_test_linux_amd64"),
-			[]byte("prefix"+marketplaceDevelopmentMarker+"suffix"),
-			0o755,
-		))
-
-		diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
-			nestedmetadata.MainPluginJson: backendMetadata("marketplace_test"),
-		})
-		require.Len(t, diagnostics, 1)
-		require.Equal(t, marketplaceDevelopmentBuild.Name, diagnostics[0].Name)
-		require.Contains(t, diagnostics[0].Detail, "development marker")
-	})
+	require.Len(t, diagnostics, 1)
+	require.Equal(t, marketplaceBuildUnverified.Name, diagnostics[0].Name)
+	require.Equal(t, analysis.Error, diagnostics[0].Severity)
+	require.Contains(t, diagnostics[0].Detail, "Go build metadata could not be read")
 }
 
 func TestMixedPlatformArchiveInspectsEveryBinary(t *testing.T) {
@@ -132,7 +118,6 @@ func TestMixedPlatformArchiveInspectsEveryBinary(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	buildTestBinary(
 		t,
@@ -140,7 +125,6 @@ func TestMixedPlatformArchiveInspectsEveryBinary(t *testing.T) {
 		"windows",
 		"amd64",
 		marketplaceDevelopmentTag,
-		true,
 	)
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
@@ -159,7 +143,6 @@ func TestNestedPluginExecutablesAreInspected(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	buildTestBinary(
 		t,
@@ -167,7 +150,6 @@ func TestNestedPluginExecutablesAreInspected(t *testing.T) {
 		"darwin",
 		"arm64",
 		marketplaceDevelopmentTag,
-		true,
 	)
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
@@ -200,7 +182,6 @@ func TestRunnerDiscoversPackagedBackendExecutables(t *testing.T) {
 		"linux",
 		"amd64",
 		marketplaceDevelopmentTag,
-		true,
 	)
 
 	sourceDir := t.TempDir()
@@ -247,7 +228,6 @@ func TestOrdinaryBackendDoesNotRequireMarketplaceEntrypoint(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	sourceDir := t.TempDir()
 	require.NoError(t, os.WriteFile(
@@ -275,7 +255,6 @@ func TestDevelopmentBuildIsRejectedWithoutMarketplaceClassification(t *testing.T
 		"linux",
 		"amd64",
 		marketplaceDevelopmentTag,
-		true,
 	)
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]metadata.Metadata{
@@ -361,7 +340,6 @@ func TestBuildManifestIsNotTreatedAsAnExecutable(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	require.NoError(t, os.WriteFile(
 		filepath.Join(archiveDir, "go_plugin_build_manifest"),
@@ -383,11 +361,10 @@ func TestExecutableNameTreatsGlobMetacharactersLiterally(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	require.NoError(t, os.WriteFile(
 		filepath.Join(archiveDir, "marketplacea_linux_amd64"),
-		[]byte(marketplaceDevelopmentMarker),
+		[]byte("not a Go executable"),
 		0o755,
 	))
 
@@ -403,7 +380,7 @@ func TestExecutablePathCannotEscapeArchive(t *testing.T) {
 	require.NoError(t, os.MkdirAll(archiveDir, 0o755))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(parentDir, "escaped_linux_amd64"),
-		[]byte(marketplaceDevelopmentMarker),
+		[]byte("not a Go executable"),
 		0o755,
 	))
 
@@ -412,7 +389,7 @@ func TestExecutablePathCannotEscapeArchive(t *testing.T) {
 	})
 	require.Len(t, diagnostics, 1)
 	require.Equal(t, marketplaceBuildUnverified.Name, diagnostics[0].Name)
-	require.NotContains(t, diagnostics[0].Title, "development build")
+	require.Contains(t, diagnostics[0].Detail, "path resolves outside the plugin archive")
 }
 
 func TestExecutableSymlinkCannotEscapeArchive(t *testing.T) {
@@ -424,7 +401,7 @@ func TestExecutableSymlinkCannotEscapeArchive(t *testing.T) {
 	archiveDir := filepath.Join(parentDir, "archive")
 	require.NoError(t, os.MkdirAll(archiveDir, 0o755))
 	outsidePath := filepath.Join(parentDir, "outside")
-	require.NoError(t, os.WriteFile(outsidePath, []byte(marketplaceDevelopmentMarker), 0o755))
+	require.NoError(t, os.WriteFile(outsidePath, []byte("not a Go executable"), 0o755))
 	require.NoError(t, os.Symlink(
 		outsidePath,
 		filepath.Join(archiveDir, "marketplace_test_linux_amd64"),
@@ -450,7 +427,7 @@ func TestExecutableDirectorySymlinkCannotEscapeArchive(t *testing.T) {
 	require.NoError(t, os.MkdirAll(outsideDir, 0o755))
 	require.NoError(t, os.WriteFile(
 		filepath.Join(outsideDir, "marketplace_test_linux_amd64"),
-		[]byte(marketplaceDevelopmentMarker),
+		[]byte("not a Go executable"),
 		0o755,
 	))
 	require.NoError(t, os.Symlink(outsideDir, filepath.Join(archiveDir, "bin")))
@@ -494,7 +471,6 @@ func TestMarketplaceSourceSymlinkCannotEscapeCheckout(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	sourceDir := t.TempDir()
 	writeMarketplaceSourceFixture(t, sourceDir)
@@ -541,7 +517,6 @@ func TestSourceSDKUsesVersionSpecificReplacementBeforeWildcard(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	binaryBuildInfo, err := buildinfo.ReadFile(binaryPath)
 	require.NoError(t, err)
@@ -581,7 +556,6 @@ func TestVendoredMarketplaceSDKRequiresIntegrityReview(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	sourceDir := t.TempDir()
 	writeMarketplaceSourceFixture(t, sourceDir)
@@ -629,7 +603,6 @@ func TestMarketplaceSourceAndBinarySDKMustMatch(t *testing.T) {
 				"linux",
 				"amd64",
 				"",
-				false,
 			)
 			sourceDir := t.TempDir()
 			writeMarketplaceSourceFixture(t, sourceDir)
@@ -825,7 +798,6 @@ func TestMarketplaceSourceFIFOIsRejectedBeforeOpening(t *testing.T) {
 		"linux",
 		"amd64",
 		"",
-		false,
 	)
 	sourceDir := t.TempDir()
 	writeMarketplaceSourceFixture(t, sourceDir)
@@ -843,20 +815,6 @@ func TestMarketplaceSourceFIFOIsRejectedBeforeOpening(t *testing.T) {
 	require.Len(t, diagnostics, 1)
 	require.Equal(t, marketplaceBuildUnverified.Name, diagnostics[0].Name)
 	require.Contains(t, diagnostics[0].Detail, "not a regular file")
-}
-
-func TestMarkerScanAcrossBufferBoundary(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "binary")
-	prefix := strings.Repeat("x", markerScanBufferSize-len(marketplaceDevelopmentMarker)/2)
-	require.NoError(t, os.WriteFile(
-		path,
-		[]byte(prefix+marketplaceDevelopmentMarker+"suffix"),
-		0o644,
-	))
-
-	found, err := fileContainsMarker(path, []byte(marketplaceDevelopmentMarker))
-	require.NoError(t, err)
-	require.True(t, found)
 }
 
 func runAnalyzer(
@@ -934,7 +892,6 @@ func buildTestBinary(
 	goos string,
 	goarch string,
 	tags string,
-	includeMarker bool,
 ) {
 	t.Helper()
 	moduleDir := t.TempDir()
@@ -963,10 +920,6 @@ func buildTestBinary(
 	))
 
 	source := "package main\n\nimport sdk \"github.com/grafana/grafana-plugin-sdk-go\"\n\nfunc main() { sdk.Keep() }\n"
-	if includeMarker {
-		source = "package main\n\nimport (\n\t\"fmt\"\n\tsdk \"github.com/grafana/grafana-plugin-sdk-go\"\n)\n\nconst marker = \"" +
-			marketplaceDevelopmentMarker + "\"\n\nfunc main() { sdk.Keep(); fmt.Print(marker) }\n"
-	}
 	require.NoError(t, os.WriteFile(filepath.Join(moduleDir, "main.go"), []byte(source), 0o644))
 	require.NoError(t, os.MkdirAll(filepath.Dir(destination), 0o755))
 

@@ -28,13 +28,11 @@ import (
 )
 
 const (
-	marketplaceDevelopmentTag    = "marketplace_dev"
-	marketplaceDevelopmentMarker = "GRAFANA_MARKETPLACE_DEV_BUILD_NO_LICENSE_CHECKS_V1"
-	marketplaceSDKModule         = "github.com/grafana/grafana-plugin-sdk-go"
-	marketplacePackage           = marketplaceSDKModule + "/experimental/marketplace"
-	markerScanBufferSize         = 32 * 1024
-	maxSourceFileSize            = 8 * 1024 * 1024
-	maxGoModSize                 = 2 * 1024 * 1024
+	marketplaceDevelopmentTag = "marketplace_dev"
+	marketplaceSDKModule      = "github.com/grafana/grafana-plugin-sdk-go"
+	marketplacePackage        = marketplaceSDKModule + "/experimental/marketplace"
+	maxSourceFileSize         = 8 * 1024 * 1024
+	maxGoModSize              = 2 * 1024 * 1024
 )
 
 var (
@@ -75,12 +73,10 @@ type targetBuild struct {
 type binaryInspection struct {
 	buildInfoReadable bool
 	developmentTag    bool
-	developmentMarker bool
 	sdkDependency     bool
 	sdkVersion        string
 	sdkReplaced       bool
 	buildInfoError    error
-	markerScanError   error
 	target            targetBuild
 }
 
@@ -682,22 +678,14 @@ func inspectAndReport(
 
 	inspection := inspectBinary(safeBinaryPath)
 
-	if inspection.developmentTag || inspection.developmentMarker {
-		signals := make([]string, 0, 2)
-		if inspection.developmentTag {
-			signals = append(signals, fmt.Sprintf("the %q build tag", marketplaceDevelopmentTag))
-		}
-		if inspection.developmentMarker {
-			signals = append(signals, "the marketplace development marker")
-		}
-
+	if inspection.developmentTag {
 		pass.ReportResult(
 			pass.AnalyzerName,
 			marketplaceDevelopmentBuild,
 			fmt.Sprintf("Marketplace development build found in %s", relativePath),
 			fmt.Sprintf(
-				"The backend executable contains %s. Rebuild it without marketplace development mode before submission.",
-				strings.Join(signals, " and "),
+				"The backend executable was built with the %q build tag. Rebuild it without marketplace development mode before submission.",
+				marketplaceDevelopmentTag,
 			),
 		)
 		return
@@ -733,17 +721,14 @@ func inspectAndReport(
 	}
 
 	sdkVersionMatches := sourceSDKVersion == "" || inspection.sdkVersion == sourceSDKVersion
-	if inspection.buildInfoReadable && inspection.markerScanError == nil && inspection.sdkDependency &&
+	if inspection.buildInfoReadable && inspection.sdkDependency &&
 		!inspection.sdkReplaced && sdkVersionMatches {
 		return
 	}
 
-	reasons := make([]string, 0, 5)
+	reasons := make([]string, 0, 4)
 	if inspection.buildInfoError != nil {
 		reasons = append(reasons, "Go build metadata could not be read: "+inspection.buildInfoError.Error())
-	}
-	if inspection.markerScanError != nil {
-		reasons = append(reasons, "the development marker scan failed: "+inspection.markerScanError.Error())
 	}
 	if inspection.buildInfoReadable && !inspection.sdkDependency {
 		reasons = append(reasons, "the Grafana Plugin SDK dependency is not present in Go build metadata")
@@ -834,21 +819,17 @@ func resolveArchiveEntry(root, path, description string) (string, error) {
 }
 
 func inspectBinary(path string) binaryInspection {
-	inspection := binaryInspection{}
 	info, err := buildinfo.ReadFile(path)
 	if err != nil {
-		inspection.buildInfoError = err
-	} else {
-		inspection.buildInfoReadable = true
-		inspection.developmentTag = hasBuildTag(info, marketplaceDevelopmentTag)
-		inspection.sdkDependency, inspection.sdkVersion, inspection.sdkReplaced = inspectSDKDependency(info)
-		inspection.target = inspectTargetBuild(info)
+		return binaryInspection{buildInfoError: err}
 	}
 
-	inspection.developmentMarker, inspection.markerScanError = fileContainsMarker(
-		path,
-		[]byte(marketplaceDevelopmentMarker),
-	)
+	inspection := binaryInspection{
+		buildInfoReadable: true,
+		developmentTag:    hasBuildTag(info, marketplaceDevelopmentTag),
+		target:            inspectTargetBuild(info),
+	}
+	inspection.sdkDependency, inspection.sdkVersion, inspection.sdkReplaced = inspectSDKDependency(info)
 	return inspection
 }
 
@@ -942,38 +923,4 @@ func splitBuildTags(value string) []string {
 	return strings.FieldsFunc(value, func(r rune) bool {
 		return r == ',' || unicode.IsSpace(r)
 	})
-}
-
-func fileContainsMarker(path string, marker []byte) (bool, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return false, err
-	}
-	defer file.Close()
-
-	buffer := make([]byte, markerScanBufferSize)
-	tail := make([]byte, 0, len(marker)-1)
-	for {
-		n, readErr := file.Read(buffer)
-		if n > 0 {
-			window := make([]byte, 0, len(tail)+n)
-			window = append(window, tail...)
-			window = append(window, buffer[:n]...)
-			if bytes.Contains(window, marker) {
-				return true, nil
-			}
-
-			keep := len(marker) - 1
-			if keep > len(window) {
-				keep = len(window)
-			}
-			tail = append(tail[:0], window[len(window)-keep:]...)
-		}
-		if readErr != nil {
-			if readErr == io.EOF {
-				return false, nil
-			}
-			return false, readErr
-		}
-	}
 }
