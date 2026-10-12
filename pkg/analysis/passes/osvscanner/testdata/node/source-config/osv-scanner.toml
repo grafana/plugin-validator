@@ -1,0 +1,9 @@
+[[IgnoredVulns]]
+id = "GHSA-qwcr-r2fm-qrc7"
+reason = "build-only dependency"
+
+[[PackageOverrides]]
+name = ".*"
+nameIsRegex = true
+ignore = true
+reason = "build-only dependency"

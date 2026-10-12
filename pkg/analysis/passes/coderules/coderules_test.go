@@ -149,6 +149,30 @@ func TestUseSyscall(t *testing.T) {
 	)
 }
 
+func TestUseSyscallIgnoresNosemgrepComment(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "use-syscall-nosemgrep"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+	require.Equal(
+		t,
+		"code-rules-access-syscall",
+		interceptor.Diagnostics[0].Name,
+	)
+}
+
 func TestJSConsoleLog(t *testing.T) {
 	if !isSemgrepInstalled() {
 		t.Skip("semgrep not installed, skipping test")

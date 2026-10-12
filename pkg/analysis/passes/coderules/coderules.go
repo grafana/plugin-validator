@@ -124,6 +124,7 @@ func run(pass *analysis.Pass) (any, error) {
 		"--quiet",
 		"--metrics",
 		"off",
+		"--disable-nosem",
 		"--config",
 		semgrepRulesPath,
 		sourceCodeDir,

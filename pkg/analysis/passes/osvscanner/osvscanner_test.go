@@ -2,6 +2,7 @@ package osvscanner
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -198,6 +199,34 @@ func TestOSVScannerMultiVersionNPM(t *testing.T) {
 		t,
 		hasBodyParserVulnerability,
 		"body-parser high severity vulnerability should be reported",
+	)
+}
+
+func TestOSVScannerIgnoresSourceConfig(t *testing.T) {
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "source-config"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "source-config"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	titles := interceptor.GetTitles()
+	require.Contains(t, titles, "osv-scanner.toml is ignored")
+	require.Contains(t, titles, "osv-scanner detected a high severity issue in package body-parser")
+
+	details := interceptor.GetDetails()
+	require.True(
+		t,
+		slices.ContainsFunc(details, func(detail string) bool {
+			return strings.Contains(detail, "CVE-2024-45590")
+		}),
+		"vulnerability ignored by the source config should be reported",
 	)
 }
 
