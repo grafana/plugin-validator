@@ -211,7 +211,7 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.56.0 // indirect
-	osv.dev/bindings/go v0.0.0-20260805021707-3a57b89df3b6 // indirect
+	osv.dev/bindings/go v0.0.0-20261008225853-58516fc04b99 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 	www.velocidex.com/golang/go-ntfs v0.2.1 // indirect
 	www.velocidex.com/golang/regparser v0.0.0-20250203141505-31e704a67ef7 // indirect
