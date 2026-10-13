@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.49.15](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.14...plugin-validator/v0.49.15) (2026-10-13)
+
+
+### 🐛 Bug Fixes
+
+* run scanners with validator configuration only ([#974](https://github.com/grafana/plugin-validator/issues/974)) ([a259b40](https://github.com/grafana/plugin-validator/commit/a259b406c22896fed91b5669cb736afe972130c8))
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.248 ([#982](https://github.com/grafana/plugin-validator/issues/982)) ([26808eb](https://github.com/grafana/plugin-validator/commit/26808eb450447031c9bbe4dcefc035094ebeb2c7))
+* **deps:** update dependency goreleaser/goreleaser to v2.18.3 ([#978](https://github.com/grafana/plugin-validator/issues/978)) ([dca374d](https://github.com/grafana/plugin-validator/commit/dca374d5aa4769b20bc13f78c4d99bd1c2f59c05))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 64befd6 ([#977](https://github.com/grafana/plugin-validator/issues/977)) ([37c78ec](https://github.com/grafana/plugin-validator/commit/37c78ecc5c309663f1110225babe7fda8ab5c30d))
+* **deps:** update go to v1.27.2 and golangci-lint to v2.14.0 ([#983](https://github.com/grafana/plugin-validator/issues/983)) ([593005a](https://github.com/grafana/plugin-validator/commit/593005ae87e63804306b6c2d76f6e2c18a1b05e8))
+* **deps:** update grafana/shared-workflows/docker-build-push-image action to v0.3.5 ([#980](https://github.com/grafana/plugin-validator/issues/980)) ([7dbb586](https://github.com/grafana/plugin-validator/commit/7dbb5861dc6d6f5c58628bee752b6f46e0a7f8de))
+* **deps:** update module cloud.google.com/go/auth to v0.24.1 ([#981](https://github.com/grafana/plugin-validator/issues/981)) ([df3c11f](https://github.com/grafana/plugin-validator/commit/df3c11fa1fd509766f9d31917cd68d4670cfd886))
+
 ## [0.49.14](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.13...plugin-validator/v0.49.14) (2026-10-09)
 
 
