@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.49.16](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.15...plugin-validator/v0.49.16) (2026-10-13)
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/docker/docker-credential-helpers to v0.9.10 ([#984](https://github.com/grafana/plugin-validator/issues/984)) ([2799774](https://github.com/grafana/plugin-validator/commit/27997749db334156193b1eff5adcf220bd8dc2f4))
+* **deps:** update module github.com/googleapis/enterprise-certificate-proxy to v0.3.23 ([#986](https://github.com/grafana/plugin-validator/issues/986)) ([1b0daf6](https://github.com/grafana/plugin-validator/commit/1b0daf64d1b4b6a37b1b43edfe34d4000afc5543))
+* **deps:** update module github.com/mattn/go-colorable to v0.1.16 ([#987](https://github.com/grafana/plugin-validator/issues/987)) ([1a2c0b3](https://github.com/grafana/plugin-validator/commit/1a2c0b3f1502ecb55a539ed76d956f4d3ea9915b))
+
 ## [0.49.15](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.14...plugin-validator/v0.49.15) (2026-10-13)
 
 
