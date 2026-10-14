@@ -96,10 +96,11 @@ type Diagnostic struct {
 type Diagnostics map[string][]Diagnostic
 
 type Rule struct {
-	Name      string
-	Disabled  bool
-	Severity  Severity
-	ReportAll bool
+	Name              string
+	Disabled          bool
+	DisabledByDefault bool
+	Severity          Severity
+	ReportAll         bool
 }
 
 type Analyzer struct {

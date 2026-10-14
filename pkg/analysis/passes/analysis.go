@@ -42,6 +42,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/published"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/reactcompat"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/readme"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/requiredlinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/restrictivedep"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/safelinks"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/screenshots"
@@ -95,6 +96,7 @@ var Analyzers = []*analysis.Analyzer{
 	published.Analyzer,
 	reactcompat.Analyzer,
 	readme.Analyzer,
+	requiredlinks.Analyzer,
 	restrictivedep.Analyzer,
 	screenshots.Analyzer,
 	sdkusage.Analyzer,

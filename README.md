@@ -162,6 +162,8 @@ analyzers:
 
 Severity levels could be: `error`, `warning`, or `ok`.
 
+Some rules are disabled by default and only run when their analyzer or rule configuration sets `enabled: true`.
+
 > Note: Grafana Labs enforces its own configuration for plugins submissions and your own config file can't change these rules.
 
 #### Excluding a plugin from an analyzer or rule
@@ -316,6 +318,7 @@ Run "mage gen:readme" to regenerate this section.
 | Published / `published-plugin` | Detects whether any version of this plugin exists in the Grafana plugin catalog currently. | None |
 | React 19 Compatibility / `reactcompat` | Detects usage of React APIs removed or deprecated in React 19 using @grafana/react-detect. | [npx](https://docs.npmjs.com/cli/v10/commands/npx) |
 | Readme (exists) / `readme` | Ensures a `README.md` file exists within the zip file. | None |
+| Required Links / `requiredlinks` | Checks that `plugin.json` has License, Privacy Policy and Support links with valid https URLs. Disabled by default. | None |
 | Restrictive Dependency / `restrictivedep` | Specifies a valid range of Grafana versions that work with this version of the plugin. | None |
 | Safe Links / `safelinks` | Checks that links from `plugin.json` are safe. | None |
 | Screenshots / `screenshots` | Screenshots are specified in `plugin.json` that will be used in the Grafana plugin catalog. | None |
