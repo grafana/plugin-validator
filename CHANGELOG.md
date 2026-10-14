@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.50.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.17...plugin-validator/v0.50.0) (2026-10-14)
+
+
+### 🎉 Features
+
+* add required links analyzer ([#999](https://github.com/grafana/plugin-validator/issues/999)) ([19d2d8d](https://github.com/grafana/plugin-validator/commit/19d2d8d317e5004e034a158e9384343730f46fe0))
+
+
+### 🔧 Chores
+
+* **deps:** update actions/setup-node action to v7.1.0 ([#997](https://github.com/grafana/plugin-validator/issues/997)) ([19cda12](https://github.com/grafana/plugin-validator/commit/19cda12e2f7ef2b575ce18cd960e3309c3b686d7))
+* **deps:** update module github.com/moby/moby/client to v0.6.2 ([#996](https://github.com/grafana/plugin-validator/issues/996)) ([71a9b50](https://github.com/grafana/plugin-validator/commit/71a9b5081de42399ae48a6b3ffcbf706a2846f62))
+
 ## [0.49.17](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.16...plugin-validator/v0.49.17) (2026-10-13)
 
 
