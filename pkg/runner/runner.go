@@ -150,6 +150,9 @@ func initAnalyzers(
 		for _, currentRule := range currentAnalyzer.Rules {
 			// Inherit analyzer config
 			ruleEnabled := analyzerEnabled
+			if currentRule.DisabledByDefault && analyzerConfig.Enabled == nil {
+				ruleEnabled = false
+			}
 
 			// use own config if available
 			ruleSeverity := currentRule.Severity

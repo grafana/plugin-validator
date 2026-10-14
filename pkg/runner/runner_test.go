@@ -174,6 +174,60 @@ func TestRuleExceptions(t *testing.T) {
 	assert.Contains(t, diagnostics, "diagnostic from rule2")
 }
 
+func TestDisabledByDefaultRule(t *testing.T) {
+	enabled := true
+	enabledConfig := map[string]AnalyzerConfig{
+		"testanalyzer": {
+			Rules: map[string]RuleConfig{
+				"optin": {Enabled: &enabled},
+			},
+		},
+	}
+	enabledAnalyzerConfig := map[string]AnalyzerConfig{
+		"testanalyzer": {Enabled: &enabled},
+	}
+	disabled := false
+	disabledAnalyzerConfig := map[string]AnalyzerConfig{
+		"testanalyzer": {Enabled: &disabled},
+	}
+
+	tests := []struct {
+		name      string
+		analyzers map[string]AnalyzerConfig
+		reported  bool
+	}{
+		{name: "stays disabled without rule config", analyzers: nil, reported: false},
+		{name: "enabled by rule config", analyzers: enabledConfig, reported: true},
+		{name: "enabled by analyzer config", analyzers: enabledAnalyzerConfig, reported: true},
+		{name: "disabled by analyzer config", analyzers: disabledAnalyzerConfig, reported: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rule := &analysis.Rule{Name: "optin", DisabledByDefault: true}
+			analyzer := &analysis.Analyzer{
+				Name:  "testanalyzer",
+				Rules: []*analysis.Rule{rule},
+				Run: func(pass *analysis.Pass) (interface{}, error) {
+					pass.ReportResult(pass.AnalyzerName, rule, "diagnostic from optin", "")
+					return nil, nil
+				},
+			}
+
+			ds, err := Check([]*analysis.Analyzer{analyzer},
+				analysis.CheckParams{ArchiveDir: t.TempDir()},
+				Config{Global: GlobalConfig{Enabled: true}, Analyzers: tt.analyzers},
+				analysis.Severity(""),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tt.reported, len(ds["testanalyzer"]) == 1)
+		})
+	}
+}
+
 func TestLinearDependencies(t *testing.T) {
 	res := make(map[string]bool)
 	first := &analysis.Analyzer{
