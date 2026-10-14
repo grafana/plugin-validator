@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.49.17](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.16...plugin-validator/v0.49.17) (2026-10-13)
+
+
+### 🔧 Chores
+
+* **deps:** update grafana/shared-workflows/create-github-app-token action to v1.0 ([#992](https://github.com/grafana/plugin-validator/issues/992)) ([fdb0840](https://github.com/grafana/plugin-validator/commit/fdb08400dbe14beefcca47768c342038f42f0df5))
+* **deps:** update module github.com/docker/go-connections to v0.8.2 ([#985](https://github.com/grafana/plugin-validator/issues/985)) ([938ab9f](https://github.com/grafana/plugin-validator/commit/938ab9f962aba07a6653143c6e9f340f45159e8e))
+* **deps:** update module github.com/mattn/go-runewidth to v0.0.31 ([#988](https://github.com/grafana/plugin-validator/issues/988)) ([76b1d40](https://github.com/grafana/plugin-validator/commit/76b1d408fc29849e9446b78de27acb2828bad27d))
+* **deps:** update module github.com/microsoft/go-winio to v0.6.3 ([#989](https://github.com/grafana/plugin-validator/issues/989)) ([6f5842a](https://github.com/grafana/plugin-validator/commit/6f5842aabccffe2d76e6178de4f96e32066270c1))
+* **deps:** update module modernc.org/libc to v1.77.1 ([#990](https://github.com/grafana/plugin-validator/issues/990)) ([61a1565](https://github.com/grafana/plugin-validator/commit/61a1565eb74eebc6d679078443faffed9c23d50b))
+* **deps:** update module modernc.org/sqlite to v1.60.1 ([#991](https://github.com/grafana/plugin-validator/issues/991)) ([91aafeb](https://github.com/grafana/plugin-validator/commit/91aafeb13f5d0283360de19184ffd5c5406c319d))
+
 ## [0.49.16](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.15...plugin-validator/v0.49.16) (2026-10-13)
 
 
