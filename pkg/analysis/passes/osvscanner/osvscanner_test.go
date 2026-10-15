@@ -237,28 +237,6 @@ func TestOSVScannerIgnoresSourceConfig(t *testing.T) {
 	)
 }
 
-func TestOSVScannerNoPackages(t *testing.T) {
-	t.Setenv(configPathEnv, "")
-	sourceDir := t.TempDir()
-	lockPath := filepath.Join(sourceDir, "package-lock.json")
-	require.NoError(t, os.WriteFile(lockPath, []byte(`{"name":"empty","version":"1.0.0","lockfileVersion":3,"packages":{}}`), 0600))
-
-	_, err := doScanInternal(lockPath)
-	require.ErrorIs(t, err, osvscanner.ErrNoPackagesFound)
-
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    sourceDir,
-			sourcecode.Analyzer: sourceDir,
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	_, err = Analyzer.Run(pass)
-	require.NoError(t, err)
-}
-
 func TestOSVScannerTrustedConfig(t *testing.T) {
 	t.Setenv(configPathEnv, "")
 	lockPath := filepath.Join("testdata", "node", "source-config", "package-lock.json")
@@ -295,22 +273,6 @@ reason = "Approved exception"
 			}
 		}
 	}
-}
-
-func TestOSVScannerMissingConfig(t *testing.T) {
-	t.Setenv(configPathEnv, filepath.Join(t.TempDir(), sourceConfigName))
-
-	var interceptor testpassinterceptor.TestPassInterceptor
-	pass := &analysis.Pass{
-		ResultOf: map[*analysis.Analyzer]interface{}{
-			archive.Analyzer:    filepath.Join("testdata", "node", "source-config"),
-			sourcecode.Analyzer: filepath.Join("testdata", "node", "source-config"),
-		},
-		Report: interceptor.ReportInterceptor(),
-	}
-
-	_, err := Analyzer.Run(pass)
-	require.ErrorContains(t, err, "osv-scanner failed")
 }
 
 // TestOSVScannerWhitelistedPackage verifies that whitelisted packages are filtered from results

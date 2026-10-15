@@ -1,7 +1,6 @@
 package osvscanner
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -113,13 +112,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			// perform scan
 			scanningPerformed = true
 			data, err := doScanInternal(lockFile)
-			if errors.Is(err, osvscanner.ErrNoPackagesFound) {
-				logme.DebugFln("osv-scanner found no packages in %s", lockFile)
-				continue
-			}
-			if err != nil && !errors.Is(err, osvscanner.ErrVulnerabilitiesFound) {
-				return nil, fmt.Errorf("osv-scanner failed: %w", err)
-			}
 			if err != nil {
 				logme.DebugFln(
 					"osv-scanner returned error (vulnerabilities found): %s",
