@@ -1,6 +1,7 @@
 package osvscanner
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -51,6 +52,7 @@ var (
 )
 
 const sourceConfigName = "osv-scanner.toml"
+const configPathEnv = "PLUGIN_VALIDATOR_OSV_CONFIG"
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "osv-scanner",
@@ -111,6 +113,13 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			// perform scan
 			scanningPerformed = true
 			data, err := doScanInternal(lockFile)
+			if errors.Is(err, osvscanner.ErrNoPackagesFound) {
+				logme.DebugFln("osv-scanner found no packages in %s", lockFile)
+				continue
+			}
+			if err != nil && !errors.Is(err, osvscanner.ErrVulnerabilitiesFound) {
+				return nil, fmt.Errorf("osv-scanner failed: %w", err)
+			}
 			if err != nil {
 				logme.DebugFln(
 					"osv-scanner returned error (vulnerabilities found): %s",
@@ -221,12 +230,17 @@ func run(pass *analysis.Pass) (interface{}, error) {
 }
 
 var doScanInternal = func(lockPath string) (models.VulnerabilityResults, error) {
+	configPath := os.Getenv(configPathEnv)
+	if configPath == "" {
+		configPath = os.DevNull
+	}
+
 	flagged := []string{
 		lockPath,
 	} // your real code
 	vulnResult, err := osvscanner.DoScan(osvscanner.ScannerActions{
 		LockfilePaths:      flagged,
-		ConfigOverridePath: os.DevNull,
+		ConfigOverridePath: configPath,
 	})
 
 	// logme.DebugFln("%+v", vulnResult)

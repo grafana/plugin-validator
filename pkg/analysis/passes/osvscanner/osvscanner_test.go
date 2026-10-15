@@ -1,12 +1,15 @@
 package osvscanner
 
 import (
+	"errors"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/google/osv-scanner/v2/pkg/models"
+	"github.com/google/osv-scanner/v2/pkg/osvscanner"
 	"github.com/ossf/osv-schema/bindings/go/osvschema"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -138,6 +141,7 @@ func TestOSVScannerAsLibrary(t *testing.T) {
 }
 
 func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
+	t.Setenv(configPathEnv, "")
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -154,6 +158,7 @@ func TestOSVScannerAsLibraryNoLockfile(t *testing.T) {
 }
 
 func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
+	t.Setenv(configPathEnv, "")
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -171,6 +176,7 @@ func TestOSVScannerAsLibraryInvalidLockfile(t *testing.T) {
 }
 
 func TestOSVScannerMultiVersionNPM(t *testing.T) {
+	t.Setenv(configPathEnv, "")
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -203,6 +209,7 @@ func TestOSVScannerMultiVersionNPM(t *testing.T) {
 }
 
 func TestOSVScannerIgnoresSourceConfig(t *testing.T) {
+	t.Setenv(configPathEnv, "")
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: filepath.Join("./"),
@@ -228,6 +235,82 @@ func TestOSVScannerIgnoresSourceConfig(t *testing.T) {
 		}),
 		"vulnerability ignored by the source config should be reported",
 	)
+}
+
+func TestOSVScannerNoPackages(t *testing.T) {
+	t.Setenv(configPathEnv, "")
+	sourceDir := t.TempDir()
+	lockPath := filepath.Join(sourceDir, "package-lock.json")
+	require.NoError(t, os.WriteFile(lockPath, []byte(`{"name":"empty","version":"1.0.0","lockfileVersion":3,"packages":{}}`), 0600))
+
+	_, err := doScanInternal(lockPath)
+	require.ErrorIs(t, err, osvscanner.ErrNoPackagesFound)
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    sourceDir,
+			sourcecode.Analyzer: sourceDir,
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err = Analyzer.Run(pass)
+	require.NoError(t, err)
+}
+
+func TestOSVScannerTrustedConfig(t *testing.T) {
+	t.Setenv(configPathEnv, "")
+	lockPath := filepath.Join("testdata", "node", "source-config", "package-lock.json")
+	baseline, err := doScanInternal(lockPath)
+	require.ErrorIs(t, err, osvscanner.ErrVulnerabilitiesFound)
+
+	var baselineIDs []string
+	for _, result := range baseline.Results {
+		for _, pkg := range result.Packages {
+			for _, vulnerability := range pkg.Vulnerabilities {
+				baselineIDs = append(baselineIDs, vulnerability.Id)
+			}
+		}
+	}
+	require.Contains(t, baselineIDs, "GHSA-qwcr-r2fm-qrc7")
+
+	configPath := filepath.Join(t.TempDir(), sourceConfigName)
+	require.NoError(t, os.WriteFile(configPath, []byte(`[[IgnoredVulns]]
+id = "GHSA-qwcr-r2fm-qrc7"
+reason = "Approved exception"
+`), 0600))
+	t.Setenv(configPathEnv, configPath)
+
+	results, err := doScanInternal(lockPath)
+	if !errors.Is(err, osvscanner.ErrVulnerabilitiesFound) {
+		require.NoError(t, err)
+	}
+
+	for _, result := range results.Results {
+		for _, pkg := range result.Packages {
+			for _, vulnerability := range pkg.Vulnerabilities {
+				require.NotEqual(t, "GHSA-qwcr-r2fm-qrc7", vulnerability.Id)
+				require.NotContains(t, vulnerability.Aliases, "CVE-2024-45590")
+			}
+		}
+	}
+}
+
+func TestOSVScannerMissingConfig(t *testing.T) {
+	t.Setenv(configPathEnv, filepath.Join(t.TempDir(), sourceConfigName))
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		ResultOf: map[*analysis.Analyzer]interface{}{
+			archive.Analyzer:    filepath.Join("testdata", "node", "source-config"),
+			sourcecode.Analyzer: filepath.Join("testdata", "node", "source-config"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.ErrorContains(t, err, "osv-scanner failed")
 }
 
 // TestOSVScannerWhitelistedPackage verifies that whitelisted packages are filtered from results
