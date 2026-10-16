@@ -19,6 +19,7 @@ var tests = []struct {
 		"Archive is empty",
 		"LLM review skipped due to errors in archive",
 		"Code diff skipped due to errors in archive",
+		"Could not discover marketplace backend executables",
 	}},
 	{Dir: "EmptyDirectory", Messages: []string{
 		"missing plugin.json",

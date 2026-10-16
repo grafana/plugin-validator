@@ -3,6 +3,9 @@ global:
   severity: error
 
 analyzers:
+  marketplacelicense:
+    enabled: true
+    severity: error
   htmlreadme:
     severity: warning
   legacyplatform:
