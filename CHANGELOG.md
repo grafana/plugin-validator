@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.51.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.50.0...plugin-validator/v0.51.0) (2026-10-16)
+
+
+### 🎉 Features
+
+* support managed scanner configuration ([#1015](https://github.com/grafana/plugin-validator/issues/1015)) ([c756509](https://github.com/grafana/plugin-validator/commit/c756509c60143f968275173b7f84c7bb6dcf2be6))
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/google/osv-scalibr digest to bb230bd ([#1007](https://github.com/grafana/plugin-validator/issues/1007)) ([e8fc45a](https://github.com/grafana/plugin-validator/commit/e8fc45aecd4a13780507f8771b99cca78623e466))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.80.0 ([#1001](https://github.com/grafana/plugin-validator/issues/1001)) ([4345756](https://github.com/grafana/plugin-validator/commit/434575646b485ba5f85ab38e08bc094e25a4ec27))
+* **deps:** update module github.com/bmatcuk/doublestar/v4 to v4.10.3 ([#1000](https://github.com/grafana/plugin-validator/issues/1000)) ([c2006d3](https://github.com/grafana/plugin-validator/commit/c2006d35db0af8ff13c43b4901692773c82df254))
+* **deps:** update module github.com/docker/cli to v29.9.0+incompatible ([#1002](https://github.com/grafana/plugin-validator/issues/1002)) ([8b0a7d7](https://github.com/grafana/plugin-validator/commit/8b0a7d7f55093f81eefd2b5625158d4937d73a78))
+* **deps:** update module github.com/google/osv-scanner/v2 to v2.7.0 ([#1003](https://github.com/grafana/plugin-validator/issues/1003)) ([73d3f6b](https://github.com/grafana/plugin-validator/commit/73d3f6b341a98d0bee30388d119c451cae7d7ebb))
+* **deps:** update module github.com/klauspost/compress to v1.20.3 ([#1008](https://github.com/grafana/plugin-validator/issues/1008)) ([715585a](https://github.com/grafana/plugin-validator/commit/715585a790227bc0e6652c83dfd6ac4105d85d77))
+* **deps:** update module github.com/moby/buildkit to v0.34.0 ([#1004](https://github.com/grafana/plugin-validator/issues/1004)) ([f6d0c89](https://github.com/grafana/plugin-validator/commit/f6d0c89ada1501ddd003c5341174a0d0b9865913))
+* **deps:** update module github.com/montanaflynn/stats to v0.13.0 ([#1005](https://github.com/grafana/plugin-validator/issues/1005)) ([b4d64f4](https://github.com/grafana/plugin-validator/commit/b4d64f48476d5ce98a17b5ddc659c459b16ce5f5))
+* **deps:** update module github.com/tidwall/gjson to v1.20.0 ([#1009](https://github.com/grafana/plugin-validator/issues/1009)) ([1562864](https://github.com/grafana/plugin-validator/commit/1562864a59d51d9338632ce01f345b044b417ce4))
+* **deps:** update module go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp to v0.72.0 ([#1010](https://github.com/grafana/plugin-validator/issues/1010)) ([c6a32f1](https://github.com/grafana/plugin-validator/commit/c6a32f119364b773747428bf51bac1538ac42fb5))
+* **deps:** update module google.golang.org/api to v0.301.0 ([#1014](https://github.com/grafana/plugin-validator/issues/1014)) ([1534645](https://github.com/grafana/plugin-validator/commit/15346455a5eb095f6da80e96699a825ee97a8a2d))
+
 ## [0.50.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.49.17...plugin-validator/v0.50.0) (2026-10-14)
 
 
