@@ -38,7 +38,7 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	deps.dev/api/v3 v3.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/api/v3alpha v0.0.0-20261013100046-7bac2db56a63 // indirect
-	deps.dev/util/maven v0.0.0-20260928000106-0e158e8db197 // indirect
+	deps.dev/util/maven v0.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/util/pypi v0.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/util/resolve v0.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/util/semver v0.0.0-20261013100046-7bac2db56a63 // indirect
