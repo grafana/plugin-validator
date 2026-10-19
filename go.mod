@@ -36,7 +36,7 @@ require (
 	cloud.google.com/go/auth v0.24.1 // indirect
 	cloud.google.com/go/compute/metadata v0.10.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
-	deps.dev/api/v3 v3.0.0-20260928000106-0e158e8db197 // indirect
+	deps.dev/api/v3 v3.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/api/v3alpha v0.0.0-20261013100046-7bac2db56a63 // indirect
 	deps.dev/util/maven v0.0.0-20260928000106-0e158e8db197 // indirect
 	deps.dev/util/pypi v0.0.0-20260928000106-0e158e8db197 // indirect
