@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.51.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.0...plugin-validator/v0.51.1) (2026-10-19)
+
+
+### 🔧 Chores
+
+* **deps:** update deps.dev/api/v3alpha digest to 7bac2db ([#1018](https://github.com/grafana/plugin-validator/issues/1018)) ([d458aee](https://github.com/grafana/plugin-validator/commit/d458aee5f0aed3b9ad4196fbb6ea69619d89ba2d))
+* **deps:** update deps.dev/util/resolve digest to 7bac2db ([#1021](https://github.com/grafana/plugin-validator/issues/1021)) ([9481223](https://github.com/grafana/plugin-validator/commit/94812232673532aab05928972de9b9f487c50f03))
+* **deps:** update module golang.org/x/vuln to v1.9.0 ([#1013](https://github.com/grafana/plugin-validator/issues/1013)) ([d149c8b](https://github.com/grafana/plugin-validator/commit/d149c8b35b96f1d4df297e16d291c975b278f3c9))
+
 ## [0.51.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.50.0...plugin-validator/v0.51.0) (2026-10-16)
 
 
