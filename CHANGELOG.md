@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.51.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.1...plugin-validator/v0.51.2) (2026-10-19)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.251 ([#1030](https://github.com/grafana/plugin-validator/issues/1030)) ([314d487](https://github.com/grafana/plugin-validator/commit/314d487feba45b9726795621716264031a19cba6))
+* **deps:** update deps.dev/api/v3 digest to 7bac2db ([#1017](https://github.com/grafana/plugin-validator/issues/1017)) ([52d4489](https://github.com/grafana/plugin-validator/commit/52d4489b6220c9a187a2e7ecf356bd821a4566e5))
+* **deps:** update deps.dev/util/maven digest to 7bac2db ([#1019](https://github.com/grafana/plugin-validator/issues/1019)) ([33337e9](https://github.com/grafana/plugin-validator/commit/33337e9a7e65c8b1ee7f64a7b4ea2153f9faac63))
+* **deps:** update deps.dev/util/pypi digest to 7bac2db ([#1020](https://github.com/grafana/plugin-validator/issues/1020)) ([f93641c](https://github.com/grafana/plugin-validator/commit/f93641c1721e46cfdc698fdd5cb8e967a4c71247))
+* **deps:** update deps.dev/util/semver digest to 7bac2db ([#1022](https://github.com/grafana/plugin-validator/issues/1022)) ([b3ffd38](https://github.com/grafana/plugin-validator/commit/b3ffd38c053217b092858d62c52f1fd65536c196))
+* **deps:** update github.com/ianlancetaylor/demangle digest to cbb8aae ([#1023](https://github.com/grafana/plugin-validator/issues/1023)) ([a571a8e](https://github.com/grafana/plugin-validator/commit/a571a8e0ee0949e980b254dd32cb6322ea46c91d))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to e1cced9 ([#1024](https://github.com/grafana/plugin-validator/issues/1024)) ([2dd1ac7](https://github.com/grafana/plugin-validator/commit/2dd1ac772978b6c6af0ce249c05e54cf71bed4bb))
+* **deps:** update golang.org/x/exp digest to f0251eb ([#1025](https://github.com/grafana/plugin-validator/issues/1025)) ([f26b432](https://github.com/grafana/plugin-validator/commit/f26b432ec81142a3686ca9706c9eb33e605dd075))
+* **deps:** update google.golang.org/genproto digest to 4341edf ([#1026](https://github.com/grafana/plugin-validator/issues/1026)) ([4aca67d](https://github.com/grafana/plugin-validator/commit/4aca67d20a07fa309f18ed5572990e6a2078a667))
+* **deps:** update google.golang.org/genproto/googleapis/api digest to 4341edf ([#1028](https://github.com/grafana/plugin-validator/issues/1028)) ([80365ae](https://github.com/grafana/plugin-validator/commit/80365ae7e44a3637b229227a9dd6da93262794cf))
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to 4341edf ([#1029](https://github.com/grafana/plugin-validator/issues/1029)) ([4edd407](https://github.com/grafana/plugin-validator/commit/4edd407d9a0c60a27d51d3f31daba14341d3f549))
+* **deps:** update goreleaser/goreleaser-action action to v7.3.0 ([#1033](https://github.com/grafana/plugin-validator/issues/1033)) ([5e4e88c](https://github.com/grafana/plugin-validator/commit/5e4e88c1ff9010dfc16c5e6b385850df22def2d4))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.82.0 ([#1034](https://github.com/grafana/plugin-validator/issues/1034)) ([a0686ea](https://github.com/grafana/plugin-validator/commit/a0686ea5f4e6e3a505de6878891ad96b1fa657c6))
+* **deps:** update module github.com/docker/cli to v29.9.1+incompatible ([#1031](https://github.com/grafana/plugin-validator/issues/1031)) ([b324d62](https://github.com/grafana/plugin-validator/commit/b324d625995edbc76183ee9fdba1e7bbf8a9a2bb))
+* **deps:** update module github.com/microsoft/go-winio to v0.6.4 ([#1032](https://github.com/grafana/plugin-validator/issues/1032)) ([93a60f7](https://github.com/grafana/plugin-validator/commit/93a60f74b85c33654431f267dad84b5914939ccf))
+
 ## [0.51.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.0...plugin-validator/v0.51.1) (2026-10-19)
 
 
