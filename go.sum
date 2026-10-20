@@ -258,8 +258,8 @@ github.com/google/go-cpy v0.0.0-20211218193943-a9c933c06932 h1:5/4TSDzpDnHQ8rKEE
 github.com/google/go-cpy v0.0.0-20211218193943-a9c933c06932/go.mod h1:cC6EdPbj/17GFCPDK39NRarlMI+kt+O60S12cNB5J9Y=
 github.com/google/jsonschema-go v0.4.3 h1:/DBOLZTfDow7pe2GmaJNhltueGTtDKICi8V8p+DQPd0=
 github.com/google/jsonschema-go v0.4.3/go.mod h1:r5quNTdLOYEz95Ru18zA0ydNbBuYoo9tgaYcxEYhJVE=
-github.com/google/osv-scalibr v0.5.4-0.20261015142547-bb230bd7232e h1:M+Fj69hxe3QYS3O4TvxQbUerOlYAmpWBzEMz9xmekoU=
-github.com/google/osv-scalibr v0.5.4-0.20261015142547-bb230bd7232e/go.mod h1:fG8uWNOOFb//uzYETqbgnf/Cnmf7mtF1Z3z6B1M+Ee8=
+github.com/google/osv-scalibr v0.5.4-0.20261020040517-e0b5fafee9c0 h1:VJz7vVp+52hIQukeEboeDoQhYKzchU2Kb8qJ/VSu05s=
+github.com/google/osv-scalibr v0.5.4-0.20261020040517-e0b5fafee9c0/go.mod h1:fG8uWNOOFb//uzYETqbgnf/Cnmf7mtF1Z3z6B1M+Ee8=
 github.com/google/osv-scanner/v2 v2.7.0 h1:7aOrJ9vB7qbzxC3R+QCXs03SHQiRuM80RJdqZhUEl2g=
 github.com/google/osv-scanner/v2 v2.7.0/go.mod h1:0UM0H29x5nYHylj8TapmPkFOxIEck+eJFl/Ocv0tYdM=
 github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 h1:LMLX+LgTNWpfvCBdFebv6EsYotImrt/Ppc5cXIriCSo=
