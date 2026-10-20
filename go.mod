@@ -25,7 +25,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/mod v0.42.0
-	google.golang.org/genai v1.72.0
+	google.golang.org/genai v1.75.0
 	google.golang.org/protobuf v1.36.12
 	gopkg.in/yaml.v3 v3.0.1
 )
