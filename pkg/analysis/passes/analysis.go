@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/marketplacedev"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatapaths"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
@@ -82,6 +83,7 @@ var Analyzers = []*analysis.Analyzer{
 	llmreview.Analyzer,
 	logos.Analyzer,
 	manifest.Analyzer,
+	marketplacedev.Analyzer,
 	metadata.Analyzer,
 	metadatapaths.Analyzer,
 	metadatavalid.Analyzer,
