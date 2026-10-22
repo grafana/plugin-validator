@@ -284,6 +284,7 @@ Run "mage gen:readme" to regenerate this section.
 | Backend Debug / `backenddebug` | Checks that the standalone debug files for backend plugins are not present. | None |
 | Binary Permissions / `binarypermissions` | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system. | None |
 | Broken Links / `brokenlinks` | Detects if any URL doesn't resolve to a valid location. | None |
+| Build Tags / `buildtags` | Checks Go backend executables for disallowed build tags. | None |
 | Build Tools / `buildtools` | Checks that the plugin uses Grafana's standard create-plugin build tooling. | None |
 | Changelog (exists) / `changelog` | Ensures a `CHANGELOG.md` file exists within the zip file. | None |
 | Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
