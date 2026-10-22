@@ -47,7 +47,7 @@ var Analyzer = &analysis.Analyzer{
 	Rules:    []*analysis.Rule{marketplaceDevBuild},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:        "Build Tags",
-		Description: "Checks Go backend executables for disallowed build tags. The `marketplace-dev-build` rule rejects `marketplace_dev` and is disabled by default.",
+		Description: "Checks Go backend executables for disallowed build tags.",
 	},
 }
 
