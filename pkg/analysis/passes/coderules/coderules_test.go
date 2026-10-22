@@ -851,3 +851,67 @@ func TestBackendDatasourceWithoutTestDatasourceGood(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, interceptor.Diagnostics, 0)
 }
+
+func TestRequireMarketplaceLicensing(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+
+	ruleName := "code-rules-require-marketplace-licensing"
+	rule, ok := semgrepRulesMap[ruleName]
+	require.True(t, ok, "rule %q must be pre-registered in semgrepRulesMap", ruleName)
+	wasDisabled := rule.Disabled
+	rule.Disabled = false
+	t.Cleanup(func() { rule.Disabled = wasDisabled })
+
+	tcs := []struct {
+		dir      string
+		findings int
+		detail   string
+	}{
+		{dir: "marketplace-licensing-missing", findings: 3},
+		{dir: "marketplace-licensing-experimental", findings: 0},
+		{dir: "marketplace-licensing-stable-alias", findings: 0},
+		{
+			dir:      "marketplace-licensing-mixed",
+			findings: 1,
+			detail:   "Code rule violation found in testdata/marketplace-licensing-mixed/main.go at line 17",
+		},
+		{dir: "marketplace-licensing-unrelated-provider", findings: 1},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.dir, func(t *testing.T) {
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pass := &analysis.Pass{
+				RootDir: filepath.Join("./"),
+				ResultOf: map[*analysis.Analyzer]any{
+					sourcecode.Analyzer: filepath.Join("testdata", tc.dir),
+				},
+				Report: interceptor.ReportInterceptor(),
+			}
+
+			_, err := Analyzer.Run(pass)
+			require.NoError(t, err)
+			require.Len(t, interceptor.Diagnostics, tc.findings)
+			for _, d := range interceptor.Diagnostics {
+				require.Equal(t, ruleName, d.Name)
+				require.Equal(t, analysis.Error, d.Severity)
+			}
+			if tc.detail != "" {
+				require.Equal(t, tc.detail, interceptor.Diagnostics[0].Detail)
+			}
+		})
+	}
+}
+
+func TestRequireMarketplaceLicensingDisabledByDefault(t *testing.T) {
+	licensing, ok := semgrepRulesMap["code-rules-require-marketplace-licensing"]
+	require.True(t, ok)
+	require.True(t, licensing.DisabledByDefault)
+
+	syscall, ok := semgrepRulesMap["code-rules-access-syscall"]
+	require.True(t, ok)
+	require.False(t, syscall.DisabledByDefault)
+}
