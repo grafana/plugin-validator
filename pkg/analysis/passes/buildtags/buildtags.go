@@ -52,7 +52,11 @@ var Analyzer = &analysis.Analyzer{
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	if !slices.ContainsFunc(buildTagChecks, func(check buildTagCheck) bool { return !check.rule.Disabled }) {
+	// Avoid opening binaries when no build-tag rules are enabled.
+	hasEnabledRule := slices.ContainsFunc(buildTagChecks, func(check buildTagCheck) bool {
+		return !check.rule.Disabled
+	})
+	if !hasEnabledRule {
 		return nil, nil
 	}
 
