@@ -1,4 +1,4 @@
-package marketplacedev
+package buildtags
 
 import (
 	"os"
@@ -7,10 +7,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
+	"github.com/grafana/plugin-validator/pkg/runner"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 	"github.com/grafana/plugin-validator/pkg/testutils"
 )
@@ -27,7 +29,7 @@ const pluginJSON = `{
 var fixtureDir string
 
 func TestMain(m *testing.M) {
-	dir, err := os.MkdirTemp("", "marketplacedev-fixtures")
+	dir, err := os.MkdirTemp("", "buildtags-fixtures")
 	if err != nil {
 		panic(err)
 	}
@@ -99,7 +101,9 @@ func runAnalyzer(t *testing.T, archiveDir string, metadata map[string]string) []
 
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
-		RootDir: archiveDir,
+		Analyzer:     Analyzer,
+		AnalyzerName: Analyzer.Name,
+		RootDir:      archiveDir,
 		ResultOf: map[*analysis.Analyzer]interface{}{
 			archive.Analyzer:        archiveDir,
 			nestedmetadata.Analyzer: metadatamap,
@@ -110,6 +114,114 @@ func runAnalyzer(t *testing.T, archiveDir string, metadata map[string]string) []
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 	return interceptor.Diagnostics
+}
+
+func TestReadBuildTags(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		tags string
+		want []string
+	}{
+		{name: "no tags"},
+		{name: "comma separated", tags: "custom_tag,another_tag", want: []string{"custom_tag", "another_tag"}},
+		{name: "space separated", tags: "custom_tag another_tag", want: []string{"custom_tag", "another_tag"}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			tags, err := readBuildTags(linuxBinary(t, "tags-"+tt.name, tt.tags, ""))
+			require.NoError(t, err)
+			require.ElementsMatch(t, tt.want, tags)
+		})
+	}
+
+	t.Run("unreadable build info", func(t *testing.T) {
+		path := filepath.Join(t.TempDir(), "not-go")
+		require.NoError(t, os.WriteFile(path, []byte("not a Go binary"), 0o644))
+		_, err := readBuildTags(path)
+		require.Error(t, err)
+	})
+}
+
+func TestBuildTagRuleConfiguration(t *testing.T) {
+	originalRule := *marketplaceDevBuild
+	t.Cleanup(func() { *marketplaceDevBuild = originalRule })
+
+	archiveDir := t.TempDir()
+	pluginDir := filepath.Join(archiveDir, "test-plugin-datasource")
+	copyFile(t, linuxBinary(t, "dev", "marketplace_dev", ""), filepath.Join(pluginDir, "gpx_plugin_linux_amd64"))
+	require.NoError(t, os.WriteFile(filepath.Join(pluginDir, "plugin.json"), []byte(pluginJSON), 0o644))
+
+	for _, tt := range []struct {
+		name     string
+		config   string
+		severity analysis.Severity
+	}{
+		{name: "disabled by default"},
+		{
+			name:     "enabled by rule",
+			config:   "analyzers:\n  buildtags:\n    rules:\n      marketplace-dev-build:\n        enabled: true\n",
+			severity: analysis.Error,
+		},
+		{
+			name:     "enabled by analyzer",
+			config:   "analyzers:\n  buildtags:\n    enabled: true\n",
+			severity: analysis.Error,
+		},
+		{
+			name:   "rule overrides analyzer",
+			config: "analyzers:\n  buildtags:\n    enabled: true\n    rules:\n      marketplace-dev-build:\n        enabled: false\n",
+		},
+		{
+			name:     "severity override",
+			config:   "analyzers:\n  buildtags:\n    rules:\n      marketplace-dev-build:\n        enabled: true\n        severity: warning\n",
+			severity: analysis.Warning,
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var config runner.Config
+			require.NoError(t, yaml.Unmarshal([]byte("global:\n  enabled: true\n"+tt.config), &config))
+			diagnostics, err := runner.Check(
+				[]*analysis.Analyzer{Analyzer},
+				analysis.CheckParams{ArchiveDir: archiveDir},
+				config,
+				"",
+			)
+			require.NoError(t, err)
+			if tt.severity == "" {
+				require.Empty(t, diagnostics[Analyzer.Name])
+				return
+			}
+			require.Len(t, diagnostics[Analyzer.Name], 1)
+			diagnostic := diagnostics[Analyzer.Name][0]
+			require.Equal(t, "marketplace-dev-build", diagnostic.Name)
+			require.Equal(t, tt.severity, diagnostic.Severity)
+			require.Contains(t, diagnostic.Detail, "gpx_plugin_linux_amd64")
+		})
+	}
+}
+
+func TestSupportsAdditionalBuildTagRules(t *testing.T) {
+	originalChecks := buildTagChecks
+	t.Cleanup(func() { buildTagChecks = originalChecks })
+	buildTagChecks = append(buildTagChecks, buildTagCheck{
+		tag:      "custom_tag",
+		rule:     &analysis.Rule{Name: "custom-tag-build", Severity: analysis.Warning},
+		title:    "Backend executable built with custom tag",
+		guidance: "Rebuild without custom_tag.",
+	})
+
+	archiveDir := t.TempDir()
+	copyFile(t, linuxBinary(t, "dev", "marketplace_dev", ""), filepath.Join(archiveDir, "gpx_plugin_dev"))
+	copyFile(t, linuxBinary(t, "custom", "custom_tag", ""), filepath.Join(archiveDir, "gpx_plugin_custom"))
+
+	diagnostics := runAnalyzer(t, archiveDir, map[string]string{"plugin.json": pluginJSON})
+	require.Len(t, diagnostics, 2)
+	require.Equal(t, "marketplace-dev-build", diagnostics[0].Name)
+	require.Contains(t, diagnostics[0].Detail, "gpx_plugin_dev")
+	require.NotContains(t, diagnostics[0].Detail, "gpx_plugin_custom")
+	require.Equal(t, "custom-tag-build", diagnostics[1].Name)
+	require.Equal(t, analysis.Warning, diagnostics[1].Severity)
+	require.Contains(t, diagnostics[1].Detail, "gpx_plugin_custom")
+	require.NotContains(t, diagnostics[1].Detail, "gpx_plugin_dev")
 }
 
 func TestDetectsMarketplaceDevTag(t *testing.T) {

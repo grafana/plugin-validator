@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/backenddebug"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/binarypermissions"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/brokenlinks"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/buildtags"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/buildtools"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/changelog"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/checksum"
@@ -28,7 +29,6 @@ import (
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/llmreview"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/logos"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/manifest"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/marketplacedev"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatapaths"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadatavalid"
@@ -65,6 +65,7 @@ var Analyzers = []*analysis.Analyzer{
 	backenddebug.Analyzer,
 	binarypermissions.Analyzer,
 	brokenlinks.Analyzer,
+	buildtags.Analyzer,
 	buildtools.Analyzer,
 	changelog.Analyzer,
 	checksum.Analyzer,
@@ -83,7 +84,6 @@ var Analyzers = []*analysis.Analyzer{
 	llmreview.Analyzer,
 	logos.Analyzer,
 	manifest.Analyzer,
-	marketplacedev.Analyzer,
 	metadata.Analyzer,
 	metadatapaths.Analyzer,
 	metadatavalid.Analyzer,

@@ -284,6 +284,7 @@ Run "mage gen:readme" to regenerate this section.
 | Backend Debug / `backenddebug` | Checks that the standalone debug files for backend plugins are not present. | None |
 | Binary Permissions / `binarypermissions` | For datasources and apps with binaries, this ensures the plugin can run when extracted on a system. | None |
 | Broken Links / `brokenlinks` | Detects if any URL doesn't resolve to a valid location. | None |
+| Build Tags / `buildtags` | Checks Go backend executables for disallowed build tags. The `marketplace-dev-build` rule rejects `marketplace_dev` and is disabled by default. | None |
 | Build Tools / `buildtools` | Checks that the plugin uses Grafana's standard create-plugin build tooling. | None |
 | Changelog (exists) / `changelog` | Ensures a `CHANGELOG.md` file exists within the zip file. | None |
 | Checksum / `checksum` | Validates that the passed checksum (as a validator arg) is the one calculated from the archive file. | `checksum` |
@@ -302,7 +303,6 @@ Run "mage gen:readme" to regenerate this section.
 | LLM Review / `llmreview` | Runs the code through an LLM to check for security issues or disallowed usage. | API key for one of: Anthropic (ANTHROPIC_API_KEY), OpenAI (OPENAI_API_KEY), or Google (GEMINI_API_KEY) |
 | Logos / `logos` | Detects whether the plugin includes small and large logos to display in the plugin catalog. | None |
 | Manifest (Signing) / `manifest` | When a plugin is signed, the zip file will contain a signed `MANIFEST.txt` file. | None |
-| Marketplace Dev Mode / `marketplacedev` | Rejects backend executables built with the SDK `marketplace_dev` build tag, which disables marketplace license checks. | None |
 | Metadata / `metadata` | Checks that `plugin.json` exists and is valid. | None |
 | Metadata Grafana Dependency / `grafanadependency` | Checks that dependencies.grafanaDependency in `plugin.json` is valid. | None |
 | Metadata Paths / `metadatapaths` | Ensures all paths are valid and images referenced exist. | None |
