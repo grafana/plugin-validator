@@ -215,14 +215,20 @@ func TestSupportsAdditionalBuildTagRules(t *testing.T) {
 	copyFile(t, linuxBinary(t, "custom", "custom_tag", ""), filepath.Join(archiveDir, "gpx_plugin_custom"))
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]string{"plugin.json": pluginJSON})
-	require.Len(t, diagnostics, 2)
-	require.Equal(t, "marketplace-dev-build", diagnostics[0].Name)
-	require.Contains(t, diagnostics[0].Detail, "gpx_plugin_dev")
-	require.NotContains(t, diagnostics[0].Detail, "gpx_plugin_custom")
-	require.Equal(t, "custom-tag-build", diagnostics[1].Name)
-	require.Equal(t, analysis.Warning, diagnostics[1].Severity)
-	require.Contains(t, diagnostics[1].Detail, "gpx_plugin_custom")
-	require.NotContains(t, diagnostics[1].Detail, "gpx_plugin_dev")
+	require.ElementsMatch(t, []*analysis.Diagnostic{
+		{
+			Name:     "marketplace-dev-build",
+			Severity: analysis.Error,
+			Title:    "Backend executable built with marketplace development mode",
+			Detail:   fmt.Sprintf("The backend executable gpx_plugin_dev was built with the %q build tag. %s", "marketplace_dev", buildTagChecks[0].guidance),
+		},
+		{
+			Name:     "custom-tag-build",
+			Severity: analysis.Warning,
+			Title:    "Backend executable built with custom tag",
+			Detail:   "The backend executable gpx_plugin_custom was built with the \"custom_tag\" build tag. Rebuild without custom_tag.",
+		},
+	}, diagnostics)
 }
 
 func TestDetectsMarketplaceDevTag(t *testing.T) {
@@ -326,16 +332,15 @@ func TestReportsOncePerBinary(t *testing.T) {
 	copyFile(t, darwin, filepath.Join(archiveDir, "gpx_plugin_darwin_arm64"))
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]string{"plugin.json": pluginJSON})
-	require.Len(t, diagnostics, 2)
 	check := buildTagChecks[0]
-	for i, binary := range []string{"gpx_plugin_darwin_arm64", "gpx_plugin_linux_amd64"} {
-		require.Equal(t, "marketplace-dev-build", diagnostics[i].Name)
-		require.Equal(t, "Backend executable built with marketplace development mode", diagnostics[i].Title)
-		require.Equal(t, analysis.Error, diagnostics[i].Severity)
-		require.Equal(
-			t,
-			fmt.Sprintf("The backend executable %s was built with the %q build tag. %s", binary, check.tag, check.guidance),
-			diagnostics[i].Detail,
-		)
+	var expected []*analysis.Diagnostic
+	for _, binary := range []string{"gpx_plugin_darwin_arm64", "gpx_plugin_linux_amd64"} {
+		expected = append(expected, &analysis.Diagnostic{
+			Name:     "marketplace-dev-build",
+			Title:    "Backend executable built with marketplace development mode",
+			Severity: analysis.Error,
+			Detail:   fmt.Sprintf("The backend executable %s was built with the %q build tag. %s", binary, check.tag, check.guidance),
+		})
 	}
+	require.ElementsMatch(t, expected, diagnostics)
 }

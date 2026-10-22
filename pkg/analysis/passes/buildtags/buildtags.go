@@ -71,7 +71,6 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	checked := map[string]struct{}{}
-	affected := map[*analysis.Rule][]string{}
 	for pluginJsonPath, data := range metadatamap {
 		if data.Executable == "" {
 			continue
@@ -108,27 +107,15 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			}
 			for _, check := range buildTagChecks {
 				if !check.rule.Disabled && slices.Contains(tags, check.tag) {
-					affected[check.rule] = append(affected[check.rule], filepath.ToSlash(relPath))
+					msg := fmt.Sprintf(
+						"The backend executable %s was built with the %q build tag. %s",
+						filepath.ToSlash(relPath),
+						check.tag,
+						check.guidance,
+					)
+					pass.ReportResult(pass.AnalyzerName, check.rule, check.title, msg)
 				}
 			}
-		}
-	}
-
-	for _, check := range buildTagChecks {
-		binaries := affected[check.rule]
-		slices.Sort(binaries)
-		for _, binary := range binaries {
-			pass.ReportResult(
-				pass.AnalyzerName,
-				check.rule,
-				check.title,
-				fmt.Sprintf(
-					"The backend executable %s was built with the %q build tag. %s",
-					binary,
-					check.tag,
-					check.guidance,
-				),
-			)
 		}
 	}
 
