@@ -116,21 +116,20 @@ func run(pass *analysis.Pass) (interface{}, error) {
 
 	for _, check := range buildTagChecks {
 		binaries := affected[check.rule]
-		if len(binaries) == 0 {
-			continue
-		}
 		slices.Sort(binaries)
-		pass.ReportResult(
-			pass.AnalyzerName,
-			check.rule,
-			check.title,
-			fmt.Sprintf(
-				"The following backend executables were built with the %q build tag: %s. %s",
-				check.tag,
-				strings.Join(binaries, ", "),
-				check.guidance,
-			),
-		)
+		for _, binary := range binaries {
+			pass.ReportResult(
+				pass.AnalyzerName,
+				check.rule,
+				check.title,
+				fmt.Sprintf(
+					"The backend executable %s was built with the %q build tag. %s",
+					binary,
+					check.tag,
+					check.guidance,
+				),
+			)
+		}
 	}
 
 	return nil, nil

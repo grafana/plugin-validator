@@ -1,6 +1,7 @@
 package buildtags
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -318,13 +319,23 @@ func TestDetectsNestedPlugin(t *testing.T) {
 	require.Contains(t, diagnostics[0].Detail, "nested/gpx_plugin_linux_amd64")
 }
 
-func TestReportsOnceForMultipleBinaries(t *testing.T) {
+func TestReportsOncePerBinary(t *testing.T) {
 	archiveDir := t.TempDir()
 	copyFile(t, linuxBinary(t, "dev", "marketplace_dev", ""), filepath.Join(archiveDir, "gpx_plugin_linux_amd64"))
 	darwin := fixtureBinary(t, "dev-darwin", buildOpts{goos: "darwin", goarch: "arm64", tags: "marketplace_dev"})
 	copyFile(t, darwin, filepath.Join(archiveDir, "gpx_plugin_darwin_arm64"))
 
 	diagnostics := runAnalyzer(t, archiveDir, map[string]string{"plugin.json": pluginJSON})
-	require.Len(t, diagnostics, 1)
-	require.Contains(t, diagnostics[0].Detail, "gpx_plugin_darwin_arm64, gpx_plugin_linux_amd64")
+	require.Len(t, diagnostics, 2)
+	check := buildTagChecks[0]
+	for i, binary := range []string{"gpx_plugin_darwin_arm64", "gpx_plugin_linux_amd64"} {
+		require.Equal(t, "marketplace-dev-build", diagnostics[i].Name)
+		require.Equal(t, "Backend executable built with marketplace development mode", diagnostics[i].Title)
+		require.Equal(t, analysis.Error, diagnostics[i].Severity)
+		require.Equal(
+			t,
+			fmt.Sprintf("The backend executable %s was built with the %q build tag. %s", binary, check.tag, check.guidance),
+			diagnostics[i].Detail,
+		)
+	}
 }
