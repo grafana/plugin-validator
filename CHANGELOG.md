@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.51.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.2...plugin-validator/v0.51.3) (2026-10-22)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.252 ([#1037](https://github.com/grafana/plugin-validator/issues/1037)) ([603ce7a](https://github.com/grafana/plugin-validator/commit/603ce7adef226dde76e02d60e7a39d759b56dcd3))
+* **deps:** update anthropics/claude-code-action action to v1.0.253 ([#1056](https://github.com/grafana/plugin-validator/issues/1056)) ([6b75a14](https://github.com/grafana/plugin-validator/commit/6b75a1453fa4939a8387e6ecd0e5ea970f7385aa))
+* **deps:** update github.com/google/osv-scalibr digest to e0b5faf ([#1035](https://github.com/grafana/plugin-validator/issues/1035)) ([6a59694](https://github.com/grafana/plugin-validator/commit/6a59694b16aa8ffa52e4c427310720987fe66e6a))
+* **deps:** update go to v1.27.3 ([#1048](https://github.com/grafana/plugin-validator/issues/1048)) ([7acf79e](https://github.com/grafana/plugin-validator/commit/7acf79e096e99a74f941abfc22b26e1e6deeedb7))
+* **deps:** update golang.org/x/telemetry digest to 824aa3d ([#1036](https://github.com/grafana/plugin-validator/issues/1036)) ([5d5976b](https://github.com/grafana/plugin-validator/commit/5d5976bb94a3222157418e3d474f37bf3ea5164b))
+* **deps:** update module github.com/elliotwutingfeng/asciiset to v1 ([#1044](https://github.com/grafana/plugin-validator/issues/1044)) ([03fd00a](https://github.com/grafana/plugin-validator/commit/03fd00a177ad7715591526a5daf95128b957bc4f))
+* **deps:** update module github.com/tink-crypto/tink-go/v2 to v2.9.0 ([#1038](https://github.com/grafana/plugin-validator/issues/1038)) ([162cc7e](https://github.com/grafana/plugin-validator/commit/162cc7e982cb25ff1f6f126c119266e3c62546f6))
+* **deps:** update module google.golang.org/api to v0.304.0 ([#1039](https://github.com/grafana/plugin-validator/issues/1039)) ([ff5ee1b](https://github.com/grafana/plugin-validator/commit/ff5ee1b890e8c2e9587dfdab303c9c719083578c))
+* **deps:** update module google.golang.org/genai to v1.75.0 ([#1040](https://github.com/grafana/plugin-validator/issues/1040)) ([73c2707](https://github.com/grafana/plugin-validator/commit/73c2707f320b749e971adf24f6d9b4bb05d614be))
+* **deps:** update module modernc.org/libc to v1.79.0 ([#1042](https://github.com/grafana/plugin-validator/issues/1042)) ([35e5b80](https://github.com/grafana/plugin-validator/commit/35e5b809ca4082701475241a003ffb2d0188ef03))
+* **deps:** update step-security/harden-runner action to v2.22.1 ([#1043](https://github.com/grafana/plugin-validator/issues/1043)) ([d27430a](https://github.com/grafana/plugin-validator/commit/d27430a1e1f76fe09d0fadb553238cc05862f388))
+
 ## [0.51.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.1...plugin-validator/v0.51.2) (2026-10-19)
 
 
