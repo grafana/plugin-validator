@@ -362,3 +362,92 @@ rules:
     message: "Backend datasources (classes extending DataSourceWithBackend) must not implement testDatasource(). Remove this method and rely on backend health checks."
     languages: [typescript]
     severity: ERROR
+
+  - id: require-marketplace-licensing
+    languages: [go]
+    severity: ERROR
+    metadata:
+      plugin-validator:
+        disabled-by-default: true
+    message: Configure SDK marketplace licensing in datasource.ManageOpts or app.ManageOpts.
+    patterns:
+      - pattern-either:
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+                  ...
+              - pattern-not-inside: |
+                  import $MANAGER_ALIAS "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+                  ...
+              - metavariable-regex:
+                  metavariable: $MANAGER
+                  regex: ^datasource$
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import $MANAGER "github.com/grafana/grafana-plugin-sdk-go/backend/datasource"
+                  ...
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/backend/app"
+                  ...
+              - pattern-not-inside: |
+                  import $MANAGER_ALIAS "github.com/grafana/grafana-plugin-sdk-go/backend/app"
+                  ...
+              - metavariable-regex:
+                  metavariable: $MANAGER
+                  regex: ^app$
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import $MANAGER "github.com/grafana/grafana-plugin-sdk-go/backend/app"
+                  ...
+      # Report only when neither marketplace package supplies licensing.
+      - pattern-either:
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-not-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/experimental/marketplace"
+                  ...
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/experimental/marketplace"
+                  ...
+              - pattern-not-inside: |
+                  import $MP_ALIAS_EXPERIMENTAL "github.com/grafana/grafana-plugin-sdk-go/experimental/marketplace"
+                  ...
+              - pattern-not: '$MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{..., Licensing: marketplace.Licensing(marketplace.Opts{...}),
+                  ...})'
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import $MP_EXPERIMENTAL "github.com/grafana/grafana-plugin-sdk-go/experimental/marketplace"
+                  ...
+              - pattern-not: '$MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{..., Licensing: $MP_EXPERIMENTAL.Licensing($MP_EXPERIMENTAL.Opts{...}),
+                  ...})'
+      - pattern-either:
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-not-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/marketplace"
+                  ...
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import "github.com/grafana/grafana-plugin-sdk-go/marketplace"
+                  ...
+              - pattern-not-inside: |
+                  import $MP_ALIAS_STABLE "github.com/grafana/grafana-plugin-sdk-go/marketplace"
+                  ...
+              - pattern-not: '$MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{..., Licensing: marketplace.Licensing(marketplace.Opts{...}),
+                  ...})'
+          - patterns:
+              - pattern: $MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{...})
+              - pattern-inside: |
+                  import $MP_STABLE "github.com/grafana/grafana-plugin-sdk-go/marketplace"
+                  ...
+              - pattern-not: '$MANAGER.Manage($ID, $FACTORY, $MANAGER.ManageOpts{..., Licensing: $MP_STABLE.Licensing($MP_STABLE.Opts{...}),
+                  ...})'

@@ -58,6 +58,11 @@ var Analyzer = &analysis.Analyzer{
 type semgrepRuleEntry struct {
 	ID       string `yaml:"id"`
 	Severity string `yaml:"severity"`
+	Metadata struct {
+		PluginValidator struct {
+			DisabledByDefault bool `yaml:"disabled-by-default"`
+		} `yaml:"plugin-validator"`
+	} `yaml:"metadata"`
 }
 
 type semgrepRulesFile struct {
@@ -78,7 +83,11 @@ func init() {
 			severity = analysis.Warning
 		}
 		ruleName := fmt.Sprintf("code-rules-%s", entry.ID)
-		rule := &analysis.Rule{Name: ruleName, Severity: severity}
+		rule := &analysis.Rule{
+			Name:              ruleName,
+			Severity:          severity,
+			DisabledByDefault: entry.Metadata.PluginValidator.DisabledByDefault,
+		}
 		semgrepRulesMap[ruleName] = rule
 		Analyzer.Rules = append(Analyzer.Rules, rule)
 	}
