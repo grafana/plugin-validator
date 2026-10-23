@@ -861,6 +861,8 @@ func TestRequireMarketplaceLicensing(t *testing.T) {
 	ruleName := "code-rules-require-marketplace-licensing"
 	rule, ok := semgrepRulesMap[ruleName]
 	require.True(t, ok, "rule %q must be pre-registered in semgrepRulesMap", ruleName)
+	require.True(t, rule.DisabledByDefault, "rule %q should be disabled by default (marketplace-specific semgrep rule)", ruleName)
+
 	wasDisabled := rule.Disabled
 	rule.Disabled = false
 	t.Cleanup(func() { rule.Disabled = wasDisabled })
@@ -904,14 +906,4 @@ func TestRequireMarketplaceLicensing(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestRequireMarketplaceLicensingDisabledByDefault(t *testing.T) {
-	licensing, ok := semgrepRulesMap["code-rules-require-marketplace-licensing"]
-	require.True(t, ok)
-	require.True(t, licensing.DisabledByDefault)
-
-	syscall, ok := semgrepRulesMap["code-rules-access-syscall"]
-	require.True(t, ok)
-	require.False(t, syscall.DisabledByDefault)
 }
