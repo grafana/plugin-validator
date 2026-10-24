@@ -9,9 +9,9 @@ import (
 
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
 	"github.com/grafana/plugin-validator/pkg/logme"
-	"github.com/openai/openai-go"
-	"github.com/openai/openai-go/option"
-	"github.com/openai/openai-go/shared"
+	"github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
+	"github.com/openai/openai-go/v3/shared"
 )
 
 // Client implements llmprovider.Provider for OpenAI.
