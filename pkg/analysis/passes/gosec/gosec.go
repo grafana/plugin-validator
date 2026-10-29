@@ -24,6 +24,11 @@ var (
 // could be low, medium, high (see gosec docs)
 var targetSeverity = "HIGH"
 
+// gosec defaults to one package loader per CPU, and each loader compiles the full dependency tree
+// on its own. Large dependencies such as the AWS EC2 SDK then compile several times at once and
+// exhaust memory, while a single loader reuses the build cache and finishes faster.
+const loadConcurrency = "1"
+
 var Analyzer = &analysis.Analyzer{
 	Name:     "go-sec",
 	Requires: []*analysis.Analyzer{sourcecode.Analyzer},
@@ -78,6 +83,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	goSecCommand := exec.Command(
 		goSecBin,
 		"-quiet",
+		"-concurrency",
+		loadConcurrency,
 		"-nosec",
 		"-severity",
 		targetSeverity,
