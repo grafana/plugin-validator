@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.0...plugin-validator/v0.52.1) (2026-10-29)
+
+
+### 🐛 Bug Fixes
+
+* **gosec:** restore type checking and bound memory ([#1072](https://github.com/grafana/plugin-validator/issues/1072)) ([6c22ac1](https://github.com/grafana/plugin-validator/commit/6c22ac14ec2b76bce5fa81e0345bf89c6d582e69))
+
 ## [0.52.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.3...plugin-validator/v0.52.0) (2026-10-29)
 
 
