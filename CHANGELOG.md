@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.52.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.3...plugin-validator/v0.52.0) (2026-10-29)
+
+
+### 🎉 Features
+
+* add buildtags analyzer ([#1052](https://github.com/grafana/plugin-validator/issues/1052)) ([1864c98](https://github.com/grafana/plugin-validator/commit/1864c98df4f16a34c3c2aa2cf95b12136f21ef5e))
+* add semgrep rules for marketplace licensing ([#1053](https://github.com/grafana/plugin-validator/issues/1053)) ([fe61e38](https://github.com/grafana/plugin-validator/commit/fe61e389d7ca52f8272c21cf69effeeaefc456c7))
+
+
+### 🐛 Bug Fixes
+
+* **security/unknown/:** update module golang.org/x/net to v0.62.0 [security] ([#1066](https://github.com/grafana/plugin-validator/issues/1066)) ([128716e](https://github.com/grafana/plugin-validator/commit/128716e927d74d2c741cbd04bf81b7e40deb1c76))
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.262 ([#1064](https://github.com/grafana/plugin-validator/issues/1064)) ([43245f2](https://github.com/grafana/plugin-validator/commit/43245f214580863ee4533cf2964177bcf0e58a1b))
+* **deps:** update github.com/masahiro331/go-ext4-filesystem digest to 81cc551 ([#1060](https://github.com/grafana/plugin-validator/issues/1060)) ([ba4e3bc](https://github.com/grafana/plugin-validator/commit/ba4e3bc81ceeb0107d14cf3e794a7486c8f28ff1))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 6410c13 ([#1071](https://github.com/grafana/plugin-validator/issues/1071)) ([76804d7](https://github.com/grafana/plugin-validator/commit/76804d70b134a44263f17085561c43b4639bd6ff))
+* **deps:** update github.com/velocidex/ordereddict digest to 9ee630f ([#1061](https://github.com/grafana/plugin-validator/issues/1061)) ([640a782](https://github.com/grafana/plugin-validator/commit/640a7827b6185ef45ecdae388e31a7868dc8daa6))
+* **deps:** update golang:1.27.3-alpine docker digest to b8c9b82 [security] ([#1058](https://github.com/grafana/plugin-validator/issues/1058)) ([ed80871](https://github.com/grafana/plugin-validator/commit/ed80871c3c264169faf0c9d4b323d18dbe0d35c7))
+* **deps:** update golang:1.27.3-alpine docker digest to d200d2d [security] ([#1062](https://github.com/grafana/plugin-validator/issues/1062)) ([cd84f5d](https://github.com/grafana/plugin-validator/commit/cd84f5d2ca20309fe881fed75dff69b2945a233b))
+* **deps:** update golang.org/x/telemetry digest to 6cd571d ([#1063](https://github.com/grafana/plugin-validator/issues/1063)) ([0f9c81e](https://github.com/grafana/plugin-validator/commit/0f9c81ea7a8efc3eeb21ef6e669d9b6c059af683))
+* **deps:** update module github.com/bmatcuk/doublestar/v4 to v4.10.4 ([#1065](https://github.com/grafana/plugin-validator/issues/1065)) ([2a86d7b](https://github.com/grafana/plugin-validator/commit/2a86d7bb80ad7dc1654f92279d64d1bf173dd1f1))
+* **deps:** update module github.com/compose-spec/compose-go/v2 to v2.16.2 ([#1067](https://github.com/grafana/plugin-validator/issues/1067)) ([a754a13](https://github.com/grafana/plugin-validator/commit/a754a13e7c3c8830365d0d169325407fcb515852))
+* **deps:** update module github.com/docker/cli to v29.9.2+incompatible ([#1068](https://github.com/grafana/plugin-validator/issues/1068)) ([1c9402d](https://github.com/grafana/plugin-validator/commit/1c9402ddbb79df966b2a4c8341255021fe28abcb))
+* **deps:** update module github.com/docker/docker-credential-helpers to v0.9.12 ([#1069](https://github.com/grafana/plugin-validator/issues/1069)) ([76116b5](https://github.com/grafana/plugin-validator/commit/76116b55650e466df19557377b598ff66a8e53a7))
+
 ## [0.51.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.51.2...plugin-validator/v0.51.3) (2026-10-22)
 
 
