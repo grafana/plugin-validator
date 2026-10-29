@@ -131,7 +131,7 @@ require (
 	github.com/ncruces/go-strftime v1.1.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
-	github.com/owenrumney/go-sarif/v3 v3.3.1 // indirect
+	github.com/owenrumney/go-sarif/v3 v3.3.2 // indirect
 	github.com/package-url/packageurl-go v0.1.7 // indirect
 	github.com/pandatix/go-cvss v0.6.4 // indirect
 	github.com/pb33f/go-yaml v0.1.1 // indirect

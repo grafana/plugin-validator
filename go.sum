@@ -371,8 +371,8 @@ github.com/opencontainers/runtime-spec v1.3.0 h1:YZupQUdctfhpZy3TM39nN9Ika5CBWT5
 github.com/opencontainers/runtime-spec v1.3.0/go.mod h1:jwyrGlmzljRJv/Fgzds9SsS/C5hL+LL3ko9hs6T5lQ0=
 github.com/ossf/osv-schema/bindings/go v0.0.0-20261026052736-6410c13304f9 h1:fAbDzdGbPrOkD4GmSxdHmPmDAgDZJDIjKMZ1DVUuYFM=
 github.com/ossf/osv-schema/bindings/go v0.0.0-20261026052736-6410c13304f9/go.mod h1:aW9XJyUJfg0r+HogMGMagTt4hF6ibBkH/FZenG/KiyE=
-github.com/owenrumney/go-sarif/v3 v3.3.1 h1:bKY8YnWcY8zYTiGVObC5wZLlfEvMkCxK9XMGXBbzEtQ=
-github.com/owenrumney/go-sarif/v3 v3.3.1/go.mod h1:72MaugkExDexbSauRuPq6BvUAAqAX0TwoNYMIQyZCMw=
+github.com/owenrumney/go-sarif/v3 v3.3.2 h1:honhpzO+zSlKIVozo3F/exQfqpjHebUPbPzLB5czblo=
+github.com/owenrumney/go-sarif/v3 v3.3.2/go.mod h1:ST8PDuGUCI5NxUBkEhDfma4kgyKsUnaXhFMch2P/MZc=
 github.com/package-url/packageurl-go v0.1.7 h1:iFWg6tzAjLA6F/qX3M5nZaiMHJgc+p2zxVyr/fY+sZY=
 github.com/package-url/packageurl-go v0.1.7/go.mod h1:nKAWB8E6uk1MHqiS/lQb9pYBGH2+mdJ2PJc2s50dQY0=
 github.com/pandatix/go-cvss v0.6.4 h1:9w2RCO/Q4UTiJyEgpCHRiVc6CfrsFEnkoX+OtATqKio=
