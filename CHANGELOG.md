@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.52.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.1...plugin-validator/v0.52.2) (2026-10-30)
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/googleapis/enterprise-certificate-proxy to v0.3.24 ([#1074](https://github.com/grafana/plugin-validator/issues/1074)) ([f4037a5](https://github.com/grafana/plugin-validator/commit/f4037a52a361253bb949cece8986c0fa73c6351b))
+* **deps:** update module github.com/moby/buildkit to v0.34.1 ([#1075](https://github.com/grafana/plugin-validator/issues/1075)) ([3edd3c1](https://github.com/grafana/plugin-validator/commit/3edd3c17cce9b1b38e11766ab6465a61087f2ef0))
+* **deps:** update module github.com/owenrumney/go-sarif/v3 to v3.3.2 ([#1076](https://github.com/grafana/plugin-validator/issues/1076)) ([eb58f62](https://github.com/grafana/plugin-validator/commit/eb58f623d9fba2e0978eaab3e8e873d916bd971d))
+* **renovate:** stop go-shuffle v2 bump ([#1070](https://github.com/grafana/plugin-validator/issues/1070)) ([94178d6](https://github.com/grafana/plugin-validator/commit/94178d62dae8fd3e070247436d7b79e621943368))
+
 ## [0.52.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.0...plugin-validator/v0.52.1) (2026-10-29)
 
 
