@@ -87,7 +87,7 @@ require (
 	github.com/erikvarga/go-rpmdb v0.0.0-20261001143808-1a11b79cbdd3 // indirect
 	github.com/felixge/httpsnoop v1.1.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
-	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
+	github.com/go-git/gcfg/v2 v2.0.2 // indirect
 	github.com/go-git/go-billy/v5 v5.9.2 // indirect
 	github.com/go-git/go-git/v5 v5.19.3 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
