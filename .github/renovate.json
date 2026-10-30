@@ -16,6 +16,11 @@
       "allowedVersions": "<1.8.0"
     },
     {
+      "description": "go-shuffle v2 uses the module path github.com/shogo82148/go-shuffle/v2, so Renovate cannot bump this path to v2 and ends up downgrading it. It is an indirect dependency of go-license-detector and nothing here imports it.",
+      "matchPackageNames": ["github.com/shogo82148/go-shuffle"],
+      "allowedVersions": "<2.0.0"
+    },
+    {
       "matchDepNames": ["go", "golang"],
       "rangeStrategy": "bump",
       "groupName": "Go version",
