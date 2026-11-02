@@ -39,6 +39,16 @@
       "addLabels": ["automerge-direct"]
     }
   ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Keep the pinned @grafana/plugin-docs-cli version in plugindocs.go up to date",
+      "managerFilePatterns": ["/^pkg/analysis/passes/plugindocs/plugindocs\\.go$/"],
+      "matchStrings": ["cliVersion\\s*=\\s*\"(?<currentValue>[^\"]+)\""],
+      "depNameTemplate": "@grafana/plugin-docs-cli",
+      "datasourceTemplate": "npm"
+    }
+  ],
   "labels": [
     "dependencies"
   ],

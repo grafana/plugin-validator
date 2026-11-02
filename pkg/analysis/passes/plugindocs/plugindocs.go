@@ -45,8 +45,8 @@ func (b *boundedBuffer) String() string { return b.buf.String() }
 const (
 	cliPackage = "@grafana/plugin-docs-cli"
 	// cliVersion pins the CLI so validation is reproducible across runs and can't be
-	// influenced by whatever version `latest` resolves to on a given day. Bump this
-	// deliberately when adopting new validation rules from the CLI.
+	// influenced by whatever version `latest` resolves to on a given day. Renovate
+	// raises the bump PR (see .github/renovate.json).
 	cliVersion    = "0.13.0"
 	cliRunCommand = "validate"
 	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
