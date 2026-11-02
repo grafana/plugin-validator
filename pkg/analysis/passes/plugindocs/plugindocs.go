@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/logme"
 	"github.com/grafana/plugin-validator/pkg/scanprocess"
 )
@@ -47,7 +47,7 @@ const (
 	// cliVersion pins the CLI so validation is reproducible across runs and can't be
 	// influenced by whatever version `latest` resolves to on a given day. Bump this
 	// deliberately when adopting new validation rules from the CLI.
-	cliVersion    = "0.5.0"
+	cliVersion    = "0.13.0"
 	cliRunCommand = "validate"
 	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
 	runTimeout = 120 * time.Second
@@ -81,7 +81,7 @@ var (
 
 var Analyzer = &analysis.Analyzer{
 	Name:     "plugindocs",
-	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer, sourcecode.Analyzer},
+	Requires: []*analysis.Analyzer{nestedmetadata.Analyzer, archive.Analyzer},
 	Run:      run,
 	Rules: []*analysis.Rule{
 		pluginDocsError,
@@ -91,7 +91,7 @@ var Analyzer = &analysis.Analyzer{
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Plugin Docs",
-		Description:  fmt.Sprintf("Runs the `%s validate` command to check multi-page documentation (only for plugins that set `docsPath` in `plugin.json`).", cliPackage),
+		Description:  fmt.Sprintf("Runs the `%s validate --dist` command to check the multi-page documentation built into the archive (only for plugins that set `docsPath` in `plugin.json`).", cliPackage),
 		Dependencies: "`node`, `npx`",
 	},
 }
@@ -113,9 +113,9 @@ type cliResult struct {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	sourceCodeDir, ok := pass.ResultOf[sourcecode.Analyzer].(string)
-	if !ok || sourceCodeDir == "" {
-		// no source code available - can't validate docs
+	archiveDir, ok := pass.ResultOf[archive.Analyzer].(string)
+	if !ok || archiveDir == "" {
+		// no archive available - can't validate docs
 		return nil, nil
 	}
 
@@ -141,8 +141,9 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage+"@"+cliVersion, cliRunCommand, "--json", "--strict")
-	cmd.Dir = sourceCodeDir
+	// the archive dir holds plugin.json and the built docs, which is what the catalog serves
+	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage+"@"+cliVersion, cliRunCommand, "--json", "--dist", ".")
+	cmd.Dir = archiveDir
 	cmd.WaitDelay = waitDelay
 	stdout := &boundedBuffer{limit: maxBufferBytes}
 	stderr := &boundedBuffer{limit: maxBufferBytes}

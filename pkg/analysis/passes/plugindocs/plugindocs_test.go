@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
+	"github.com/grafana/plugin-validator/pkg/analysis/passes/archive"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/metadata"
 	"github.com/grafana/plugin-validator/pkg/analysis/passes/nestedmetadata"
-	"github.com/grafana/plugin-validator/pkg/analysis/passes/sourcecode"
 	"github.com/grafana/plugin-validator/pkg/testpassinterceptor"
 )
 
@@ -61,7 +61,7 @@ func TestSkipsWhenNoDocsPath(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer:     filepath.Join("testdata", "no-docspath"),
+			archive.Analyzer: filepath.Join("testdata", "no-docspath"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				nestedmetadata.MainPluginJson: metadata.Metadata{},
 			},
@@ -79,7 +79,7 @@ func TestSkipsWhenDocsPathIsEmpty(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer:     filepath.Join("testdata", "empty-docspath"),
+			archive.Analyzer: filepath.Join("testdata", "empty-docspath"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: ""},
 			},
@@ -97,7 +97,7 @@ func TestSkipsWhenDocsPathIsWhitespaceOnly(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer:     filepath.Join("testdata", "empty-docspath"),
+			archive.Analyzer: filepath.Join("testdata", "empty-docspath"),
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: "   "},
 			},
@@ -110,15 +110,15 @@ func TestSkipsWhenDocsPathIsWhitespaceOnly(t *testing.T) {
 	require.Len(t, interceptor.Diagnostics, 0)
 }
 
-// TestSkipsWhenNoSourceCode covers the case where the validator was invoked against a
-// zip archive only (no source code reference). The analyzer should skip silently.
-func TestSkipsWhenNoSourceCode(t *testing.T) {
+// TestSkipsWhenNoArchive covers the case where no archive was extracted. The analyzer
+// should skip silently.
+func TestSkipsWhenNoArchive(t *testing.T) {
 	var interceptor testpassinterceptor.TestPassInterceptor
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			// sourcecode.Analyzer intentionally absent - matches how the runner records
-			// "no source code provided" (sourcecode.run returns (nil, nil) in that case).
+			// archive.Analyzer intentionally absent - matches how the runner records
+			// "no archive" (archive.run returns (nil, nil) in that case).
 			nestedmetadata.Analyzer: nestedmetadata.Metadatamap{
 				nestedmetadata.MainPluginJson: metadata.Metadata{DocsPath: "docs"},
 			},
@@ -138,7 +138,7 @@ func TestSkipsWhenNoMetadata(t *testing.T) {
 	pass := &analysis.Pass{
 		RootDir: "./",
 		ResultOf: map[*analysis.Analyzer]interface{}{
-			sourcecode.Analyzer: filepath.Join("testdata", "with-docspath"),
+			archive.Analyzer: filepath.Join("testdata", "with-docspath"),
 			// nestedmetadata.Analyzer intentionally absent
 		},
 		Report: interceptor.ReportInterceptor(),
