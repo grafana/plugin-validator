@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.0...plugin-validator/v0.53.1) (2026-11-03)
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/velocidex/ordereddict digest to 6857b08 ([#1079](https://github.com/grafana/plugin-validator/issues/1079)) ([cee5ecd](https://github.com/grafana/plugin-validator/commit/cee5ecd6ac046a1025246050e91f40f690a47ad9))
+* **deps:** update google.golang.org/genproto digest to 2ffab32 ([#1080](https://github.com/grafana/plugin-validator/issues/1080)) ([59862f1](https://github.com/grafana/plugin-validator/commit/59862f18e38fdc9b9911d67801a4d06354fae274))
+
 ## [0.53.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.1...plugin-validator/v0.53.0) (2026-11-02)
 
 
