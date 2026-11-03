@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -75,7 +76,7 @@ var (
 	}
 	pluginDocsCliFailure = &analysis.Rule{
 		Name:     "plugin-docs-cli-failure",
-		Severity: analysis.Warning,
+		Severity: analysis.Error,
 	}
 )
 
@@ -141,6 +142,11 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), runTimeout)
 	defer cancel()
 
+	if msg := unsupportedNodeMessage(ctx); msg != "" {
+		pass.ReportResult(pass.AnalyzerName, pluginDocsCliFailure, msg, nodeVersionDetail)
+		return nil, nil
+	}
+
 	// the archive dir holds plugin.json and the built docs, which is what the catalog serves
 	cmd := exec.CommandContext(ctx, npxBin, "--yes", cliPackage+"@"+cliVersion, cliRunCommand, "--json", "--dist", ".")
 	cmd.Dir = archiveDir
@@ -172,6 +178,33 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+const (
+	minNodeMajor      = 22
+	nodeVersionDetail = "The multi-page docs validator needs Node.js 22 or later. In GitHub Actions, set `node-version: 22` on the `build-plugin` or `package-plugin` step."
+)
+
+// unsupportedNodeMessage returns a message when the Node.js on PATH is older than the CLI supports,
+// and an empty string when it is new enough or its version cannot be read.
+func unsupportedNodeMessage(ctx context.Context) string {
+	nodeBin, err := exec.LookPath("node")
+	if err != nil {
+		return ""
+	}
+	out, err := exec.CommandContext(ctx, nodeBin, "--version").Output()
+	if err != nil {
+		return ""
+	}
+	return nodeVersionMessage(strings.TrimSpace(string(out)))
+}
+
+func nodeVersionMessage(version string) string {
+	major, err := strconv.Atoi(strings.SplitN(strings.TrimPrefix(version, "v"), ".", 2)[0])
+	if err != nil || major >= minNodeMajor {
+		return ""
+	}
+	return fmt.Sprintf("`%s` needs Node.js %d or later, found %s.", cliPackage, minNodeMajor, version)
 }
 
 func ruleForSeverity(severity string) *analysis.Rule {

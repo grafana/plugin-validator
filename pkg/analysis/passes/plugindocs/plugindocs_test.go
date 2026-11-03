@@ -22,6 +22,30 @@ func TestRuleForSeverity(t *testing.T) {
 	require.Equal(t, pluginDocsWarning, ruleForSeverity(""))
 }
 
+func TestCliFailureIsAnError(t *testing.T) {
+	require.Equal(t, analysis.Error, pluginDocsCliFailure.Severity)
+}
+
+func TestNodeVersionMessage(t *testing.T) {
+	tests := []struct {
+		version string
+		want    string
+	}{
+		{"v20.20.2", "`@grafana/plugin-docs-cli` needs Node.js 22 or later, found v20.20.2."},
+		{"v18.0.0", "`@grafana/plugin-docs-cli` needs Node.js 22 or later, found v18.0.0."},
+		{"v22.0.0", ""},
+		{"v24.15.0", ""},
+		{"garbage", ""},
+		{"", ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.version, func(t *testing.T) {
+			require.Equal(t, tc.want, nodeVersionMessage(tc.version))
+		})
+	}
+}
+
 func TestFormatTitle(t *testing.T) {
 	tests := []struct {
 		name string
