@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.53.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.2...plugin-validator/v0.53.3) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **plugindocs:** bump plugin-docs-cli to 0.14.0 ([#1089](https://github.com/grafana/plugin-validator/issues/1089)) ([6f0ae92](https://github.com/grafana/plugin-validator/commit/6f0ae925c88c88cc8299178e4c5191d2afd70634))
+
+
+### 🔧 Chores
+
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to 2ffab32 ([#1086](https://github.com/grafana/plugin-validator/issues/1086)) ([817aea9](https://github.com/grafana/plugin-validator/commit/817aea9108f6dd2e514fab199f781c170b925939))
+
 ## [0.53.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.1...plugin-validator/v0.53.2) (2026-11-03)
 
 
