@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.1...plugin-validator/v0.53.2) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **brokenlinks:** skip the plugin own catalog page ([#1083](https://github.com/grafana/plugin-validator/issues/1083)) ([9226d17](https://github.com/grafana/plugin-validator/commit/9226d1752dd65b9b40d6059b59448f57b300c6cb))
+
 ## [0.53.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.0...plugin-validator/v0.53.1) (2026-11-03)
 
 
