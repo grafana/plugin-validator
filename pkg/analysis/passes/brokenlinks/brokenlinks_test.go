@@ -101,6 +101,83 @@ func TestValidLink(t *testing.T) {
 	require.Empty(t, interceptor.Diagnostics)
 }
 
+func TestOwnCatalogLinkIsNotFetched(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	ownURL := "https://grafana.com/grafana/plugins/" + pluginId + "/docs/"
+	httpmock.RegisterResponder("GET", ownURL,
+		httpmock.NewStringResponder(404, "Not Found"))
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			metadata.Analyzer: []byte(`{"ID": "` + pluginId + `"}`),
+			readme.Analyzer:   []byte(`# README [Docs](` + ownURL + `)`),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Empty(t, interceptor.Diagnostics)
+	require.Zero(t, httpmock.GetTotalCallCount())
+}
+
+func TestOtherPluginCatalogLinkIsStillChecked(t *testing.T) {
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+
+	otherURL := "https://grafana.com/grafana/plugins/" + pluginId + "-other/docs/"
+	httpmock.RegisterResponder("GET", otherURL,
+		httpmock.NewStringResponder(404, "Not Found"))
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			metadata.Analyzer: []byte(`{"ID": "` + pluginId + `"}`),
+			readme.Analyzer:   []byte(`# README [Docs](` + otherURL + `)`),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	require.Len(t, interceptor.Diagnostics, 1)
+}
+
+func TestIsOwnCatalogURL(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		id   string
+		want bool
+	}{
+		{"catalog page", "https://grafana.com/grafana/plugins/my-plugin/", "my-plugin", true},
+		{"no trailing slash", "https://grafana.com/grafana/plugins/my-plugin", "my-plugin", true},
+		{"docs page", "https://grafana.com/grafana/plugins/my-plugin/docs/setup/", "my-plugin", true},
+		{"older form", "https://grafana.com/plugins/my-plugin", "my-plugin", true},
+		{"www host", "https://www.grafana.com/grafana/plugins/my-plugin/docs/", "my-plugin", true},
+		{"different case", "https://grafana.com/Grafana/Plugins/My-Plugin/", "my-plugin", true},
+		{"query string", "https://grafana.com/grafana/plugins/my-plugin/?tab=docs", "my-plugin", true},
+		{"id prefix of another plugin", "https://grafana.com/grafana/plugins/my-plugin-other/", "my-plugin", false},
+		{"another plugin", "https://grafana.com/grafana/plugins/other/", "my-plugin", false},
+		{"another host", "https://example.com/grafana/plugins/my-plugin/", "my-plugin", false},
+		{"empty id", "https://grafana.com/grafana/plugins/", "", false},
+		{"not a url", "::", "my-plugin", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.want, isOwnCatalogURL(tc.url, tc.id))
+		})
+	}
+}
+
 func TestIsGitHubURL(t *testing.T) {
 	tests := []struct {
 		name     string
