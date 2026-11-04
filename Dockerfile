@@ -2,16 +2,20 @@ ARG GOLANGCI_LINT_VERSION=v2.14.0
 # SHA256 of golangci-lint-${GOLANGCI_LINT_VERSION#v}-linux-amd64.tar.gz from the upstream checksums file.
 # Update whenever GOLANGCI_LINT_VERSION changes.
 ARG GOLANGCI_LINT_SHA256=ab90aeb7b066f92a33415b638a50fe5344bbb75a0d32ad30cc248d88f81032ab
+# renovate: datasource=github-releases depName=securego/gosec
 ARG GOSEC_VERSION=v2.30.0
-ARG GOVULNCHECK_VERSION=v1.7.0
+# renovate: datasource=pypi depName=semgrep
 ARG SEMGREP_VERSION=1.84.1
 
 FROM golang:1.27.3-alpine@sha256:d200d2dd76b03a99b52651fd1325aff7dcd35422c35c01bac56571b0507f3deb AS go-base
 
 FROM go-base AS govulncheck
 
-ARG GOVULNCHECK_VERSION
-RUN GOTOOLCHAIN=local CGO_ENABLED=0 go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
+# govulncheck is a tool directive in go.mod, so its version and its
+# dependencies come from go.mod and go.sum.
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN GOTOOLCHAIN=local CGO_ENABLED=0 go build -o /go/bin/govulncheck golang.org/x/vuln/cmd/govulncheck
 COPY scripts/govulncheck-probe.sh /tmp/govulncheck-probe.sh
 RUN sh /tmp/govulncheck-probe.sh /go/bin/govulncheck
 
