@@ -21,6 +21,12 @@
       "allowedVersions": "<2.0.0"
     },
     {
+      "description": "semgrep stays on 1.84.x: newer releases ship an OCaml 5 core that crashes in the restricted buildkit sandbox (see Dockerfile)",
+      "matchDatasources": ["pypi"],
+      "matchPackageNames": ["semgrep"],
+      "allowedVersions": "<1.85.0"
+    },
+    {
       "matchDepNames": ["go", "golang"],
       "rangeStrategy": "bump",
       "groupName": "Go version",
