@@ -53,7 +53,7 @@ require (
 	github.com/aead/serpent v0.0.0-20160714141033-fba169763ea6 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/anchore/go-lzo v0.1.1 // indirect
-	github.com/anchore/go-struct-converter v0.1.0 // indirect
+	github.com/anchore/go-struct-converter v0.2.1 // indirect
 	github.com/ayoubfaouzi/pkcs7 v0.2.3 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/bazelbuild/buildtools v0.0.0-20260904073137-eaa4d125b423 // indirect
