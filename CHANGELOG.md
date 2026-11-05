@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.53.4](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.3...plugin-validator/v0.53.4) (2026-11-05)
+
+
+### 🔧 Chores
+
+* **deps:** build govulncheck from go.mod and let renovate track tool versions ([#1097](https://github.com/grafana/plugin-validator/issues/1097)) ([3bdfd4f](https://github.com/grafana/plugin-validator/commit/3bdfd4f7c09339dab2e3d86919685d6a9646bc06))
+* **deps:** update actions/setup-python action to v7.1.0 ([#1095](https://github.com/grafana/plugin-validator/issues/1095)) ([c4af223](https://github.com/grafana/plugin-validator/commit/c4af223402bdc014f16d9c08a2f1669b5bdc4842))
+* **deps:** update anthropics/claude-code-action action to v1.0.266 ([#1087](https://github.com/grafana/plugin-validator/issues/1087)) ([6fe0ae4](https://github.com/grafana/plugin-validator/commit/6fe0ae46ee830f595e1a6c22026e16b08e065916))
+* **deps:** update dependency goreleaser/goreleaser to v2.19.0 ([#1096](https://github.com/grafana/plugin-validator/issues/1096)) ([d11c418](https://github.com/grafana/plugin-validator/commit/d11c418f767cc51c93830f34ac630d73fd40c96e))
+* **deps:** update google.golang.org/genproto/googleapis/api digest to 2ffab32 ([#1085](https://github.com/grafana/plugin-validator/issues/1085)) ([49b7153](https://github.com/grafana/plugin-validator/commit/49b7153f169dca088e7f85093635e654d7be8384))
+* **deps:** update module cloud.google.com/go/auth to v0.24.2 ([#1091](https://github.com/grafana/plugin-validator/issues/1091)) ([16d5c67](https://github.com/grafana/plugin-validator/commit/16d5c67ad312f17d27995854f689f35ebad74538))
+* **deps:** update module github.com/anthropics/anthropic-sdk-go to v1.84.0 ([#1098](https://github.com/grafana/plugin-validator/issues/1098)) ([979f6e5](https://github.com/grafana/plugin-validator/commit/979f6e584468fc1cbcf7c67e4885f690fabba179))
+* **deps:** update module go.yaml.in/yaml/v2 to v3 ([#1050](https://github.com/grafana/plugin-validator/issues/1050)) ([fb9d3be](https://github.com/grafana/plugin-validator/commit/fb9d3be2783f71753673c1d0f302335020332ef3))
+* **deps:** update module go.yaml.in/yaml/v4 to v4.0.0-rc.7 ([#1092](https://github.com/grafana/plugin-validator/issues/1092)) ([8a97571](https://github.com/grafana/plugin-validator/commit/8a97571bafcff5cb65e9ddc64554dc3d5e8df502))
+* **deps:** update module google.golang.org/genai to v1.77.0 ([#1099](https://github.com/grafana/plugin-validator/issues/1099)) ([51669a9](https://github.com/grafana/plugin-validator/commit/51669a9803e9f7e930e35d69b1af794f4354f178))
+* **deps:** update module modernc.org/libc to v1.79.1 ([#1093](https://github.com/grafana/plugin-validator/issues/1093)) ([5f08d5f](https://github.com/grafana/plugin-validator/commit/5f08d5fcf97f85a0058e32c6c99c655bd1213ae7))
+* **deps:** update step-security/harden-runner action to v2.22.3 ([#1094](https://github.com/grafana/plugin-validator/issues/1094)) ([c6f527c](https://github.com/grafana/plugin-validator/commit/c6f527cd3652d6f7f49cb5bb0a2274221c728de6))
+
 ## [0.53.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.2...plugin-validator/v0.53.3) (2026-11-03)
 
 
