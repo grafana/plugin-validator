@@ -47,7 +47,7 @@ const (
 	// cliVersion pins the CLI so validation is reproducible across runs and can't be
 	// influenced by whatever version `latest` resolves to on a given day. Renovate
 	// raises the bump PR (see .github/renovate.json).
-	cliVersion    = "0.13.0"
+	cliVersion    = "0.14.0"
 	cliRunCommand = "validate"
 	// runTimeout bounds the full `npx --yes ...` invocation, including package download on first run.
 	runTimeout = 120 * time.Second

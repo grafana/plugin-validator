@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.53.3](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.2...plugin-validator/v0.53.3) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **plugindocs:** bump plugin-docs-cli to 0.14.0 ([#1089](https://github.com/grafana/plugin-validator/issues/1089)) ([6f0ae92](https://github.com/grafana/plugin-validator/commit/6f0ae925c88c88cc8299178e4c5191d2afd70634))
+
+
+### 🔧 Chores
+
+* **deps:** update google.golang.org/genproto/googleapis/rpc digest to 2ffab32 ([#1086](https://github.com/grafana/plugin-validator/issues/1086)) ([817aea9](https://github.com/grafana/plugin-validator/commit/817aea9108f6dd2e514fab199f781c170b925939))
+
+## [0.53.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.1...plugin-validator/v0.53.2) (2026-11-03)
+
+
+### 🐛 Bug Fixes
+
+* **brokenlinks:** skip the plugin own catalog page ([#1083](https://github.com/grafana/plugin-validator/issues/1083)) ([9226d17](https://github.com/grafana/plugin-validator/commit/9226d1752dd65b9b40d6059b59448f57b300c6cb))
+
+## [0.53.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.0...plugin-validator/v0.53.1) (2026-11-03)
+
+
+### 🔧 Chores
+
+* **deps:** update github.com/velocidex/ordereddict digest to 6857b08 ([#1079](https://github.com/grafana/plugin-validator/issues/1079)) ([cee5ecd](https://github.com/grafana/plugin-validator/commit/cee5ecd6ac046a1025246050e91f40f690a47ad9))
+* **deps:** update google.golang.org/genproto digest to 2ffab32 ([#1080](https://github.com/grafana/plugin-validator/issues/1080)) ([59862f1](https://github.com/grafana/plugin-validator/commit/59862f18e38fdc9b9911d67801a4d06354fae274))
+
+## [0.53.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.1...plugin-validator/v0.53.0) (2026-11-02)
+
+
+### 🎉 Features
+
+* **plugindocs:** validate the docs built into the archive ([#1057](https://github.com/grafana/plugin-validator/issues/1057)) ([caab22e](https://github.com/grafana/plugin-validator/commit/caab22e4bb16f236c08ffc87e708f2ac22d19f54))
+
+
+### 🔧 Chores
+
+* **deps:** update module github.com/googleapis/enterprise-certificate-proxy to v0.3.24 ([#1074](https://github.com/grafana/plugin-validator/issues/1074)) ([f4037a5](https://github.com/grafana/plugin-validator/commit/f4037a52a361253bb949cece8986c0fa73c6351b))
+* **deps:** update module github.com/moby/buildkit to v0.34.1 ([#1075](https://github.com/grafana/plugin-validator/issues/1075)) ([3edd3c1](https://github.com/grafana/plugin-validator/commit/3edd3c17cce9b1b38e11766ab6465a61087f2ef0))
+* **deps:** update module github.com/owenrumney/go-sarif/v3 to v3.3.2 ([#1076](https://github.com/grafana/plugin-validator/issues/1076)) ([eb58f62](https://github.com/grafana/plugin-validator/commit/eb58f623d9fba2e0978eaab3e8e873d916bd971d))
+* **renovate:** stop go-shuffle v2 bump ([#1070](https://github.com/grafana/plugin-validator/issues/1070)) ([94178d6](https://github.com/grafana/plugin-validator/commit/94178d62dae8fd3e070247436d7b79e621943368))
+
 ## [0.52.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.52.0...plugin-validator/v0.52.1) (2026-10-29)
 
 

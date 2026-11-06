@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 
@@ -29,6 +30,31 @@ func isGitHubURL(urlStr string) bool {
 		return false
 	}
 	return strings.ToLower(parsedURL.Hostname()) == "github.com"
+}
+
+// isOwnCatalogURL reports whether urlStr points at the plugin's own page on the Grafana catalog.
+// Those pages do not exist until the plugin is published, so fetching them would flag a
+// first release.
+func isOwnCatalogURL(urlStr, pluginID string) bool {
+	if pluginID == "" {
+		return false
+	}
+	parsedURL, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(parsedURL.Hostname())
+	if host != "grafana.com" && host != "www.grafana.com" {
+		return false
+	}
+	path := strings.ToLower(strings.TrimSuffix(parsedURL.Path, "/"))
+	for _, prefix := range []string{"/grafana/plugins/", "/plugins/"} {
+		own := prefix + strings.ToLower(pluginID)
+		if path == own || strings.HasPrefix(path, own+"/") {
+			return true
+		}
+	}
+	return false
 }
 
 var Analyzer = &analysis.Analyzer{
@@ -116,6 +142,10 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	brokenCh := make(chan urlstatus)
+
+	urls = slices.DeleteFunc(urls, func(u contextURL) bool {
+		return isOwnCatalogURL(u.url, data.ID)
+	})
 
 	var wg sync.WaitGroup
 	wg.Add(len(urls))
