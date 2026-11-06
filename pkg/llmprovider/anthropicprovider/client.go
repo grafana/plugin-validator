@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/anthropics/anthropic-sdk-go"
-	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/anthropics/anthropic-sdk-go/v2"
+	"github.com/anthropics/anthropic-sdk-go/v2/option"
 	"github.com/grafana/plugin-validator/pkg/llmprovider"
 	"github.com/grafana/plugin-validator/pkg/logme"
 )
@@ -294,11 +294,11 @@ func fromAnthropicResponse(resp *anthropic.Message) *llmprovider.Response {
 	return &llmprovider.Response{
 		Choices: []*llmprovider.Choice{choice},
 		Usage: llmprovider.Usage{
-			InputTokens:             int(resp.Usage.InputTokens),
-			OutputTokens:            int(resp.Usage.OutputTokens),
-			TotalTokens:             int(totalInput + resp.Usage.OutputTokens),
+			InputTokens:              int(resp.Usage.InputTokens),
+			OutputTokens:             int(resp.Usage.OutputTokens),
+			TotalTokens:              int(totalInput + resp.Usage.OutputTokens),
 			CacheCreationInputTokens: int(resp.Usage.CacheCreationInputTokens),
-			CacheReadInputTokens:    int(resp.Usage.CacheReadInputTokens),
+			CacheReadInputTokens:     int(resp.Usage.CacheReadInputTokens),
 		},
 	}
 }
