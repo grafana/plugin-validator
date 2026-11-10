@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.53.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.5...plugin-validator/v0.53.6) (2026-11-10)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.269 ([#1109](https://github.com/grafana/plugin-validator/issues/1109)) ([f95fa62](https://github.com/grafana/plugin-validator/commit/f95fa624d47c390d2fd5809f316f4057aa84ec7f))
+* **deps:** update dependency @grafana/plugin-docs-cli to v0.14.1 ([#1111](https://github.com/grafana/plugin-validator/issues/1111)) ([ee3dc8a](https://github.com/grafana/plugin-validator/commit/ee3dc8adfffed8f1162b4e08b5a59bd8fc6ec32c))
+* **deps:** update dependency goreleaser/goreleaser to v2.20.0 ([#1104](https://github.com/grafana/plugin-validator/issues/1104)) ([75dc5b3](https://github.com/grafana/plugin-validator/commit/75dc5b3259ea58d15db87414c5e9967e6d8c92ed))
+* **deps:** update github.com/ossf/osv-schema/bindings/go digest to 7e336cc ([#1102](https://github.com/grafana/plugin-validator/issues/1102)) ([7a9f988](https://github.com/grafana/plugin-validator/commit/7a9f9888ceafdaf4b3442068391c971f9053896f))
+* **deps:** update golang:1.27.3-alpine docker digest to fa3d596 [security] ([#1101](https://github.com/grafana/plugin-validator/issues/1101)) ([5a77f30](https://github.com/grafana/plugin-validator/commit/5a77f30c6dcdf7dbfec66afd3e72635f122f7d12))
+* **deps:** update grafana/shared-workflows/docker-build-push-image action to v1.0 ([#1105](https://github.com/grafana/plugin-validator/issues/1105)) ([9d0b23a](https://github.com/grafana/plugin-validator/commit/9d0b23a8776b04593af2c0d4f959b2351be6e505))
+* **deps:** update step-security/harden-runner action to v2.22.4 ([#1110](https://github.com/grafana/plugin-validator/issues/1110)) ([309d093](https://github.com/grafana/plugin-validator/commit/309d093f2d07cc3958317803c42e3efa90bb8696))
+* **renovate:** bump pinned plugin-docs-cli automatically ([#1078](https://github.com/grafana/plugin-validator/issues/1078)) ([f85035f](https://github.com/grafana/plugin-validator/commit/f85035f7842d629d4a293e875d86dc9b2220b1a8))
+
 ## [0.53.5](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.4...plugin-validator/v0.53.5) (2026-11-09)
 
 
