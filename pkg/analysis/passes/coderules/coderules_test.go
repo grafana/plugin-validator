@@ -86,6 +86,66 @@ func TestAccessAllowedEnvVariables(t *testing.T) {
 	require.Contains(t, ruleNames, "code-rules-access-os-environment")
 }
 
+func TestAccessDynamicEnvVariables(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "access-env-dynamic"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+
+	// 1 function parameter + 4 os.Args + 2 struct field os + 3 syscall
+	dynamicFindings := 0
+	for _, d := range interceptor.Diagnostics {
+		require.NotEqual(t, "code-rules-access-forbidden-os-environment", d.Name)
+		if d.Name != "code-rules-access-dynamic-os-environment" {
+			continue
+		}
+
+		dynamicFindings++
+		require.Equal(t, "It is not permitted to access environment variables from plugins. Environment variable names must be string constants so they can be checked against the accessible variables.", d.Title)
+	}
+	require.Equal(t, 10, dynamicFindings)
+}
+
+func TestAccessForbiddenSetenv(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "access-env-setenv"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	titles := []string{}
+	for _, d := range interceptor.Diagnostics {
+		require.NotEqual(t, "code-rules-access-dynamic-os-environment", d.Name)
+		if d.Name == "code-rules-access-forbidden-os-environment" {
+			titles = append(titles, d.Title)
+		}
+	}
+	require.ElementsMatch(t, []string{
+		"It is not permitted to access environment variables from plugins. DO_NOT_INCLUDE_OS is not an accessible variable.",
+		"It is not permitted to access environment variables from plugins. DO_NOT_INCLUDE_SYSCALL is not an accessible variable.",
+	}, titles)
+}
+
 func TestAccessFS(t *testing.T) {
 	if !isSemgrepInstalled() {
 		t.Skip("semgrep not installed, skipping test")
