@@ -106,6 +106,12 @@ func Check(
 	}
 
 	for _, a := range analyzers {
+		// A disabled analyzer cannot report anything, so it only runs when an enabled
+		// analyzer requires its result.
+		if a.AllRulesDisabled() {
+			logme.DebugFln("Skipping analyzer %s: all rules are disabled", a.Name)
+			continue
+		}
 		if err := runFn(a); err != nil {
 			// on an error we still return the diagnostics we have so far
 			return diagnostics, err
