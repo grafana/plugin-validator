@@ -103,7 +103,7 @@ func TestAccessDynamicEnvVariables(t *testing.T) {
 	_, err := Analyzer.Run(pass)
 	require.NoError(t, err)
 
-	// 1 function parameter + 4 os.Args + 2 struct field os + 3 syscall
+	// 1 function parameter + 4 os.Args + 2 struct field os + 3 syscall + 7 conditional
 	dynamicFindings := 0
 	for _, d := range interceptor.Diagnostics {
 		require.NotEqual(t, "code-rules-access-forbidden-os-environment", d.Name)
@@ -114,7 +114,7 @@ func TestAccessDynamicEnvVariables(t *testing.T) {
 		dynamicFindings++
 		require.Equal(t, "It is not permitted to access environment variables from plugins. Environment variable names must be string constants so they can be checked against the accessible variables.", d.Title)
 	}
-	require.Equal(t, 10, dynamicFindings)
+	require.Equal(t, 17, dynamicFindings)
 }
 
 func TestAccessForbiddenSetenv(t *testing.T) {

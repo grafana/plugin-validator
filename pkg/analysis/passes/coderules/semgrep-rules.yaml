@@ -36,13 +36,13 @@ rules:
           - pattern: syscall.Getenv($X)
           - pattern: syscall.Setenv($X, ...)
           - pattern: syscall.Unsetenv($X)
-      - pattern-not: os.Getenv("...")
-      - pattern-not: os.LookupEnv("...")
-      - pattern-not: os.Setenv("...", ...)
-      - pattern-not: os.Unsetenv("...")
-      - pattern-not: syscall.Getenv("...")
-      - pattern-not: syscall.Setenv("...", ...)
-      - pattern-not: syscall.Unsetenv("...")
+      - pattern-not: os.Getenv("$ENV")
+      - pattern-not: os.LookupEnv("$ENV")
+      - pattern-not: os.Setenv("$ENV", ...)
+      - pattern-not: os.Unsetenv("$ENV")
+      - pattern-not: syscall.Getenv("$ENV")
+      - pattern-not: syscall.Setenv("$ENV", ...)
+      - pattern-not: syscall.Unsetenv("$ENV")
     message: It is not permitted to access environment variables from plugins. Environment variable names must be string constants so they can be checked against the accessible variables.
     languages: [go]
     severity: WARNING

@@ -14,6 +14,21 @@ func fromParam(n string) {
 	_ = os.Getenv(n)
 }
 
+func fromConditional(flag bool) {
+	name := "GF_PLUGIN_ALLOWED"
+	if flag {
+		name = "DO_NOT_INCLUDE"
+	}
+
+	_ = os.Getenv(name)
+	_, _ = os.LookupEnv(name)
+	_ = os.Setenv(name, "value")
+	_ = os.Unsetenv(name)
+	_, _ = syscall.Getenv(name)
+	_ = syscall.Setenv(name, "value")
+	_ = syscall.Unsetenv(name)
+}
+
 func DoNotInclude(cfg config) {
 	panic("This function should never be included in the binary.")
 
