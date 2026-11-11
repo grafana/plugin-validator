@@ -111,6 +111,20 @@ type Analyzer struct {
 	ReadmeInfo ReadmeInfo
 }
 
+// AllRulesDisabled reports whether the analyzer has rules and every one of them is disabled.
+// Such an analyzer cannot report anything. An analyzer without rules is never considered disabled.
+func (a *Analyzer) AllRulesDisabled() bool {
+	if len(a.Rules) == 0 {
+		return false
+	}
+	for _, rule := range a.Rules {
+		if !rule.Disabled {
+			return false
+		}
+	}
+	return true
+}
+
 type ReadmeInfo struct {
 	Name         string
 	Description  string

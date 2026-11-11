@@ -228,6 +228,156 @@ func TestDisabledByDefaultRule(t *testing.T) {
 	}
 }
 
+func TestDisabledAnalyzerIsNotRun(t *testing.T) {
+	enabled := true
+	disabled := false
+	pluginDir := filepath.Join("testdata", "RuleExceptions", "myorg-plugin-panel")
+
+	tests := []struct {
+		name      string
+		analyzers map[string]AnalyzerConfig
+		ran       bool
+	}{
+		{name: "runs when enabled", analyzers: nil, ran: true},
+		{
+			name:      "skipped when analyzer is disabled",
+			analyzers: map[string]AnalyzerConfig{"testanalyzer": {Enabled: &disabled}},
+			ran:       false,
+		},
+		{
+			name: "runs when a rule of a disabled analyzer is enabled",
+			analyzers: map[string]AnalyzerConfig{"testanalyzer": {
+				Enabled: &disabled,
+				Rules:   map[string]RuleConfig{"rule2": {Enabled: &enabled}},
+			}},
+			ran: true,
+		},
+		{
+			name: "skipped when every rule is disabled",
+			analyzers: map[string]AnalyzerConfig{"testanalyzer": {
+				Rules: map[string]RuleConfig{
+					"rule1": {Enabled: &disabled},
+					"rule2": {Enabled: &disabled},
+				},
+			}},
+			ran: false,
+		},
+		{
+			name:      "skipped for an excepted plugin",
+			analyzers: map[string]AnalyzerConfig{"testanalyzer": {Exceptions: []string{"myorg-plugin-panel"}}},
+			ran:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ran := false
+			analyzer := &analysis.Analyzer{
+				Name:  "testanalyzer",
+				Rules: []*analysis.Rule{{Name: "rule1"}, {Name: "rule2"}},
+				Run: func(pass *analysis.Pass) (interface{}, error) {
+					ran = true
+					return nil, nil
+				},
+			}
+
+			_, err := Check([]*analysis.Analyzer{analyzer},
+				analysis.CheckParams{ArchiveDir: pluginDir},
+				Config{Global: GlobalConfig{Enabled: true}, Analyzers: tt.analyzers},
+				analysis.Severity(""),
+			)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			assert.Equal(t, tt.ran, ran)
+		})
+	}
+}
+
+func TestDisabledDependencyRunsForEnabledAnalyzer(t *testing.T) {
+	disabled := false
+	res := make(map[string]bool)
+
+	parentRule := &analysis.Rule{Name: "parent-rule"}
+	parent := &analysis.Analyzer{
+		Name:  "parent",
+		Rules: []*analysis.Rule{parentRule},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			res["parent"] = true
+			pass.ReportResult(pass.AnalyzerName, parentRule, "diagnostic from parent", "")
+			return true, nil
+		},
+	}
+	childRule := &analysis.Rule{Name: "child-rule"}
+	child := &analysis.Analyzer{
+		Name:     "child",
+		Requires: []*analysis.Analyzer{parent},
+		Rules:    []*analysis.Rule{childRule},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			res["child"] = true
+			assert.Equal(t, true, pass.ResultOf[parent])
+			pass.ReportResult(pass.AnalyzerName, childRule, "diagnostic from child", "")
+			return nil, nil
+		},
+	}
+	unused := &analysis.Analyzer{
+		Name:  "unused",
+		Rules: []*analysis.Rule{{Name: "unused-rule"}},
+		Run: func(pass *analysis.Pass) (interface{}, error) {
+			res["unused"] = true
+			return nil, nil
+		},
+	}
+
+	ds, err := Check(
+		[]*analysis.Analyzer{parent, child, unused},
+		analysis.CheckParams{ArchiveDir: t.TempDir()},
+		Config{
+			Global: GlobalConfig{Enabled: true},
+			Analyzers: map[string]AnalyzerConfig{
+				"parent": {Enabled: &disabled},
+				"unused": {Enabled: &disabled},
+			},
+		},
+		analysis.Severity(""),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, map[string]bool{"parent": true, "child": true}, res)
+	assert.Empty(t, ds["parent"])
+	assert.Len(t, ds["child"], 1)
+}
+
+func TestDisabledAnalyzersDoNotChangeDiagnostics(t *testing.T) {
+	archiveDir := filepath.Join("testdata", "AllFilesPresentButEmpty")
+	params := analysis.CheckParams{ArchiveDir: archiveDir}
+
+	full, err := Check(passes.Analyzers, params, Config{Global: GlobalConfig{Enabled: true}}, analysis.Severity(""))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	enabled := true
+	only, err := Check(passes.Analyzers, params, Config{
+		Global: GlobalConfig{Enabled: false},
+		Analyzers: map[string]AnalyzerConfig{
+			"metadatavalid": {Enabled: &enabled},
+			"license":       {Enabled: &enabled},
+		},
+	}, analysis.Severity(""))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, analysis.Diagnostics{
+		"metadatavalid": full["metadatavalid"],
+		"license":       full["license"],
+	}, only)
+}
+
 func TestLinearDependencies(t *testing.T) {
 	res := make(map[string]bool)
 	first := &analysis.Analyzer{
