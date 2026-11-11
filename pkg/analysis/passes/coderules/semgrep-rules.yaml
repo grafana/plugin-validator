@@ -57,7 +57,7 @@ rules:
           - pattern: os.Mkdir(...)
           - pattern: os.MkdirAll(...)
           - pattern: os.MkdirTemp(...)
-          - pattern: os.Readfile(...)
+          - pattern: os.ReadFile(...)
           - pattern: os.Readlink(...)
           - pattern: os.Remove(...)
           - pattern: os.RemoveAll(...)
