@@ -79,6 +79,20 @@ func TestIntegration(t *testing.T) {
 				Id:      "alexanderzobnin-zabbix-app",
 				Version: "4.4.9",
 				PluginValidator: map[string][]Issue{
+					"grafanadependency": {
+						{
+							Severity: "error",
+							Title:    fmt.Sprintf("%s: dependencies.grafanaDependency %q does not match root plugin.json constraint %q", filepath.Join("datasource", "plugin.json"), "", ">=9.3.0"),
+							Detail:   "All nested plugins must declare the same grafanaDependency constraint as the root plugin.json.",
+							Name:     "mismatched-grafana-dependency",
+						},
+						{
+							Severity: "error",
+							Title:    fmt.Sprintf("%s: dependencies.grafanaDependency %q does not match root plugin.json constraint %q", filepath.Join("panel-triggers", "plugin.json"), "", ">=9.3.0"),
+							Detail:   "All nested plugins must declare the same grafanaDependency constraint as the root plugin.json.",
+							Name:     "mismatched-grafana-dependency",
+						},
+					},
 					"includesnested": {
 						{
 							Severity: "error",

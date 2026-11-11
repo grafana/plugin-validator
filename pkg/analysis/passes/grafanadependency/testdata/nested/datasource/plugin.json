@@ -1,0 +1,7 @@
+{
+  "id": "test-nested-datasource",
+  "type": "datasource",
+  "dependencies": {
+    "grafanaDependency": "12.3.2"
+  }
+}

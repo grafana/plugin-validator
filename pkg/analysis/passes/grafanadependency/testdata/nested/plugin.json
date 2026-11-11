@@ -1,0 +1,7 @@
+{
+  "id": "test-nested-app",
+  "type": "app",
+  "dependencies": {
+    "grafanaDependency": ">12.1.1"
+  }
+}
