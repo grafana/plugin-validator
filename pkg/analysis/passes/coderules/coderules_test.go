@@ -180,6 +180,32 @@ func TestAccessFS(t *testing.T) {
 	require.Contains(t, ruleNames, "code-rules-access-file-system-with-os")
 }
 
+func TestAccessOSReadFile(t *testing.T) {
+	if !isSemgrepInstalled() {
+		t.Skip("semgrep not installed, skipping test")
+		return
+	}
+
+	var interceptor testpassinterceptor.TestPassInterceptor
+	pass := &analysis.Pass{
+		RootDir: filepath.Join("./"),
+		ResultOf: map[*analysis.Analyzer]any{
+			sourcecode.Analyzer: filepath.Join("testdata", "access-os-readfile"),
+		},
+		Report: interceptor.ReportInterceptor(),
+	}
+
+	_, err := Analyzer.Run(pass)
+	require.NoError(t, err)
+	require.Len(t, interceptor.Diagnostics, 1)
+
+	diagnostic := interceptor.Diagnostics[0]
+	require.Equal(t, "code-rules-access-file-system-with-os", diagnostic.Name)
+	require.Equal(t, "It is not permitted to access the file system.", diagnostic.Title)
+	require.Equal(t, analysis.Error, diagnostic.Severity)
+	require.Equal(t, "Code rule violation found in testdata/access-os-readfile/main.go at line 6", diagnostic.Detail)
+}
+
 func TestUseSyscall(t *testing.T) {
 	if !isSemgrepInstalled() {
 		t.Skip("semgrep not installed, skipping test")
