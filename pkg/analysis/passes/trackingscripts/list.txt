@@ -640,6 +640,7 @@ apnx.us
 app-analytics.snapchat.com
 app-dynamics.com
 app-measurement.com
+app.posthog.com
 appads.com
 appanalytics.embarcadero.com
 appave.mobi
@@ -1877,6 +1878,9 @@ etahub.com
 etracker.com
 etracker.de
 etyper.com
+eu-assets.i.posthog.com
+eu.i.posthog.com
+eu.posthog.com
 eue21east.com
 eue27west.com
 euhiocialis.net
@@ -14739,6 +14743,9 @@ upstory.it
 uptilt.com
 uptilt.net
 urbanairship.com
+us-assets.i.posthog.com
+us.i.posthog.com
+us.posthog.com
 usabilla.com
 useitbetter.com
 user-agent-tracker.herokuapp.com
