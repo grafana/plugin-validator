@@ -9,7 +9,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/fatih/color v1.19.0
 	github.com/go-enry/go-license-detector/v4 v4.3.1
-	github.com/google/osv-scanner/v2 v2.7.0
+	github.com/google/osv-scanner/v2 v2.7.1
 	github.com/hashicorp/go-version v1.9.0
 	github.com/jarcoal/httpmock v1.4.2
 	github.com/magefile/mage v1.17.2
@@ -100,7 +100,7 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.22.1 // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
-	github.com/google/osv-scalibr v0.5.4-0.20261020040517-e0b5fafee9c0 // indirect
+	github.com/google/osv-scalibr v0.5.4-0.20261105012210-c80efcc25cd9 // indirect
 	github.com/google/s2a-go v0.1.11 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.24 // indirect
@@ -157,7 +157,6 @@ require (
 	github.com/spdx/gordf v0.0.0-20250128162952-000978ccd6fb // indirect
 	github.com/spdx/tools-golang v0.5.7 // indirect
 	github.com/standard-webhooks/standard-webhooks/libraries v0.0.1 // indirect
-	github.com/thoas/go-funk v0.9.3 // indirect
 	github.com/tidwall/gjson v1.20.0 // indirect
 	github.com/tidwall/jsonc v0.3.3 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
@@ -205,7 +204,7 @@ require (
 	google.golang.org/genproto v0.0.0-20261026165753-2ffab32bce7e // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20261026165753-2ffab32bce7e // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20261026165753-2ffab32bce7e // indirect
-	google.golang.org/grpc v1.84.0 // indirect
+	google.golang.org/grpc v1.85.0 // indirect
 	gopkg.in/ini.v1 v1.67.3 // indirect
 	gopkg.in/neurosnap/sentences.v1 v1.0.7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
