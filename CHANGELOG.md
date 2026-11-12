@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.7...plugin-validator/v0.53.8) (2026-11-12)
+
+
+### 🔧 Chores
+
+* bump go to 1.27.4 ([#1126](https://github.com/grafana/plugin-validator/issues/1126)) ([299914b](https://github.com/grafana/plugin-validator/commit/299914bf8700463c8615f8dd4c5a47cef8ed602d))
+* **deps:** update peter-evans/create-pull-request action to v8.1.2 ([#1124](https://github.com/grafana/plugin-validator/issues/1124)) ([f6ea28b](https://github.com/grafana/plugin-validator/commit/f6ea28b5ac6ff3fc7845c002ec96e69ff7d49cd8))
+
 ## [0.53.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.6...plugin-validator/v0.53.7) (2026-11-12)
 
 
