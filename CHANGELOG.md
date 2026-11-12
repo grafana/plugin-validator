@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.53.7](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.6...plugin-validator/v0.53.7) (2026-11-12)
+
+
+### 🐛 Bug Fixes
+
+* **coderules:** detect os.ReadFile calls ([#1119](https://github.com/grafana/plugin-validator/issues/1119)) ([d470d34](https://github.com/grafana/plugin-validator/commit/d470d341f6faae94be6b52574d049a40097dde06))
+* **coderules:** flag dynamic environment variable names and Setenv calls ([#1112](https://github.com/grafana/plugin-validator/issues/1112)) ([69e5b85](https://github.com/grafana/plugin-validator/commit/69e5b8575f066e3e51385f39cc72f278d8d37e39))
+* **grafanadependency:** require matching nested constraints ([#1121](https://github.com/grafana/plugin-validator/issues/1121)) ([8208fd7](https://github.com/grafana/plugin-validator/commit/8208fd7d7de31c626a49950b90296a93874cd847))
+* **runner:** skip analyzers whose rules are all disabled ([#1113](https://github.com/grafana/plugin-validator/issues/1113)) ([169aff0](https://github.com/grafana/plugin-validator/commit/169aff0d18ac2a1788f0b54bf271596eee305bc7))
+* **security/unknown/:** update module golang.org/x/crypto to v0.59.0 [security] ([#1122](https://github.com/grafana/plugin-validator/issues/1122)) ([ab7abac](https://github.com/grafana/plugin-validator/commit/ab7abacfabb2b0840e9554cf5ab08b1b139cfef0))
+* **trackingscripts:** detect PostHog hosts ([#1120](https://github.com/grafana/plugin-validator/issues/1120)) ([2af140d](https://github.com/grafana/plugin-validator/commit/2af140daf44156fc7d1edf4ca94c35250079fc86))
+
+
+### 🔧 Chores
+
+* **deps:** update golang docker tag to v1.27.4 [security] ([#1114](https://github.com/grafana/plugin-validator/issues/1114)) ([a4e31e6](https://github.com/grafana/plugin-validator/commit/a4e31e66ba83373845e3018a8b1b150581e439d5))
+* **deps:** update module github.com/google/osv-scanner/v2 to v2.7.1 ([#1123](https://github.com/grafana/plugin-validator/issues/1123)) ([027d8b3](https://github.com/grafana/plugin-validator/commit/027d8b3feacf28ab4c67a0cae9d8f35c0ad2507c))
+
 ## [0.53.6](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.5...plugin-validator/v0.53.6) (2026-11-10)
 
 
