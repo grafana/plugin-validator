@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.53.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.8...plugin-validator/v0.53.9) (2026-11-16)
+
+
+### 🐛 Bug Fixes
+
+* **plugindocs:** bump plugin-docs-cli to 1.0.0 ([#1134](https://github.com/grafana/plugin-validator/issues/1134)) ([c2db632](https://github.com/grafana/plugin-validator/commit/c2db632b290bcbd9f72569b05d328c7c43c83b76))
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.275 ([#1128](https://github.com/grafana/plugin-validator/issues/1128)) ([edb97b8](https://github.com/grafana/plugin-validator/commit/edb97b8d09bc28396ffbf5c5201bd9afa93d7b0f))
+* **deps:** update dependency @grafana/plugin-docs-cli to v0.15.0 ([#1132](https://github.com/grafana/plugin-validator/issues/1132)) ([8d0df64](https://github.com/grafana/plugin-validator/commit/8d0df64fa6645067aad062ad74b11e96cab19055))
+* **deps:** update dependency goreleaser/goreleaser to v2.20.2 ([#1129](https://github.com/grafana/plugin-validator/issues/1129)) ([474abac](https://github.com/grafana/plugin-validator/commit/474abacebd38ec7bd798b28b205c29835474910e))
+* **deps:** update dependency tar to v7.5.23 ([#1130](https://github.com/grafana/plugin-validator/issues/1130)) ([e6f4d74](https://github.com/grafana/plugin-validator/commit/e6f4d744d9bebbb97c4a3b420f5e922ab09fec2b))
+* **deps:** update golang:1.27.4-alpine docker digest to 70bd7dd [security] ([#1127](https://github.com/grafana/plugin-validator/issues/1127)) ([0cf157e](https://github.com/grafana/plugin-validator/commit/0cf157ef53cd81082bb268a7f8a9f3fe962e2e12))
+* **deps:** update module golang.org/x/mod to v0.43.0 ([#1135](https://github.com/grafana/plugin-validator/issues/1135)) ([86913dd](https://github.com/grafana/plugin-validator/commit/86913ddef8ea96e11b5fde15c110dbd91def5023))
+* **deps:** update peter-evans/create-pull-request action to v8.1.3 ([#1131](https://github.com/grafana/plugin-validator/issues/1131)) ([fd91577](https://github.com/grafana/plugin-validator/commit/fd9157726bfd0624262264056aae890fb6983208))
+
 ## [0.53.8](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.7...plugin-validator/v0.53.8) (2026-11-12)
 
 
