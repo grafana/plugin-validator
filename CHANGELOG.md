@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.11](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.10...plugin-validator/v0.53.11) (2026-11-17)
+
+
+### 🐛 Bug Fixes
+
+* **coderules:** upgrade semgrep to parse explicit generic instantiations ([#1138](https://github.com/grafana/plugin-validator/issues/1138)) ([8e742a5](https://github.com/grafana/plugin-validator/commit/8e742a5cab7a4b35ac1b4c0dc45fe0afb5ce1430))
+
 ## [0.53.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.9...plugin-validator/v0.53.10) (2026-11-17)
 
 
