@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.10](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.9...plugin-validator/v0.53.10) (2026-11-17)
+
+
+### 🔧 Chores
+
+* **deps:** update anthropics/claude-code-action action to v1.0.276 ([#1136](https://github.com/grafana/plugin-validator/issues/1136)) ([207eb61](https://github.com/grafana/plugin-validator/commit/207eb6144825268e4b0d693417a9c620bf1cfd07))
+
 ## [0.53.9](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.8...plugin-validator/v0.53.9) (2026-11-16)
 
 
