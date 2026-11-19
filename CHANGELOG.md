@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.12](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.11...plugin-validator/v0.53.12) (2026-11-19)
+
+
+### 🔧 Chores
+
+* update Grafana plugin schema ([#1107](https://github.com/grafana/plugin-validator/issues/1107)) ([2e24d59](https://github.com/grafana/plugin-validator/commit/2e24d599be3223e22782cd56f28be04b8d3d3e39))
+
 ## [0.53.11](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.10...plugin-validator/v0.53.11) (2026-11-17)
 
 
