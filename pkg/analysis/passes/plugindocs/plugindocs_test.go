@@ -22,6 +22,84 @@ func TestRuleForSeverity(t *testing.T) {
 	require.Equal(t, pluginDocsWarning, ruleForSeverity(""))
 }
 
+func TestReportResult(t *testing.T) {
+	type reported struct {
+		name     string
+		severity analysis.Severity
+		title    string
+	}
+
+	reportAll := pluginDocsValid.ReportAll
+	t.Cleanup(func() { pluginDocsValid.ReportAll = reportAll })
+
+	validOk := reported{"plugin-docs-valid", analysis.OK, "Plugin docs: validated, no issues found"}
+
+	for _, tc := range []struct {
+		name      string
+		reportAll bool
+		result    cliResult
+		want      []reported
+	}{
+		{
+			name:      "clean run reports ok when reportAll is on",
+			reportAll: true,
+			result:    cliResult{Valid: true},
+			want:      []reported{validOk},
+		},
+		{
+			name:   "clean run reports nothing when reportAll is off",
+			result: cliResult{Valid: true},
+		},
+		{
+			name:      "invalid result without diagnostics does not report ok",
+			reportAll: true,
+			result:    cliResult{Valid: false},
+		},
+		{
+			name:      "diagnostics are reported without the ok result",
+			reportAll: true,
+			result: cliResult{
+				Valid: false,
+				Diagnostics: []cliDiagnostic{
+					{Rule: "no-script-tags", Severity: "error", Title: "Script tag found", File: "docs/index.md", Line: 12},
+					{Rule: "has-markdown-files", Severity: "info", Title: "No markdown files found", File: "docs/"},
+				},
+			},
+			want: []reported{
+				{"plugin-docs-error", analysis.Error, "[no-script-tags] Script tag found (docs/index.md:12)"},
+				{"plugin-docs-info", analysis.Recommendation, "[has-markdown-files] No markdown files found (docs/)"},
+			},
+		},
+		{
+			name:      "valid result with warnings does not report ok",
+			reportAll: true,
+			result: cliResult{
+				Valid:       true,
+				Diagnostics: []cliDiagnostic{{Rule: "style-drop-down", Severity: "warning", Title: "Style issue"}},
+			},
+			want: []reported{{"plugin-docs-warning", analysis.Warning, "[style-drop-down] Style issue"}},
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			pluginDocsValid.ReportAll = tc.reportAll
+
+			var interceptor testpassinterceptor.TestPassInterceptor
+			pass := &analysis.Pass{
+				AnalyzerName: Analyzer.Name,
+				Report:       interceptor.ReportInterceptor(),
+			}
+
+			reportResult(pass, tc.result)
+
+			var got []reported
+			for _, d := range interceptor.Diagnostics {
+				got = append(got, reported{d.Name, d.Severity, d.Title})
+			}
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
 func TestFormatTitle(t *testing.T) {
 	tests := []struct {
 		name string
