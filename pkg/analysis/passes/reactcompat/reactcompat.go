@@ -20,7 +20,7 @@ import (
 const (
 	// reactDetectVersion is the pinned version of @grafana/react-detect.
 	// Bump intentionally when adopting new detection rules.
-	reactDetectVersion = "0.6.4"
+	reactDetectVersion = "0.8.1"
 	// Limit each react-detect result so downstream payloads remain bounded.
 	maxReportBytes                = 32 * 1024
 	maxSummaryDiagnosticBytes     = 1024
