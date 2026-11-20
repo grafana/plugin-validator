@@ -77,6 +77,10 @@ var (
 		Name:     "plugin-docs-cli-failure",
 		Severity: analysis.Warning,
 	}
+	pluginDocsValid = &analysis.Rule{
+		Name:     "plugin-docs-valid",
+		Severity: analysis.OK,
+	}
 )
 
 var Analyzer = &analysis.Analyzer{
@@ -88,6 +92,7 @@ var Analyzer = &analysis.Analyzer{
 		pluginDocsWarning,
 		pluginDocsInfo,
 		pluginDocsCliFailure,
+		pluginDocsValid,
 	},
 	ReadmeInfo: analysis.ReadmeInfo{
 		Name:         "Plugin Docs",
@@ -161,6 +166,12 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		return nil, nil
 	}
 
+	reportResult(pass, result)
+
+	return nil, nil
+}
+
+func reportResult(pass *analysis.Pass, result cliResult) {
 	for _, d := range result.Diagnostics {
 		rule := ruleForSeverity(d.Severity)
 		pass.ReportResult(
@@ -171,7 +182,14 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		)
 	}
 
-	return nil, nil
+	if result.Valid && len(result.Diagnostics) == 0 && pluginDocsValid.ReportAll {
+		pass.ReportResult(
+			pass.AnalyzerName,
+			pluginDocsValid,
+			"Plugin docs: validated, no issues found",
+			"",
+		)
+	}
 }
 
 func ruleForSeverity(severity string) *analysis.Rule {
