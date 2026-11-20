@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.54.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.12...plugin-validator/v0.54.0) (2026-11-20)
+
+
+### 🎉 Features
+
+* **plugindocs:** report an ok result when docs validate cleanly ([#1142](https://github.com/grafana/plugin-validator/issues/1142)) ([c45f866](https://github.com/grafana/plugin-validator/commit/c45f86625b7303b8e8a9cb4695958963f3a5157a))
+
 ## [0.53.12](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.11...plugin-validator/v0.53.12) (2026-11-19)
 
 
