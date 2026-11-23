@@ -5,7 +5,7 @@ ARG GOLANGCI_LINT_SHA256=ab90aeb7b066f92a33415b638a50fe5344bbb75a0d32ad30cc248d8
 # renovate: datasource=github-releases depName=securego/gosec
 ARG GOSEC_VERSION=v2.30.0
 # renovate: datasource=pypi depName=semgrep
-ARG SEMGREP_VERSION=1.185.0
+ARG SEMGREP_VERSION=1.186.0
 
 FROM golang:1.27.4-alpine@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 AS go-base
 
