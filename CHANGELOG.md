@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.54.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.54.0...plugin-validator/v0.54.1) (2026-11-23)
+
+
+### 🐛 Bug Fixes
+
+* **reactcompat:** bump react-detect to 0.8.1 ([#1140](https://github.com/grafana/plugin-validator/issues/1140)) ([b5fce57](https://github.com/grafana/plugin-validator/commit/b5fce575dfa226490e211ca07e4363b90329de21))
+
 ## [0.54.0](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.53.12...plugin-validator/v0.54.0) (2026-11-20)
 
 
