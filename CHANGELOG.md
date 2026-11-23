@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.54.2](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.54.1...plugin-validator/v0.54.2) (2026-11-23)
+
+
+### 🔧 Chores
+
+* **deps:** update actions/setup-go action to v7.1.0 ([#1149](https://github.com/grafana/plugin-validator/issues/1149)) ([f908e99](https://github.com/grafana/plugin-validator/commit/f908e998fdd1ef34b3dedbf162645d8fc27a9933))
+* **deps:** update actions/setup-go digest to d8cbb80 ([#1145](https://github.com/grafana/plugin-validator/issues/1145)) ([9e7d65f](https://github.com/grafana/plugin-validator/commit/9e7d65fd25a2edca9b0b8d667bccb0a344fb32ab))
+* **deps:** update anthropics/claude-code-action action to v1.0.284 ([#1146](https://github.com/grafana/plugin-validator/issues/1146)) ([bd577d3](https://github.com/grafana/plugin-validator/commit/bd577d3d6fd8e1b355a38b0f2c367d3ceb3ed87b))
+* **deps:** update dependency goreleaser/goreleaser to v2.20.3 ([#1147](https://github.com/grafana/plugin-validator/issues/1147)) ([d19682b](https://github.com/grafana/plugin-validator/commit/d19682b69039571e6e3cd9f2b366320ac10c11af))
+* **deps:** update dependency semgrep to v1.186.0 ([#1150](https://github.com/grafana/plugin-validator/issues/1150)) ([4ec960a](https://github.com/grafana/plugin-validator/commit/4ec960a72a5a66ac4728bc8eacc3b7f0b5ec1ad0))
+* **deps:** update module github.com/mattn/go-shellwords to v1.0.17 ([#1148](https://github.com/grafana/plugin-validator/issues/1148)) ([f3c3f4a](https://github.com/grafana/plugin-validator/commit/f3c3f4afeb3adbd721cda887bef970e34bd4998a))
+
 ## [0.54.1](https://github.com/grafana/plugin-validator/compare/plugin-validator/v0.54.0...plugin-validator/v0.54.1) (2026-11-23)
 
 
