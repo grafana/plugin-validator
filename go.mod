@@ -189,15 +189,15 @@ require (
 	go.yaml.in/yaml/v4 v4.0.0-rc.7 // indirect
 	golang.org/x/crypto v0.59.0 // indirect
 	golang.org/x/exp v0.0.0-20261014143641-f0251eb4aa3e // indirect
-	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
 	golang.org/x/oauth2 v0.37.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
-	golang.org/x/telemetry v0.0.0-20261021172232-6cd571d43fbb // indirect
+	golang.org/x/telemetry v0.0.0-20261116191925-e77a43154acb // indirect
 	golang.org/x/text v0.44.0 // indirect
 	golang.org/x/time v0.16.0 // indirect
-	golang.org/x/tools v0.52.0 // indirect
-	golang.org/x/vuln v1.9.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
+	golang.org/x/vuln v1.10.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	gonum.org/v1/gonum v0.17.0 // indirect
 	google.golang.org/api v0.304.0 // indirect
