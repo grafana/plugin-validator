@@ -20,9 +20,6 @@ import (
 //go:embed semgrep-rules.yaml
 var semgrepRules string
 
-// Semgrep sizes its job pool from the visible CPUs. In a container without a CPU limit that is
-// every node core, so the jobs oversubscribe the CPU the container actually gets and slow files
-// exceed the per-rule timeout.
 const semgrepJobsEnv = "PLUGIN_VALIDATOR_SEMGREP_JOBS"
 
 var (
