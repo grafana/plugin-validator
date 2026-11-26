@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/grafana/plugin-validator/pkg/analysis"
@@ -18,6 +19,8 @@ import (
 
 //go:embed semgrep-rules.yaml
 var semgrepRules string
+
+const semgrepJobsEnv = "PLUGIN_VALIDATOR_SEMGREP_JOBS"
 
 var (
 	codeRulesViolationError = &analysis.Rule{
@@ -117,6 +120,12 @@ func run(pass *analysis.Pass) (any, error) {
 
 	logme.DebugFln("semgrep path: %s", semgrepPath)
 
+	jobsArgs, err := semgrepJobsArgs()
+	if err != nil {
+		pass.ReportIncomplete("Invalid Semgrep configuration: " + err.Error())
+		return nil, nil
+	}
+
 	semgrepRulesPath, cleanup, err := getSemgrepRulesPath()
 	if err != nil {
 		pass.ReportIncomplete("Could not prepare Semgrep rules: " + err.Error())
@@ -136,8 +145,9 @@ func run(pass *analysis.Pass) (any, error) {
 		"--disable-nosem",
 		"--config",
 		semgrepRulesPath,
-		sourceCodeDir,
 	}
+	semGrepArgs = append(semGrepArgs, jobsArgs...)
+	semGrepArgs = append(semGrepArgs, sourceCodeDir)
 	logme.DebugFln("semgrep args: %v", semGrepArgs)
 	cmd := exec.Command(semgrepPath, semGrepArgs...)
 	out, err := scanprocess.Output(cmd)
@@ -236,6 +246,20 @@ func run(pass *analysis.Pass) (any, error) {
 	// no need to return anything
 	return nil, nil
 
+}
+
+func semgrepJobsArgs() ([]string, error) {
+	value := os.Getenv(semgrepJobsEnv)
+	if value == "" {
+		return nil, nil
+	}
+
+	jobs, err := strconv.Atoi(value)
+	if err != nil || jobs < 1 {
+		return nil, fmt.Errorf("%s must be a positive integer, got %q", semgrepJobsEnv, value)
+	}
+
+	return []string{"--jobs", strconv.Itoa(jobs)}, nil
 }
 
 func getSemgrepPath() (string, error) {
