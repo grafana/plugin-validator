@@ -15,7 +15,7 @@ require (
 	github.com/magefile/mage v1.17.2
 	github.com/mattn/go-shellwords v1.0.17
 	github.com/modelcontextprotocol/go-sdk v1.8.0
-	github.com/openai/openai-go v1.12.0
+	github.com/openai/openai-go/v3 v3.107.0
 	github.com/ossf/osv-schema/bindings/go v0.0.0-20261105212355-7e336cc6dabe
 	github.com/r3labs/diff/v3 v3.0.2
 	github.com/smartystreets/goconvey v1.8.1
@@ -62,6 +62,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/cloudflare/circl v1.6.5 // indirect
+	github.com/coder/websocket v1.8.15 // indirect
 	github.com/compose-spec/compose-go/v2 v2.16.2 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -157,7 +158,7 @@ require (
 	github.com/spdx/gordf v0.0.0-20250128162952-000978ccd6fb // indirect
 	github.com/spdx/tools-golang v0.5.7 // indirect
 	github.com/standard-webhooks/standard-webhooks/libraries v0.0.1 // indirect
-	github.com/tidwall/gjson v1.20.0 // indirect
+	github.com/tidwall/gjson v1.20.1 // indirect
 	github.com/tidwall/jsonc v0.3.3 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.2 // indirect
